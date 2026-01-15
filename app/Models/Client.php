@@ -1,0 +1,75 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Client extends Model
+{
+    use HasFactory, SoftDeletes;
+
+    protected $fillable = [
+        'user_id',
+        'name',
+        'phone',
+        'birth_date',
+        'email',
+        'no_show_count',
+        'is_blacklisted',
+        'blacklist_reason',
+    ];
+
+    protected $casts = [
+        'birth_date' => 'date',
+        'is_blacklisted' => 'boolean',
+        'no_show_count' => 'integer',
+    ];
+
+    protected $dates = [
+        'deleted_at',
+    ];
+
+    // Relations
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function bookingRequests()
+    {
+        return $this->hasMany(BookingRequest::class);
+    }
+
+    public function appointments()
+    {
+        return $this->hasMany(Appointment::class);
+    }
+
+    // Scopes
+    public function scopeNotBlacklisted($query)
+    {
+        return $query->where('is_blacklisted', false);
+    }
+
+    public function scopeWithNoShowCount($query, $count = 1)
+    {
+        return $query->where('no_show_count', '>=', $count);
+    }
+
+    public function incrementNoShow()
+    {
+        $this->increment('no_show_count');
+
+        // Blacklist automatique après 3 no-shows
+        if ($this->no_show_count >= 3) {
+            $this->update([
+                'is_blacklisted' => true,
+                'blacklist_reason' => 'Automatically blacklisted after 3 no-shows'
+            ]);
+        }
+
+        return $this;
+    }
+}
