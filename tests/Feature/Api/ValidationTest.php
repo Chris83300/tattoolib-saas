@@ -59,15 +59,6 @@ test('api validates date format', function () {
         'estimated_budget' => 500,
     ]);
 
-    echo "=== DEBUG COMPLET ===\n";
-    echo "Status: " . $response->status() . "\n";
-    echo "Response JSON:\n";
-    echo json_encode($response->json(), JSON_PRETTY_PRINT) . "\n";
-    echo "Expected validation errors: preferred_days\n";
-    echo "Actual validation errors:\n";
-    print_r($response->json('errors') ?: []);
-    echo "=== FIN DEBUG ===\n";
-
     $response->assertStatus(422)
         ->assertJsonValidationErrors(['preferred_days.0']);
 });
@@ -148,7 +139,35 @@ test('api validates enum values', function () {
 
 // Tests de limites de taux (rate limiting)
 test('api implements rate limiting', function () {
-    $this->markTestSkipped('Rate limiting à implémenter');
+    $user = User::factory()->create();
+    $client = Client::factory()->create(['user_id' => $user->id]);
+    actingAs($user, 'sanctum');
+
+    $tattooer = Tattooer::factory()->verified()->create();
+
+    // Envoyer 61 requêtes (limite configurée à 60/minute)
+    $responses = collect();
+    for ($i = 0; $i < 61; $i++) {
+        $responses->push(postJson('/api/booking-requests', [
+            'tattooer_id' => $tattooer->id,
+            'tattoo_size' => 'medium',
+            'body_zone' => 'arm',
+            'description' => 'Description valide de plus de 20 caractères pour le test ' . $i,
+            // Envoyer des données invalides pour forcer la validation 422
+            'preferred_days' => ['invalid-day-' . $i],
+        ]));
+    }
+
+    // Les 60 premières devraient échouer en validation (422) mais rate limit OK
+    for ($i = 0; $i < 60; $i++) {
+        $responses->get($i)->assertStatus(422);
+    }
+
+    // La 61ème devrait être bloquée par rate limiting
+    $responses->get(60)->assertStatus(429)
+        ->assertJson([
+            'message' => 'Too Many Attempts.',
+        ]);
 });
 
 // Tests d'autorisation
@@ -196,7 +215,46 @@ test('api validates foreign key constraints', function () {
 
 // Tests de validation des formats JSON
 test('api validates json structure', function () {
-    $this->markTestSkipped('Test complexe à implémenter correctement');
+    $user = User::factory()->create();
+    $client = Client::factory()->create(['user_id' => $user->id]);
+    actingAs($user, 'sanctum');
+
+    $tattooer = Tattooer::factory()->verified()->create();
+
+    // Test avec structure JSON incorrecte (champs manquants)
+    $response2 = postJson('/api/booking-requests', [
+        'tattooer_id' => $tattooer->id,
+        // Manque: tattoo_size, body_zone, description
+    ]);
+
+    $response2->assertStatus(422)
+        ->assertJsonValidationErrors(['tattoo_size', 'body_zone', 'description']);
+
+    // Test avec types de données incorrects dans JSON
+    $response3 = postJson('/api/booking-requests', [
+        'tattooer_id' => 'not-a-number', // Devrait être un nombre
+        'tattoo_size' => 123, // Devrait être une chaîne
+        'body_zone' => ['array', 'instead', 'of', 'string'], // Devrait être une chaîne
+        'description' => 'Description valide de plus de 20 caractères',
+        'preferred_days' => 'not-an-array', // Devrait être un tableau
+        'estimated_budget' => 'not-a-number', // Devrait être un nombre
+    ]);
+
+    $response3->assertStatus(422)
+        ->assertJsonValidationErrors(['tattooer_id', 'tattoo_size', 'body_zone', 'preferred_days', 'estimated_budget']);
+
+    // Test avec JSON contenant des valeurs invalides
+    $response4 = postJson('/api/booking-requests', [
+        'tattooer_id' => $tattooer->id,
+        'tattoo_size' => 'medium',
+        'body_zone' => 'arm',
+        'description' => 'Description valide de plus de 20 caractères',
+        'preferred_days' => ['invalid-day'], // Valeur invalide dans l'array
+        'estimated_budget' => 500,
+    ]);
+
+    $response4->assertStatus(422)
+        ->assertJsonValidationErrors(['preferred_days.0']);
 });
 
 // Tests de validation des longueurs
