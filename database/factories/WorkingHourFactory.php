@@ -16,11 +16,12 @@ class WorkingHourFactory extends Factory
             'tattooer_id' => Tattooer::factory(),
             'day_of_week' => $this->faker->numberBetween(0, 6), // 0 = Dimanche, 6 = Samedi
             'is_open' => $this->faker->boolean(80), // 80% de chance d'être ouvert
-            'opening_time' => $this->faker->time('H:i'),
-            'closing_time' => $this->faker->time('H:i'),
-            'is_break' => false,
+            'start_time' => $this->faker->time('H:i'),
+            'end_time' => $this->faker->time('H:i'),
             'break_start' => null,
             'break_end' => null,
+            'slot_duration_minutes' => 60,
+            'buffer_time_minutes' => 15,
         ];
     }
 
@@ -60,8 +61,8 @@ class WorkingHourFactory extends Factory
     public function standardHours()
     {
         return $this->state(fn (array $attributes) => [
-            'opening_time' => '09:00',
-            'closing_time' => '18:00',
+            'start_time' => '09:00',
+            'end_time' => '18:00',
         ]);
     }
 
@@ -71,8 +72,8 @@ class WorkingHourFactory extends Factory
     public function weekendHours()
     {
         return $this->state(fn (array $attributes) => [
-            'opening_time' => '10:00',
-            'closing_time' => '17:00',
+            'start_time' => '10:00',
+            'end_time' => '17:00',
         ]);
     }
 }

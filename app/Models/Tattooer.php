@@ -173,4 +173,18 @@ class Tattooer extends Model implements HasMedia
 
         return "{$this->address}, {$this->postal_code} {$this->city}";
     }
+
+    /**
+     * Retourne le taux de TVA selon le pays
+     */
+    public function getTaxRate(): float
+    {
+        // Exemple: France = 20%, Belgique = 21%, etc.
+        // À adapter selon vos besoins
+        return match($this->country) {
+            'FR' => 20.0,
+            'BE' => 21.0,
+            default => 0.0,
+        };
+    }
 }

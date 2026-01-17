@@ -12,9 +12,8 @@ class ConversationFactory extends Factory
     public function definition()
     {
         return [
-            'title' => $this->faker->optional()->sentence,
-            'is_archived' => false,
-            'is_muted' => false,
+            'subject' => $this->faker->optional()->sentence,
+            'status' => 'active',
             'last_message_at' => $this->faker->optional()->dateTime,
         ];
     }
@@ -22,14 +21,14 @@ class ConversationFactory extends Factory
     public function archived()
     {
         return $this->state(fn (array $attributes) => [
-            'is_archived' => true,
+            'status' => 'archived',
         ]);
     }
 
     public function muted()
     {
         return $this->state(fn (array $attributes) => [
-            'is_muted' => true,
+            'status' => 'blocked',
         ]);
     }
 }

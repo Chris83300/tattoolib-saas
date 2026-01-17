@@ -18,8 +18,9 @@ class AppointmentFactory extends Factory
             'booking_request_id' => BookingRequest::factory(),
             'client_id' => Client::factory(),
             'tattooer_id' => Tattooer::factory(),
-            'opening_time' => $this->faker->dateTimeBetween('+1 week', '+1 month'),
-            'closing_time' => $this->faker->dateTimeBetween('+1 week', '+1 month'),
+            'start_time' => '2026-01-15 10:00',
+            'end_time' => '2026-01-15 12:00',
+            'appointment_date' => '2026-01-15',
             'duration_minutes' => $this->faker->numberBetween(60, 240), // minutes
             'total_price' => $this->faker->numberBetween(100, 800),
             'deposit_amount' => $this->faker->numberBetween(20, 200),

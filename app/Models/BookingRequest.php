@@ -27,6 +27,8 @@ class BookingRequest extends Model
         'preferred_timeframe',
         'preferred_days',
         'date_notes',
+        'preferred_date',
+        'preferred_time_slot',
 
         // Montants
         'total_deposit_amount',
@@ -59,6 +61,16 @@ class BookingRequest extends Model
         // RDV
         'appointment_datetime',
         'appointment_duration_minutes',
+
+        // Champs ajoutés pour l'acceptation
+        'scheduled_date',
+        'scheduled_start_time',
+        'scheduled_end_time',
+        'scheduled_duration_minutes',
+        'total_price',
+        'deposit_rate',
+        'deposit_deadline_hours',
+        'accepted_at',
     ];
 
     protected $casts = [
@@ -303,8 +315,8 @@ class BookingRequest extends Model
             'booking_request_id' => $this->id,
             'tattooer_id' => $this->tattooer_id,
             'client_id' => $this->client_id,
-            'opening_time' => $this->appointment_datetime,
-            'closing_time' => $this->appointment_datetime->copy()->addMinutes($this->appointment_duration_minutes),
+            'start_time' => $this->appointment_datetime,
+            'end_time' => $this->appointment_datetime->copy()->addMinutes($this->appointment_duration_minutes),
             'duration_minutes' => $this->appointment_duration_minutes,
             'deposit_amount' => $this->total_deposit_amount,
             'total_price' => $this->estimated_total_price,

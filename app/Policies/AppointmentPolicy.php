@@ -53,6 +53,9 @@ class AppointmentPolicy
         if (!$appointment->isCancellable()) {
             return false;
         }
+        if ($user->isClient() && $appointment->client?->user_id === $user->id) {
+        return true;
+    }
 
         if ($user->isClient() && $appointment->client_id === $user->client->id) {
             return true;

@@ -191,8 +191,8 @@ class TattooerController extends Controller
                 $availableDates[] = [
                     'date' => $date->toDateString(),
                     'day_name' => $weekDays[$dayOfWeek],
-                    'opening_time' => $workingHour->opening_time,
-                    'closing_time' => $workingHour->closing_time,
+                    'start_time' => $workingHour->start_time,
+                    'end_time' => $workingHour->end_time,
                     'has_break' => $workingHour->is_break,
                     'break_start' => $workingHour->break_start,
                     'break_end' => $workingHour->break_end,
@@ -208,8 +208,8 @@ class TattooerController extends Controller
             if ($workingHour && $workingHour->is_open) {
                 $formattedWorkingHours[$dayName] = [
                     'is_open' => true,
-                    'opening_time' => $workingHour->opening_time,
-                    'closing_time' => $workingHour->closing_time,
+                    'start_time' => $workingHour->start_time,
+                    'end_time' => $workingHour->end_time,
                     'has_break' => $workingHour->is_break,
                     'break_start' => $workingHour->break_start,
                     'break_end' => $workingHour->break_end,
@@ -256,8 +256,8 @@ class TattooerController extends Controller
         $validated = $request->validate([
             '*.day_of_week' => 'required|integer|between:0,6',
             '*.is_open' => 'required|boolean',
-            '*.opening_time' => 'required_if:*.is_open,true|date_format:H:i|nullable',
-            '*.closing_time' => 'required_if:*.is_open,true|date_format:H:i|after:*.opening_time|nullable',
+            '*.start_time' => 'required_if:*.is_open,true|date_format:H:i|nullable',
+            '*.end_time' => 'required_if:*.is_open,true|date_format:H:i|after:*.start_time|nullable',
             '*.is_break' => 'boolean',
             '*.break_start' => 'nullable|date_format:H:i',
             '*.break_end' => 'nullable|date_format:H:i',
@@ -288,8 +288,8 @@ class TattooerController extends Controller
 
         $validated = $request->validate([
             'is_open' => 'required|boolean',
-            'opening_time' => 'required_if:is_open,true|date_format:H:i|nullable',
-            'closing_time' => 'required_if:is_open,true|date_format:H:i|after:opening_time|nullable',
+            'start_time' => 'required_if:is_open,true|date_format:H:i|nullable',
+            'end_time' => 'required_if:is_open,true|date_format:H:i|after:start_time|nullable',
             'is_break' => 'boolean',
             'break_start' => 'nullable|date_format:H:i',
             'break_end' => 'nullable|date_format:H:i',

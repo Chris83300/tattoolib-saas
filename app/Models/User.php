@@ -22,6 +22,7 @@ class User extends Authenticatable
         HasRoles; // ✅ Spatie Permissions
 
     protected $fillable = [
+        'id',
         'name',
         'email',
         'password',

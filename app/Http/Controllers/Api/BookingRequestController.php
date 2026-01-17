@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreBookingRequestRequest;
 use App\Models\BookingRequest;
+use App\Models\Availability;
 use App\Models\Tattooer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -62,19 +63,31 @@ class BookingRequestController extends Controller
     }
 
     /**
-     * Créer une nouvelle demande de réservation
+     * ⭐ Client demande un RDV (avec préférence date/horaire)
      */
-    public function store(StoreBookingRequestRequest $request)
+    public function store(Request $request)
     {
         $user = $request->user();
 
         if (!$user->isClient()) {
-            return response()->json([
-                'message' => 'Seuls les clients peuvent créer des demandes'
-            ], 403);
+            return response()->json(['message' => 'Accès réservé aux clients'], 403);
         }
 
-        $tattooer = Tattooer::findOrFail($request->tattooer_id);
+        $validated = $request->validate([
+            'tattooer_id' => 'required|exists:tattooers,id',
+            'tattoo_size' => 'required|string',
+            'body_zone' => 'required|string',
+            'description' => 'required|string',
+
+            // ⭐ NOUVEAU : Préférences date/horaire
+            'preferred_date' => 'nullable|date|after_or_equal:today',
+            'preferred_time_slot' => 'nullable|in:morning,afternoon,evening,anytime',
+            'preferred_time_notes' => 'nullable|string|max:500',
+
+            'estimated_budget' => 'nullable|numeric|min:0',
+        ]);
+
+        $tattooer = Tattooer::findOrFail($validated['tattooer_id']);
 
         // Vérifier que le client n'est pas blacklisté
         if ($user->client->is_blacklisted) {
@@ -91,17 +104,30 @@ class BookingRequestController extends Controller
             ], 422);
         }
 
-        // Créer la demande
+        // ⭐ Vérifier que la date demandée a de la disponibilité
+        if (isset($validated['preferred_date'])) {
+            $hasAvailability = Availability::hasAvailabilityOnDate(
+                $validated['tattooer_id'],
+                $validated['preferred_date']
+            );
+
+            if (!$hasAvailability) {
+                return response()->json([
+                    'message' => 'Aucune disponibilité pour cette date'
+                ], 422);
+            }
+        }
+
         $bookingRequest = BookingRequest::create([
             'client_id' => $user->client->id,
-            'tattooer_id' => $tattooer->id,
-            'tattoo_size' => $request->tattoo_size,
-            'body_zone' => $request->body_zone,
-            'description' => $request->description,
-            'estimated_budget' => $request->estimated_budget,
-            'preferred_timeframe' => $request->preferred_timeframe,
-            'preferred_days' => $request->preferred_days,
-            'date_notes' => $request->date_notes,
+            'tattooer_id' => $validated['tattooer_id'],
+            'tattoo_size' => $validated['tattoo_size'],
+            'body_zone' => $validated['body_zone'],
+            'description' => $validated['description'],
+            'preferred_date' => $validated['preferred_date'] ?? null,
+            'preferred_time_slot' => $validated['preferred_time_slot'] ?? 'anytime',
+            'preferred_time_notes' => $validated['preferred_time_notes'] ?? null,
+            'estimated_budget' => $validated['estimated_budget'] ?? null,
             'status' => BookingRequest::STATUS_PENDING,
 
             // Valeurs par défaut du tatoueur
@@ -110,8 +136,6 @@ class BookingRequestController extends Controller
             'included_design_versions' => $tattooer->default_design_versions_included,
         ]);
 
-        // TODO: Event BookingRequestCreated pour notifier le tatoueur
-
         return response()->json([
             'message' => 'Demande envoyée avec succès',
             'booking_request' => $bookingRequest->load('tattooer.user'),
@@ -119,7 +143,7 @@ class BookingRequestController extends Controller
     }
 
     /**
-     * Accepter une demande (tatoueur)
+     * ⭐ Tatoueur accepte + fixe heure exacte
      */
     public function accept(Request $request, BookingRequest $bookingRequest)
     {
@@ -131,10 +155,54 @@ class BookingRequestController extends Controller
             ], 422);
         }
 
-        $bookingRequest->accept();
+        $validated = $request->validate([
+            'scheduled_date' => 'required|date|after_or_equal:today',
+            'scheduled_start_time' => 'required|date_format:H:i',
+            'scheduled_duration_minutes' => 'required|integer|min:30|max:480',
+            'total_price' => 'required|numeric|min:0',
+            'deposit_rate' => 'required|numeric|min:0|max:100',
+            'deposit_deadline_hours' => 'required|integer|min:24|max:720', // 1j à 30j
+        ]);
+
+        $scheduledEndTime = \Carbon\Carbon::createFromFormat('H:i', $validated['scheduled_start_time'])
+            ->addMinutes($validated['scheduled_duration_minutes'])
+            ->format('H:i');
+
+        // ⭐ Vérifier disponibilité créneau
+        $slots = Availability::getAvailableSlotsForDay(
+            $bookingRequest->tattooer_id,
+            $validated['scheduled_date']
+        );
+
+        $isAvailable = false;
+        foreach ($slots as $slot) {
+            if ($slot['start_time'] <= $validated['scheduled_start_time'] &&
+                $slot['end_time'] >= $scheduledEndTime) {
+                $isAvailable = true;
+                break;
+            }
+        }
+
+        if (!$isAvailable) {
+            return response()->json(['message' => 'Créneau non disponible'], 422);
+        }
+
+        $depositAmount = $validated['total_price'] * ($validated['deposit_rate'] / 100);
+        $depositDeadline = now()->addHours($validated['deposit_deadline_hours']);
+
+        $bookingRequest->update([
+            'status' => BookingRequest::STATUS_ACCEPTED,
+            'accepted_at' => now(),
+            'scheduled_start_time' => $validated['scheduled_start_time'],
+            'scheduled_end_time' => $scheduledEndTime,
+            'scheduled_duration_minutes' => $validated['scheduled_duration_minutes'],
+            'total_price' => $validated['total_price'],
+            'total_deposit_amount' => $depositAmount,
+            'deposit_deadline' => $depositDeadline,
+        ]);
 
         return response()->json([
-            'message' => 'Demande acceptée',
+            'message' => 'Demande acceptée. En attente du paiement de l\'acompte.',
             'booking_request' => $bookingRequest->fresh(['conversation']),
         ]);
     }
@@ -160,36 +228,57 @@ class BookingRequestController extends Controller
     }
 
     /**
-     * Demander l'acompte (tatoueur)
+     * ⭐ Client paie l'acompte → RDV confirmé
      */
-    public function requestDeposit(Request $request, BookingRequest $bookingRequest)
+    public function confirmDeposit(Request $request, BookingRequest $bookingRequest)
     {
-        Gate::authorize('requestDeposit', $bookingRequest);
+        $user = $request->user();
 
-        $request->validate([
-            'deposit_amount' => 'required|numeric|min:10',
-            'estimated_total_price' => 'required|numeric|min:0',
-            'deadline_days' => 'required|integer|min:1|max:30',
-        ]);
-
-        if ($bookingRequest->status !== BookingRequest::STATUS_ACCEPTED) {
-            return response()->json([
-                'message' => 'Vous devez d\'abord accepter la demande'
-            ], 422);
+        if (!$user->isClient() || $bookingRequest->client_id !== $user->client->id) {
+            return response()->json(['message' => 'Accès non autorisé'], 403);
         }
 
+        if ($bookingRequest->status !== BookingRequest::STATUS_ACCEPTED) {
+            return response()->json(['message' => 'Demande non acceptée'], 422);
+        }
+
+        if ($bookingRequest->deposit_deadline && now()->isAfter($bookingRequest->deposit_deadline)) {
+            return response()->json(['message' => 'Délai de paiement dépassé'], 422);
+        }
+
+        // TODO: Intégration Stripe ici
+        // Pour l'instant, on simule le paiement réussi
         $bookingRequest->update([
-            'estimated_total_price' => $request->estimated_total_price,
+            'status' => BookingRequest::STATUS_DEPOSIT_PAID,
+            'deposit_paid_at' => now(),
         ]);
 
-        $bookingRequest->requestDeposit(
-            $request->deposit_amount,
-            $request->deadline_days
-        );
+        return response()->json([
+            'message' => 'Acompte payé avec succès',
+            'booking_request' => $bookingRequest->fresh(),
+        ]);
+    }
+
+    /**
+     * ⭐ Vérifier les demandes expirées (job cron)
+     */
+    public function checkExpiredRequests()
+    {
+        $expiredRequests = BookingRequest::where('status', BookingRequest::STATUS_ACCEPTED)
+            ->where('deposit_deadline', '<', now())
+            ->whereNull('deposit_paid_at')
+            ->get();
+
+        foreach ($expiredRequests as $request) {
+            $request->update([
+                'status' => BookingRequest::STATUS_EXPIRED,
+                'expired_at' => now(),
+            ]);
+        }
 
         return response()->json([
-            'message' => 'Demande d\'acompte envoyée',
-            'booking_request' => $bookingRequest->fresh(),
+            'message' => 'Vérification terminée',
+            'expired_count' => $expiredRequests->count(),
         ]);
     }
 

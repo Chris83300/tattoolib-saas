@@ -17,8 +17,9 @@ class Appointment extends Model
         'client_id',
 
         // Date/heure
-        'opening_time',
-        'closing_time',
+        'start_time',
+        'end_time',
+        'appointment_date',
         'duration_minutes',
 
         // Montants
@@ -66,8 +67,9 @@ class Appointment extends Model
     ];
 
     protected $casts = [
-        'opening_time' => 'datetime',
-        'closing_time' => 'datetime',
+        'start_time' => 'datetime',
+        'end_time' => 'datetime',
+        'appointment_date' => 'date',
         'deposit_amount' => 'decimal:2',
         'total_price' => 'decimal:2',
         'remaining_amount' => 'decimal:2',
@@ -121,15 +123,15 @@ class Appointment extends Model
 
     public function scopeUpcoming($query)
     {
-        return $query->where('opening_time', '>', now())
+        return $query->where('start_time', '>', now())
             ->where('status', self::STATUS_CONFIRMED)
-            ->orderBy('opening_time');
+            ->orderBy('start_time');
     }
 
     public function scopePast($query)
     {
-        return $query->where('opening_time', '<', now())
-            ->orderBy('opening_time', 'desc');
+        return $query->where('start_time', '<', now())
+            ->orderBy('start_time', 'desc');
     }
 
     public function scopeCompleted($query)
@@ -149,7 +151,7 @@ class Appointment extends Model
 
     public function scopeRequiringConfirmation($query)
     {
-        return $query->where('opening_time', '<', now())
+        return $query->where('start_time', '<', now())
             ->where('status', self::STATUS_CONFIRMED)
             ->whereNull('tattooer_confirmation_status');
     }
@@ -210,7 +212,7 @@ class Appointment extends Model
      */
     public function cancel(string $cancelledBy, string $reason): void
     {
-        $daysBeforeAppointment = now()->diffInDays($this->opening_time, false);
+        $daysBeforeAppointment = now()->diffInDays($this->start_time, false);
 
         $this->update([
             'status' => self::STATUS_CANCELLED,
@@ -299,7 +301,7 @@ class Appointment extends Model
      */
     public function isPast(): bool
     {
-        return $this->opening_time->isPast();
+        return $this->start_time->isPast();
     }
 
     /**
@@ -318,7 +320,7 @@ class Appointment extends Model
     public function isCancellable(): bool
     {
         return in_array($this->status, [self::STATUS_CONFIRMED])
-            && $this->opening_time->isFuture();
+            && $this->start_time->isFuture();
     }
 
     /**
@@ -363,4 +365,27 @@ class Appointment extends Model
 
         // TODO: Notifier le client et le tatoueur
     }
+
+    // Consomation automatique lors du rdv
+    // public function consumeInventory(array $items): void
+    // {
+    //     foreach ($items as $item) {
+    //         $inventoryItem = InventoryItem::find($item['inventory_item_id']);
+
+    //         if ($inventoryItem) {
+    //             $inventoryItem->stockOut(
+    //                 $item['quantity'],
+    //                 InventoryMovement::REASON_USAGE,
+    //                 "Utilisé pour RDV #{$this->id}",
+    //                 $this->id
+    //             );
+    //         }
+    //     }
+    // }
+
+
+    // $appointment->consumeInventory([
+    //     ['inventory_item_id' => 1, 'quantity' => 2], // 2 aiguilles
+    //     ['inventory_item_id' => 5, 'quantity' => 10], // 10ml encre noire
+    // ]);
 }

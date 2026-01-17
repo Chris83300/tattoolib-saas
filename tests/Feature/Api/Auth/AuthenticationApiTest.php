@@ -10,11 +10,11 @@ use function Pest\Laravel\actingAs;
 // Tests d'inscription
 test('user can register with valid data', function () {
     $userData = [
-        'name' => 'Test User',
-        'email' => 'test@example.com',
-        'password' => 'password',
-        'password_confirmation' => 'password',
-        'role' => 'client' // Ajout du champ manquant
+        'name' => 'John Doe',
+        'email' => 'john@example.com',
+        'password' => 'password123',
+        'password_confirmation' => 'password123',
+        'role' => 'client'
     ];
 
     $response = postJson('/api/register', $userData);
@@ -27,11 +27,12 @@ test('user can register with valid data', function () {
                 'email',
                 'created_at'
             ],
-            'token'
+            'access_token',
+            'token_type'
         ]);
 
     // Vérifier que l'utilisateur existe en base
-    expect(DB::table('users')->where(['email' => 'test@example.com'])->exists())->toBeTrue();
+    expect(DB::table('users')->where(['email' => 'john@example.com'])->exists())->toBeTrue();
 });
 
 test('user cannot register with invalid email', function () {
@@ -70,9 +71,10 @@ test('user can login with correct credentials', function () {
     ]);
 
     $response->assertStatus(200);
-    // Simplifié pour correspondre à la structure réelle de votre API
+    // Corrigé pour correspondre à la structure réelle de votre API
     $response->assertJsonStructure([
-        'token', // Token présent
+        'access_token', // Token présent
+        'token_type', // Type de token
         'user' => [ // User dans un objet
             'id',
             'name',

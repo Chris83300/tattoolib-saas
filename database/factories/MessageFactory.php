@@ -15,25 +15,24 @@ class MessageFactory extends Factory
     {
         return [
             'conversation_id' => Conversation::factory(),
-            'user_id' => User::factory(),
+            'sender_id' => User::factory(),
+            'sender_type' => 'client',
             'content' => $this->faker->paragraph,
-            'type' => 'text',
-            'is_read' => false,
-            'read_at' => null,
+            'booking_request_id' => null,
         ];
     }
 
     public function text()
     {
         return $this->state(fn (array $attributes) => [
-            'type' => 'text',
+            'sender_type' => 'client',
         ]);
     }
 
     public function image()
     {
         return $this->state(fn (array $attributes) => [
-            'type' => 'image',
+            'attachment_type' => 'image',
             'content' => $this->faker->imageUrl(),
         ]);
     }
@@ -41,16 +40,8 @@ class MessageFactory extends Factory
     public function file()
     {
         return $this->state(fn (array $attributes) => [
-            'type' => 'file',
+            'attachment_type' => 'document',
             'content' => $this->faker->url,
-        ]);
-    }
-
-    public function read()
-    {
-        return $this->state(fn (array $attributes) => [
-            'is_read' => true,
-            'read_at' => $this->faker->dateTime,
         ]);
     }
 }

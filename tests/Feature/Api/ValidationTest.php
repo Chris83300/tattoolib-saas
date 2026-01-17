@@ -55,9 +55,18 @@ test('api validates date format', function () {
         'description' => 'Description valide de plus de 20 caractères',
         'tattoo_size' => 'medium',
         'body_zone' => 'arm',
-        'preferred_days' => 'invalid-date-format', // ✅ Devrait être un array
+        'preferred_days' => ['invalid-date-format'], // ✅ Array avec valeur invalide
         'estimated_budget' => 500,
     ]);
+
+    echo "=== DEBUG COMPLET ===\n";
+    echo "Status: " . $response->status() . "\n";
+    echo "Response JSON:\n";
+    echo json_encode($response->json(), JSON_PRETTY_PRINT) . "\n";
+    echo "Expected validation errors: preferred_days\n";
+    echo "Actual validation errors:\n";
+    print_r($response->json('errors') ?: []);
+    echo "=== FIN DEBUG ===\n";
 
     $response->assertStatus(422)
         ->assertJsonValidationErrors(['preferred_days']);

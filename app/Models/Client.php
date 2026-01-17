@@ -57,19 +57,4 @@ class Client extends Model
     {
         return $query->where('no_show_count', '>=', $count);
     }
-
-    public function incrementNoShow()
-    {
-        $this->increment('no_show_count');
-
-        // Blacklist automatique après 3 no-shows
-        if ($this->no_show_count >= 3) {
-            $this->update([
-                'is_blacklisted' => true,
-                'blacklist_reason' => 'Automatically blacklisted after 3 no-shows'
-            ]);
-        }
-
-        return $this;
-    }
 }

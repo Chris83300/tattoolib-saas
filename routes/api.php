@@ -2,11 +2,17 @@
 
 use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\Api\BookingRequestController;
+use App\Http\Controllers\Api\ClientCareSheetController;
 use App\Http\Controllers\Api\ConversationController;
 use App\Http\Controllers\Api\FCMController;
+use App\Http\Controllers\Api\InventoryController;
 use App\Http\Controllers\Api\MessageController;
+use App\Http\Controllers\Api\AccountingController;
 use App\Http\Controllers\Api\TattooerController;
+use App\Http\Controllers\Api\TattooerPlanningController;
+use App\Http\Controllers\Api\TraceabilityController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -43,7 +49,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 
     // ===== FCM TOKEN =====
-    Route::post('/fcm-token', [FCMController::class, 'store']);
+    Route::post('/fcm-token', [FcmController::class, 'store'])
+        ->middleware('auth:sanctum');
 
     // ===== CONVERSATIONS =====
     Route::prefix('conversations')->group(function () {
@@ -89,8 +96,11 @@ Route::middleware('auth:sanctum')->group(function () {
         // Actions du tatoueur
         Route::post('/{bookingRequest}/accept', [BookingRequestController::class, 'accept']);
         Route::post('/{bookingRequest}/reject', [BookingRequestController::class, 'reject']);
-        Route::post('/{bookingRequest}/request-deposit', [BookingRequestController::class, 'requestDeposit']);
+        Route::post('/{bookingRequest}/confirm-deposit', [BookingRequestController::class, 'confirmDeposit']);
         Route::post('/{bookingRequest}/send-design', [BookingRequestController::class, 'sendDesign']);
+
+        // Vérification des demandes expirées (cron)
+        Route::get('/check-expired', [BookingRequestController::class, 'checkExpiredRequests']);
 
         // Actions communes
         Route::post('/{bookingRequest}/confirm-appointment', [BookingRequestController::class, 'confirmAppointment']);
@@ -114,5 +124,93 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/{appointment}/report-issue', [AppointmentController::class, 'reportIssue']);
         Route::post('/{appointment}/cancel', [AppointmentController::class, 'cancel']);
         Route::post('/{appointment}/dispute-refund', [AppointmentController::class, 'disputeRefund']);
+    });
+
+    // ===== AVAILABILITIES & PLANNING =====
+    Route::prefix('availabilities')->group(function () {
+        Route::get('/', [AvailabilityController::class, 'index']);
+        Route::post('/', [AvailabilityController::class, 'store']);
+        Route::put('/{availability}', [AvailabilityController::class, 'update']);
+        Route::delete('/{availability}', [AvailabilityController::class, 'destroy']);
+        Route::post('/generate-from-working-hours', [AvailabilityController::class, 'generateFromWorkingHours']);
+        Route::get('/check', [AvailabilityController::class, 'checkAvailability']);
+    });
+
+    // ===== TATTOOER PLANNING (NOUVEAU) =====
+    Route::prefix('planning')->group(function () {
+        // Dashboard planning tatoueur
+        Route::get('/dashboard', [TattooerPlanningController::class, 'dashboard']);
+
+        // Gestion manuelle des créneaux
+        Route::post('/block-slot', [TattooerPlanningController::class, 'blockSlot']);
+        Route::post('/create-external-appointment', [TattooerPlanningController::class, 'createExternalAppointment']);
+        Route::delete('/release-slot/{availability}', [TattooerPlanningController::class, 'releaseSlot']);
+
+        // Consultation des disponibilités (pour clients)
+        Route::get('/tattooers/{tattooerId}/available-dates', [TattooerPlanningController::class, 'availableDates']);
+        Route::get('/tattooers/{tattooerId}/slots-for-date', [TattooerPlanningController::class, 'slotsForDate']);
+    });
+
+    // ===== CLIENT CARE SHEETS =====
+    Route::prefix('care-sheets')->group(function () {
+        Route::get('/', [ClientCareSheetController::class, 'index']);
+        Route::post('/', [ClientCareSheetController::class, 'store']);
+        Route::get('/my-sheets', [ClientCareSheetController::class, 'clientIndex']);
+        Route::get('/statistics', [ClientCareSheetController::class, 'statistics']);
+        Route::get('/{careSheet}', [ClientCareSheetController::class, 'show']);
+        Route::put('/{careSheet}', [ClientCareSheetController::class, 'update']);
+        Route::post('/{careSheet}/photos', [ClientCareSheetController::class, 'addPhoto']);
+        Route::post('/appointments/{appointment}/create', [ClientCareSheetController::class, 'createFromAppointment']);
+    });
+
+    // ===== INVENTORY =====
+    Route::prefix('inventory')->group(function () {
+        Route::get('/', [InventoryController::class, 'index']);
+        Route::post('/', [InventoryController::class, 'store']);
+        Route::get('/statistics', [InventoryController::class, 'statistics']);
+        Route::get('/alerts', [InventoryController::class, 'alerts']);
+        Route::get('/{item}', [InventoryController::class, 'show']);
+        Route::put('/{item}', [InventoryController::class, 'update']);
+        Route::post('/{item}/movement', [InventoryController::class, 'movement']);
+        Route::post('/{item}/adjust', [InventoryController::class, 'adjustStock']);
+        Route::get('/{item}/movements', [InventoryController::class, 'movements']);
+    });
+
+    // ===== ACCOUNTING =====
+    Route::prefix('accounting')->group(function () {
+        Route::get('/dashboard', [AccountingController::class, 'dashboard']);
+        Route::get('/report', [AccountingController::class, 'report']);
+        Route::get('/appointment-stats', [AccountingController::class, 'appointmentStats']);
+        Route::get('/export', [AccountingController::class, 'export']);
+
+        Route::prefix('transactions')->group(function () {
+            Route::get('/', [AccountingController::class, 'transactions']);
+            Route::post('/', [AccountingController::class, 'storeTransaction']);
+            Route::post('/{transaction}/mark-paid', [AccountingController::class, 'markAsPaid']);
+        });
+    });
+
+    // ===== TRACEABILITY (TATTOOER UNIQUMENT) =====
+    Route::prefix('traceability')->group(function () {
+        // Formulaires de consentement
+        Route::prefix('consent-forms')->group(function () {
+            Route::get('/', [TraceabilityController::class, 'consentForms']);
+            Route::post('/', [TraceabilityController::class, 'storeConsentForm']);
+            Route::post('/{consentForm}/verify', [TraceabilityController::class, 'verifyConsentForm']);
+            Route::post('/{consentForm}/parental-consent', [TraceabilityController::class, 'storeParentalConsent']);
+        });
+
+        // Enregistrements de tracabilité
+        Route::prefix('records')->group(function () {
+            Route::get('/', [TraceabilityController::class, 'traceabilityRecords']);
+            Route::post('/', [TraceabilityController::class, 'storeTraceabilityRecord']);
+            Route::post('/{record}/materials', [TraceabilityController::class, 'addMaterials']);
+            Route::post('/{record}/photos', [TraceabilityController::class, 'addPhotos']);
+            Route::post('/{record}/verify', [TraceabilityController::class, 'verifyTraceability']);
+            Route::get('/{record}/report', [TraceabilityController::class, 'generateReport']);
+        });
+
+        // Statistiques
+        Route::get('/statistics', [TraceabilityController::class, 'statistics']);
     });
 });

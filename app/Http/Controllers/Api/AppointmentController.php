@@ -18,7 +18,7 @@ class AppointmentController extends Controller
 
         $query = Appointment::query()
             ->with([
-                'client.user:id,name,email',
+                'client.user:id,name,email,phone',
                 'tattooer.user:id,name,email',
                 'bookingRequest:id,tattoo_size,body_zone,description'
             ]);
@@ -40,15 +40,15 @@ class AppointmentController extends Controller
         }
 
         if ($request->has('date_from')) {
-            $query->where('opening_time', '>=', $request->date_from);
+            $query->where('start_time', '>=', $request->date_from);
         }
 
         if ($request->has('date_to')) {
-            $query->where('opening_time', '<=', $request->date_to);
+            $query->where('start_time', '<=', $request->date_to);
         }
 
         $appointments = $query
-            ->orderBy('opening_time', 'asc')
+            ->orderBy('start_time', 'asc')
             ->paginate(20);
 
         return response()->json($appointments);
@@ -100,8 +100,8 @@ class AppointmentController extends Controller
 
         $query = Appointment::query()
             ->with([
-                'client.user:id,name',
-                'tattooer.user:id,name',
+                'client.user:id,name,email,phone',
+                'tattooer.user:id,name,email',
                 'bookingRequest:id,tattoo_size,body_zone'
             ])
             ->past(); // Utilise le scope défini dans le modèle
@@ -336,15 +336,15 @@ class AppointmentController extends Controller
             'month' => 'required|integer|min:1|max:12',
         ]);
 
-        $startOfMonth = now()->setYear($request->year)
-            ->setMonth($request->month)
+        $startOfMonth = now()->setYear((int)$request->year)
+            ->setMonth((int)$request->month)
             ->startOfMonth();
 
         $endOfMonth = $startOfMonth->copy()->endOfMonth();
 
         $query = Appointment::query()
             ->with(['client.user:id,name', 'tattooer.user:id,name', 'bookingRequest:id,tattoo_size'])
-            ->whereBetween('opening_time', [$startOfMonth, $endOfMonth])
+            ->whereBetween('start_time', [$startOfMonth, $endOfMonth])
             ->where('status', '!=', Appointment::STATUS_CANCELLED);
 
         if ($user->isClient()) {
@@ -357,11 +357,11 @@ class AppointmentController extends Controller
             ], 403);
         }
 
-        $appointments = $query->orderBy('opening_time')->get();
+        $appointments = $query->orderBy('start_time')->get();
 
         // Formater pour un calendrier
         $calendar = $appointments->groupBy(function ($appointment) {
-            return $appointment->opening_time->format('Y-m-d');
+            return $appointment->start_time->format('Y-m-d');
         });
 
         return response()->json([

@@ -19,8 +19,9 @@ return new class extends Migration
             $table->foreignId('client_id')->constrained('clients')->onDelete('cascade');
 
             // Date/heure
-            $table->time('opening_time');
-            $table->time('closing_time');
+            $table->datetime('start_time');
+            $table->datetime('end_time');
+            $table->date('appointment_date')->nullable();
             $table->integer('duration_minutes');
 
             // Montants
@@ -67,8 +68,8 @@ return new class extends Migration
             $table->boolean('requires_manual_review')->default(false);
 
             // Index
-            $table->index(['tattooer_id', 'opening_time']);
-            $table->index(['client_id', 'opening_time']);
+            $table->index(['tattooer_id', 'start_time']);
+            $table->index(['client_id', 'start_time']);
 
             $table->timestamps();
             $table->softDeletes();
