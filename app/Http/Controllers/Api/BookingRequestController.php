@@ -65,7 +65,7 @@ class BookingRequestController extends Controller
     /**
      * ⭐ Client demande un RDV (avec préférence date/horaire)
      */
-    public function store(Request $request)
+    public function store(StoreBookingRequestRequest $request)
     {
         $user = $request->user();
 
@@ -73,19 +73,7 @@ class BookingRequestController extends Controller
             return response()->json(['message' => 'Accès réservé aux clients'], 403);
         }
 
-        $validated = $request->validate([
-            'tattooer_id' => 'required|exists:tattooers,id',
-            'tattoo_size' => 'required|string',
-            'body_zone' => 'required|string',
-            'description' => 'required|string',
-
-            // ⭐ NOUVEAU : Préférences date/horaire
-            'preferred_date' => 'nullable|date|after_or_equal:today',
-            'preferred_time_slot' => 'nullable|in:morning,afternoon,evening,anytime',
-            'preferred_time_notes' => 'nullable|string|max:500',
-
-            'estimated_budget' => 'nullable|numeric|min:0',
-        ]);
+        $validated = $request->validated();
 
         $tattooer = Tattooer::findOrFail($validated['tattooer_id']);
 

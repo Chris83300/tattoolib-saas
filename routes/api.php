@@ -49,8 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 
     // ===== FCM TOKEN =====
-    Route::post('/fcm-token', [FcmController::class, 'store'])
-        ->middleware('auth:sanctum');
+    Route::post('/fcm-token', [FcmController::class, 'store']);
 
     // ===== CONVERSATIONS =====
     Route::prefix('conversations')->group(function () {

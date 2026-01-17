@@ -89,7 +89,7 @@ class BookingRequestWorkflowTest extends TestCase
             'tattooer_id' => $unavailableTattooer->id,
             'tattoo_size' => 'medium',
             'body_zone' => 'arm',
-            'description' => 'Test tatouage',
+            'description' => 'Description complète du projet de tatouage, bien détaillée.',
             'preferred_date' => now()->addDay()->format('Y-m-d'),
             'preferred_time_slot' => 'morning'
         ];
@@ -248,7 +248,7 @@ class BookingRequestWorkflowTest extends TestCase
             'tattooer_id' => $this->tattooer->id,
             'tattoo_size' => 'medium',
             'body_zone' => 'arm',
-            'description' => 'Tatouage fleur',
+            'description' => 'Tatouage fleur avec détails complets et une description suffisamment longue pour valider les critères de validation.',
             'preferred_date' => now()->addDays(7)->format('Y-m-d'),
             'preferred_time_slot' => 'afternoon'
         ];
@@ -326,7 +326,7 @@ class BookingRequestWorkflowTest extends TestCase
                 'tattooer_id' => $this->tattooer->id,
                 'tattoo_size' => 'medium',
                 'body_zone' => 'arm',
-                'description' => 'Test'
+                'description' => 'Description valide dépassant 20 caractères.',
             ]);
 
         $response->assertStatus(403);

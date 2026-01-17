@@ -69,7 +69,7 @@ test('api validates date format', function () {
     echo "=== FIN DEBUG ===\n";
 
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['preferred_days']);
+        ->assertJsonValidationErrors(['preferred_days.0']);
 });
 
 test('api validates numeric fields', function () {
