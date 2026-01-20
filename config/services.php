@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    'stripe' => [
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+        'default_deposit_amount' => env('STRIPE_DEFAULT_DEPOSIT_AMOUNT', 5000),
+        'default_deposit_percentage' => env('STRIPE_DEFAULT_DEPOSIT_PERCENTAGE', 30),
+    ],
+
 ];

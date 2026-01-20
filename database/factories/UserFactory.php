@@ -32,6 +32,9 @@ class UserFactory extends Factory
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
+            'timezone' => 'Europe/Paris',
+            'last_login_at' => null,
+            'is_active' => true,
         ];
     }
 

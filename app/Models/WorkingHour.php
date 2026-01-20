@@ -11,7 +11,8 @@ class WorkingHour extends Model
     use HasFactory;
 
     protected $fillable = [
-        'tattooer_id',
+        'owner_id',
+        'owner_type',
         'day_of_week',
         'is_open',
         'start_time',
@@ -44,16 +45,23 @@ class WorkingHour extends Model
 
     // ===== RELATIONS =====
 
-    public function tattooer(): BelongsTo
+    public function owner()
     {
-        return $this->belongsTo(Tattooer::class);
+        return $this->morphTo();
+    }
+
+    // Helper rétrocompatibilité
+    public function getTattooerAttribute()
+    {
+        return $this->owner;
     }
 
     // ===== SCOPES =====
 
     public function scopeForTattooer($query, int $tattooerId)
     {
-        return $query->where('tattooer_id', $tattooerId);
+        return $query->where('owner_id', $tattooerId)
+                   ->where('owner_type', 'App\\Models\\Tattooer');
     }
 
     public function scopeOpen($query)

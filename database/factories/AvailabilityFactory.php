@@ -3,7 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Availability;
-use App\Models\Tattooer;
+use App\Models\StudioArtist;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class AvailabilityFactory extends Factory
@@ -13,7 +13,8 @@ class AvailabilityFactory extends Factory
     public function definition()
     {
         return [
-            'tattooer_id' => Tattooer::factory(),
+            'owner_type' => StudioArtist::class,
+            'owner_id' => StudioArtist::factory(),
             'date' => $this->faker->dateTimeBetween('now', '+6 months')->format('Y-m-d'),
             'start_time' => $this->faker->time('H:i'),
             'end_time' => $this->faker->time('H:i', '18:00'),

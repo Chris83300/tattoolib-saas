@@ -13,6 +13,7 @@ class StudioFactory extends Factory
     {
         return [
             'name' => $this->faker->company . ' Tattoo Studio',
+            'slug' => \Illuminate\Support\Str::slug($this->faker->company . ' Tattoo Studio'),
             'user_id' => \App\Models\User::factory(),
             'description' => $this->faker->paragraph(2),
             'address' => $this->faker->streetAddress,

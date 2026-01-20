@@ -10,9 +10,11 @@ use App\Http\Controllers\Api\FCMController;
 use App\Http\Controllers\Api\InventoryController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\AccountingController;
+use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\TattooerController;
 use App\Http\Controllers\Api\TattooerPlanningController;
 use App\Http\Controllers\Api\TraceabilityController;
+use App\Http\Controllers\StripeWebhookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -72,7 +74,18 @@ Route::middleware('auth:sanctum')->group(function () {
     // ===== MESSAGES =====
     Route::get('/messages/{message}/download', [MessageController::class, 'downloadAttachment']);
 
-    // ===== TATTOOERS (Protected routes) =====
+});
+
+// ===== PAYMENTS (Protected routes) =====
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/bookings/{bookingRequest}/payment/deposit',
+        [PaymentController::class, 'createDepositPayment']);
+});
+
+// ===== WEBHOOKS (PAS d'auth, vérifié par signature) =====
+Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook']);
+
+// ===== TATTOOERS (Protected routes) =====
     Route::prefix('tattooers/{tattooer}')->group(function () {
         // Gestion du portfolio
         Route::post('/portfolio', [TattooerController::class, 'uploadPortfolioImage']);
@@ -107,6 +120,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Webhook Stripe (à protéger différemment en production)
         Route::post('/{bookingRequest}/mark-deposit-paid', [BookingRequestController::class, 'markDepositPaid']);
+
+
     });
 
     // ===== APPOINTMENTS =====
@@ -212,4 +227,3 @@ Route::middleware('auth:sanctum')->group(function () {
         // Statistiques
         Route::get('/statistics', [TraceabilityController::class, 'statistics']);
     });
-});

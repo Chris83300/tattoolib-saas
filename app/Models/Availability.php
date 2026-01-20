@@ -11,7 +11,8 @@ class Availability extends Model
     use HasFactory;
 
     protected $fillable = [
-        'tattooer_id',
+        'owner_id',
+        'owner_type',
         'date',
         'start_time',
         'end_time',
@@ -57,9 +58,15 @@ class Availability extends Model
 
     // ===== RELATIONS =====
 
-    public function tattooer(): BelongsTo
+    public function owner()
     {
-        return $this->belongsTo(Tattooer::class);
+        return $this->morphTo();
+    }
+
+    // Helper rétrocompatibilité
+    public function getTattooerAttribute()
+    {
+        return $this->owner;
     }
 
     public function appointment(): BelongsTo

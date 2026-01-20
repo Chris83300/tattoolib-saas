@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Models\Availability;
 use App\Models\BookingRequest;
 use App\Models\Client;
-use App\Models\Tattooer;
+use App\Models\StudioArtist;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -21,9 +21,9 @@ class IntegrationTest extends TestCase
         $clientUser = User::factory()->create();
         $client = Client::factory()->create(['user_id' => $clientUser->id]);
 
-        $tattooerUser = User::factory()->create();
-        $tattooer = Tattooer::factory()->create([
-            'user_id' => $tattooerUser->id,
+        $artistUser = User::factory()->create();
+        $artist = StudioArtist::factory()->create([
+            'user_id' => $artistUser->id,
             'siret_verified' => true,
             'stripe_onboarding_complete' => true,
             'stripe_connect_account_id' => 'acct_test_' . uniqid(),
@@ -31,7 +31,8 @@ class IntegrationTest extends TestCase
 
         // 2. Créer les availabilities via WorkingHours
         \App\Models\WorkingHour::factory()->create([
-            'tattooer_id' => $tattooer->id,
+            'owner_type' => StudioArtist::class,
+            'owner_id' => $artist->id,
             'day_of_week' => now()->addDays(5)->dayOfWeek,
             'is_open' => true,
             'start_time' => '09:00',
@@ -42,7 +43,7 @@ class IntegrationTest extends TestCase
 
         $targetDate = now()->addDays(5);
         Availability::generateFromWorkingHours(
-            $tattooer->id,
+            $artist->id,
             $targetDate,
             $targetDate
         );
@@ -50,7 +51,8 @@ class IntegrationTest extends TestCase
         // 3. Client crée une demande
         $bookingRequest = BookingRequest::factory()->create([
             'client_id' => $client->id,
-            'tattooer_id' => $tattooer->id,
+            'bookable_type' => StudioArtist::class,
+            'bookable_id' => $artist->id,
             'preferred_date' => $targetDate->format('Y-m-d'),
             'preferred_time_slot' => 'afternoon',
             'preferred_time_notes' => 'Créneau flexible',

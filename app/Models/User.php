@@ -30,6 +30,9 @@ class User extends Authenticatable
         'last_login_at',
         'is_active',
         'fcm_token',
+        'studio_id',
+        'is_studio_owner',
+        'is_studio_artist',
     ];
 
     protected $hidden = [
@@ -46,6 +49,8 @@ class User extends Authenticatable
             'password' => 'hashed',
             'last_login_at' => 'datetime',
             'is_active' => 'boolean',
+            'is_studio_owner' => 'boolean',
+            'is_studio_artist' => 'boolean',
         ];
     }
 
@@ -66,6 +71,16 @@ class User extends Authenticatable
     public function tattooer()
     {
         return $this->hasOne(Tattooer::class);
+    }
+
+    public function studio()
+    {
+        return $this->belongsTo(Studio::class);
+    }
+
+    public function studioArtist()
+    {
+        return $this->hasOne(StudioArtist::class);
     }
 
     public function conversations()
@@ -92,10 +107,22 @@ class User extends Authenticatable
         return $this->tattooer()->exists();
     }
 
+    public function isStudioOwner(): bool
+    {
+        return $this->is_studio_owner && $this->studio_id;
+    }
+
+    public function isStudioArtist(): bool
+    {
+        return $this->is_studio_artist && $this->studioArtist()->exists();
+    }
+
     public function getUserType(): ?string
     {
         if ($this->isTattooer()) return 'tattooer';
         if ($this->isClient()) return 'client';
+        if ($this->isStudioOwner()) return 'studio_owner';
+        if ($this->isStudioArtist()) return 'studio_artist';
         return null;
     }
 

@@ -13,7 +13,8 @@ class Appointment extends Model
 
     protected $fillable = [
         'booking_request_id',
-        'tattooer_id',
+        'bookable_id',
+        'bookable_type',
         'client_id',
 
         // Date/heure
@@ -114,9 +115,15 @@ class Appointment extends Model
         return $this->belongsTo(Client::class);
     }
 
-    public function tattooer(): BelongsTo
+    public function bookable()
     {
-        return $this->belongsTo(Tattooer::class);
+        return $this->morphTo();
+    }
+
+    // Helper rétrocompatibilité
+    public function getTattooerAttribute()
+    {
+        return $this->bookable;
     }
 
     // ===== SCOPES =====
@@ -141,7 +148,8 @@ class Appointment extends Model
 
     public function scopeForTattooer($query, int $tattooerId)
     {
-        return $query->where('tattooer_id', $tattooerId);
+        return $query->where('bookable_id', $tattooerId)
+                   ->where('bookable_type', 'App\\Models\\Tattooer');
     }
 
     public function scopeForClient($query, int $clientId)

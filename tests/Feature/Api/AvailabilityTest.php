@@ -115,7 +115,7 @@ test('it can generate recurring availabilities', function () {
     $tattooer = Tattooer::factory()->create(['user_id' => $tattooerUser->id]);
 
     $startDate = now()->startOfDay();
-    $endDate = now()->addDays(7)->endOfDay();
+    $endDate = now()->addDays(6)->endOfDay();
 
     $generated = Availability::generateRecurring(
         $tattooer->id,

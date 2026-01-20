@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -80,19 +81,24 @@ class Tattooer extends Model implements HasMedia
         return $this->belongsTo(Studio::class);
     }
 
-    public function workingHours(): HasMany
+    public function workingHours(): MorphMany
     {
-        return $this->hasMany(WorkingHour::class);
+        return $this->morphMany(WorkingHour::class, 'owner');
     }
 
-    public function bookingRequests(): HasMany
+    public function availabilities(): MorphMany
     {
-        return $this->hasMany(BookingRequest::class);
+        return $this->morphMany(Availability::class, 'owner');
     }
 
-    public function appointments(): HasMany
+    public function bookingRequests(): MorphMany
     {
-        return $this->hasMany(Appointment::class);
+        return $this->morphMany(BookingRequest::class, 'bookable');
+    }
+
+    public function appointments(): MorphMany
+    {
+        return $this->morphMany(Appointment::class, 'bookable');
     }
 
     // ===== MÉTHODES MÉTIER =====

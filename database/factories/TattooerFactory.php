@@ -19,6 +19,7 @@ class TattooerFactory extends Factory
             'siret' => $this->faker->numerify('###########'),
             'siret_verified' => $this->faker->boolean(80), // 80% vérifiés
             'name' => $this->faker->name,
+            'slug' => $this->faker->unique()->slug(), // ← SLUG AJOUTÉ
             'studio_name' => $this->faker->boolean(30) ? $this->faker->company : null, // Pour les indépendants
             'bio' => $this->faker->paragraph(3),
             'phone' => $this->faker->phoneNumber,

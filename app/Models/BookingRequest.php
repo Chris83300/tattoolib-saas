@@ -15,12 +15,14 @@ class BookingRequest extends Model
 
     protected $fillable = [
         'client_id',
-        'tattooer_id',
+        'bookable_id',
+        'bookable_type',
 
         // Infos projet
         'tattoo_size',
         'body_zone',
         'description',
+        'estimated_price',
         'estimated_budget',
 
         // Préférences date
@@ -115,9 +117,15 @@ class BookingRequest extends Model
         return $this->belongsTo(Client::class);
     }
 
-    public function tattooer(): BelongsTo
+    public function bookable()
     {
-        return $this->belongsTo(Tattooer::class);
+        return $this->morphTo();
+    }
+
+    // Helper rétrocompatibilité
+    public function getTattooerAttribute()
+    {
+        return $this->bookable;
     }
 
     public function conversation(): HasOne
@@ -159,7 +167,8 @@ class BookingRequest extends Model
 
     public function scopeForTattooer($query, int $tattooerId)
     {
-        return $query->where('tattooer_id', $tattooerId);
+        return $query->where('bookable_id', $tattooerId)
+                   ->where('bookable_type', 'App\\Models\\Tattooer');
     }
 
     public function scopeForClient($query, int $clientId)
@@ -229,7 +238,7 @@ class BookingRequest extends Model
      */
     public function markDepositPaid(string $paymentIntentId): void
     {
-        $designDeadline = $this->tattooer->default_tattooer_design_deadline_days ?? 7;
+        $designDeadline = $this->bookable->default_tattooer_design_deadline_days ?? 7;
 
         $this->update([
             'status' => self::STATUS_DEPOSIT_PAID,
@@ -298,7 +307,7 @@ class BookingRequest extends Model
         // Ajouter les participants
         $conversation->participants()->attach([
             $this->client->user_id => ['role' => 'client'],
-            $this->tattooer->user_id => ['role' => 'tattooer'],
+            $this->bookable->user_id => ['role' => 'tattooer'],
         ]);
     }
 
@@ -313,7 +322,8 @@ class BookingRequest extends Model
 
         Appointment::create([
             'booking_request_id' => $this->id,
-            'tattooer_id' => $this->tattooer_id,
+            'bookable_id' => $this->bookable_id,
+            'bookable_type' => $this->bookable_type,
             'client_id' => $this->client_id,
             'start_time' => $this->appointment_datetime,
             'end_time' => $this->appointment_datetime->copy()->addMinutes($this->appointment_duration_minutes),
@@ -323,6 +333,14 @@ class BookingRequest extends Model
             'remaining_amount' => $this->estimated_total_price - $this->total_deposit_amount,
             'status' => Appointment::STATUS_CONFIRMED,
         ]);
+    }
+
+    /**
+     * Calculer le montant du dépôt
+     */
+    public function calculateDepositAmount(): float
+    {
+        return $this->estimated_price * 0.30; // 30% du prix total
     }
 
     /**
