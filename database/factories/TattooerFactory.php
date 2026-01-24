@@ -48,6 +48,11 @@ class TattooerFactory extends Factory
             // Délais d'attente
             'weekday_wait_days' => $this->faker->numberBetween(0, 60),
             'weekend_wait_days' => $this->faker->numberBetween(0, 90),
+
+            // Subscription fields
+            'current_plan' => 'free',
+            'is_subscribed' => false,
+            'upgraded_to_pro_at' => null,
         ];
     }
 

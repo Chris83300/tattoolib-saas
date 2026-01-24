@@ -20,7 +20,7 @@ class AccountingPolicy
      */
     public function view(User $user, AccountingTransaction $transaction): bool
     {
-        return $user->isTattooer() && $transaction->tattooer_id === $user->tattooer->id;
+        return $user->isTattooer() && $transaction->user_id === $user->id;
     }
 
     /**
@@ -36,7 +36,7 @@ class AccountingPolicy
      */
     public function update(User $user, AccountingTransaction $transaction): bool
     {
-        return $user->isTattooer() && $transaction->tattooer_id === $user->tattooer->id;
+        return $user->isTattooer() && $transaction->user_id === $user->id;
     }
 
     /**
@@ -44,7 +44,7 @@ class AccountingPolicy
      */
     public function delete(User $user, AccountingTransaction $transaction): bool
     {
-        return $user->isTattooer() && $transaction->tattooer_id === $user->tattooer->id;
+        return $user->isTattooer() && $transaction->user_id === $user->id;
     }
 
     /**

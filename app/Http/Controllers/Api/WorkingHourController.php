@@ -15,11 +15,17 @@ class WorkingHourController extends Controller
     {
         $user = $request->user();
 
+        // Vérifier l'authentification
+        if (!$user) {
+            return response()->json(['message' => 'Non authentifié'], 401);
+        }
+
         if (!$user->isTattooer()) {
             return response()->json(['message' => 'Accès non autorisé'], 403);
         }
 
-        $workingHours = WorkingHour::where('tattooer_id', $user->tattooer->id)
+        $workingHours = WorkingHour::where('owner_type', \App\Models\Tattooer::class)
+            ->where('owner_id', $user->tattooer->user_id)
             ->orderBy('day_of_week')
             ->get()
             ->map(function ($wh) {
@@ -49,7 +55,7 @@ class WorkingHourController extends Controller
     {
         $user = $request->user();
 
-        if (!$user->isTattooer() || $workingHour->tattooer_id !== $user->tattooer->id) {
+        if (!$user->isTattooer() || $workingHour->owner_id !== $user->tattooer->id) {
             return response()->json(['message' => 'Accès non autorisé'], 403);
         }
 
@@ -96,7 +102,8 @@ class WorkingHourController extends Controller
         ]);    foreach ($validated['working_hours'] as $data) {
             WorkingHour::updateOrCreate(
                 [
-                    'tattooer_id' => $user->tattooer->id,
+                    'owner_type' => \App\Models\Tattooer::class,
+                    'owner_id' => $user->tattooer->id,
                     'day_of_week' => $data['day_of_week']
                 ],
                 $data
@@ -129,7 +136,8 @@ class WorkingHourController extends Controller
             return response()->json(['message' => 'Accès non autorisé'], 403);
         }    $validated = $request->validate([
             'day_of_week' => 'required|integer|min:0|max:6',
-        ]);    $workingHour = WorkingHour::where('tattooer_id', $user->tattooer->id)
+        ]);    $workingHour = WorkingHour::where('owner_type', \App\Models\Tattooer::class)
+            ->where('owner_id', $user->tattooer->id)
             ->where('day_of_week', $validated['day_of_week'])
             ->first();    if (!$workingHour) {
             return response()->json(['message' => 'Jour non configuré'], 404);

@@ -113,12 +113,13 @@ class ClientCareSheetController extends Controller
         $appointment = Appointment::findOrFail($validated['appointment_id']);
 
         // Vérifier que le RDV appartient bien au tatoueur
-        if ($appointment->tattooer_id !== $user->tattooer->id) {
+        if ($appointment->bookable_type !== \App\Models\Tattooer::class ||
+            $appointment->bookable_id !== $user->tattooer->id) {
             return response()->json(['message' => 'Accès non autorisé'], 403);
         }
 
         $careSheet = ClientCareSheet::create([
-            'tattooer_id' => $user->tattooer->id,
+            'user_id' => $user->id,
             'client_id' => $appointment->client_id,
             'appointment_id' => $appointment->id,
             ...$validated,
@@ -194,7 +195,9 @@ class ClientCareSheetController extends Controller
     {
         $user = $request->user();
 
-        if (!$user->isTattooer() || $appointment->tattooer_id !== $user->tattooer->id) {
+        if (!$user->isTattooer() ||
+            $appointment->bookable_type !== \App\Models\Tattooer::class ||
+            $appointment->bookable_id !== $user->tattooer->id) {
             return response()->json(['message' => 'Accès non autorisé'], 403);
         }
 

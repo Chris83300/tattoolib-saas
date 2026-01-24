@@ -10,10 +10,12 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use App\Traits\HasSubscription;
+use App\Traits\BookableArtist;
 
 class Tattooer extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia;
+    use HasFactory, SoftDeletes, InteractsWithMedia, HasSubscription, BookableArtist;
 
     protected $fillable = [
         'user_id',
@@ -32,6 +34,11 @@ class Tattooer extends Model implements HasMedia
         // Stripe Connect
         'stripe_connect_account_id',
         'stripe_onboarding_complete',
+
+        // Subscription fields
+        'current_plan',
+        'is_subscribed',
+        'upgraded_to_pro_at',
 
         // Réseaux sociaux
         'instagram',
@@ -55,6 +62,8 @@ class Tattooer extends Model implements HasMedia
         'siret_verified' => 'boolean',
         'stripe_onboarding_complete' => 'boolean',
         'minimum_deposit' => 'decimal:2',
+        'is_subscribed' => 'boolean',
+        'upgraded_to_pro_at' => 'datetime',
     ];
 
     // ===== CONFIGURATION MEDIALIBRARY =====

@@ -23,7 +23,7 @@ class TraceabilityPolicy
     public function viewConsentForm(User $user, ClientConsentForm $consentForm): bool
     {
         // Tatoueur : peut voir tous ses formulaires
-        if ($user->isTattooer() && $consentForm->tattooer_id === $user->tattooer->id) {
+        if ($user->isTattooer() && $consentForm->user_id === $user->id) {
             return true;
         }
 
@@ -41,7 +41,7 @@ class TraceabilityPolicy
     public function verify(User $user, ClientConsentForm $consentForm): bool
     {
         // Uniquement le tatoueur peut vérifier
-        return $user->isTattooer() && $consentForm->tattooer_id === $user->tattooer->id;
+        return $user->isTattooer() && $consentForm->user_id === $user->id;
     }
 
     /**
@@ -79,7 +79,7 @@ class TraceabilityPolicy
     public function viewTraceabilityRecord(User $user, TraceabilityRecord $record): bool
     {
         // Uniquement le tatoueur propriétaire peut voir l'enregistrement
-        return $user->isTattooer() && $record->tattooer_id === $user->tattooer->id;
+        return $user->isTattooer() && $record->user_id === $user->id;
     }
 
     /**
@@ -97,7 +97,7 @@ class TraceabilityPolicy
     public function updateTraceabilityRecord(User $user, TraceabilityRecord $record): bool
     {
         // Uniquement le tatoueur propriétaire peut modifier
-        return $user->isTattooer() && $record->tattooer_id === $user->tattooer->id;
+        return $user->isTattooer() && $record->user_id === $user->id;
     }
 
     /**
@@ -106,7 +106,7 @@ class TraceabilityPolicy
     public function deleteTraceabilityRecord(User $user, TraceabilityRecord $record): bool
     {
         // Uniquement le tatoueur propriétaire peut supprimer
-        return $user->isTattooer() && $record->tattooer_id === $user->tattooer->id;
+        return $user->isTattooer() && $record->user_id === $user->id;
     }
 
     /**

@@ -6,10 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use App\Traits\BookableArtist;
+use App\Traits\HasSubscription;
 
 class StudioArtist extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, BookableArtist, HasSubscription;
 
     protected $fillable = [
         'studio_id', 'user_id', 'artist_name', 'slug', 'bio',

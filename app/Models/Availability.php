@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Log;
 
 class Availability extends Model
 {
@@ -44,7 +45,7 @@ class Availability extends Model
 
     const SOURCE_WORKING_HOURS = 'working_hours';
     const SOURCE_MANUAL = 'manual';
-    const SOURCE_APPOINTMENT = 'appointment';
+    const SOURCE_APPOINTMENT = 'booking'; // Utiliser 'booking' pour compatibilité migration
     const SOURCE_EXTERNAL = 'external';
 
     const TYPES = [
@@ -78,7 +79,20 @@ class Availability extends Model
 
     public function scopeForTattooer($query, int $tattooerId)
     {
-        return $query->where('tattooer_id', $tattooerId);
+        return $query->where('owner_id', $tattooerId)
+                    ->where('owner_type', \App\Models\Tattooer::class);
+    }
+
+    public function scopeForStudioArtist($query, int $studioArtistId)
+    {
+        return $query->where('owner_id', $studioArtistId)
+                    ->where('owner_type', \App\Models\StudioArtist::class);
+    }
+
+    public function scopeForBookable($query, Model $bookable)
+    {
+        return $query->where('owner_id', $bookable->getKey())
+                    ->where('owner_type', get_class($bookable));
     }
 
     public function scopeBetween($query, $startDate, $endDate)
@@ -125,13 +139,26 @@ class Availability extends Model
      * Génère les availabilities depuis WorkingHours (version optimisée)
      */
     public static function generateFromWorkingHours(
-        int $tattooerId,
+        int $userId,
         \Carbon\Carbon $startDate,
         \Carbon\Carbon $endDate
     ): int {
-        $workingHours = WorkingHour::where('tattooer_id', $tattooerId)
+        // Récupérer les working_hours pour Tattooer
+        $tattooerWorkingHours = WorkingHour::where('owner_type', \App\Models\Tattooer::class)
+            ->where('owner_id', $userId)
             ->where('is_open', true)
             ->get()
+            ->keyBy('day_of_week');
+
+        // Récupérer les working_hours pour StudioArtist
+        $studioArtistWorkingHours = WorkingHour::where('owner_type', \App\Models\StudioArtist::class)
+            ->where('owner_id', $userId)
+            ->where('is_open', true)
+            ->get()
+            ->keyBy('day_of_week');
+
+        // Fusionner les deux collections
+        $workingHours = $tattooerWorkingHours->union($studioArtistWorkingHours)
             ->keyBy('day_of_week');
 
         if ($workingHours->isEmpty()) {
@@ -150,14 +177,17 @@ class Availability extends Model
                 $dateStr = $current->toDateString();
 
                 // Vérifier qu'aucune availability n'existe déjà
-                $exists = self::where('tattooer_id', $tattooerId)
-                    ->where('date', $dateStr)
+                $existing = self::where('owner_id', $userId)
+                    ->onDate($dateStr)
+                    ->where('type', self::TYPE_AVAILABLE)
+                    ->where('source', self::SOURCE_WORKING_HOURS)
                     ->exists();
 
-                if (!$exists) {
+                if (!$existing) {
                     // Créneau principal de travail
                     $toInsert[] = [
-                        'tattooer_id' => $tattooerId,
+                        'owner_id' => $userId,
+                        'owner_type' => $workingHour->owner_type,
                         'date' => $dateStr,
                         'start_time' => $workingHour->start_time,
                         'end_time' => $workingHour->end_time,
@@ -170,7 +200,8 @@ class Availability extends Model
                     // Pause si existe
                     if ($workingHour->hasBreak()) {
                         $toInsert[] = [
-                            'tattooer_id' => $tattooerId,
+                            'owner_id' => $userId,
+                            'owner_type' => $workingHour->owner_type,
                             'date' => $dateStr,
                             'start_time' => $workingHour->break_start,
                             'end_time' => $workingHour->break_end,
@@ -226,15 +257,17 @@ class Availability extends Model
      * ⭐ NOUVEAU : Bloquer un créneau spécifique manuellement
      */
     public static function blockSlot(
-        int $tattooerId,
+        int $userId,
         string $date,
         string $startTime,
         string $endTime,
         string $type = self::TYPE_BLOCKED,
-        ?string $notes = null
+        ?string $notes = null,
+        string $ownerType = Tattooer::class
     ): self {
         return self::create([
-            'tattooer_id' => $tattooerId,
+            'owner_type' => $ownerType,
+            'owner_id' => $userId,
             'date' => $date,
             'start_time' => $startTime,
             'end_time' => $endTime,
@@ -313,7 +346,8 @@ class Availability extends Model
         $slotEnd = $slotStart->copy()->addMinutes($durationMinutes);
 
         // Vérifier qu'aucun RDV ne chevauche
-        $hasConflict = Appointment::where('tattooer_id', $this->tattooer_id)
+        $hasConflict = Appointment::where('bookable_type', $this->owner_type)
+            ->where('bookable_id', $this->owner_id)
             ->whereDate('start_time', $this->date)
             ->where(function ($query) use ($slotStart, $slotEnd) {
                 $query->whereBetween('start_time', [$slotStart, $slotEnd])
@@ -332,14 +366,15 @@ class Availability extends Model
      * Génère des availabilities récurrentes
      */
     public static function generateRecurring(
-        int $tattooerId,
+        int $userId,
         \Carbon\Carbon $startDate,
         \Carbon\Carbon $endDate,
         string $startTime,
         string $endTime,
         string $pattern,
         array $daysOfWeek = [],
-        string $type = self::TYPE_AVAILABLE
+        string $type = self::TYPE_AVAILABLE,
+        string $ownerType = Tattooer::class
     ): int {
         $generated = 0;
         $current = $startDate->copy();
@@ -361,7 +396,8 @@ class Availability extends Model
 
             if ($shouldCreate) {
                 self::create([
-                    'tattooer_id' => $tattooerId,
+                    'owner_type' => $ownerType,
+                    'owner_id' => $userId,
                     'date' => $current->toDateString(),
                     'start_time' => $startTime,
                     'end_time' => $endTime,
@@ -415,73 +451,89 @@ class Availability extends Model
      * Retourne uniquement les créneaux réellement disponibles
      */
     public static function getAvailableSlotsForDay(
-        int $tattooerId,
+        int $userId, // user_id au lieu de tattooer_id
         string $date
     ): array {
-        $allSlots = self::forTattooer($tattooerId)
-            ->onDate($date)
-            ->orderBy('start_time')
-            ->get();
+        try {
+            // Chercher dans les availabilities pour Tattooer
+            $tattooerSlots = self::where('owner_type', \App\Models\Tattooer::class)
+                ->where('owner_id', $userId)
+                ->onDate($date)
+                ->orderBy('start_time')
+                ->get();
 
-        $availableSlots = [];
-        $busyPeriods = $allSlots->whereIn('type', [
-            self::TYPE_BUSY,
-            self::TYPE_BREAK,
-            self::TYPE_EXTERNAL_BOOKING,
-            self::TYPE_BLOCKED,
-            self::TYPE_HOLIDAY
-        ])->sortBy('start_time');
+            // Chercher dans les availabilities pour StudioArtist
+            $studioArtistSlots = self::where('owner_type', \App\Models\StudioArtist::class)
+                ->where('owner_id', $userId)
+                ->onDate($date)
+                ->orderBy('start_time')
+                ->get();
 
-        $workingPeriods = $allSlots->where('type', self::TYPE_AVAILABLE);
+            $allSlots = $tattooerSlots->concat($studioArtistSlots);
 
-        foreach ($workingPeriods as $workingPeriod) {
-            $start = \Carbon\Carbon::parse($workingPeriod->start_time);
-            $end = \Carbon\Carbon::parse($workingPeriod->end_time);
+            $availableSlots = [];
+            $busyPeriods = $allSlots->whereIn('type', [
+                self::TYPE_BUSY,
+                self::TYPE_BREAK,
+                self::TYPE_EXTERNAL_BOOKING,
+                self::TYPE_BLOCKED,
+                self::TYPE_HOLIDAY
+            ])->sortBy('start_time');
 
-            // Découper selon les périodes occupées
-            $currentStart = $start->copy();
+            $workingPeriods = $allSlots->where('type', self::TYPE_AVAILABLE);
 
-            foreach ($busyPeriods as $busy) {
-                $busyStart = \Carbon\Carbon::parse($busy->start_time);
-                $busyEnd = \Carbon\Carbon::parse($busy->end_time);
+            foreach ($workingPeriods as $workingPeriod) {
+                $start = \Carbon\Carbon::parse($workingPeriod->start_time);
+                $end = \Carbon\Carbon::parse($workingPeriod->end_time);
 
-                // Si période occupée chevauche
-                if ($busyStart < $end && $busyEnd > $currentStart) {
-                    // Ajouter le créneau libre avant la période occupée
-                    if ($currentStart < $busyStart) {
-                        $availableSlots[] = [
-                            'date' => $date,
-                            'start_time' => $currentStart->format('H:i'),
-                            'end_time' => $busyStart->format('H:i'),
-                            'duration_minutes' => $currentStart->diffInMinutes($busyStart),
-                        ];
+                // Découper selon les périodes occupées
+                $currentStart = $start->copy();
+
+                foreach ($busyPeriods as $busy) {
+                    $busyStart = \Carbon\Carbon::parse($busy->start_time);
+                    $busyEnd = \Carbon\Carbon::parse($busy->end_time);
+
+                    // Si période occupée chevauche
+                    if ($busyStart < $end && $busyEnd > $currentStart) {
+                        // Ajouter le créneau libre avant la période occupée
+                        if ($currentStart < $busyStart) {
+                            $availableSlots[] = [
+                                'date' => $date,
+                                'start_time' => $currentStart->format('H:i'),
+                                'end_time' => $busyStart->format('H:i'),
+                                'duration_minutes' => $currentStart->diffInMinutes($busyStart),
+                            ];
+                        }
+
+                        // Mettre à jour le début du créneau suivant
+                        $currentStart = $busyEnd->copy();
                     }
+                }
 
-                    // Avancer après la période occupée
-                    $currentStart = $busyEnd > $currentStart ? $busyEnd : $currentStart;
+                // Ajouter le créneau final s'il reste du temps
+                if ($currentStart < $end) {
+                    $availableSlots[] = [
+                        'date' => $date,
+                        'start_time' => $currentStart->format('H:i'),
+                        'end_time' => $end->format('H:i'),
+                        'duration_minutes' => $currentStart->diffInMinutes($end),
+                    ];
                 }
             }
 
-            // Ajouter le créneau final s'il reste du temps
-            if ($currentStart < $end) {
-                $availableSlots[] = [
-                    'date' => $date,
-                    'start_time' => $currentStart->format('H:i'),
-                    'end_time' => $end->format('H:i'),
-                    'duration_minutes' => $currentStart->diffInMinutes($end),
-                ];
-            }
+            return $availableSlots;
+        } catch (\Exception $e) {
+            Log::error('Error in getAvailableSlotsForDay: ' . $e->getMessage());
+            return [];
         }
-
-        return $availableSlots;
     }
 
     /**
      * ⭐ NOUVEAU : Vérifier si une date a de la disponibilité
      */
-    public static function hasAvailabilityOnDate(int $tattooerId, string $date): bool
+    public static function hasAvailabilityOnDate(int $userId, string $date): bool
     {
-        $slots = self::getAvailableSlotsForDay($tattooerId, $date);
+        $slots = self::getAvailableSlotsForDay($userId, $date);
         return !empty($slots);
     }
 
@@ -489,7 +541,7 @@ class Availability extends Model
      * ⭐ NOUVEAU : Obtenir les dates disponibles sur une période
      */
     public static function getAvailableDates(
-        int $tattooerId,
+        int $userId,
         \Carbon\Carbon $startDate,
         \Carbon\Carbon $endDate
     ): array {
@@ -500,17 +552,17 @@ class Availability extends Model
             $dateStr = $current->toDateString();
 
             // S'assurer que les availabilities existent
-            $exists = self::forTattooer($tattooerId)
+            $exists = self::where('owner_id', $userId)
                 ->onDate($dateStr)
                 ->exists();
 
             if (!$exists) {
-                self::generateFromWorkingHours($tattooerId, $current, $current);
+                self::generateFromWorkingHours($userId, $current, $current);
             }
 
             // Vérifier disponibilité
-            if (self::hasAvailabilityOnDate($tattooerId, $dateStr)) {
-                $slots = self::getAvailableSlotsForDay($tattooerId, $dateStr);
+            if (self::hasAvailabilityOnDate($userId, $dateStr)) {
+                $slots = self::getAvailableSlotsForDay($userId, $dateStr);
                 $totalMinutes = array_sum(array_column($slots, 'duration_minutes'));
 
                 $dates[] = [

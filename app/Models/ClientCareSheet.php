@@ -13,7 +13,7 @@ class ClientCareSheet extends Model
 
     protected $fillable = [
         'client_id',
-        'tattooer_id',
+        'user_id',
         'appointment_id',
 
         // Informations tattoo
@@ -124,9 +124,9 @@ class ClientCareSheet extends Model
         return $query->where('client_id', $clientId);
     }
 
-    public function scopeForTattooer($query, int $tattooerId)
+    public function scopeForUser($query, int $userId)
     {
-        return $query->where('tattooer_id', $tattooerId);
+        return $query->where('user_id', $userId);
     }
 
     public function scopeHealingInProgress($query)
@@ -241,7 +241,7 @@ class ClientCareSheet extends Model
 
         $careSheet = self::create([
             'client_id' => $appointment->client_id,
-            'tattooer_id' => $appointment->tattooer_id,
+            'user_id' => $appointment->user_id,
             'appointment_id' => $appointment->id,
 
             'tattoo_description' => $tattooDetails['description'] ?? $bookingRequest->description ?? '',

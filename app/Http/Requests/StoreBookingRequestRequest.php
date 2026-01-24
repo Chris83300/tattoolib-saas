@@ -20,7 +20,8 @@ class StoreBookingRequestRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'tattooer_id' => 'required|exists:tattooers,id',
+            'bookable_type' => 'required|string|in:' . \App\Models\Tattooer::class,
+            'bookable_id' => 'required|exists:tattooers,id',
             'tattoo_size' => 'required|string|max:200',
             'body_zone' => 'required|string|max:500',
             'description' => 'required|string|min:20|max:15000',
@@ -38,8 +39,10 @@ class StoreBookingRequestRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'tattooer_id.required' => 'Veuillez sélectionner un tatoueur',
-            'tattooer_id.exists' => 'Ce tatoueur n\'existe pas',
+            'bookable_type.required' => 'Veuillez sélectionner un type de prestataire',
+            'bookable_type.in' => 'Type de prestataire non valide',
+            'bookable_id.required' => 'Veuillez sélectionner un tatoueur',
+            'bookable_id.exists' => 'Ce tatoueur n\'existe pas',
             'tattoo_size.required' => 'La taille du tatouage est requise',
             'body_zone.required' => 'La zone du corps est requise',
             'description.required' => 'Une description est requise',

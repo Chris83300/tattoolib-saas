@@ -109,7 +109,7 @@ class TattooerController extends Controller
         });
 
         return response()->json([
-            'tattooer_id' => $tattooer->id,
+            'user_id' => $tattooer->id,
             'tattooer_name' => $tattooer->name,
             'portfolio' => $portfolio,
             'total' => $portfolio->count(),
@@ -222,7 +222,7 @@ class TattooerController extends Controller
         }
 
         return response()->json([
-            'tattooer_id' => $tattooer->id,
+            'user_id' => $tattooer->user_id,
             'available_dates' => $availableDates,
             'working_hours' => $formattedWorkingHours,
             'weekday_wait_days' => $tattooer->weekday_wait_days,

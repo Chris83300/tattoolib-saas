@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Availability;
+use App\Models\Tattooer;
 use App\Models\WorkingHour;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -63,7 +64,8 @@ class AvailabilityController extends Controller
 
         // Créer la disponibilité principale
         $availability = Availability::create([
-            'tattooer_id' => $user->tattooer->id,
+            'owner_type' => \App\Models\Tattooer::class,
+            'owner_id' => $user->tattooer->id,
             'date' => $validated['date'],
             'start_time' => $validated['start_time'],
             'end_time' => $validated['end_time'],
@@ -145,7 +147,8 @@ class AvailabilityController extends Controller
         );
 
         // Supprimer les existantes pour cette période
-        Availability::where('tattooer_id', $user->tattooer->id)
+        Availability::where('owner_type', \App\Models\Tattooer::class)
+            ->where('owner_id', $user->tattooer->id)
             ->whereBetween('date', [$validated['start_date'], $validated['end_date']])
             ->where('type', Availability::TYPE_AVAILABLE)
             ->delete();
@@ -165,12 +168,12 @@ class AvailabilityController extends Controller
     public function checkAvailability(Request $request)
     {
         $validated = $request->validate([
-            'tattooer_id' => 'required|exists:tattooers,id',
+            'user_id' => 'required|exists:users,id',
             'date' => 'required|date',
             'duration_minutes' => 'required|integer|min:15',
         ]);
 
-        $availabilities = Availability::where('tattooer_id', $validated['tattooer_id'])
+        $availabilities = Availability::where('user_id', $validated['user_id'])
             ->where('date', $validated['date'])
             ->available()
             ->get();

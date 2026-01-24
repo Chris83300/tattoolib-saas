@@ -15,7 +15,10 @@ return new class extends Migration
             $table->id();
             // Relations
             $table->foreignId('booking_request_id')->constrained()->onDelete('cascade');
-            $table->foreignId('tattooer_id')->constrained('tattooers')->onDelete('cascade');
+
+            // Relations polymorphiques (Tattooer ou StudioArtist)
+            $table->morphs('bookable');
+
             $table->foreignId('client_id')->constrained('clients')->onDelete('cascade');
 
             // Date/heure
@@ -68,7 +71,7 @@ return new class extends Migration
             $table->boolean('requires_manual_review')->default(false);
 
             // Index
-            $table->index(['tattooer_id', 'start_time']);
+            $table->index(['bookable_type', 'bookable_id', 'start_time']);
             $table->index(['client_id', 'start_time']);
 
             $table->timestamps();

@@ -66,7 +66,22 @@ class CleanIntegrationTest extends TestCase
     public function test_studio_artist_booking_acceptance()
     {
         $client = Client::factory()->create();
-        $artist = StudioArtist::factory()->create();
+
+        $artistUser = User::factory()->create(['is_studio_artist' => true]);
+        $artist = StudioArtist::factory()->create(['user_id' => $artistUser->id]);
+
+        // Créer des availabilities pour le StudioArtist
+        Availability::factory()
+            ->state([
+                'owner_type' => StudioArtist::class,
+                'owner_id' => $artist->id, // Utiliser l'ID du studio artist
+                'date' => now()->addDays(7)->format('Y-m-d'),
+                'start_time' => '09:00',
+                'end_time' => '18:00',
+                'type' => 'available',
+                'source' => 'working_hours'
+            ])
+            ->create();
 
         $booking = BookingRequest::factory()->create([
             'client_id' => $client->id,
@@ -77,19 +92,30 @@ class CleanIntegrationTest extends TestCase
 
         // Artist accepte le booking
         $acceptData = [
-            'estimated_price' => 500.00,
-            'appointment_datetime' => now()->addDays(7)->toDateTimeString(),
-            'appointment_duration_minutes' => 120,
+            'total_price' => 500.00,
+            'scheduled_date' => now()->addDays(7)->format('Y-m-d'),
+            'scheduled_start_time' => '14:00',
+            'scheduled_duration_minutes' => 120,
+            'deposit_rate' => 30,
+            'deposit_deadline_hours' => 72
         ];
 
         $response = $this->actingAs($artist->user)
-            ->postJson("/api/bookings/{$booking->id}/accept", $acceptData);
+            ->postJson("/api/booking-requests/{$booking->id}/accept", $acceptData);
+
+        if ($response->status() !== 200) {
+            dump([
+                'status' => $response->status(),
+                'json' => $response->json(),
+                'exception' => $response->exception ? $response->exception->getMessage() : 'No exception'
+            ]);
+        }
 
         // Vérifier que le booking a été mis à jour
         $this->assertDatabaseHas('booking_requests', [
             'id' => $booking->id,
             'status' => BookingRequest::STATUS_ACCEPTED,
-            'estimated_price' => 500.00,
+            'total_price' => 500.00,
         ]);
 
         $this->assertTrue(true);

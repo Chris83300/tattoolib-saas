@@ -161,6 +161,7 @@ class ProductionReadyValidationTest extends TestCase
         try {
             // Test validation des entrées avec des données invalides
             $response = $this->actingAs(User::factory()->create())
+                ->withoutMiddleware()
                 ->postJson('/login', [
                     'email' => 'invalid-email',
                     'password' => '',

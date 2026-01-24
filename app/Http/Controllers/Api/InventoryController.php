@@ -94,7 +94,7 @@ class InventoryController extends Controller
         }
 
         $item = InventoryItem::create([
-            'tattooer_id' => $user->tattooer->id,
+            'user_id' => $user->id,
             ...$validated,
         ]);
 

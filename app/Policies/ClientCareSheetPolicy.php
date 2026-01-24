@@ -21,7 +21,7 @@ class ClientCareSheetPolicy
     public function view(User $user, ClientCareSheet $careSheet): bool
     {
         // Tatoueur : peut voir ses propres fiches
-        if ($user->isTattooer() && $careSheet->tattooer_id === $user->tattooer->id) {
+        if ($user->isTattooer() && $careSheet->user_id === $user->id) {
             return true;
         }
 
@@ -47,7 +47,7 @@ class ClientCareSheetPolicy
     public function update(User $user, ClientCareSheet $careSheet): bool
     {
         // Tatoueur : peut modifier ses fiches
-        if ($user->isTattooer() && $careSheet->tattooer_id === $user->tattooer->id) {
+        if ($user->isTattooer() && $careSheet->user_id === $user->id) {
             return true;
         }
 
@@ -64,7 +64,7 @@ class ClientCareSheetPolicy
      */
     public function delete(User $user, ClientCareSheet $careSheet): bool
     {
-        return $user->isTattooer() && $careSheet->tattooer_id === $user->tattooer->id;
+        return $user->isTattooer() && $careSheet->user_id === $user->id;
     }
 
     /**
@@ -73,7 +73,7 @@ class ClientCareSheetPolicy
     public function addPhoto(User $user, ClientCareSheet $careSheet): bool
     {
         // Tatoueur : peut ajouter des photos à ses fiches
-        if ($user->isTattooer() && $careSheet->tattooer_id === $user->tattooer->id) {
+        if ($user->isTattooer() && $careSheet->user_id === $user->id) {
             return true;
         }
 

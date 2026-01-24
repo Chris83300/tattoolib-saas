@@ -63,6 +63,15 @@ test('cannot access protected routes without auth', function () {
     $tattooer = Tattooer::factory()->create();
 
     $response = getJson("/api/tattooers/{$tattooer->id}/working-hours");
+
+    if ($response->status() !== 401) {
+        dump([
+            'status' => $response->status(),
+            'json' => $response->json(),
+            'exception' => $response->exception ? $response->exception->getMessage() : 'No exception'
+        ]);
+    }
+
     $response->assertStatus(401);
 });
 

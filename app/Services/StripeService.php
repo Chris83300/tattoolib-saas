@@ -76,8 +76,8 @@ class StripeService
             return 'studio_artist';
         }
 
-        // Tattooer indépendant (a un tattooer_id)
-        if ($user->tattooer_id) {
+        // Tattooer indépendant
+        if ($user->isTattooer()) {
             return 'independent_tattooer';
         }
 

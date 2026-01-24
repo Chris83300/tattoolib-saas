@@ -29,7 +29,8 @@ class AppointmentExtendedFactory extends Factory
 
         return [
             'booking_request_id' => BookingRequest::factory(),
-            'tattooer_id' => Tattooer::factory(),
+            'bookable_type' => Tattooer::class,
+            'bookable_id' => Tattooer::factory(),
             'client_id' => Client::factory(),
 
             // ⭐ NOUVEAUX CHAMPS
@@ -275,7 +276,8 @@ class AppointmentExtendedFactory extends Factory
     public function forTattooer(int $tattooerId): static
     {
         return $this->state(fn (array $attributes) => [
-            'tattooer_id' => $tattooerId,
+            'bookable_type' => Tattooer::class,
+            'bookable_id' => $tattooerId,
         ]);
     }
 

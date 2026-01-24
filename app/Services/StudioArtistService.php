@@ -194,12 +194,12 @@ class StudioArtistService
         // Vérifier si la table TraceabilityRecord existe
         if (class_exists('\App\Models\TraceabilityRecord')) {
             $traceability = \App\Models\TraceabilityRecord::where(function($query) use ($artist) {
-                    // Si TraceabilityRecord a tattooer_id (ancien système)
-                    if (\Schema::hasColumn('traceability_records', 'tattooer_id')) {
-                        $query->orWhere('tattooer_id', $artist->user->tattooer_id ?? 0);
+                    // Système actuel avec user_id
+                    if (Schema::hasColumn('traceability_records', 'user_id')) {
+                        $query->orWhere('user_id', $artist->user->id);
                     }
-                    // Si polymorphic
-                    if (\Schema::hasColumn('traceability_records', 'artist_type')) {
+                    // Si polymorphic (futur)
+                    if (Schema::hasColumn('traceability_records', 'artist_type')) {
                         $query->orWhere('artist_type', 'App\Models\StudioArtist')
                               ->where('artist_id', $artist->id);
                     }
@@ -224,10 +224,10 @@ class StudioArtistService
         if (class_exists('\App\Models\ClientCareSheet')) {
             $careSheets = \App\Models\ClientCareSheet::where(function($query) use ($artist) {
                     // Adapter selon ta structure
-                    if (\Schema::hasColumn('client_care_sheets', 'tattooer_id')) {
-                        $query->where('tattooer_id', $artist->user->tattooer_id ?? 0);
+                    if (Schema::hasColumn('client_care_sheets', 'user_id')) {
+                        $query->where('user_id', $artist->user->id);
                     }
-                    if (\Schema::hasColumn('client_care_sheets', 'artist_type')) {
+                    if (Schema::hasColumn('client_care_sheets', 'artist_type')) {
                         $query->where('artist_type', 'App\Models\StudioArtist')
                               ->where('artist_id', $artist->id);
                     }

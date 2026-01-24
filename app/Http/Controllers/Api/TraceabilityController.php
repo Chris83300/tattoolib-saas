@@ -112,7 +112,7 @@ class TraceabilityController extends Controller
 
         $consentForm = ClientConsentForm::create([
             'client_id' => $user->client->id,
-            'tattooer_id' => $appointment->tattooer_id,
+            'user_id' => $appointment->bookable->user_id,
             'appointment_id' => $appointment->id,
             'is_adult' => $isAdult,
             ...$validated,
@@ -159,7 +159,7 @@ class TraceabilityController extends Controller
 
         $parentalConsent = ParentalConsentForm::create([
             'client_consent_form_id' => $consentForm->id,
-            'tattooer_id' => $consentForm->tattooer_id,
+            'user_id' => $consentForm->user_id,
             ...$validated,
         ]);
 
@@ -252,7 +252,8 @@ class TraceabilityController extends Controller
         $appointment = \App\Models\Appointment::findOrFail($validated['appointment_id']);
 
         // Vérifier que le RDV appartient bien au tatoueur
-        if ($appointment->tattooer_id !== $user->tattooer->id) {
+        if ($appointment->bookable_type !== \App\Models\Tattooer::class ||
+            $appointment->bookable_id !== $user->tattooer->id) {
             return response()->json(['message' => 'Accès non autorisé'], 403);
         }
 
@@ -264,7 +265,7 @@ class TraceabilityController extends Controller
         }
 
         $traceabilityRecord = TraceabilityRecord::create([
-            'tattooer_id' => $user->tattooer->id,
+            'user_id' => $user->id,
             'appointment_id' => $appointment->id,
             'client_consent_form_id' => $consentForm->id,
             ...$validated,

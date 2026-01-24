@@ -20,13 +20,20 @@ class BookingRequestController extends Controller
         $user = $request->user();
 
         $query = BookingRequest::query()
-            ->with(['client.user', 'tattooer.user', 'conversation']);
+            ->with(['client.user', 'bookable.user', 'conversation']);
 
         // Filtrer selon le type d'utilisateur
         if ($user->isClient()) {
             $query->where('client_id', $user->client->id);
         } elseif ($user->isTattooer()) {
-            $query->where('tattooer_id', $user->tattooer->id);
+            $query->where('bookable_type', \App\Models\Tattooer::class)
+                  ->where('bookable_id', $user->tattooer->id);
+        } elseif ($user->isStudioArtist()) {
+            $query->where('bookable_type', \App\Models\StudioArtist::class)
+                  ->where('bookable_id', $user->studioArtist->id);
+        } elseif ($user->is_admin) {
+            // Admin peut voir tous les booking requests
+            // Pas de filtrage
         } else {
             return response()->json([
                 'message' => 'Profil incomplet'
@@ -54,7 +61,7 @@ class BookingRequestController extends Controller
 
         $bookingRequest->load([
             'client.user',
-            'tattooer.user',
+            'bookable.user',
             'conversation.lastMessage',
             'appointment'
         ]);
@@ -75,7 +82,12 @@ class BookingRequestController extends Controller
 
         $validated = $request->validated();
 
-        $tattooer = Tattooer::findOrFail($validated['tattooer_id']);
+        // Récupérer le tatoueur depuis les relations polymorphiques
+        if ($validated['bookable_type'] === Tattooer::class) {
+            $tattooer = Tattooer::findOrFail($validated['bookable_id']);
+        } else {
+            return response()->json(['message' => 'Type de bookable non supporté'], 422);
+        }
 
         // Vérifier que le client n'est pas blacklisté
         if ($user->client->is_blacklisted) {
@@ -95,7 +107,7 @@ class BookingRequestController extends Controller
         // ⭐ Vérifier que la date demandée a de la disponibilité
         if (isset($validated['preferred_date'])) {
             $hasAvailability = Availability::hasAvailabilityOnDate(
-                $validated['tattooer_id'],
+                $tattooer->user_id, // Utiliser user_id pour les availabilities
                 $validated['preferred_date']
             );
 
@@ -108,7 +120,8 @@ class BookingRequestController extends Controller
 
         $bookingRequest = BookingRequest::create([
             'client_id' => $user->client->id,
-            'tattooer_id' => $validated['tattooer_id'],
+            'bookable_type' => $validated['bookable_type'],
+            'bookable_id' => $validated['bookable_id'],
             'tattoo_size' => $validated['tattoo_size'],
             'body_zone' => $validated['body_zone'],
             'description' => $validated['description'],
@@ -126,7 +139,7 @@ class BookingRequestController extends Controller
 
         return response()->json([
             'message' => 'Demande envoyée avec succès',
-            'booking_request' => $bookingRequest->load('tattooer.user'),
+            'booking_request' => $bookingRequest->load('bookable.user'),
         ], 201);
     }
 
@@ -158,7 +171,7 @@ class BookingRequestController extends Controller
 
         // ⭐ Vérifier disponibilité créneau
         $slots = Availability::getAvailableSlotsForDay(
-            $bookingRequest->tattooer_id,
+            $bookingRequest->bookable->id,
             $validated['scheduled_date']
         );
 
@@ -391,25 +404,31 @@ class BookingRequestController extends Controller
         $tattooerId = $user->tattooer->id;
 
         $stats = [
-            'pending' => BookingRequest::where('tattooer_id', $tattooerId)
+            'pending' => BookingRequest::where('bookable_type', \App\Models\Tattooer::class)
+                ->where('bookable_id', $tattooerId)
                 ->where('status', BookingRequest::STATUS_PENDING)->count(),
 
-            'accepted' => BookingRequest::where('tattooer_id', $tattooerId)
+            'accepted' => BookingRequest::where('bookable_type', \App\Models\Tattooer::class)
+                ->where('bookable_id', $tattooerId)
                 ->where('status', BookingRequest::STATUS_ACCEPTED)->count(),
 
-            'awaiting_deposit' => BookingRequest::where('tattooer_id', $tattooerId)
+            'awaiting_deposit' => BookingRequest::where('bookable_type', \App\Models\Tattooer::class)
+                ->where('bookable_id', $tattooerId)
                 ->where('status', BookingRequest::STATUS_AWAITING_DEPOSIT)->count(),
 
-            'in_progress' => BookingRequest::where('tattooer_id', $tattooerId)
+            'in_progress' => BookingRequest::where('bookable_type', \App\Models\Tattooer::class)
+                ->where('bookable_id', $tattooerId)
                 ->whereIn('status', [
                     BookingRequest::STATUS_DEPOSIT_PAID,
                     BookingRequest::STATUS_DESIGN_SENT,
                 ])->count(),
 
-            'confirmed' => BookingRequest::where('tattooer_id', $tattooerId)
+            'confirmed' => BookingRequest::where('bookable_type', \App\Models\Tattooer::class)
+                ->where('bookable_id', $tattooerId)
                 ->where('status', BookingRequest::STATUS_CONFIRMED)->count(),
 
-            'overdue_designs' => BookingRequest::where('tattooer_id', $tattooerId)
+            'overdue_designs' => BookingRequest::where('bookable_type', \App\Models\Tattooer::class)
+                ->where('bookable_id', $tattooerId)
                 ->where('status', BookingRequest::STATUS_DEPOSIT_PAID)
                 ->where('tattooer_design_deadline', '<', now())
                 ->whereNull('design_sent_at')

@@ -10,7 +10,9 @@ return new class extends Migration
     {
         Schema::create('working_hours', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('tattooer_id')->constrained()->onDelete('cascade');
+
+            // Relations polymorphiques (Tattooer ou StudioArtist)
+            $table->morphs('owner');
 
             // Jour de la semaine (0 = Dimanche, 6 = Samedi)
             $table->tinyInteger('day_of_week');
@@ -30,9 +32,9 @@ return new class extends Migration
 
             $table->timestamps();
 
-            // Un seul enregistrement par jour et par tatoueur
-            $table->unique(['tattooer_id', 'day_of_week']);
-            $table->index(['tattooer_id', 'is_open']);
+            // Index pour performances
+            $table->index(['owner_type', 'owner_id', 'is_open']);
+            $table->index(['owner_type', 'owner_id', 'day_of_week']);
         });
     }
 

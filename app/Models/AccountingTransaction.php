@@ -12,7 +12,7 @@ class AccountingTransaction extends Model
     use HasFactory;
 
     protected $fillable = [
-        'tattooer_id',
+        'user_id',
         'studio_id',
         'reference',
         'type',
@@ -145,9 +145,9 @@ class AccountingTransaction extends Model
         return $query->where('type', self::TYPE_EXPENSE);
     }
 
-    public function scopeForTattooer($query, int $tattooerId)
+    public function scopeForTattooer($query, int $userId)
     {
-        return $query->where('tattooer_id', $tattooerId);
+        return $query->where('user_id', $userId);
     }
 
     public function scopeForStudio($query, int $studioId)
@@ -249,7 +249,7 @@ class AccountingTransaction extends Model
     public static function createFromAppointment(Appointment $appointment): self
     {
         return self::create([
-            'tattooer_id' => $appointment->tattooer_id,
+            'user_id' => $appointment->user_id,
             'client_id' => $appointment->client_id,
             'appointment_id' => $appointment->id,
             'reference' => self::generateReference(self::TYPE_INCOME, self::CATEGORY_APPOINTMENT),
@@ -273,7 +273,7 @@ class AccountingTransaction extends Model
         $query = self::query();
 
         if ($tattooerId) {
-            $query->where('tattooer_id', $tattooerId);
+            $query->where('user_id', $tattooerId);
         }
 
         if ($studioId) {

@@ -20,7 +20,7 @@ class InventoryPolicy
      */
     public function view(User $user, InventoryItem $item): bool
     {
-        return $user->isTattooer() && $item->tattooer_id === $user->tattooer->id;
+        return $user->isTattooer() && $item->user_id === $user->id;
     }
 
     /**
@@ -36,7 +36,7 @@ class InventoryPolicy
      */
     public function update(User $user, InventoryItem $item): bool
     {
-        return $user->isTattooer() && $item->tattooer_id === $user->tattooer->id;
+        return $user->isTattooer() && $item->user_id === $user->id;
     }
 
     /**
@@ -44,7 +44,7 @@ class InventoryPolicy
      */
     public function delete(User $user, InventoryItem $item): bool
     {
-        return $user->isTattooer() && $item->tattooer_id === $user->tattooer->id;
+        return $user->isTattooer() && $item->user_id === $user->id;
     }
 
     /**
@@ -52,6 +52,6 @@ class InventoryPolicy
      */
     public function manageMovements(User $user, InventoryItem $item): bool
     {
-        return $user->isTattooer() && $item->tattooer_id === $user->tattooer->id;
+        return $user->isTattooer() && $item->user_id === $user->id;
     }
 }

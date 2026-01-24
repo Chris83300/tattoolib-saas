@@ -36,7 +36,8 @@ class CheckExpiredBookingRequests implements ShouldQueue
                 // TODO: Envoyer notification au client et au tatoueur
                 Log::info("Booking request #{$request->id} expired", [
                     'client_id' => $request->client_id,
-                    'tattooer_id' => $request->tattooer_id,
+                    'bookable_type' => $request->bookable_type,
+                    'bookable_id' => $request->bookable_id,
                     'deposit_deadline' => $request->deposit_deadline,
                 ]);
             }

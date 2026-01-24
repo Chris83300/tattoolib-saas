@@ -41,7 +41,8 @@ class BookingRequestAdditionalTest extends TestCase
 
         $booking1 = BookingRequest::factory()->create([
             'client_id' => $client1->id,
-            'tattooer_id' => $tattooer->id,
+            'bookable_type' => Tattooer::class,
+            'bookable_id' => $tattooer->id,
             'preferred_date' => $date,
             'status' => BookingRequest::STATUS_PENDING,
         ]);
@@ -65,7 +66,8 @@ class BookingRequestAdditionalTest extends TestCase
 
         $booking2 = BookingRequest::factory()->create([
             'client_id' => $client2->id,
-            'tattooer_id' => $tattooer->id,
+            'bookable_type' => Tattooer::class,
+            'bookable_id' => $tattooer->id,
             'preferred_date' => $date,
             'status' => BookingRequest::STATUS_PENDING,
         ]);
@@ -91,7 +93,8 @@ class BookingRequestAdditionalTest extends TestCase
         $tattooer = Tattooer::factory()->create(['user_id' => $tattooerUser->id]);
 
         WorkingHour::factory()->create([
-            'tattooer_id' => $tattooer->id,
+            'owner_type' => Tattooer::class,
+            'owner_id' => $tattooer->id,
             'day_of_week' => now()->addDays(10)->dayOfWeek,
             'is_open' => true,
             'start_time' => '09:00',
@@ -101,7 +104,8 @@ class BookingRequestAdditionalTest extends TestCase
         $futureDate = now()->addDays(10)->format('Y-m-d');
 
         $this->assertDatabaseMissing('availabilities', [
-            'tattooer_id' => $tattooer->id,
+            'owner_type' => Tattooer::class,
+            'owner_id' => $tattooer->id,
             'date' => $futureDate,
         ]);
 
@@ -110,7 +114,8 @@ class BookingRequestAdditionalTest extends TestCase
         $response->assertStatus(200);
 
         $this->assertDatabaseHas('availabilities', [
-            'tattooer_id' => $tattooer->id,
+            'owner_type' => Tattooer::class,
+            'owner_id' => $tattooer->id,
             'date' => $futureDate,
             'source' => 'working_hours',
         ]);
@@ -139,12 +144,13 @@ class BookingRequestAdditionalTest extends TestCase
 
         $booking = BookingRequest::factory()->create([
             'client_id' => $client->id,
-            'tattooer_id' => $tattooer->id,
+            'bookable_type' => Tattooer::class,
+            'bookable_id' => $tattooer->id,
             'preferred_date' => $date,
             'status' => BookingRequest::STATUS_PENDING,
         ]);
 
-        $this->actingAs($tattooerUser)
+        $response = $this->actingAs($tattooerUser)
             ->postJson("/api/booking-requests/{$booking->id}/accept", [
                 'scheduled_date' => $date,
                 'scheduled_start_time' => '14:00',
@@ -152,8 +158,17 @@ class BookingRequestAdditionalTest extends TestCase
                 'total_price' => 500,
                 'deposit_rate' => 30,
                 'deposit_deadline_hours' => 48,
-            ])
-            ->assertStatus(200);
+            ]);
+
+        if ($response->status() !== 200) {
+            dump([
+                'status' => $response->status(),
+                'json' => $response->json(),
+                'exception' => $response->exception ? $response->exception->getMessage() : 'No exception'
+            ]);
+        }
+
+        $response->assertStatus(200);
 
         $booking->refresh();
 
@@ -184,26 +199,30 @@ class BookingRequestAdditionalTest extends TestCase
         $tattooer = Tattooer::factory()->create();
 
         Availability::factory()->count(10)->create([
-            'tattooer_id' => $tattooer->id,
+            'owner_type' => Tattooer::class,
+            'owner_id' => $tattooer->id,
             'date' => now()->subDays(45)->format('Y-m-d'),
             'source' => 'working_hours',
         ]);
 
         Availability::factory()->count(5)->create([
-            'tattooer_id' => $tattooer->id,
+            'owner_type' => Tattooer::class,
+            'owner_id' => $tattooer->id,
             'date' => now()->addDays(5)->format('Y-m-d'),
         ]);
 
         $this->artisan('availability:generate --days=7')
             ->assertExitCode(0);
 
-        $oldCount = Availability::where('tattooer_id', $tattooer->id)
+        $oldCount = Availability::where('owner_type', Tattooer::class)
+            ->where('owner_id', $tattooer->id)
             ->where('date', '<', now()->subDays(30))
             ->count();
 
         $this->assertEquals(0, $oldCount);
 
-        $recentCount = Availability::where('tattooer_id', $tattooer->id)
+        $recentCount = Availability::where('owner_type', Tattooer::class)
+            ->where('owner_id', $tattooer->id)
             ->where('date', '>=', now())
             ->count();
 
@@ -225,7 +244,7 @@ class BookingRequestAdditionalTest extends TestCase
         $date = now()->addDays(7)->format('Y-m-d');
 
         Availability::factory()
-            ->forTattooer($tattooer->id)
+            ->forTattooer($tattooer->user_id)
             ->fullWorkDay()
             ->forDate($date)
             ->create();
@@ -233,7 +252,8 @@ class BookingRequestAdditionalTest extends TestCase
         $bookings = $clients->map(function ($client) use ($tattooer, $date) {
             return BookingRequest::factory()->create([
                 'client_id' => $client->id,
-                'tattooer_id' => $tattooer->id,
+                'bookable_type' => Tattooer::class,
+            'bookable_id' => $tattooer->id,
                 'preferred_date' => $date,
                 'preferred_time_slot' => 'morning',
                 'status' => BookingRequest::STATUS_PENDING,

@@ -16,8 +16,8 @@ class BookingRequestPolicy
             return $bookingRequest->client_id === $user->client->id;
         }
 
-        if ($user->isTattooer()) {
-            return $bookingRequest->tattooer_id === $user->tattooer->id;
+        if ($user->isTattooer() || $user->isStudioArtist()) {
+            return $bookingRequest->bookable->user_id === $user->id;
         }
 
         return false;
@@ -36,8 +36,8 @@ class BookingRequestPolicy
      */
     public function accept(User $user, BookingRequest $bookingRequest): bool
     {
-        return $user->isTattooer()
-            && $bookingRequest->tattooer_id === $user->tattooer->id
+        return ($user->isTattooer() || $user->isStudioArtist())
+            && $bookingRequest->bookable->user_id === $user->id
             && $bookingRequest->status === BookingRequest::STATUS_PENDING;
     }
 
@@ -46,8 +46,8 @@ class BookingRequestPolicy
      */
     public function reject(User $user, BookingRequest $bookingRequest): bool
     {
-        return $user->isTattooer()
-            && $bookingRequest->tattooer_id === $user->tattooer->id
+        return ($user->isTattooer() || $user->isStudioArtist())
+            && $bookingRequest->bookable->user_id === $user->id
             && $bookingRequest->status === BookingRequest::STATUS_PENDING;
     }
 
@@ -56,8 +56,8 @@ class BookingRequestPolicy
      */
     public function requestDeposit(User $user, BookingRequest $bookingRequest): bool
     {
-        return $user->isTattooer()
-            && $bookingRequest->tattooer_id === $user->tattooer->id
+        return ($user->isTattooer() || $user->isStudioArtist())
+            && $bookingRequest->bookable->user_id === $user->id
             && $bookingRequest->status === BookingRequest::STATUS_ACCEPTED;
     }
 
@@ -66,8 +66,8 @@ class BookingRequestPolicy
      */
     public function sendDesign(User $user, BookingRequest $bookingRequest): bool
     {
-        return $user->isTattooer()
-            && $bookingRequest->tattooer_id === $user->tattooer->id
+        return ($user->isTattooer() || $user->isStudioArtist())
+            && $bookingRequest->bookable->user_id === $user->id
             && in_array($bookingRequest->status, [
                 BookingRequest::STATUS_DEPOSIT_PAID,
                 BookingRequest::STATUS_DESIGN_SENT,
@@ -84,7 +84,7 @@ class BookingRequestPolicy
             return $bookingRequest->status === BookingRequest::STATUS_DESIGN_SENT;
         }
 
-        if ($user->isTattooer() && $bookingRequest->tattooer_id === $user->tattooer->id) {
+        if (($user->isTattooer() || $user->isStudioArtist()) && $bookingRequest->bookable->user_id === $user->id) {
             return $bookingRequest->status === BookingRequest::STATUS_DESIGN_SENT;
         }
 
@@ -107,7 +107,7 @@ class BookingRequestPolicy
             ]);
         }
 
-        if ($user->isTattooer() && $bookingRequest->tattooer_id === $user->tattooer->id) {
+        if (($user->isTattooer() || $user->isStudioArtist()) && $bookingRequest->bookable->user_id === $user->id) {
             return in_array($bookingRequest->status, [
                 BookingRequest::STATUS_ACCEPTED,
                 BookingRequest::STATUS_AWAITING_DEPOSIT,

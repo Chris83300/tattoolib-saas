@@ -6,6 +6,7 @@ use App\Models\Availability;
 use App\Models\BookingRequest;
 use App\Models\Client;
 use App\Models\StudioArtist;
+use App\Models\Tattooer;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -21,7 +22,9 @@ class IntegrationTest extends TestCase
         $clientUser = User::factory()->create();
         $client = Client::factory()->create(['user_id' => $clientUser->id]);
 
-        $artistUser = User::factory()->create();
+        $artistUser = User::factory()->create([
+            'is_studio_artist' => true,
+        ]);
         $artist = StudioArtist::factory()->create([
             'user_id' => $artistUser->id,
             'siret_verified' => true,
@@ -32,7 +35,7 @@ class IntegrationTest extends TestCase
         // 2. Créer les availabilities via WorkingHours
         \App\Models\WorkingHour::factory()->create([
             'owner_type' => StudioArtist::class,
-            'owner_id' => $artist->id,
+            'owner_id' => $artist->id, // ID du studio artist
             'day_of_week' => now()->addDays(5)->dayOfWeek,
             'is_open' => true,
             'start_time' => '09:00',
@@ -43,7 +46,7 @@ class IntegrationTest extends TestCase
 
         $targetDate = now()->addDays(5);
         Availability::generateFromWorkingHours(
-            $artist->id,
+            $artist->id, // ID du studio artist
             $targetDate,
             $targetDate
         );
@@ -71,8 +74,13 @@ class IntegrationTest extends TestCase
             'deposit_deadline_hours' => 72
         ];
 
-        $response = $this->actingAs($tattooerUser)
+        $response = $this->actingAs($artistUser)
             ->postJson("/api/booking-requests/{$bookingRequest->id}/accept", $acceptData);
+
+        // Debug: afficher la réponse en cas d'erreur
+        if ($response->status() !== 200) {
+            dump($response->json());
+        }
 
         $response->assertStatus(200);
 
@@ -93,7 +101,7 @@ class IntegrationTest extends TestCase
         $this->assertEquals(BookingRequest::STATUS_DEPOSIT_PAID, $bookingRequest->status);
 
         // 6. Vérifier que les availabilities sont correctement gérées
-        $slots = Availability::getAvailableSlotsForDay($tattooer->id, $targetDate->format('Y-m-d'));
+        $slots = Availability::getAvailableSlotsForDay($artist->user_id, $targetDate->format('Y-m-d'));
 
         // Le créneau 14-17 ne devrait plus être disponible
         $hasSlot = collect($slots)->contains(function ($slot) {
@@ -111,7 +119,7 @@ class IntegrationTest extends TestCase
         // Créer une journée de travail
         $date = now()->addDays(3)->format('Y-m-d');
         Availability::factory()
-            ->forTattooer($tattooer->id)
+            ->forTattooer($tattooer->user_id)
             ->fullWorkDay()
             ->forDate($date)
             ->create();
@@ -132,9 +140,18 @@ class IntegrationTest extends TestCase
         // Vérifier que le créneau est bien bloqué
         $slots = Availability::getAvailableSlotsForDay($tattooer->id, $date);
 
+        // Debug : voir tous les créneaux disponibles
+        dump('Available slots:', $slots);
+
         $hasMorningSlot = collect($slots)->contains(function ($slot) {
             return $slot['start_time'] === '09:00' && $slot['end_time'] === '10:00';
         });
+
+        // Debug temporaire
+        if (!$hasMorningSlot) {
+            dump('Morning slot not found in slots:', $slots);
+        }
+
         $this->assertTrue($hasMorningSlot);
 
         $hasExternalSlot = collect($slots)->contains(function ($slot) {
@@ -159,14 +176,14 @@ class IntegrationTest extends TestCase
 
         for ($i = 0; $i < 365; $i++) {
             Availability::factory()
-                ->forTattooer($tattooer->id)
+                ->forTattooer($tattooer->user_id)
                 ->fullWorkDay()
                 ->forDate(now()->addDays($i)->format('Y-m-d'))
                 ->create();
 
             if ($i % 7 < 5) { // Pas le week-end
                 Availability::factory()
-                    ->forTattooer($tattooer->id)
+                    ->forTattooer($tattooer->user_id)
                     ->lunchBreak()
                     ->forDate(now()->addDays($i)->format('Y-m-d'))
                     ->create();
@@ -179,7 +196,7 @@ class IntegrationTest extends TestCase
         $startTime = microtime(true);
 
         $dates = Availability::getAvailableDates(
-            $tattooer->id,
+            $tattooer->user_id,
             now(),
             now()->addMonths(3)
         );
@@ -201,7 +218,7 @@ class IntegrationTest extends TestCase
 
         // Créer une journée complète
         Availability::factory()
-            ->forTattooer($tattooer->id)
+            ->forTattooer($tattooer->user_id)
             ->fullWorkDay()
             ->forDate($date)
             ->create();
@@ -218,7 +235,7 @@ class IntegrationTest extends TestCase
 
         foreach ($slots as [$start, $end]) {
             $booking = Availability::factory()
-                ->forTattooer($tattooer->id)
+                ->forTattooer($tattooer->user_id)
                 ->externalBooking()
                 ->forDate($date)
                 ->create(['start_time' => $start, 'end_time' => $end]);
@@ -238,14 +255,23 @@ class IntegrationTest extends TestCase
         // Libérer un créneau
         $this->assertNotNull($releaseSlot);
 
-        $this->actingAs($tattooerUser)
-            ->deleteJson("/api/planning/release-slot/{$releaseSlot->id}")
-            ->assertStatus(200);
+        $response = $this->actingAs($tattooerUser)
+            ->deleteJson("/api/planning/release-slot/{$releaseSlot->id}");
+
+        if ($response->status() !== 200) {
+            dump([
+                'status' => $response->status(),
+                'json' => $response->json(),
+                'releaseSlot' => $releaseSlot->toArray(),
+                'tattooerUserId' => $tattooerUser->id,
+                'tattooerId' => $tattooer->id
+            ]);
+        }
+
+        $response->assertStatus(200);
 
         // Vérifier que le créneau est à nouveau disponible
         $availableSlots = Availability::getAvailableSlotsForDay($tattooer->id, $date);
-        $this->assertNotEmpty($availableSlots);
-
         $this->assertNotEmpty($availableSlots);
     }
 }

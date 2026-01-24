@@ -43,6 +43,11 @@ return new class extends Migration
 
             // Gestion salon
             $table->boolean('credentials_managed_by_studio')->default(true);
+
+            // ⭐ NOUVEAU : Champs pour compatibilité avec les tests
+            $table->boolean('siret_verified')->default(false);
+            $table->boolean('stripe_onboarding_complete')->default(false);
+
             $table->text('notes')->nullable();
 
             $table->timestamps();

@@ -70,7 +70,7 @@ class AccountingController extends Controller
         ]);
 
         $transaction = AccountingTransaction::create([
-            'tattooer_id' => $user->tattooer->id,
+            'user_id' => $user->id,
             'reference' => AccountingTransaction::generateReference(
                 $validated['type'],
                 $validated['category']
@@ -114,7 +114,7 @@ class AccountingController extends Controller
 
         // Factures impayées
         $unpaidInvoices = Invoice::query()
-            ->where('tattooer_id', $user->tattooer->id)
+            ->where('user_id', $user->id)
             ->whereIn('status', ['draft', 'sent'])
             ->where('due_date', '<', now())
             ->get();

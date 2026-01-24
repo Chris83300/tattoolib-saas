@@ -15,7 +15,8 @@ beforeEach(function () {
 
 test('tattooer can get their working hours', function () {
     WorkingHour::factory()->create([
-        'tattooer_id' => test()->tattooer->id,
+        'owner_type' => \App\Models\Tattooer::class,
+        'owner_id' => test()->tattooer->id,
         'day_of_week' => 1, // Lundi
         'start_time' => '09:00',
         'end_time' => '18:00',
@@ -38,7 +39,8 @@ test('tattooer can get their working hours', function () {
 
 test('tattooer can update working hours for single day', function () {
     $workingHour = WorkingHour::factory()->create([
-        'tattooer_id' => test()->tattooer->id,
+        'owner_type' => \App\Models\Tattooer::class,
+        'owner_id' => test()->tattooer->id,
         'day_of_week' => 3, // Mercredi
         'start_time' => '09:00',
         'end_time' => '18:00'
@@ -73,7 +75,8 @@ test('tattooer can create new working hours', function () {
                 'start_time' => '11:00',
                 'end_time' => '20:00',
                 'is_open' => true,
-                'tattooer_id' => test()->tattooer->id
+                'owner_id' => test()->tattooer->id,
+                'owner_type' => \App\Models\Tattooer::class
             ]
         ]);
 });

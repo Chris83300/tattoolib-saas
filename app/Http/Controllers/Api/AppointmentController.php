@@ -18,8 +18,8 @@ class AppointmentController extends Controller
 
         $query = Appointment::query()
             ->with([
-                'client.user:id,name,email,phone',
-                'tattooer.user:id,name,email',
+                'client.user:id,name,email',
+                'bookable.user:id,name,email',
                 'bookingRequest:id,tattoo_size,body_zone,description'
             ]);
 
@@ -27,7 +27,8 @@ class AppointmentController extends Controller
         if ($user->isClient()) {
             $query->where('client_id', $user->client->id);
         } elseif ($user->isTattooer()) {
-            $query->where('tattooer_id', $user->tattooer->id);
+            $query->where('bookable_type', \App\Models\Tattooer::class)
+                  ->where('bookable_id', $user->tattooer->user_id);
         } else {
             return response()->json([
                 'message' => 'Profil incomplet'
@@ -63,9 +64,9 @@ class AppointmentController extends Controller
 
         $query = Appointment::query()
             ->with([
-                'client.user:id,name,email,phone',
-                'tattooer.user:id,name,email,phone',
-                'tattooer:id,user_id,studio_name,address,city',
+                'client.user:id,name,email',
+                'bookable.user:id,name,email',
+                'bookable:id,user_id,studio_name,address,city',
                 'bookingRequest:id,tattoo_size,body_zone,description,estimated_total_price'
             ])
             ->upcoming(); // Utilise le scope défini dans le modèle
@@ -74,7 +75,8 @@ class AppointmentController extends Controller
         if ($user->isClient()) {
             $query->where('client_id', $user->client->id);
         } elseif ($user->isTattooer()) {
-            $query->where('tattooer_id', $user->tattooer->id);
+            $query->where('bookable_type', \App\Models\Tattooer::class)
+                  ->where('bookable_id', $user->tattooer->user_id);
         } else {
             return response()->json([
                 'message' => 'Profil incomplet'
@@ -100,8 +102,8 @@ class AppointmentController extends Controller
 
         $query = Appointment::query()
             ->with([
-                'client.user:id,name,email,phone',
-                'tattooer.user:id,name,email',
+                'client.user:id,name,email',
+                'bookable.user:id,name,email',
                 'bookingRequest:id,tattoo_size,body_zone'
             ])
             ->past(); // Utilise le scope défini dans le modèle
@@ -109,7 +111,8 @@ class AppointmentController extends Controller
         if ($user->isClient()) {
             $query->where('client_id', $user->client->id);
         } elseif ($user->isTattooer()) {
-            $query->where('tattooer_id', $user->tattooer->id);
+            $query->where('bookable_type', \App\Models\Tattooer::class)
+                  ->where('bookable_id', $user->tattooer->user_id);
         } else {
             return response()->json([
                 'message' => 'Profil incomplet'
@@ -130,8 +133,8 @@ class AppointmentController extends Controller
 
         $appointment->load([
             'client.user',
-            'tattooer.user',
-            'tattooer.media',
+            'bookable.user',
+            'bookable.media',
             'bookingRequest.conversation',
         ]);
 
@@ -149,7 +152,7 @@ class AppointmentController extends Controller
             'note' => 'nullable|string|max:10000',
         ]);
 
-        if ($appointment->tattooer_confirmation_status) {
+        if ($appointment->bookable_confirmation_status) {
             return response()->json([
                 'message' => 'Ce rendez-vous a déjà été confirmé'
             ], 422);
@@ -174,7 +177,7 @@ class AppointmentController extends Controller
             'note' => 'nullable|string|max:10000',
         ]);
 
-        if ($appointment->tattooer_confirmation_status) {
+        if ($appointment->bookable_confirmation_status) {
             return response()->json([
                 'message' => 'Le statut de ce rendez-vous a déjà été défini'
             ], 422);
@@ -231,7 +234,7 @@ class AppointmentController extends Controller
         }
 
         // Déterminer qui annule
-        $cancelledBy = $request->user()->isClient() ? 'client' : 'tattooer';
+        $cancelledBy = $request->user()->isClient() ? 'client' : 'bookable';
 
         $appointment->cancel($cancelledBy, $request->reason);
 
@@ -260,7 +263,7 @@ class AppointmentController extends Controller
 
         $appointments = Appointment::query()
             ->with(['client.user:id,name', 'bookingRequest:id,tattoo_size,body_zone'])
-            ->where('tattooer_id', $user->tattooer->id)
+            ->where('bookable_id', $user->tattooer->user_id)
             ->requireConfirmation() // Scope du modèle
             ->get();
 
@@ -294,25 +297,25 @@ class AppointmentController extends Controller
             ];
 
         } elseif ($user->isTattooer()) {
-            $tattooerId = $user->tattooer->id;
+            $bookableId = $user->tattooer->user_id;
 
             $stats = [
-                'upcoming' => Appointment::where('tattooer_id', $tattooerId)
+                'upcoming' => Appointment::where('bookable_id', $bookableId)
                     ->upcoming()->count(),
 
-                'completed' => Appointment::where('tattooer_id', $tattooerId)
+                'completed' => Appointment::where('bookable_id', $bookableId)
                     ->where('status', Appointment::STATUS_COMPLETED)->count(),
 
-                'cancelled' => Appointment::where('tattooer_id', $tattooerId)
+                'cancelled' => Appointment::where('bookable_id', $bookableId)
                     ->where('status', Appointment::STATUS_CANCELLED)->count(),
 
-                'client_no_shows' => Appointment::where('tattooer_id', $tattooerId)
+                'client_no_shows' => Appointment::where('bookable_id', $bookableId)
                     ->where('status', Appointment::STATUS_CLIENT_NO_SHOW)->count(),
 
-                'requiring_confirmation' => Appointment::where('tattooer_id', $tattooerId)
+                'requiring_confirmation' => Appointment::where('bookable_id', $bookableId)
                     ->requireConfirmation()->count(),
 
-                'total' => Appointment::where('tattooer_id', $tattooerId)->count(),
+                'total' => Appointment::where('bookable_id', $bookableId)->count(),
             ];
 
         } else {
@@ -343,14 +346,15 @@ class AppointmentController extends Controller
         $endOfMonth = $startOfMonth->copy()->endOfMonth();
 
         $query = Appointment::query()
-            ->with(['client.user:id,name', 'tattooer.user:id,name', 'bookingRequest:id,tattoo_size'])
+            ->with(['client.user:id,name', 'bookable.user:id,name', 'bookingRequest:id,tattoo_size'])
             ->whereBetween('start_time', [$startOfMonth, $endOfMonth])
             ->where('status', '!=', Appointment::STATUS_CANCELLED);
 
         if ($user->isClient()) {
             $query->where('client_id', $user->client->id);
         } elseif ($user->isTattooer()) {
-            $query->where('tattooer_id', $user->tattooer->id);
+            $query->where('bookable_type', \App\Models\Tattooer::class)
+                  ->where('bookable_id', $user->tattooer->user_id);
         } else {
             return response()->json([
                 'message' => 'Profil incomplet'

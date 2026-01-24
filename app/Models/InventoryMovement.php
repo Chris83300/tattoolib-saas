@@ -12,7 +12,7 @@ class InventoryMovement extends Model
 
     protected $fillable = [
         'inventory_item_id',
-        'tattooer_id',
+        'user_id',
         'movement_type',
         'quantity',
         'stock_before',
@@ -92,9 +92,9 @@ class InventoryMovement extends Model
         return $query->where('inventory_item_id', $itemId);
     }
 
-    public function scopeForTattooer($query, int $tattooerId)
+    public function scopeForTattooer($query, int $userId)
     {
-        return $query->where('tattooer_id', $tattooerId);
+        return $query->where('user_id', $userId);
     }
 
     public function scopeBetween($query, $startDate, $endDate)

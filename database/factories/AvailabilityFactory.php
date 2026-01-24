@@ -29,7 +29,7 @@ class AvailabilityFactory extends Factory
             'source' => $this->faker->randomElement([
                 Availability::SOURCE_WORKING_HOURS,
                 Availability::SOURCE_MANUAL,
-                Availability::SOURCE_APPOINTMENT,
+                'booking', // Utiliser 'booking' au lieu de SOURCE_APPOINTMENT
                 Availability::SOURCE_EXTERNAL,
             ]),
             'notes' => $this->faker->optional(0.3)->sentence(),
@@ -60,7 +60,7 @@ class AvailabilityFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'type' => Availability::TYPE_BUSY,
-            'source' => Availability::SOURCE_APPOINTMENT,
+            'source' => 'booking', // Utiliser 'booking' au lieu de SOURCE_APPOINTMENT
             'appointment_id' => null, // Pas de contrainte FK dans les tests
         ]);
     }
@@ -227,7 +227,8 @@ class AvailabilityFactory extends Factory
     public function forTattooer(int $tattooerId)
     {
         return $this->state(fn (array $attributes) => [
-            'tattooer_id' => $tattooerId,
+            'owner_type' => \App\Models\Tattooer::class,
+            'owner_id' => $tattooerId,
         ]);
     }
 

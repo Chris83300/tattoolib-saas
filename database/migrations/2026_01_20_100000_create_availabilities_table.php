@@ -10,7 +10,9 @@ return new class extends Migration
     {
         Schema::create('availabilities', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('tattooer_id')->constrained()->onDelete('cascade');
+
+            // Relations polymorphiques (Tattooer ou StudioArtist)
+            $table->morphs('owner');
 
             // Période de disponibilité
             $table->date('date');
@@ -18,8 +20,12 @@ return new class extends Migration
             $table->time('end_time');
 
             // Type de disponibilité
-            $table->enum('type', ['available', 'busy', 'break', 'holiday', 'sick_leave'])
+            $table->enum('type', ['available', 'busy', 'break', 'holiday', 'sick_leave', 'external_booking', 'blocked'])
                 ->default('available');
+
+            // Source de l'availability
+            $table->enum('source', ['manual', 'working_hours', 'booking', 'external'])
+                ->default('manual');
 
             // Informations complémentaires
             $table->text('notes')->nullable();
@@ -33,18 +39,12 @@ return new class extends Migration
             $table->foreignId('appointment_id')->nullable()
                 ->constrained()->onDelete('cascade');
 
-            // ⭐ NOUVEAU : Tracer si généré depuis WorkingHours
-            $table->boolean('generated_from_working_hour')->default(false);
-
             $table->timestamps();
 
             // Index pour optimisation
-            $table->index(['tattooer_id', 'date']);
-            $table->index(['tattooer_id', 'date', 'type']);
+            $table->index(['owner_type', 'owner_id', 'date']);
+            $table->index(['owner_type', 'owner_id', 'date', 'type']);
             $table->index('appointment_id');
-
-            // ⚠️ SUPPRESSION de la contrainte unique trop stricte
-            // On peut avoir plusieurs availabilities le même jour (pause + dispo + busy)
         });
     }
 

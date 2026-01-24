@@ -23,7 +23,8 @@ class BookingRequestFactory extends Factory
     {
         return [
             'client_id' => Client::factory(),
-            'tattooer_id' => Tattooer::factory(),
+            'bookable_type' => Tattooer::class,
+            'bookable_id' => Tattooer::factory(),
             'tattoo_size' => $this->faker->randomElement(['petit', 'moyen', 'grand', 'très grand']),
             'body_zone' => $this->faker->randomElement([
                 'bras', 'jambe', 'dos', 'épaule', 'avant-bras', 'mollet',
@@ -245,7 +246,8 @@ class BookingRequestFactory extends Factory
     public function forTattooer(int $tattooerId): static
     {
         return $this->state(fn (array $attributes) => [
-            'tattooer_id' => $tattooerId,
+            'bookable_type' => Tattooer::class,
+            'bookable_id' => $tattooerId,
         ]);
     }
 

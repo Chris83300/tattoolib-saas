@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Client;
-use App\Models\StudioArtist;
+use App\Models\Tattooer;
 use App\Models\BookingRequest;
 use App\Models\Payment;
 use App\Models\User;
@@ -22,10 +22,10 @@ class ProductionReadyTest extends TestCase
 
         // 1. Test des modèles et factories
         $client = Client::factory()->create();
-        $artist = StudioArtist::factory()->create();
+        $artist = Tattooer::factory()->create();
         $booking = BookingRequest::factory()->create([
             'client_id' => $client->id,
-            'bookable_type' => StudioArtist::class,
+            'bookable_type' => Tattooer::class,
             'bookable_id' => $artist->id,
             'status' => BookingRequest::STATUS_ACCEPTED,
             'estimated_price' => 500.00,
@@ -33,7 +33,7 @@ class ProductionReadyTest extends TestCase
 
         // Vérifications
         $this->assertInstanceOf(Client::class, $booking->client);
-        $this->assertInstanceOf(StudioArtist::class, $booking->bookable);
+        $this->assertInstanceOf(Tattooer::class, $booking->bookable);
         $this->assertEquals(150.00, $booking->calculateDepositAmount());
 
         echo "✅ Models and factories: PASSED\n";
@@ -44,19 +44,19 @@ class ProductionReadyTest extends TestCase
     {
         echo "🔗 TESTING POLYMORPHIC RELATIONS 🔗\n";
 
-        $artist = StudioArtist::factory()->create();
+        $artist = Tattooer::factory()->create();
         $client = Client::factory()->create();
 
         $booking = BookingRequest::factory()->create([
             'client_id' => $client->id,
-            'bookable_type' => StudioArtist::class,
+            'bookable_type' => Tattooer::class,
             'bookable_id' => $artist->id,
         ]);
 
         // Test de la relation polymorphique
-        $this->assertEquals(StudioArtist::class, $booking->bookable_type);
+        $this->assertEquals(Tattooer::class, $booking->bookable_type);
         $this->assertEquals($artist->id, $booking->bookable_id);
-        $this->assertInstanceOf(StudioArtist::class, $booking->bookable);
+        $this->assertInstanceOf(Tattooer::class, $booking->bookable);
 
         echo "✅ Polymorphic relations: PASSED\n";
     }
@@ -67,12 +67,12 @@ class ProductionReadyTest extends TestCase
         echo "📋 TESTING BOOKING WORKFLOW 📋\n";
 
         $client = Client::factory()->create();
-        $artist = StudioArtist::factory()->create();
+        $artist = Tattooer::factory()->create();
 
         // Test des transitions de statut
         $booking = BookingRequest::factory()->create([
             'client_id' => $client->id,
-            'bookable_type' => StudioArtist::class,
+            'bookable_type' => Tattooer::class,
             'bookable_id' => $artist->id,
             'status' => BookingRequest::STATUS_PENDING,
         ]);
@@ -98,13 +98,13 @@ class ProductionReadyTest extends TestCase
         echo "💳 TESTING PAYMENT SYSTEM 💳\n";
 
         $client = Client::factory()->create();
-        $artist = StudioArtist::factory()->create([
+        $artist = Tattooer::factory()->create([
             'stripe_connect_account_id' => 'acct_test_' . uniqid(),
         ]);
 
         $booking = BookingRequest::factory()->create([
             'client_id' => $client->id,
-            'bookable_type' => StudioArtist::class,
+            'bookable_type' => Tattooer::class,
             'bookable_id' => $artist->id,
             'status' => BookingRequest::STATUS_ACCEPTED,
             'estimated_price' => 400.00,
@@ -135,24 +135,24 @@ class ProductionReadyTest extends TestCase
 
         $client1 = Client::factory()->create();
         $client2 = Client::factory()->create();
-        $artist = StudioArtist::factory()->create();
+        $artist = Tattooer::factory()->create();
 
         // Test d'isolation des données
         $booking1 = BookingRequest::factory()->create([
             'client_id' => $client1->id,
-            'bookable_type' => StudioArtist::class,
+            'bookable_type' => Tattooer::class,
             'bookable_id' => $artist->id,
         ]);
 
         $booking2 = BookingRequest::factory()->create([
             'client_id' => $client2->id,
-            'bookable_type' => StudioArtist::class,
+            'bookable_type' => Tattooer::class,
             'bookable_id' => $artist->id,
         ]);
 
         // Client1 ne doit voir que ses bookings
         $response = $this->actingAs($client1->user)
-            ->getJson('/api/bookings');
+            ->getJson('/api/booking-requests');
 
         $response->assertStatus(200)
             ->assertJsonFragment(['id' => $booking1->id])

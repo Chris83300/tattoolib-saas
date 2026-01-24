@@ -152,6 +152,18 @@ class Appointment extends Model
                    ->where('bookable_type', 'App\\Models\\Tattooer');
     }
 
+    public function scopeForStudioArtist($query, int $studioArtistId)
+    {
+        return $query->where('bookable_id', $studioArtistId)
+                   ->where('bookable_type', 'App\\Models\\StudioArtist');
+    }
+
+    public function scopeForBookable($query, Model $bookable)
+    {
+        return $query->where('bookable_id', $bookable->getKey())
+                   ->where('bookable_type', get_class($bookable));
+    }
+
     public function scopeForClient($query, int $clientId)
     {
         return $query->where('client_id', $clientId);

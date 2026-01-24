@@ -22,7 +22,8 @@ class BookingRequestFactoryTest extends TestCase
 
         $bookingRequest = BookingRequest::factory()->create([
             'client_id' => $client->id,
-            'tattooer_id' => $tattooer->id,
+            'bookable_type' => \App\Models\Tattooer::class,
+            'bookable_id' => $tattooer->id,
             'preferred_date' => now()->addDays(5)->format('Y-m-d'),
             'preferred_time_slot' => 'morning',
             'preferred_time_notes' => 'De préférence le matin',
@@ -45,7 +46,8 @@ class BookingRequestFactoryTest extends TestCase
             ->accepted()
             ->create([
                 'client_id' => $client->id,
-                'tattooer_id' => $tattooer->id,
+                'bookable_type' => \App\Models\Tattooer::class,
+                'bookable_id' => $tattooer->id,
                 'accepted_at' => now(),
                 'scheduled_start_time' => '10:00',
                 'scheduled_end_time' => '12:00',
@@ -71,7 +73,8 @@ class BookingRequestFactoryTest extends TestCase
 
         $bookingRequest = BookingRequest::factory()->create([
             'client_id' => $client->id,
-            'tattooer_id' => $tattooer->id,
+            'bookable_type' => \App\Models\Tattooer::class,
+            'bookable_id' => $tattooer->id,
             'status' => BookingRequest::STATUS_EXPIRED,
             'deposit_deadline' => now()->subHours(24),
         ]);
@@ -90,7 +93,8 @@ class BookingRequestFactoryTest extends TestCase
 
         $bookingRequest = BookingRequest::factory()->create([
             'client_id' => $client->id,
-            'tattooer_id' => $tattooer->id,
+            'bookable_type' => \App\Models\Tattooer::class,
+            'bookable_id' => $tattooer->id,
             'status' => BookingRequest::STATUS_DEPOSIT_PAID,
             'stripe_payment_intent_id' => 'pi_test_' . uniqid(),
             'deposit_paid_at' => now(),

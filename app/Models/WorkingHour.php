@@ -64,6 +64,18 @@ class WorkingHour extends Model
                    ->where('owner_type', 'App\\Models\\Tattooer');
     }
 
+    public function scopeForStudioArtist($query, int $studioArtistId)
+    {
+        return $query->where('owner_id', $studioArtistId)
+                   ->where('owner_type', 'App\\Models\\StudioArtist');
+    }
+
+    public function scopeForBookable($query, Model $bookable)
+    {
+        return $query->where('owner_id', $bookable->getKey())
+                   ->where('owner_type', get_class($bookable));
+    }
+
     public function scopeOpen($query)
     {
         return $query->where('is_open', true);
@@ -207,7 +219,7 @@ class WorkingHour extends Model
     /**
      * Crée les horaires par défaut pour un tatoueur (Lundi-Vendredi 9h-18h)
      */
-    public static function createDefaultSchedule(int $tattooerId): void
+    public static function createDefaultSchedule(int $userId, string $ownerType = Tattooer::class): void
     {
         $defaultSchedule = [
             // Lundi à Vendredi
@@ -223,7 +235,8 @@ class WorkingHour extends Model
 
         foreach ($defaultSchedule as $schedule) {
             self::create([
-                'tattooer_id' => $tattooerId,
+                'owner_type' => $ownerType,
+                'owner_id' => $userId,
                 'day_of_week' => $schedule['day'],
                 'is_open' => $schedule['open'],
                 'start_time' => $schedule['start'] ?? null,

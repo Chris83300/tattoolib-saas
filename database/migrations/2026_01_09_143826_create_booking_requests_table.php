@@ -15,7 +15,9 @@ return new class extends Migration
             $table->id();
             // Relations
             $table->foreignId('client_id')->constrained('clients')->onDelete('cascade');
-            $table->foreignId('tattooer_id')->constrained('tattooers')->onDelete('cascade');
+
+            // Relations polymorphiques (Tattooer ou StudioArtist)
+            $table->morphs('bookable');
 
             // Infos demande
             $table->string('tattoo_size');
@@ -30,6 +32,11 @@ return new class extends Migration
             $table->json('preferred_days')->nullable();
             $table->text('date_notes')->nullable();
 
+            // ⭐ NOUVEAU : Champ preferred_date pour compatibilité
+            $table->date('preferred_date')->nullable();
+            $table->enum('preferred_time_slot', ['morning', 'afternoon', 'evening', 'anytime'])->nullable();
+            $table->text('preferred_time_notes')->nullable();
+
             // Montants
             $table->decimal('total_deposit_amount', 8, 2)->nullable();
             $table->decimal('estimated_total_price', 8, 2)->nullable();
@@ -42,6 +49,9 @@ return new class extends Migration
             $table->timestamp('client_payment_deadline')->nullable();
             $table->timestamp('tattooer_design_deadline')->nullable();
             $table->timestamp('design_sent_at')->nullable();
+
+            // ⭐ NOUVEAU : Champ deposit_deadline pour compatibilité
+            $table->timestamp('deposit_deadline')->nullable();
 
             // Gestion dessin long délai
             $table->boolean('is_long_term_booking')->default(false);
@@ -67,6 +77,20 @@ return new class extends Migration
                 'expired',
                 'cancelled'
             ])->default('pending');
+
+            // ⭐ NOUVEAU : Champ expired_at pour compatibilité
+            $table->timestamp('expired_at')->nullable();
+
+            // ⭐ NOUVEAU : Champ accepted_at pour compatibilité
+            $table->timestamp('accepted_at')->nullable();
+
+            // ⭐ NOUVEAU : Champs scheduled pour compatibilité
+            $table->time('scheduled_start_time')->nullable();
+            $table->time('scheduled_end_time')->nullable();
+            $table->integer('scheduled_duration_minutes')->nullable();
+
+            // ⭐ NOUVEAU : Champ total_price pour compatibilité
+            $table->decimal('total_price', 8, 2)->nullable();
 
             // Flags
             $table->boolean('tattooer_missed_deadline')->default(false);

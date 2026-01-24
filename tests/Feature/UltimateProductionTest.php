@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Client;
-use App\Models\StudioArtist;
+use App\Models\Tattooer;
 use App\Models\BookingRequest;
 use App\Models\Payment;
 use App\Models\User;
@@ -22,17 +22,17 @@ class UltimateProductionTest extends TestCase
 
         // Test 1: Modèles et relations
         $client = Client::factory()->create();
-        $artist = StudioArtist::factory()->create();
+        $artist = Tattooer::factory()->create();
         $booking = BookingRequest::factory()->create([
             'client_id' => $client->id,
-            'bookable_type' => StudioArtist::class,
+            'bookable_type' => Tattooer::class,
             'bookable_id' => $artist->id,
             'status' => BookingRequest::STATUS_ACCEPTED,
             'estimated_price' => 500.00,
         ]);
 
         $this->assertInstanceOf(Client::class, $booking->client);
-        $this->assertInstanceOf(StudioArtist::class, $booking->bookable);
+        $this->assertInstanceOf(Tattooer::class, $booking->bookable);
         $this->assertEquals(150.00, $booking->calculateDepositAmount());
 
         echo "✅ Models & Relations: PASSED\n";
@@ -47,7 +47,7 @@ class UltimateProductionTest extends TestCase
         $this->assertTrue(Schema::hasColumn('booking_requests', 'bookable_id'));
         $this->assertTrue(Schema::hasColumn('booking_requests', 'estimated_price'));
         $this->assertTrue(Schema::hasColumn('payments', 'booking_request_id'));
-        $this->assertTrue(Schema::hasColumn('studio_artists', 'stripe_connect_account_id'));
+        $this->assertTrue(Schema::hasColumn('tattooers', 'stripe_connect_account_id'));
 
         echo "✅ Database Structure: PASSED\n";
 
@@ -68,10 +68,14 @@ class UltimateProductionTest extends TestCase
         $appointment = \App\Models\Appointment::create([
             'booking_request_id' => $booking->id,
             'bookable_id' => $artist->id,
-            'bookable_type' => StudioArtist::class,
+            'bookable_type' => Tattooer::class,
             'client_id' => $client->id,
             'start_time' => now()->addDays(7),
             'end_time' => now()->addDays(7)->addHours(2),
+            'appointment_date' => now()->addDays(7)->format('Y-m-d'),
+            'duration_minutes' => 120,
+            'total_price' => 500.00,
+            'deposit_amount' => 150.00,
             'status' => \App\Models\Appointment::STATUS_CONFIRMED,
         ]);
 
@@ -101,14 +105,14 @@ class UltimateProductionTest extends TestCase
         ];
 
         $response = $this->actingAs($user)
-            ->postJson('/api/bookings', $maliciousInput);
+            ->postJson('/api/booking-requests', $maliciousInput);
 
         $response->assertStatus(422); // Validation doit bloquer
 
         echo "✅ Security Validation: PASSED\n";
 
         // Test 7: Multi-tenancy
-        $this->assertEquals(StudioArtist::class, $booking->bookable_type);
+        $this->assertEquals(Tattooer::class, $booking->bookable_type);
         $this->assertEquals($artist->id, $booking->bookable_id);
 
         echo "✅ Multi-tenancy: PASSED\n";
@@ -134,7 +138,7 @@ class UltimateProductionTest extends TestCase
 
         // Test 2: Deadlines
         $booking = BookingRequest::factory()->create([
-            'client_payment_deadline' => now()->addDays(7),
+            'client_payment_deadline' => now()->subDays(7), // 7 jours dans le passé
             'status' => BookingRequest::STATUS_AWAITING_DEPOSIT,
         ]);
 
@@ -150,7 +154,7 @@ class UltimateProductionTest extends TestCase
         $booking->accept();
         $this->assertEquals(BookingRequest::STATUS_ACCEPTED, $booking->status);
 
-        $booking->markDepositPaid();
+        $booking->markDepositPaid('pi_test_' . uniqid());
         $this->assertEquals(BookingRequest::STATUS_DEPOSIT_PAID, $booking->status);
 
         echo "✅ Status Transitions: PASSED\n";

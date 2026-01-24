@@ -51,7 +51,8 @@ class TattooerPlanningController extends Controller
             ->groupBy(fn($a) => $a->date->format('Y-m-d'));
 
         // Récupérer les RDV confirmés
-        $appointments = Appointment::where('tattooer_id', $user->tattooer->id)
+        $appointments = Appointment::where('bookable_type', \App\Models\Tattooer::class)
+            ->where('bookable_id', $user->tattooer->id)
             ->whereBetween('appointment_date', [$startDate, $endDate])
             ->with(['client.user', 'bookingRequest'])
             ->orderBy('appointment_date')
@@ -129,7 +130,7 @@ class TattooerPlanningController extends Controller
 
         // Bloquer le créneau
         $availability = Availability::blockSlot(
-            $user->tattooer->id,
+            $user->tattooer->id, // Utiliser l'ID du tattooer pour les availabilities
             $validated['date'],
             $validated['start_time'],
             $validated['end_time'],
@@ -152,7 +153,13 @@ class TattooerPlanningController extends Controller
     {
         $user = $request->user();
 
-        if (!$user->isTattooer() || $availability->tattooer_id !== $user->tattooer->id) {
+        // Vérifier l'autorisation avec les relations polymorphiques
+        if (!$user->isTattooer() && !$user->isStudioArtist()) {
+            return response()->json(['message' => 'Accès non autorisé'], 403);
+        }
+
+        // Vérifier que l'availability appartient bien à l'utilisateur
+        if ($availability->owner_id !== ($user->isTattooer() ? $user->tattooer->id : $user->studioArtist->id)) {
             return response()->json(['message' => 'Accès non autorisé'], 403);
         }
 

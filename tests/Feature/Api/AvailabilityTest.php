@@ -13,7 +13,8 @@ test('it can generate availabilities from working hours', function () {
 
     // Créer un seul working hour pour simplifier
     \App\Models\WorkingHour::factory()->create([
-        'tattooer_id' => $tattooer->id,
+        'owner_type' => Tattooer::class,
+        'owner_id' => $tattooer->id,
         'day_of_week' => 1, // Lundi
         'is_open' => true,
         'start_time' => '09:00',
@@ -43,7 +44,8 @@ test('it can block availability for appointment', function () {
     $tattooer = Tattooer::factory()->create(['user_id' => $tattooerUser->id]);
 
     $availability = Availability::factory()->create([
-        'tattooer_id' => $tattooer->id,
+        'owner_type' => Tattooer::class,
+        'owner_id' => $tattooer->user_id,
         'date' => now()->toDateString(),
         'start_time' => '14:00',
         'end_time' => '16:00',
@@ -51,7 +53,6 @@ test('it can block availability for appointment', function () {
     ]);
 
     $appointment = \App\Models\Appointment::factory()->create([
-        'tattooer_id' => $tattooer->id,
         'client_id' => \App\Models\Client::factory()->create()->id,
         'start_time' => now()->setTime(14, 0),
         'end_time' => now()->setTime(16, 0),
@@ -71,7 +72,8 @@ test('it can release availability', function () {
     $tattooer = Tattooer::factory()->create(['user_id' => $tattooerUser->id]);
 
     $availability = Availability::factory()->create([
-        'tattooer_id' => $tattooer->id,
+        'owner_type' => Tattooer::class,
+        'owner_id' => $tattooer->user_id,
         'date' => now()->toDateString(),
         'start_time' => '14:00',
         'end_time' => '16:00',
@@ -94,7 +96,8 @@ test('it can split availability into slots', function () {
     $tattooer = Tattooer::factory()->create(['user_id' => $tattooerUser->id]);
 
     $availability = Availability::factory()->create([
-        'tattooer_id' => $tattooer->id,
+        'owner_type' => Tattooer::class,
+        'owner_id' => $tattooer->user_id,
         'date' => now()->toDateString(),
         'start_time' => '09:00',
         'end_time' => '12:00', // 3h
@@ -141,7 +144,8 @@ test('it can get available slots for date', function () {
 
     // Créer quelques availabilities
     Availability::factory()->count(3)->create([
-        'tattooer_id' => $tattooer->id,
+        'owner_type' => Tattooer::class,
+        'owner_id' => $tattooer->user_id,
         'date' => now()->toDateString(),
         'start_time' => '09:00',
         'end_time' => '12:00',
@@ -149,7 +153,7 @@ test('it can get available slots for date', function () {
     ]);
 
     $slots = Availability::getAvailableSlotsForDay(
-        $tattooer->id,
+        $tattooer->user_id,
         now()->toDateString()
     );
 

@@ -86,17 +86,17 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook']);
 
 // ===== TATTOOERS (Protected routes) =====
-    Route::prefix('tattooers/{tattooer}')->group(function () {
-        // Gestion du portfolio
-        Route::post('/portfolio', [TattooerController::class, 'uploadPortfolioImage']);
-        Route::delete('/portfolio/{mediaId}', [TattooerController::class, 'deletePortfolioImage']);
+Route::middleware('auth:sanctum')->prefix('tattooers/{tattooer}')->group(function () {
+    // Gestion du portfolio
+    Route::post('/portfolio', [TattooerController::class, 'uploadPortfolioImage']);
+    Route::delete('/portfolio/{mediaId}', [TattooerController::class, 'deletePortfolioImage']);
 
-        // Gestion des horaires
-        Route::get('/working-hours', [TattooerController::class, 'getWorkingHours']);
-        Route::put('/working-hours', [TattooerController::class, 'updateWorkingHours']);
-        Route::put('/working-hours/{day}', [TattooerController::class, 'updateDayWorkingHours'])
-            ->where('day', '[0-6]');
-    });
+    // Gestion des horaires
+    Route::get('/working-hours', [TattooerController::class, 'getWorkingHours']);
+    Route::put('/working-hours', [TattooerController::class, 'updateWorkingHours']);
+    Route::put('/working-hours/{day}', [TattooerController::class, 'updateDayWorkingHours'])
+        ->where('day', '[0-6]');
+});
 
     // ===== BOOKING REQUESTS =====
     Route::prefix('booking-requests')->group(function () {
@@ -120,8 +120,17 @@ Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook']
 
         // Webhook Stripe (à protéger différemment en production)
         Route::post('/{bookingRequest}/mark-deposit-paid', [BookingRequestController::class, 'markDepositPaid']);
+    });
 
-
+    // ===== COMPATIBILITY ROUTES (Legacy /api/bookings) =====
+    Route::prefix('bookings')->group(function () {
+        Route::get('/', [BookingRequestController::class, 'index']);
+        Route::post('/', [BookingRequestController::class, 'store']);
+        Route::get('/{bookingRequest}', [BookingRequestController::class, 'show']);
+        Route::post('/{bookingRequest}/accept', [BookingRequestController::class, 'accept']);
+        Route::post('/{bookingRequest}/reject', [BookingRequestController::class, 'reject']);
+        Route::post('/{bookingRequest}/confirm-appointment', [BookingRequestController::class, 'confirmAppointment']);
+        Route::post('/{bookingRequest}/cancel', [BookingRequestController::class, 'cancel']);
     });
 
     // ===== APPOINTMENTS =====

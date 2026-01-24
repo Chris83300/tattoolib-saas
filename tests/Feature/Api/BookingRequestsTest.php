@@ -18,7 +18,8 @@ beforeEach(function () {
 
 test('client can create booking request', function () {
     $bookingData = [
-        'tattooer_id' => test()->tattooer->id,
+        'bookable_type' => Tattooer::class,
+        'bookable_id' => test()->tattooer->id,
         'description' => 'Tattoo de dragon sur le bras avec une description suffisamment longue pour valider',
         'tattoo_size' => 'medium',
         'body_zone' => 'arm',
@@ -26,6 +27,14 @@ test('client can create booking request', function () {
     ];
 
     $response = postJson('/api/booking-requests', $bookingData);
+
+    if ($response->status() !== 201) {
+        dump([
+            'status' => $response->status(),
+            'json' => $response->json(),
+            'exception' => $response->exception ? $response->exception->getMessage() : 'No exception'
+        ]);
+    }
 
     $response->assertStatus(201)
         ->assertJsonStructure([
@@ -40,14 +49,15 @@ test('client can create booking request', function () {
 
     test()->assertDatabaseHas('booking_requests', [
         'client_id' => test()->client->id,
-        'tattooer_id' => test()->tattooer->id,
+        'bookable_type' => Tattooer::class,
+        'bookable_id' => test()->tattooer->id,
         'description' => 'Tattoo de dragon sur le bras avec une description suffisamment longue pour valider'
     ]);
 });
 
 test('cannot create booking request with invalid data', function () {
     $response = postJson('/api/booking-requests', [
-        'tattooer_id' => test()->tattooer->id,
+        'user_id' => test()->user->id,
         // Missing required fields
     ]);
 
@@ -79,8 +89,13 @@ test('tattooer can see booking requests for them', function () {
     $tattooerUser = User::factory()->create();
     $tattooer = Tattooer::factory()->verified()->create(['user_id' => $tattooerUser->id]);
 
+    $clientUser = User::factory()->create();
+    $client = Client::factory()->create(['user_id' => $clientUser->id]);
+
     $bookingRequest = BookingRequest::factory()->create([
-        'tattooer_id' => $tattooer->id
+        'bookable_type' => \App\Models\Tattooer::class,
+        'bookable_id' => $tattooer->id,
+        'client_id' => $client->id
     ]);
 
     actingAs($tattooerUser, 'sanctum');
@@ -103,11 +118,15 @@ test('tattooer can accept booking request', function () {
     $tattooerUser = User::factory()->create();
     $tattooer = Tattooer::factory()->verified()->create(['user_id' => $tattooerUser->id]);
 
+    $clientUser = User::factory()->create();
+    $client = Client::factory()->create(['user_id' => $clientUser->id]);
+
     $scheduledDate = now()->addDays(7)->toDateString();
 
     // Créer une availability pour le tatoueur ce jour-là
     \App\Models\Availability::factory()->create([
-        'tattooer_id' => $tattooer->id,
+        'owner_type' => \App\Models\Tattooer::class,
+        'owner_id' => $tattooer->id,
         'date' => $scheduledDate,
         'start_time' => '09:00',
         'end_time' => '18:00',
@@ -116,8 +135,10 @@ test('tattooer can accept booking request', function () {
     ]);
 
     $bookingRequest = BookingRequest::factory()->create([
-        'tattooer_id' => $tattooer->id,
-        'status' => 'pending',
+        'bookable_type' => \App\Models\Tattooer::class,
+        'bookable_id' => $tattooer->id,
+        'client_id' => $client->id,
+        'status' => \App\Models\BookingRequest::STATUS_PENDING,
         'preferred_date' => $scheduledDate,
     ]);
 
@@ -142,9 +163,14 @@ test('tattooer can reject booking request', function () {
     $tattooerUser = User::factory()->create();
     $tattooer = Tattooer::factory()->verified()->create(['user_id' => $tattooerUser->id]);
 
+    $clientUser = User::factory()->create();
+    $client = Client::factory()->create(['user_id' => $clientUser->id]);
+
     $bookingRequest = BookingRequest::factory()->create([
-        'tattooer_id' => $tattooer->id,
-        'status' => 'pending'
+        'bookable_type' => \App\Models\Tattooer::class,
+        'bookable_id' => $tattooer->id,
+        'client_id' => $client->id,
+        'status' => \App\Models\BookingRequest::STATUS_PENDING
     ]);
 
     actingAs($tattooerUser, 'sanctum');
@@ -163,25 +189,56 @@ test('client cannot accept booking request', function () {
     $tattooerUser = User::factory()->create();
     $tattooer = Tattooer::factory()->verified()->create(['user_id' => $tattooerUser->id]);
 
+    $clientUser = User::factory()->create();
+    $client = Client::factory()->create(['user_id' => $clientUser->id]);
+
     $bookingRequest = BookingRequest::factory()->create([
-        'tattooer_id' => $tattooer->id,
-        'status' => 'pending'
+        'bookable_type' => \App\Models\Tattooer::class,
+        'bookable_id' => $tattooer->id,
+        'client_id' => $client->id,
+        'status' => \App\Models\BookingRequest::STATUS_PENDING
     ]);
 
-    actingAs(test()->user, 'sanctum');
+    actingAs($clientUser, 'sanctum');
     $response = postJson("/api/booking-requests/{$bookingRequest->id}/accept");
 
     $response->assertStatus(403);
 });
 
-test('cannot access other users booking requests', function () {
-    $otherUser = User::factory()->create();
+test('client can access their own booking request', function () {
     $bookingRequest = BookingRequest::factory()->create([
-        'client_id' => test()->client->id,
-        'tattooer_id' => test()->tattooer->id
+        'client_id' => test()->client->id
     ]);
 
-    actingAs($otherUser, 'sanctum');
+    $response = getJson("/api/booking-requests/{$bookingRequest->id}");
+
+    $response->assertStatus(200)
+        ->assertJsonStructure([
+            'id',
+            'description',
+            'status',
+            'created_at'
+        ]);
+});
+
+test('cannot access other users booking requests', function () {
+    $otherUser = User::factory()->create();
+    $otherTattooer = Tattooer::factory()->verified()->create(['user_id' => $otherUser->id]);
+
+    $otherClientUser = User::factory()->create();
+    $otherClient = Client::factory()->create(['user_id' => $otherClientUser->id]);
+
+    $bookingRequest = BookingRequest::factory()->create([
+        'bookable_type' => \App\Models\Tattooer::class,
+        'bookable_id' => $otherTattooer->id,
+        'client_id' => $otherClient->id,
+    ]);
+
+    // Client différent qui essaie d'accéder
+    $clientUser = User::factory()->create();
+    $client = Client::factory()->create(['user_id' => $clientUser->id]);
+
+    actingAs($clientUser, 'sanctum');
     $response = getJson("/api/booking-requests/{$bookingRequest->id}");
 
     $response->assertStatus(403);

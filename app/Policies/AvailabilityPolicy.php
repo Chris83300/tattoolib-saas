@@ -20,7 +20,7 @@ class AvailabilityPolicy
      */
     public function view(User $user, Availability $availability): bool
     {
-        return $user->isTattooer() && $availability->tattooer_id === $user->tattooer->id;
+        return $user->isTattooer() && $availability->user_id === $user->id;
     }
 
     /**
@@ -36,7 +36,7 @@ class AvailabilityPolicy
      */
     public function update(User $user, Availability $availability): bool
     {
-        return $user->isTattooer() && $availability->tattooer_id === $user->tattooer->id;
+        return $user->isTattooer() && $availability->user_id === $user->id;
     }
 
     /**
@@ -44,6 +44,6 @@ class AvailabilityPolicy
      */
     public function delete(User $user, Availability $availability): bool
     {
-        return $user->isTattooer() && $availability->tattooer_id === $user->tattooer->id;
+        return $user->isTattooer() && $availability->user_id === $user->id;
     }
 }

@@ -16,7 +16,7 @@ test('api validates required fields', function () {
 
     $response = postJson('/api/booking-requests', []);
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['tattooer_id', 'description', 'tattoo_size', 'body_zone']);
+        ->assertJsonValidationErrors(['bookable_type', 'bookable_id', 'description', 'tattoo_size', 'body_zone']);
 });
 
 test('api validates email format', function () {
@@ -51,7 +51,7 @@ test('api validates date format', function () {
     $tattooer = Tattooer::factory()->verified()->create();
 
     $response = postJson('/api/booking-requests', [
-        'tattooer_id' => $tattooer->id,
+        'user_id' => $user->id,
         'description' => 'Description valide de plus de 20 caractères',
         'tattoo_size' => 'medium',
         'body_zone' => 'arm',
@@ -71,7 +71,7 @@ test('api validates numeric fields', function () {
     $tattooer = Tattooer::factory()->verified()->create();
 
     $response = postJson('/api/booking-requests', [
-        'tattooer_id' => $tattooer->id,
+        'user_id' => $user->id,
         'description' => 'Description valide de plus de 20 caractères',
         'tattoo_size' => 'medium',
         'body_zone' => 'arm',
@@ -93,7 +93,7 @@ test('api rejects suspicious input', function () {
     $xssPayload = '<script>alert("xss")</script>';
 
     $response = postJson('/api/booking-requests', [
-        'tattooer_id' => $tattooer->id,
+        'user_id' => $user->id,
         'tattoo_size' => 'medium',
         'body_zone' => 'arm',
         'description' => $xssPayload,
@@ -126,7 +126,7 @@ test('api validates enum values', function () {
     actingAs($user, 'sanctum');
 
     $response = postJson('/api/booking-requests', [
-        'tattooer_id' => $tattooer->id,
+        'user_id' => $user->id,
         'tattoo_size' => 'medium',
         'body_zone' => 'arm',
         'description' => 'Description valide de plus de 20 caractères',
@@ -149,7 +149,7 @@ test('api implements rate limiting', function () {
     $responses = collect();
     for ($i = 0; $i < 61; $i++) {
         $responses->push(postJson('/api/booking-requests', [
-            'tattooer_id' => $tattooer->id,
+            'user_id' => $user->id,
             'tattoo_size' => 'medium',
             'body_zone' => 'arm',
             'description' => 'Description valide de plus de 20 caractères pour le test ' . $i,
@@ -201,7 +201,8 @@ test('api validates foreign key constraints', function () {
     actingAs($user, 'sanctum');
 
     $response = postJson('/api/booking-requests', [
-        'tattooer_id' => 999999, // ID qui n'existe pas
+        'bookable_type' => 'invalid_type', // Type invalide
+        'bookable_id' => 999999, // ID qui n'existe pas
         'tattoo_size' => 'medium',
         'body_zone' => 'arm',
         'description' => 'Description valide de plus de 20 caractères',
@@ -210,7 +211,7 @@ test('api validates foreign key constraints', function () {
     ]);
 
     $response->assertStatus(422)
-        ->assertJsonValidationErrors(['tattooer_id']);
+        ->assertJsonValidationErrors(['bookable_type', 'bookable_id']);
 });
 
 // Tests de validation des formats JSON
@@ -223,7 +224,8 @@ test('api validates json structure', function () {
 
     // Test avec structure JSON incorrecte (champs manquants)
     $response2 = postJson('/api/booking-requests', [
-        'tattooer_id' => $tattooer->id,
+        'bookable_type' => \App\Models\Tattooer::class,
+        'bookable_id' => $tattooer->id,
         // Manque: tattoo_size, body_zone, description
     ]);
 
@@ -232,7 +234,8 @@ test('api validates json structure', function () {
 
     // Test avec types de données incorrects dans JSON
     $response3 = postJson('/api/booking-requests', [
-        'tattooer_id' => 'not-a-number', // Devrait être un nombre
+        'bookable_type' => 123, // Devrait être une chaîne
+        'bookable_id' => 'not-a-number', // Devrait être un nombre
         'tattoo_size' => 123, // Devrait être une chaîne
         'body_zone' => ['array', 'instead', 'of', 'string'], // Devrait être une chaîne
         'description' => 'Description valide de plus de 20 caractères',
@@ -241,11 +244,12 @@ test('api validates json structure', function () {
     ]);
 
     $response3->assertStatus(422)
-        ->assertJsonValidationErrors(['tattooer_id', 'tattoo_size', 'body_zone', 'preferred_days', 'estimated_budget']);
+        ->assertJsonValidationErrors(['bookable_type', 'bookable_id', 'tattoo_size', 'body_zone', 'preferred_days', 'estimated_budget']);
 
     // Test avec JSON contenant des valeurs invalides
     $response4 = postJson('/api/booking-requests', [
-        'tattooer_id' => $tattooer->id,
+        'bookable_type' => \App\Models\Tattooer::class,
+        'bookable_id' => $tattooer->id,
         'tattoo_size' => 'medium',
         'body_zone' => 'arm',
         'description' => 'Description valide de plus de 20 caractères',
@@ -281,7 +285,8 @@ test('api validates booking enum values', function () {
     actingAs($user, 'sanctum');
 
     $response = postJson('/api/booking-requests', [
-        'tattooer_id' => $tattooer->id,
+        'bookable_type' => \App\Models\Tattooer::class,
+        'bookable_id' => $tattooer->id,
         'description' => 'Description valide de plus de 20 caractères pour passer la validation',
         'tattoo_size' => 'Petit (< 10cm)',
         'body_zone' => 'Avant-bras',
@@ -303,7 +308,8 @@ test('api validates date ranges', function () {
     actingAs($user, 'sanctum');
 
     $response = postJson('/api/booking-requests', [
-        'tattooer_id' => $tattooer->id,
+        'bookable_type' => \App\Models\Tattooer::class,
+        'bookable_id' => $tattooer->id,
         'description' => 'Description valide de plus de 20 caractères',
         'tattoo_size' => 'Moyen (10-20cm)',
         'body_zone' => 'Épaule',
@@ -323,7 +329,7 @@ test('api validates budget logic', function () {
 
     // Test avec budget négatif
     $response = postJson('/api/booking-requests', [
-        'tattooer_id' => $tattooer->id,
+        'user_id' => $user->id,
         'tattoo_size' => 'Petit (< 10cm)',
         'body_zone' => 'Poignet',
         'description' => 'Description valide de plus de 20 caractères',
@@ -344,7 +350,7 @@ test('api validates estimated budget', function () {
 
     // Test avec budget dépassant le maximum
     $response = postJson('/api/booking-requests', [
-        'tattooer_id' => $tattooer->id,
+        'user_id' => $user->id,
         'description' => 'Description valide de plus de 20 caractères',
         'tattoo_size' => 'Grand (20-40cm)',
         'body_zone' => 'Dos complet',

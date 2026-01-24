@@ -11,7 +11,7 @@ class Invoice extends Model
     use HasFactory;
 
     protected $fillable = [
-        'tattooer_id',
+        'user_id',
         'studio_id',
         'client_id',
         'appointment_id',
@@ -102,9 +102,9 @@ class Invoice extends Model
 
     // ===== SCOPES =====
 
-    public function scopeForTattooer($query, int $tattooerId)
+    public function scopeForTattooer($query, int $userId)
     {
-        return $query->where('tattooer_id', $tattooerId);
+        return $query->where('user_id', $userId);
     }
 
     public function scopeForClient($query, int $clientId)
@@ -197,7 +197,7 @@ class Invoice extends Model
         ];
 
         return self::create([
-            'tattooer_id' => $appointment->tattooer_id,
+            'user_id' => $appointment->user_id,
             'client_id' => $appointment->client_id,
             'appointment_id' => $appointment->id,
             'invoice_number' => self::generateInvoiceNumber(),

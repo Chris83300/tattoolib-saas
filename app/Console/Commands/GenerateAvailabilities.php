@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Availability;
 use App\Models\Tattooer;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 
 class GenerateAvailabilities extends Command
 {
@@ -39,14 +40,23 @@ class GenerateAvailabilities extends Command
         foreach ($tattooers as $tattooer) {
             $this->info("Génération pour {$tattooer->user->name}...");
 
-            $generated = Availability::generateFromWorkingHours(
-                $tattooer->id,
-                $startDate,
-                $endDate
-            );
+            try {
+                $generated = Availability::generateFromWorkingHours(
+                    $tattooer->user_id, // user_id au lieu de tattooer->id
+                    $startDate,
+                    $endDate
+                );
 
-            $totalGenerated += $generated;
-            $this->line("  → {$generated} availabilities créées");
+                $totalGenerated += $generated;
+                $this->line("  → {$generated} availabilities créées");
+            } catch (\Exception $e) {
+                $this->error("Erreur lors de la génération pour {$tattooer->user->name}: " . $e->getMessage());
+                Log::error('GenerateAvailabilities error: ' . $e->getMessage(), [
+                    'tattooer_id' => $tattooer->id,
+                    'user_id' => $tattooer->user_id,
+                    'trace' => $e->getTraceAsString()
+                ]);
+            }
         }
 
         $this->info("Total : {$totalGenerated} availabilities générées");

@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Models\BookingRequest;
 use App\Models\Client;
 use App\Models\StudioArtist;
+use App\Models\Tattooer;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class BookingRequestFactory extends Factory
@@ -15,8 +16,8 @@ class BookingRequestFactory extends Factory
     {
         return [
             'client_id' => Client::factory(),
-            'bookable_type' => StudioArtist::class,
-            'bookable_id' => StudioArtist::factory(),
+            'bookable_type' => Tattooer::class,
+            'bookable_id' => Tattooer::factory(),
             'tattoo_size' => $this->faker->randomElement(['small', 'medium', 'large']),
             'body_zone' => $this->faker->randomElement(['arm', 'leg', 'back', 'chest', 'neck']),
             'description' => $this->faker->paragraph,
@@ -28,6 +29,8 @@ class BookingRequestFactory extends Factory
             'estimated_total_price' => $this->faker->numberBetween(300, 1000),
             'client_payment_deadline_days' => 7,
             'tattooer_design_deadline_days' => 7,
+            'client_payment_deadline' => now()->addDays(7),
+            'tattooer_design_deadline' => now()->addDays(7),
             'status' => $this->faker->randomElement(['pending', 'accepted', 'rejected']),
         ];
     }

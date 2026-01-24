@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\StudioArtist;
+use App\Models\Tattooer;
 use App\Models\WorkingHour;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -13,8 +14,8 @@ class WorkingHourFactory extends Factory
     public function definition()
     {
         return [
-            'owner_type' => StudioArtist::class,
-            'owner_id' => StudioArtist::factory(),
+            'owner_type' => Tattooer::class,
+            'owner_id' => Tattooer::factory(),
             'day_of_week' => $this->faker->numberBetween(0, 6), // 0 = Dimanche, 6 = Samedi
             'is_open' => $this->faker->boolean(80), // 80% de chance d'être ouvert
             'start_time' => $this->faker->time('H:i'),
@@ -75,6 +76,17 @@ class WorkingHourFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'start_time' => '10:00',
             'end_time' => '17:00',
+        ]);
+    }
+
+    /**
+     * Pour un StudioArtist spécifique
+     */
+    public function forStudioArtist()
+    {
+        return $this->state(fn (array $attributes) => [
+            'owner_type' => StudioArtist::class,
+            'owner_id' => StudioArtist::factory(),
         ]);
     }
 }

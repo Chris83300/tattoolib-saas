@@ -12,7 +12,7 @@ class ParentalConsentForm extends Model
 
     protected $fillable = [
         'client_consent_form_id',
-        'tattooer_id',
+        'user_id',
 
         // Informations du parent/tuteur
         'parent_full_name',
@@ -98,9 +98,9 @@ class ParentalConsentForm extends Model
 
     // ===== SCOPES =====
 
-    public function scopeForTattooer($query, int $tattooerId)
+    public function scopeForTattooer($query, int $userId)
     {
-        return $query->where('tattooer_id', $tattooerId);
+        return $query->where('user_id', $userId);
     }
 
     public function scopeSigned($query)

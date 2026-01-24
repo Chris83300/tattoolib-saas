@@ -17,7 +17,8 @@ class AppointmentFactory extends Factory
         return [
             'booking_request_id' => BookingRequest::factory(),
             'client_id' => Client::factory(),
-            'tattooer_id' => Tattooer::factory(),
+            'bookable_type' => Tattooer::class,
+            'bookable_id' => Tattooer::factory(),
             'start_time' => '2026-01-15 10:00',
             'end_time' => '2026-01-15 12:00',
             'appointment_date' => '2026-01-15',

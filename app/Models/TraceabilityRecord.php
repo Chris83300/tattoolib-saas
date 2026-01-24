@@ -11,7 +11,7 @@ class TraceabilityRecord extends Model
     use HasFactory;
 
     protected $fillable = [
-        'tattooer_id',
+        'user_id',
         'appointment_id',
         'client_consent_form_id',
 
@@ -88,9 +88,9 @@ class TraceabilityRecord extends Model
 
     // ===== SCOPES =====
 
-    public function scopeForTattooer($query, int $tattooerId)
+    public function scopeForTattooer($query, int $userId)
     {
-        return $query->where('tattooer_id', $tattooerId);
+        return $query->where('user_id', $userId);
     }
 
     public function scopeBetween($query, $startDate, $endDate)

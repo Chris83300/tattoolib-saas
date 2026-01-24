@@ -83,7 +83,8 @@ class JobAndCommandTest extends TestCase
 
         // Créer des horaires de travail
         \App\Models\WorkingHour::factory()->create([
-            'tattooer_id' => $tattooer->id,
+            'owner_type' => Tattooer::class,
+            'owner_id' => $tattooer->user_id,
             'day_of_week' => now()->dayOfWeek,
             'is_open' => true,
             'start_time' => '09:00',
@@ -97,7 +98,8 @@ class JobAndCommandTest extends TestCase
 
         // Vérifier que les availabilities ont été créées
         $this->assertDatabaseHas('availabilities', [
-            'tattooer_id' => $tattooer->id,
+            'owner_type' => Tattooer::class,
+            'owner_id' => $tattooer->user_id,
             'type' => 'available',
             'source' => 'working_hours'
         ]);
@@ -110,15 +112,20 @@ class JobAndCommandTest extends TestCase
         $tattooer = Tattooer::factory()->create(['user_id' => $user->id]);
 
         // Créer de vieilles availabilities (plus de 30 jours)
-        Availability::factory()
-            ->forTattooer($tattooer->id)
-            ->available()
-            ->forDate(now()->subDays(45)->format('Y-m-d'))
-            ->create();
+        Availability::create([
+            'owner_type' => Tattooer::class,
+            'owner_id' => $tattooer->user_id,
+            'date' => now()->subDays(45)->format('Y-m-d'),
+            'start_time' => '09:00',
+            'end_time' => '18:00',
+            'type' => 'available',
+            'source' => 'working_hours'
+        ]);
 
         // Créer des horaires de travail
         \App\Models\WorkingHour::factory()->create([
-            'tattooer_id' => $tattooer->id,
+            'owner_type' => Tattooer::class,
+            'owner_id' => $tattooer->user_id,
             'day_of_week' => now()->dayOfWeek,
             'is_open' => true,
             'start_time' => '09:00',
@@ -130,7 +137,8 @@ class JobAndCommandTest extends TestCase
 
         // Vérifier que les vieilles availabilities ont été supprimées
         $this->assertDatabaseMissing('availabilities', [
-            'tattooer_id' => $tattooer->id,
+            'owner_type' => Tattooer::class,
+            'owner_id' => $tattooer->user_id,
             'date' => now()->subDays(45)->format('Y-m-d')
         ]);
     }

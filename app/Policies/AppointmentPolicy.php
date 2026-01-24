@@ -17,7 +17,8 @@ class AppointmentPolicy
         }
 
         if ($user->isTattooer()) {
-            return $appointment->tattooer_id === $user->tattooer->id;
+            return $appointment->bookable_type === \App\Models\Tattooer::class
+                && $appointment->bookable_id === $user->tattooer->user_id;
         }
 
         return false;
@@ -29,7 +30,8 @@ class AppointmentPolicy
     public function confirm(User $user, Appointment $appointment): bool
     {
         return $user->isTattooer()
-            && $appointment->tattooer_id === $user->tattooer->id
+            && $appointment->bookable_type === \App\Models\Tattooer::class
+            && $appointment->bookable_id === $user->tattooer->user_id
             && $appointment->isPast()
             && !$appointment->tattooer_confirmation_status;
     }
@@ -61,7 +63,7 @@ class AppointmentPolicy
             return true;
         }
 
-        if ($user->isTattooer() && $appointment->tattooer_id === $user->tattooer->id) {
+        if ($user->isTattooer() && $appointment->user_id === $user->id) {
             return true;
         }
 

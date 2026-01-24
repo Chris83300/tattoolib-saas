@@ -79,7 +79,8 @@ class AvailabilityPlanningTest extends TestCase
                 'message',
                 'availability' => [
                     'id',
-                    'tattooer_id',
+                    'owner_type',
+                    'owner_id',
                     'date',
                     'start_time',
                     'end_time',
@@ -91,7 +92,8 @@ class AvailabilityPlanningTest extends TestCase
 
         // Vérifier que l'enregistrement a été créé avec les bonnes valeurs
         $this->assertDatabaseHas('availabilities', [
-            'tattooer_id' => $this->tattooer->id,
+            'owner_type' => Tattooer::class,
+            'owner_id' => $this->tattooer->id,
             'type' => 'blocked',
             'source' => 'manual',
             'notes' => $slotData['notes']
@@ -120,7 +122,8 @@ class AvailabilityPlanningTest extends TestCase
             ]);
 
         $this->assertDatabaseHas('availabilities', [
-            'tattooer_id' => $this->tattooer->id,
+            'owner_type' => Tattooer::class,
+            'owner_id' => $this->tattooer->id,
             'type' => 'external_booking',
             'source' => 'manual'
         ]);
@@ -131,7 +134,8 @@ class AvailabilityPlanningTest extends TestCase
     {
         // Créer un créneau bloqué avec Availability::create()
         $availability = Availability::create([
-            'tattooer_id' => $this->tattooer->id,
+            'owner_type' => Tattooer::class,
+            'owner_id' => $this->tattooer->id,
             'date' => now()->addDays(3)->format('Y-m-d'),
             'start_time' => '14:00',
             'end_time' => '16:00',
@@ -293,7 +297,8 @@ class AvailabilityPlanningTest extends TestCase
     {
         // Créer des horaires de travail pour le tatoueur
         \App\Models\WorkingHour::factory()->create([
-            'tattooer_id' => $this->tattooer->id,
+            'owner_type' => Tattooer::class,
+            'owner_id' => $this->tattooer->id,
             'day_of_week' => now()->dayOfWeek,
             'is_open' => true,
             'start_time' => '09:00',
@@ -315,7 +320,8 @@ class AvailabilityPlanningTest extends TestCase
 
         // Vérifier qu'on a bien les availabilities créées
         $this->assertDatabaseHas('availabilities', [
-            'tattooer_id' => $this->tattooer->id,
+            'owner_type' => Tattooer::class,
+            'owner_id' => $this->tattooer->id,
             'type' => 'available',
             'source' => 'working_hours'
         ]);

@@ -27,6 +27,8 @@ class AvailabilityModelTest extends TestCase
     public function test_availability_calculates_duration_minutes()
     {
         $availability = Availability::factory()->create([
+            'owner_type' => Tattooer::class,
+            'owner_id' => $this->tattooer->user_id,
             'start_time' => '09:00',
             'end_time' => '12:00'
         ]);
@@ -39,6 +41,8 @@ class AvailabilityModelTest extends TestCase
     {
         // Forcer la valeur null pour tester le calcul manuel
         $availability = Availability::factory()->create([
+            'owner_type' => Tattooer::class,
+            'owner_id' => $this->tattooer->user_id,
             'start_time' => '14:00',
             'end_time' => '17:30'
         ]);
@@ -54,7 +58,7 @@ class AvailabilityModelTest extends TestCase
     public function test_can_block_specific_slot()
     {
         $availability = Availability::blockSlot(
-            $this->tattooer->id,
+            $this->tattooer->user_id,
             '2026-01-20',
             '14:00',
             '16:00',
@@ -91,7 +95,8 @@ class AvailabilityModelTest extends TestCase
 
         // D'abord, vérifier qu'on peut créer un enregistrement simple
         $availability = Availability::create([
-            'tattooer_id' => $this->tattooer->id,
+            'owner_type' => Tattooer::class,
+            'owner_id' => $this->tattooer->user_id,
             'date' => $date,
             'start_time' => '09:00',
             'end_time' => '18:00',
@@ -106,11 +111,11 @@ class AvailabilityModelTest extends TestCase
 
         // Vérifier que l'enregistrement existe
         $this->assertNotNull($availability);
-        $this->assertEquals($this->tattooer->id, $availability->tattooer_id);
+        $this->assertEquals($this->tattooer->user_id, $availability->owner_id);
         $this->assertEquals($dateCarbon->toDateString(), $availability->date->toDateString());
 
         // Debug: Vérifier que la méthode trouve bien l'enregistrement
-        $allSlots = Availability::forTattooer($this->tattooer->id)
+        $allSlots = Availability::forTattooer($this->tattooer->user_id)
             ->onDate($date)
             ->orderBy('start_time')
             ->get();
@@ -122,7 +127,7 @@ class AvailabilityModelTest extends TestCase
         $this->assertGreaterThan(0, $workingPeriods->count(), "Pas de working periods trouvés");
 
         // Maintenant tester la méthode getAvailableSlotsForDay
-        $slots = Availability::getAvailableSlotsForDay($this->tattooer->id, $date);
+        $slots = Availability::getAvailableSlotsForDay($this->tattooer->user_id, $date);
 
         $this->assertIsArray($slots);
         $this->assertNotEmpty($slots); // Au moins un créneau
@@ -140,11 +145,12 @@ class AvailabilityModelTest extends TestCase
         $dateCarbon = \Carbon\Carbon::parse($date);
 
         // Date sans availability
-        $this->assertFalse(Availability::hasAvailabilityOnDate($this->tattooer->id, $date));
+        $this->assertFalse(Availability::hasAvailabilityOnDate($this->tattooer->user_id, $date));
 
         // Créer une availability disponible
         $availability = Availability::create([
-            'tattooer_id' => $this->tattooer->id,
+            'owner_type' => Tattooer::class,
+            'owner_id' => $this->tattooer->user_id,
             'date' => $date,
             'start_time' => '09:00',
             'end_time' => '18:00',
@@ -161,7 +167,7 @@ class AvailabilityModelTest extends TestCase
         $this->assertNotNull($availability);
         $this->assertEquals($dateCarbon->toDateString(), $availability->date->toDateString());
 
-        $this->assertTrue(Availability::hasAvailabilityOnDate($this->tattooer->id, $date));
+        $this->assertTrue(Availability::hasAvailabilityOnDate($this->tattooer->user_id, $date));
     }
 
     /** @test ⭐ Obtenir dates disponibles sur une période */
@@ -173,7 +179,8 @@ class AvailabilityModelTest extends TestCase
         // Créer des availabilities pour certains jours
         for ($i = 0; $i < 3; $i++) {
             $availability = Availability::create([
-                'tattooer_id' => $this->tattooer->id,
+                'owner_type' => Tattooer::class,
+                'owner_id' => $this->tattooer->id,
                 'date' => $startDate->copy()->addDays($i)->format('Y-m-d'),
                 'start_time' => '09:00',
                 'end_time' => '18:00',
@@ -233,7 +240,8 @@ class AvailabilityModelTest extends TestCase
         // Créer différentes availabilities avec vérification
         for ($i = 0; $i < 3; $i++) {
             $availability = Availability::create([
-                'tattooer_id' => $this->tattooer->id,
+                'owner_type' => Tattooer::class,
+            'owner_id' => $this->tattooer->user_id,
                 'date' => now()->addDays($i)->format('Y-m-d'),
                 'start_time' => '09:00',
                 'end_time' => '18:00',
@@ -250,12 +258,13 @@ class AvailabilityModelTest extends TestCase
 
         for ($i = 0; $i < 2; $i++) {
             $availability = Availability::create([
-                'tattooer_id' => $this->tattooer->id,
+                'owner_type' => Tattooer::class,
+            'owner_id' => $this->tattooer->user_id,
                 'date' => now()->addDays($i + 3)->format('Y-m-d'),
                 'start_time' => '10:00',
                 'end_time' => '12:00',
                 'type' => Availability::TYPE_BUSY,
-                'source' => Availability::SOURCE_APPOINTMENT,
+                'source' => 'booking', // Utiliser 'booking' au lieu de 'appointment'
                 'notes' => 'RDV',
                 'is_recurring' => false,
                 'recurring_pattern' => null,
@@ -267,7 +276,8 @@ class AvailabilityModelTest extends TestCase
 
         // Créer l'enregistrement pour aujourd'hui avec une date différente pour éviter les conflits
         $todayAvailability = Availability::create([
-            'tattooer_id' => $this->tattooer->id,
+            'owner_type' => Tattooer::class,
+            'owner_id' => $this->tattooer->user_id,
             'date' => now()->addDays(1)->format('Y-m-d'),
             'start_time' => '14:00',
             'end_time' => '16:00',
@@ -282,19 +292,19 @@ class AvailabilityModelTest extends TestCase
         $this->assertNotNull($todayAvailability);
 
         // Test scope available
-        $available = Availability::where('tattooer_id', $this->tattooer->id)
+        $available = Availability::where('owner_id', $this->tattooer->user_id)
             ->where('type', 'available')
             ->get();
         $this->assertCount(3, $available);
 
         // Test scope bookable
-        $bookable = Availability::where('tattooer_id', $this->tattooer->id)
+        $bookable = Availability::where('owner_id', $this->tattooer->user_id)
             ->where('type', 'available')
             ->get();
         $this->assertCount(3, $bookable); // Seulement les available et futurs
 
         // Test scope onDate (au lieu de today qui n'existe pas)
-        $today = Availability::where('tattooer_id', $this->tattooer->id)
+        $today = Availability::where('owner_id', $this->tattooer->user_id)
             ->whereDate('date', now()->format('Y-m-d'))
             ->get();
         $this->assertCount(1, $today);
@@ -305,7 +315,8 @@ class AvailabilityModelTest extends TestCase
     {
         // Créer horaires de travail
         \App\Models\WorkingHour::factory()->create([
-            'tattooer_id' => $this->tattooer->id,
+            'owner_type' => Tattooer::class,
+            'owner_id' => $this->tattooer->user_id,
             'day_of_week' => 1, // Lundi
             'is_open' => true,
             'start_time' => '09:00',
@@ -318,7 +329,7 @@ class AvailabilityModelTest extends TestCase
         $endDate = $startDate->copy()->addDays(7);
 
         $generated = Availability::generateFromWorkingHours(
-            $this->tattooer->id,
+            $this->tattooer->user_id,
             $startDate,
             $endDate
         );
@@ -326,7 +337,7 @@ class AvailabilityModelTest extends TestCase
         $this->assertGreaterThan(0, $generated);
 
         // Vérifier qu'on a bien les availabilities
-        $availabilities = Availability::forTattooer($this->tattooer->id)
+        $availabilities = Availability::forTattooer($this->tattooer->user_id)
             ->where('date', $startDate->format('Y-m-d'))
             ->get();
 
@@ -352,7 +363,7 @@ class AvailabilityModelTest extends TestCase
 
         $this->assertEquals('working_hours', Availability::SOURCE_WORKING_HOURS);
         $this->assertEquals('manual', Availability::SOURCE_MANUAL);
-        $this->assertEquals('appointment', Availability::SOURCE_APPOINTMENT);
+        $this->assertEquals('booking', Availability::SOURCE_APPOINTMENT);
         $this->assertEquals('external', Availability::SOURCE_EXTERNAL);
     }
 }

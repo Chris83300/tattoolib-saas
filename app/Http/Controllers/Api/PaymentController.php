@@ -56,36 +56,69 @@ class PaymentController extends Controller
         }
 
         // 6. Calculer montant acompte
-        $depositAmount = $this->calculateDepositAmount($bookingRequest);
+        $depositAmountCents = $this->calculateDepositAmount($bookingRequest);
+
+        // =============================================
+        // DÉTERMINER FLUX STRIPE SELON PLAN
+        // =============================================
+
+        $artistPlan = $artist->getCurrentPlan();
+        $commissionRate = $artist->getCommissionRate();
 
         try {
-            // 7. Créer Payment Intent DIRECT au tatoueur
-            $paymentIntent = PaymentIntent::create([
-                'amount' => $depositAmount, // En centimes
-                'currency' => 'eur',
-                'payment_method_types' => ['card'],
+            // Plan FREE → Application Fee (7%)
+            if ($artistPlan === \App\Models\Subscription::PLAN_FREE) {
+                $commissionAmount = $artist->calculateCommission($depositAmountCents);
 
-                // CRITIQUE : Paiement DIRECT au tatoueur
-                'on_behalf_of' => $stripeAccountId,
-                'transfer_data' => [
-                    'destination' => $stripeAccountId,
-                ],
-
-                // Metadata pour webhook
-                'metadata' => [
-                    'booking_request_id' => $bookingRequest->id,
-                    'client_id' => $bookingRequest->client_id,
-                    'artist_type' => get_class($artist),
-                    'artist_id' => $artist->id,
-                    'payment_type' => 'deposit',
-                ],
-            ]);
+                $paymentIntent = PaymentIntent::create([
+                    'amount' => $depositAmountCents,
+                    'currency' => 'eur',
+                    'payment_method_types' => ['card'],
+                    'on_behalf_of' => $stripeAccountId,
+                    'application_fee_amount' => $commissionAmount, // 7% pour TattooLib
+                    'transfer_data' => [
+                        'destination' => $stripeAccountId, // 93% pour artiste
+                    ],
+                    'metadata' => [
+                        'booking_request_id' => $bookingRequest->id,
+                        'client_id' => $bookingRequest->client_id,
+                        'artist_type' => get_class($artist),
+                        'artist_id' => $artist->id,
+                        'payment_type' => 'deposit',
+                        'plan' => $artistPlan,
+                        'commission_rate' => $commissionRate,
+                        'commission_amount_cents' => $commissionAmount,
+                    ],
+                ]);
+            }
+            // Plan PRO/Studio → Direct Charges (0%)
+            else {
+                $paymentIntent = PaymentIntent::create([
+                    'amount' => $depositAmountCents,
+                    'currency' => 'eur',
+                    'payment_method_types' => ['card'],
+                    'on_behalf_of' => $stripeAccountId,
+                    'transfer_data' => [
+                        'destination' => $stripeAccountId, // 100% pour artiste
+                    ],
+                    'metadata' => [
+                        'booking_request_id' => $bookingRequest->id,
+                        'client_id' => $bookingRequest->client_id,
+                        'artist_type' => get_class($artist),
+                        'artist_id' => $artist->id,
+                        'payment_type' => 'deposit',
+                        'plan' => $artistPlan,
+                        'commission_rate' => 0.00,
+                        'commission_amount_cents' => 0,
+                    ],
+                ]);
+            }
 
             // 8. Créer enregistrement Payment
             $payment = Payment::create([
                 'booking_request_id' => $bookingRequest->id,
                 'stripe_payment_intent_id' => $paymentIntent->id,
-                'amount' => $depositAmount / 100, // Convertir en euros
+                'amount' => $depositAmountCents / 100, // Convertir en euros
                 'currency' => 'EUR',
                 'status' => 'pending',
                 'payment_type' => 'deposit',
@@ -95,8 +128,12 @@ class PaymentController extends Controller
             return response()->json([
                 'client_secret' => $paymentIntent->client_secret,
                 'payment_id' => $payment->id,
-                'amount' => $depositAmount / 100,
+                'amount' => $depositAmountCents / 100,
                 'currency' => 'EUR',
+                'commission' => [
+                    'rate' => $commissionRate,
+                    'amount' => $artist->calculateCommission($depositAmountCents) / 100,
+                ],
             ]);
 
         } catch (\Stripe\Exception\ApiErrorException $e) {
@@ -129,10 +166,12 @@ class PaymentController extends Controller
      */
     private function calculateDepositAmount(BookingRequest $bookingRequest): int
     {
-        // Si prix total défini → pourcentage
-        if ($bookingRequest->estimated_price) {
+        // Priorité au prix total confirmé, sinon prix estimé
+        $price = $bookingRequest->total_price ?? $bookingRequest->estimated_price;
+
+        if ($price) {
             $percentage = config('services.stripe.default_deposit_percentage');
-            return (int) ($bookingRequest->estimated_price * 100 * $percentage / 100);
+            return (int) ($price * 100 * $percentage / 100);
         }
 
         // Sinon → montant fixe par défaut

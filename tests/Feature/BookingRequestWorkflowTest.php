@@ -48,7 +48,8 @@ class BookingRequestWorkflowTest extends TestCase
             ->create();
 
         $requestData = [
-            'tattooer_id' => $this->tattooer->id,
+            'bookable_type' => \App\Models\Tattooer::class,
+            'bookable_id' => $this->tattooer->id,
             'tattoo_size' => 'medium',
             'body_zone' => 'arm',
             'description' => 'Tatouage dragon japonais',
@@ -70,7 +71,8 @@ class BookingRequestWorkflowTest extends TestCase
 
         $this->assertDatabaseHas('booking_requests', [
             'client_id' => $this->client->id,
-            'tattooer_id' => $this->tattooer->id,
+            'bookable_type' => \App\Models\Tattooer::class,
+            'bookable_id' => $this->tattooer->id,
             'status' => BookingRequest::STATUS_PENDING
         ]);
     }
@@ -86,7 +88,8 @@ class BookingRequestWorkflowTest extends TestCase
         ]);
 
         $requestData = [
-            'tattooer_id' => $unavailableTattooer->id,
+            'bookable_type' => \App\Models\Tattooer::class,
+            'bookable_id' => $unavailableTattooer->id,
             'tattoo_size' => 'medium',
             'body_zone' => 'arm',
             'description' => 'Description complète du projet de tatouage, bien détaillée.',
@@ -109,7 +112,8 @@ class BookingRequestWorkflowTest extends TestCase
             ->pending()
             ->create([
                 'client_id' => $this->client->id,
-                'tattooer_id' => $this->tattooer->id,
+                'bookable_type' => \App\Models\Tattooer::class,
+                'bookable_id' => $this->tattooer->id,
                 'preferred_date' => now()->addDays(10)->format('Y-m-d'),
                 'preferred_time_slot' => 'morning',
                 'preferred_time_notes' => 'De préférence le matin'
@@ -149,7 +153,8 @@ class BookingRequestWorkflowTest extends TestCase
             ->pending()
             ->create([
                 'client_id' => $this->client->id,
-                'tattooer_id' => $this->tattooer->id,
+                'bookable_type' => \App\Models\Tattooer::class,
+                'bookable_id' => $this->tattooer->id,
                 'preferred_timeframe' => '3-4months',
                 'preferred_days' => [1, 2, 3]
             ]);
@@ -175,7 +180,8 @@ class BookingRequestWorkflowTest extends TestCase
         $bookingRequest = BookingRequest::factory()
             ->create([
                 'client_id' => $this->client->id,
-                'tattooer_id' => $this->tattooer->id,
+                'bookable_type' => \App\Models\Tattooer::class,
+                'bookable_id' => $this->tattooer->id,
                 'status' => BookingRequest::STATUS_AWAITING_DEPOSIT,
                 'total_deposit_amount' => 100,
                 'estimated_total_price' => 500,
@@ -203,7 +209,8 @@ class BookingRequestWorkflowTest extends TestCase
         $bookingRequest = BookingRequest::factory()
             ->create([
                 'client_id' => $this->client->id,
-                'tattooer_id' => $this->tattooer->id,
+                'bookable_type' => \App\Models\Tattooer::class,
+                'bookable_id' => $this->tattooer->id,
                 'status' => BookingRequest::STATUS_AWAITING_DEPOSIT,
                 'deposit_deadline' => now()->subHours(24)
             ]);
@@ -227,7 +234,8 @@ class BookingRequestWorkflowTest extends TestCase
             ->count(3)
             ->create([
                 'client_id' => $this->client->id,
-                'tattooer_id' => $this->tattooer->id,
+                'bookable_type' => \App\Models\Tattooer::class,
+                'bookable_id' => $this->tattooer->id,
                 'status' => BookingRequest::STATUS_ACCEPTED,
                 'deposit_deadline' => now()->subHours(24),
             ]);
@@ -245,7 +253,8 @@ class BookingRequestWorkflowTest extends TestCase
     {
         // 1. Client crée une demande
         $requestData = [
-            'tattooer_id' => $this->tattooer->id,
+            'bookable_type' => \App\Models\Tattooer::class,
+            'bookable_id' => $this->tattooer->id,
             'tattoo_size' => 'medium',
             'body_zone' => 'arm',
             'description' => 'Tatouage fleur avec détails complets et une description suffisamment longue pour valider les critères de validation.',
@@ -306,14 +315,15 @@ class BookingRequestWorkflowTest extends TestCase
     {
         $response = $this->actingAs($this->clientUser)
             ->postJson('/api/booking-requests', [
-                'tattooer_id' => 999, // N'existe pas
+                'bookable_type' => 'invalid_type', // Type invalide
+                'bookable_id' => 999, // N'existe pas
                 'tattoo_size' => '',
                 'body_zone' => '',
                 'description' => ''
             ]);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['tattooer_id', 'tattoo_size', 'body_zone', 'description']);
+            ->assertJsonValidationErrors(['bookable_type', 'bookable_id', 'tattoo_size', 'body_zone', 'description']);
     }
 
     /** @test ⭐ Non-client ne peut pas créer de demande */
@@ -323,7 +333,8 @@ class BookingRequestWorkflowTest extends TestCase
 
         $response = $this->actingAs($nonClientUser)
             ->postJson('/api/booking-requests', [
-                'tattooer_id' => $this->tattooer->id,
+                'bookable_type' => \App\Models\Tattooer::class,
+                'bookable_id' => $this->tattooer->id,
                 'tattoo_size' => 'medium',
                 'body_zone' => 'arm',
                 'description' => 'Description valide dépassant 20 caractères.',
