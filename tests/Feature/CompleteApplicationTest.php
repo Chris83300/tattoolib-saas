@@ -246,7 +246,7 @@ class CompleteApplicationTest extends TestCase
 
         // Test 6: MULTI-TENANCY ET POLYMORPHISME
         try {
-            $studio = Studio::factory()->create();
+            $studio = Studio::factory()->create(['slug' => 'test-studio-' . uniqid()]);
             $studioArtist1 = StudioArtist::factory()->create(['studio_id' => $studio->id]);
             $studioArtist2 = StudioArtist::factory()->create(['studio_id' => $studio->id]);
             $independentArtist = Tattooer::factory()->create();
