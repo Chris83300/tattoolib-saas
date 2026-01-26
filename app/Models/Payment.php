@@ -18,6 +18,8 @@ class Payment extends Model
         'payment_type',
         'paid_at',
         'failure_reason',
+        'recipient_type',
+        'recipient_name',
     ];
 
     protected $casts = [

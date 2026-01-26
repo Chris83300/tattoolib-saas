@@ -10,12 +10,13 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
-use App\Traits\HasSubscription;
+use App\Traits\HasCompliance;
 use App\Traits\BookableArtist;
+use App\Traits\HasSubscription;
 
 class Tattooer extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia, HasSubscription, BookableArtist;
+    use HasFactory, SoftDeletes, InteractsWithMedia, HasSubscription, BookableArtist, HasCompliance;
 
     protected $fillable = [
         'user_id',
@@ -56,6 +57,11 @@ class Tattooer extends Model implements HasMedia
         // Délais d'attente
         'weekday_wait_days',
         'weekend_wait_days',
+
+        // Conformité réglementaire
+        'is_decision_maker',
+        'compliance_status',
+        'last_compliance_check_at',
     ];
 
     protected $casts = [
@@ -64,6 +70,8 @@ class Tattooer extends Model implements HasMedia
         'minimum_deposit' => 'decimal:2',
         'is_subscribed' => 'boolean',
         'upgraded_to_pro_at' => 'datetime',
+        'is_decision_maker' => 'boolean',
+        'last_compliance_check_at' => 'datetime',
     ];
 
     // ===== CONFIGURATION MEDIALIBRARY =====

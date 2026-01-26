@@ -8,17 +8,22 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use App\Traits\BookableArtist;
 use App\Traits\HasSubscription;
+use App\Traits\HasCompliance;
 
 class StudioArtist extends Model
 {
-    use HasFactory, SoftDeletes, BookableArtist, HasSubscription;
+    use HasFactory, SoftDeletes, BookableArtist, HasSubscription, HasCompliance;
 
     protected $fillable = [
         'studio_id', 'user_id', 'artist_name', 'slug', 'bio',
         'specialties', 'stripe_connect_account_id', 'status',
         'is_active', 'joined_at', 'left_at', 'working_schedule',
         'total_appointments', 'total_revenue',
-        'credentials_managed_by_studio', 'notes'
+        'credentials_managed_by_studio', 'notes',
+        // Conformité réglementaire
+        'is_decision_maker',
+        'compliance_status',
+        'last_compliance_check_at',
     ];
 
     protected $casts = [
@@ -29,6 +34,8 @@ class StudioArtist extends Model
         'joined_at' => 'date',
         'left_at' => 'date',
         'total_revenue' => 'decimal:2',
+        'is_decision_maker' => 'boolean',
+        'last_compliance_check_at' => 'datetime',
     ];
 
     // Relations
@@ -73,5 +80,18 @@ class StudioArtist extends Model
             'specialties' => $this->specialties,
             'studio' => $this->studio->name,
         ];
+    }
+
+    /**
+     * SIRET hérité du Studio
+     */
+    public function getSiretAttribute(): ?string
+    {
+        return $this->studio?->siret;
+    }
+
+    public function getSiretVerifiedAttribute(): bool
+    {
+        return $this->studio?->siret_verified ?? false;
     }
 }
