@@ -77,7 +77,7 @@ class AvailabilityController extends Controller
 
         // Si récurrent, créer les autres occurrences
         if ($validated['is_recurring'] && $validated['recurring_pattern']) {
-            $recurringAvailabilities = Availability::generateRecurring(
+            $recurringCount = Availability::generateRecurring(
                 $user->tattooer->id,
                 \Carbon\Carbon::parse($validated['date']),
                 \Carbon\Carbon::parse($validated['recurring_end_date'] ?? $validated['date'])->addMonth(),
@@ -86,8 +86,6 @@ class AvailabilityController extends Controller
                 $validated['recurring_pattern'],
                 $validated['recurring_days'] ?? []
             );
-
-            Availability::insert($recurringAvailabilities->toArray());
         }
 
         return response()->json($availability, 201);

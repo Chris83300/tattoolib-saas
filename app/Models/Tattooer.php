@@ -13,10 +13,11 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 use App\Traits\HasCompliance;
 use App\Traits\BookableArtist;
 use App\Traits\HasSubscription;
+use App\Traits\HasStripeConnect;
 
 class Tattooer extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia, HasSubscription, BookableArtist, HasCompliance;
+    use HasFactory, SoftDeletes, InteractsWithMedia, HasSubscription, BookableArtist, HasCompliance, HasStripeConnect;
 
     protected $fillable = [
         'user_id',
@@ -35,6 +36,12 @@ class Tattooer extends Model implements HasMedia
         // Stripe Connect
         'stripe_connect_account_id',
         'stripe_onboarding_complete',
+        'stripe_connect_status',
+        'stripe_connect_activated_at',
+        'stripe_connect_last_transaction_at',
+        'stripe_connect_deactivated_at',
+        'has_accepted_payment_terms',
+        'payment_terms_accepted_at',
 
         // Subscription fields
         'current_plan',
@@ -67,6 +74,11 @@ class Tattooer extends Model implements HasMedia
     protected $casts = [
         'siret_verified' => 'boolean',
         'stripe_onboarding_complete' => 'boolean',
+        'stripe_connect_activated_at' => 'datetime',
+        'stripe_connect_last_transaction_at' => 'datetime',
+        'stripe_connect_deactivated_at' => 'datetime',
+        'has_accepted_payment_terms' => 'boolean',
+        'payment_terms_accepted_at' => 'datetime',
         'minimum_deposit' => 'decimal:2',
         'is_subscribed' => 'boolean',
         'upgraded_to_pro_at' => 'datetime',

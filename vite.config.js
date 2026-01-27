@@ -16,11 +16,14 @@ export default defineConfig({
             registerType: 'autoUpdate',
             includeAssets: ['favicon.ico', 'images/*.png'],
             manifest: {
-                name: 'TattooLib',
-                short_name: 'TattooLib',
-                theme_color: '#000000',
-                background_color: '#ffffff',
+                name: 'Ink&Pik - Marketplace Arts Corporels',
+                short_name: 'Ink&Pik',
+                description: 'Marketplace et logiciel pour tatoueurs, pierceurs et studios',
+                start_url: '/',
                 display: 'standalone',
+                background_color: '#0A0A0A',
+                theme_color: '#D4B59E',
+                orientation: 'portrait-primary',
                 icons: [
                     {
                         src: '/images/icon-192x192.png',

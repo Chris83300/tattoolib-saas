@@ -9,10 +9,11 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use App\Traits\BookableArtist;
 use App\Traits\HasSubscription;
 use App\Traits\HasCompliance;
+use App\Traits\HasStripeConnect;
 
 class StudioArtist extends Model
 {
-    use HasFactory, SoftDeletes, BookableArtist, HasSubscription, HasCompliance;
+    use HasFactory, SoftDeletes, BookableArtist, HasSubscription, HasCompliance, HasStripeConnect;
 
     protected $fillable = [
         'studio_id', 'user_id', 'artist_name', 'slug', 'bio',
@@ -20,6 +21,13 @@ class StudioArtist extends Model
         'is_active', 'joined_at', 'left_at', 'working_schedule',
         'total_appointments', 'total_revenue',
         'credentials_managed_by_studio', 'notes',
+        // Stripe Connect
+        'stripe_connect_status',
+        'stripe_connect_activated_at',
+        'stripe_connect_last_transaction_at',
+        'stripe_connect_deactivated_at',
+        'has_accepted_payment_terms',
+        'payment_terms_accepted_at',
         // Conformité réglementaire
         'is_decision_maker',
         'compliance_status',
@@ -34,6 +42,11 @@ class StudioArtist extends Model
         'joined_at' => 'date',
         'left_at' => 'date',
         'total_revenue' => 'decimal:2',
+        'stripe_connect_activated_at' => 'datetime',
+        'stripe_connect_last_transaction_at' => 'datetime',
+        'stripe_connect_deactivated_at' => 'datetime',
+        'has_accepted_payment_terms' => 'boolean',
+        'payment_terms_accepted_at' => 'datetime',
         'is_decision_maker' => 'boolean',
         'last_compliance_check_at' => 'datetime',
     ];
