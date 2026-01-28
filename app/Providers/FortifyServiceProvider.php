@@ -38,6 +38,21 @@ class FortifyServiceProvider extends ServiceProvider
     {
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::createUsersUsing(CreateNewUser::class);
+
+        // ⚠️ REDIRECTION POST-LOGIN SELON RÔLE
+        Fortify::redirects('login', function () {
+            $user = auth()->user();
+
+            return match($user->role) {
+                'client' => route('client.profile'),
+                'tattooer', 'pierceur' => $user->status === 'pending_verification'
+                    ? route('tattooer.pending-verification')
+                    : route('tattooer.dashboard'),
+                'studio_artist' => route('tattooer.dashboard'),
+                'studio' => '/admin/studio',
+                default => '/',
+            };
+        });
     }
 
     /**
@@ -45,11 +60,11 @@ class FortifyServiceProvider extends ServiceProvider
      */
     private function configureViews(): void
     {
-        Fortify::loginView(fn () => view('livewire.auth.login'));
+        Fortify::loginView(fn () => view('livewire.auth.login-simple'));
         Fortify::verifyEmailView(fn () => view('livewire.auth.verify-email'));
         Fortify::twoFactorChallengeView(fn () => view('livewire.auth.two-factor-challenge'));
         Fortify::confirmPasswordView(fn () => view('livewire.auth.confirm-password'));
-        Fortify::registerView(fn () => view('livewire.auth.register'));
+        Fortify::registerView(fn () => view('auth.register'));
         Fortify::resetPasswordView(fn () => view('livewire.auth.reset-password'));
         Fortify::requestPasswordResetLinkView(fn () => view('livewire.auth.forgot-password'));
     }

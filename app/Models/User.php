@@ -26,6 +26,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role', // Ajout du rôle
+        'status', // Ajout du status
         'timezone',
         'last_login_at',
         'is_active',

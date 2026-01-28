@@ -25,6 +25,7 @@ class Tattooer extends Model implements HasMedia
         'siret',
         'siret_verified',
         'name',
+        'slug', // Ajout du slug
         'studio_name', // ✅ Garde pour les tatoueurs indépendants
         'bio',
         'phone',

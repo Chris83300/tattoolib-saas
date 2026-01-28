@@ -1,11 +1,11 @@
 @extends('layouts.guest')
 
 @section('content')
-    <div class="min-h-screen bg-noir-profond flex items-center justify-center px-4">
+    <div class="min-h-screen bg-noir-profond flex items-center justify-center px-4 py-12">
         <div class="max-w-2xl w-full">
             <!-- Logo + Titre -->
             <div class="text-center mb-10">
-                <a href="/" class="text-beige-peau font-Satoshi text-3xl font-bold">
+                <a href="/" class="text-beige-peau font-display text-3xl font-bold">
                     Ink&Pik
                 </a>
                 <h1 class="text-ivoire-text text-2xl font-display font-bold mt-6 mb-2">
@@ -20,7 +20,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
 
                 <!-- CLIENT -->
-                <button wire:click="selectRole('client')"
+                <button onclick="window.location.href='{{ route('register.client') }}'"
                     class="bg-gris-fonde hover:bg-beige-peau/10 hover:border-beige-peau border-2 border-transparent rounded-xl p-6 text-center transition-all group">
                     <div class="w-16 h-16 mx-auto mb-4 bg-beige-peau/10 rounded-full flex items-center justify-center">
                         <svg class="w-8 h-8 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -38,7 +38,7 @@
                 </button>
 
                 <!-- TATTOOER -->
-                <button wire:click="selectRole('tattooer')"
+                <button onclick="window.location.href='{{ route('register.tattooer') }}'"
                     class="bg-gris-fonde hover:bg-beige-peau/10 hover:border-beige-peau border-2 border-transparent rounded-xl p-6 text-center transition-all group">
                     <div class="w-16 h-16 mx-auto mb-4 bg-beige-peau/10 rounded-full flex items-center justify-center">
                         <svg class="w-8 h-8 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -57,7 +57,7 @@
                 </button>
 
                 <!-- PIERCEUR -->
-                <button wire:click="selectRole('pierceur')"
+                <button onclick="window.location.href='{{ route('register.pierceur') }}'"
                     class="bg-gris-fonde hover:bg-beige-peau/10 hover:border-beige-peau border-2 border-transparent rounded-xl p-6 text-center transition-all group">
                     <div class="w-16 h-16 mx-auto mb-4 bg-beige-peau/10 rounded-full flex items-center justify-center">
                         <svg class="w-8 h-8 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,7 +76,7 @@
                 </button>
 
                 <!-- STUDIO -->
-                <button wire:click="selectRole('studio')"
+                <button onclick="window.location.href='{{ route('register.studio') }}'"
                     class="bg-gris-fonde hover:bg-beige-peau/10 hover:border-beige-peau border-2 border-transparent rounded-xl p-6 text-center transition-all group">
                     <div class="w-16 h-16 mx-auto mb-4 bg-beige-peau/10 rounded-full flex items-center justify-center">
                         <svg class="w-8 h-8 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
