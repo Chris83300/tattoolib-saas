@@ -3,150 +3,124 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tattooer;
-use App\Models\StudioArtist;
+use App\Models\Pierceur;
+use App\Models\Studio;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class ArtistController extends Controller
 {
-    /**
-     * Affiche le profil public d'un artiste (Tattooer OU StudioArtist)
-     *
-     * @param string $slug
-     * @return \Illuminate\View\View
-     */
     public function show(string $slug)
     {
-        // 1. Chercher dans Tattooer (indépendants)
-        $artist = Tattooer::where('slug', $slug)
-            ->with(['user', 'studio']) // Studio peut être null
-            ->first();
+        // Chercher dans tattooers, pierceurs OU studios
+        $artist = Tattooer::where('slug', $slug)->first()
+                  ?? Pierceur::where('slug', $slug)->first()
+                  ?? Studio::where('slug', $slug)->first();
 
-        $type = 'tattooer';
-
-        // 2. Si pas trouvé, chercher dans StudioArtist
-        if (!$artist) {
-            $artist = StudioArtist::where('slug', $slug)
-                ->where('status', 'active')
-                ->with(['user', 'studio'])
-                ->first();
-
-            $type = 'studio_artist';
-        }
-
-        // 3. Si toujours pas trouvé → 404
         if (!$artist) {
             abort(404, 'Artiste non trouvé');
         }
 
-        // 4. Préparer les données unifiées
-        $profile = $this->prepareArtistProfile($artist, $type);
+        // Vérifier que l'artiste est actif
+        if (!$artist->user) {
+            abort(404, 'Artiste non trouvé');
+        }
 
-        // 5. Charger les données communes
-        $bookingStats = $this->getBookingStats($artist, $type);
-        $portfolio = $this->getPortfolio($artist, $type);
-        $availability = $this->getNextAvailability($artist, $type);
+        // Si l'artiste est en attente de validation, afficher la page d'attente
+        if ($artist->user->status === 'pending_verification') {
+            // Permettre la prévisualisation si le paramètre ?preview=true est présent
+            if (request()->get('preview') === 'true' || request()->query('preview') === 'true') {
+                // Continuer vers le profil public en mode prévisualisation
+                // Log pour débogage
+                Log::info('Preview mode activated for artist: ' . $artist->slug);
 
-        return view('artists.show', compact('profile', 'bookingStats', 'portfolio', 'availability'));
+                // Charger les relations nécessaires pour la prévisualisation
+                $artist->load([
+                    'user',
+                    'workingHours',
+                ]);
+            } else {
+                return view('artists.pending-validation', compact('artist'));
+            }
+        } elseif ($artist->user->status !== 'active') {
+            abort(404, 'Profil non accessible');
+        }
+
+        // Charger relations (sans appointments pour éviter l'erreur)
+        $artist->load([
+            'user',
+            'complianceRecords',
+            'workingHours',
+        ]);
+
+        // Portfolio via Spatie
+        $portfolioRealizations = $artist->getMedia('portfolio');
+        $portfolioDrawings = $artist->getMedia('drawings');
+        $portfolioBeforeAfter = $artist->getMedia('before_after');
+
+        // Stats (valeurs par défaut car pas de données appointments)
+        $stats = [
+            'average_delay' => $this->calculateAverageDelay($artist),
+            'min_price' => $artist->min_price ?? 150,
+            'rating' => 0.0,
+            'reviews_count' => 0,
+            'platform_tattoos' => 0,
+        ];
+
+        // Horaires
+        $workingHours = $this->formatWorkingHours($artist);
+        $isOpenNow = $this->isOpenNow($artist);
+
+        return view('artists.show', compact(
+            'artist',
+            'portfolioRealizations',
+            'portfolioDrawings',
+            'portfolioBeforeAfter',
+            'stats',
+            'workingHours',
+            'isOpenNow'
+        ));
     }
 
-    /**
-     * Prépare un profil unifié (même structure pour Tattooer et StudioArtist)
-     */
-    private function prepareArtistProfile($artist, string $type): array
+    private function calculateAverageDelay($artist)
     {
-        if ($type === 'tattooer') {
+        // Logic pour calculer délai moyen (en semaines)
+        // Basé sur prochaines disponibilités
+        return '2-3'; // Exemple
+    }
+
+    private function formatWorkingHours($artist)
+    {
+        // Si studio artist, prendre horaires du studio
+        $hours = $artist instanceof \App\Models\StudioArtist
+            ? $artist->studio->workingHours
+            : $artist->workingHours;
+
+        // Formatter par jour
+        return $hours->groupBy('day_of_week')->map(function($day) {
+            $first = $day->first();
             return [
-                'id' => $artist->id,
-                'type' => 'tattooer',
-                'model' => $artist,
-                'name' => $artist->user->name,
-                'slug' => $artist->slug,
-                'bio' => $artist->bio,
-                'specialties' => [], // TODO: Implémenter selon ta logique
-                'email' => $artist->user->email,
-                'phone' => $artist->phone,
-                'social_links' => [
-                    'instagram' => $artist->instagram ?? null,
-                    'facebook' => $artist->facebook ?? null,
-                    'tiktok' => $artist->tiktok ?? null,
-                    'website' => $artist->website ?? null,
-                ],
-                'portfolio_images' => [], // TODO: Implémenter selon ta logique
-                'verified' => $artist->siret_verified ?? false,
-                'studio' => null, // Indépendant
+                'open' => $first->open_time,
+                'close' => $first->close_time,
+                'is_closed' => $first->is_closed,
             ];
-        }
-
-        // StudioArtist
-        return [
-            'id' => $artist->id,
-            'type' => 'studio_artist',
-            'model' => $artist,
-            'name' => $artist->artist_name ?? $artist->user->name,
-            'slug' => $artist->slug,
-            'bio' => $artist->bio,
-            'specialties' => $artist->specialties ?? [],
-            'email' => $artist->user->email,
-            'phone' => $artist->phone,
-            'social_links' => [], // TODO: Implémenter selon ta logique
-            'portfolio_images' => [], // TODO: Implémenter selon ta logique
-            'verified' => $artist->studio->is_verified ?? false,
-            'studio' => [
-                'name' => $artist->studio->name,
-                'slug' => $artist->studio->slug,
-                'address' => $artist->studio->address,
-                'city' => $artist->studio->city,
-            ],
-        ];
-        }
-
-    /**
-     * Récupère les stats de bookings (polymorphic)
-     */
-    private function getBookingStats($artist, string $type): array
-    {
-        try {
-            $bookingsCount = $artist->bookingRequests()->count();
-            $appointmentsCount = $artist->appointments()->count();
-        } catch (\Exception $e) {
-            // En cas d'erreur de relation, utiliser des valeurs par défaut
-            $bookingsCount = 0;
-            $appointmentsCount = 0;
-        }
-
-        return [
-            'total_bookings' => $bookingsCount,
-            'total_appointments' => $appointmentsCount,
-            'rating' => 4.8, // TODO: Implémenter système de notes
-        ];
+        });
     }
 
-    /**
-     * Récupère le portfolio (à implémenter selon ta logique)
-     */
-    private function getPortfolio($artist, string $type): array
+    private function isOpenNow($artist)
     {
-        // TODO: Récupérer depuis Media Library ou portfolio_images
-        return $type === 'tattooer'
-            ? ($artist->portfolio_images ?? [])
-            : ($artist->portfolio_images ?? []);
-    }
+        $now = now();
+        $dayOfWeek = $now->dayOfWeek; // 0 = dimanche, 1 = lundi, etc.
 
-    /**
-     * Récupère la prochaine disponibilité
-     */
-    private function getNextAvailability($artist, string $type): ?string
-    {
-        try {
-            $nextSlot = $artist->availabilities()
-                ->where('type', 'available')
-                ->where('start_time', '>', now())
-                ->orderBy('start_time')
-                ->first();
+        $todayHours = $artist instanceof \App\Models\StudioArtist
+            ? $artist->studio->workingHours()->where('day_of_week', $dayOfWeek)->first()
+            : $artist->workingHours()->where('day_of_week', $dayOfWeek)->first();
 
-            return $nextSlot ? $nextSlot->start_time->format('d/m/Y H:i') : null;
-        } catch (\Exception $e) {
-            return null;
+        if (!$todayHours || $todayHours->is_closed) {
+            return false;
         }
+
+        $currentTime = $now->format('H:i');
+        return $currentTime >= $todayHours->open_time && $currentTime <= $todayHours->close_time;
     }
 }

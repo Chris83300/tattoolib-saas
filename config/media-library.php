@@ -4,7 +4,7 @@ return [
     /*
      * Disque par défaut pour stocker les médias
      */
-    'disk_name' => env('MEDIA_DISK', 'public'),
+    'disk_name' => env('MEDIA_DISK', 'media'),
 
     /*
      * Taille maximale d'upload (en Ko)

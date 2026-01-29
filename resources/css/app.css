@@ -11,8 +11,8 @@
     /* Couleurs principales */
     --color-noir-profond: #0a0a0a;
     --color-gris-fonde: #1a1a1a;
-    --color-beige-peau: #deb392;
-    --color-titane: #b0bec5;
+    --color-beige-peau: #e9c6a0;
+    --color-titane: #b9bcc7;
 
     /* Couleurs texte */
     --color-ivoire-text: #f7f5f0;
@@ -21,11 +21,12 @@
     /* Couleurs accent */
     --color-cuivre: #b87333;
     --color-electric-blue: #1e3a8a; /* #007bff */
+    --color-beige-fonce: #988167;
 
     /* Couleurs fonctionnelles */
     --color-vert-succes: #10b981;
-    --color-rouge-alerte: #991b1b;
-    --color-ambre-warning: #f59e0b; /* #d97706 */
+    --color-rouge-alerte: #ef4444;
+    --color-orange-attention: #f59e0b;
 
     /* Typography */
     --font-display: "Satoshi", "Space Grotesk", system-ui, sans-serif;
@@ -41,6 +42,31 @@
         0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
     --shadow-card-hover:
         0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+}
+
+/* Styles pour img-comparison-slider */
+img-comparison-slider {
+    --divider-width: 3px;
+    --divider-color: #d4b59e; /* beige-peau */
+    --default-handle-opacity: 1;
+    --default-handle-color: #d4b59e;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+/* Animation pulse pour status ouvert */
+@keyframes pulse-dot {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.animate-pulse {
+    animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 /* ============================================
@@ -242,4 +268,3 @@ select:focus[data-flux-control] {
         margin-bottom: 3rem;
     }
 }
-

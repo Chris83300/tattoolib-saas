@@ -1,38 +1,67 @@
-<div class="min-h-screen bg-noir-profond">
+<div class="min-h-screen bg-noir-profond py-8">
+    <div class="container mx-auto px-4 max-w-4xl">
 
-    <!-- Container principal -->
-    <div class="container mx-auto px-4 py-8 max-w-4xl">
-
-        <!-- Header profil -->
+        <!-- Header Profil -->
         <div class="bg-gris-fonde rounded-xl p-6 mb-6">
-            <div class="flex items-start gap-4">
-                <!-- Avatar -->
-                <div class="w-20 h-20 bg-beige-peau/20 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span class="text-beige-peau font-bold text-3xl">
-                        {{ substr(auth()->user()->name, 0, 1) }}
-                    </span>
+            <div class="flex items-start gap-6">
+
+                <!-- Avatar (Spatie Media) -->
+                <div class="w-24 h-24 rounded-full overflow-hidden flex-shrink-0 bg-beige-peau/10">
+                    <img src="{{ $user->avatar_url }}" alt="{{ $user->displayName() }}" class="w-full h-full object-cover">
                 </div>
 
                 <!-- Infos -->
                 <div class="flex-1">
-                    <h1 class="text-ivoire-text font-display font-bold text-2xl mb-1">
-                        {{ auth()->user()->name }}
+                    <!-- Pseudo affiché (ou nom si pas de pseudo) -->
+                    <h1 class="text-3xl font-Satoshi font-bold text-ivoire-text mb-1">
+                        {{ $user->displayName() }}
                     </h1>
+
                     <p class="text-ivoire-text/70 text-sm mb-3">
-                        {{ auth()->user()->email }}
+                        {{ $user->email }}
                     </p>
 
+                    <!-- Badge client -->
+                    <span
+                        class="inline-block bg-beige-peau/20 text-beige-peau px-3 py-1 rounded-full text-sm font-semibold">
+                        👤 Client
+                    </span>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex gap-3">
                     <a href="{{ route('client.settings') }}"
-                        class="inline-flex items-center gap-2 text-beige-peau text-sm font-semibold hover:underline">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
-                            </path>
-                        </svg>
+                        class="px-4 py-2 bg-beige-peau hover:bg-beige-peau/90 text-noir-profond font-semibold rounded-lg transition-colors">
                         Modifier mon profil
                     </a>
                 </div>
             </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+
+            <div class="bg-gris-fonde rounded-xl p-6">
+                <div class="text-center">
+                    <p class="text-4xl font-bold text-beige-peau mb-2">{{ $totalBookings }}</p>
+                    <p class="text-ivoire-text/70 text-sm">Réservations totales</p>
+                </div>
+            </div>
+
+            <div class="bg-gris-fonde rounded-xl p-6">
+                <div class="text-center">
+                    <p class="text-4xl font-bold text-beige-peau mb-2">{{ $upcomingAppointments }}</p>
+                    <p class="text-ivoire-text/70 text-sm">RDV à venir</p>
+                </div>
+            </div>
+
+            <div class="bg-gris-fonde rounded-xl p-6">
+                <div class="text-center">
+                    <p class="text-4xl font-bold text-beige-peau mb-2">{{ $favoriteArtists }}</p>
+                    <p class="text-ivoire-text/70 text-sm">Artistes favoris</p>
+                </div>
+            </div>
+
         </div>
 
         <!-- Navigation onglets -->
@@ -61,32 +90,16 @@
 
         <!-- Contenu onglets -->
         <div x-show="tab === 'bookings'">
-            <div class="bg-gris-fonde rounded-xl p-6">
-                <h3 class="text-ivoire-text font-display font-bold text-lg mb-4">Mes réservations</h3>
-                <p class="text-ivoire-text/70">
-                    Vous n'avez pas encore de réservation.
-                </p>
-            </div>
+            <livewire:client.bookings />
         </div>
 
         <div x-show="tab === 'messages'" x-cloak>
-            <div class="bg-gris-fonde rounded-xl p-6">
-                <h3 class="text-ivoire-text font-display font-bold text-lg mb-4">Messages</h3>
-                <p class="text-ivoire-text/70">
-                    Vous n'avez pas encore de messages.
-                </p>
-            </div>
+            <livewire:client.messages />
         </div>
 
         <div x-show="tab === 'favorites'" x-cloak>
-            <div class="bg-gris-fonde rounded-xl p-6">
-                <h3 class="text-ivoire-text font-display font-bold text-lg mb-4">Artistes favoris</h3>
-                <p class="text-ivoire-text/70">
-                    Vous n'avez pas encore d'artistes favoris.
-                </p>
-            </div>
+            <p class="text-ivoire-text/50 text-center py-8">Fonctionnalité à venir...</p>
         </div>
 
     </div>
-
 </div>

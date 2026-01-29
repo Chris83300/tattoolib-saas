@@ -8,9 +8,11 @@ use App\Http\Controllers\Api\ClientCareSheetController;
 use App\Http\Controllers\Api\ConversationController;
 use App\Http\Controllers\Api\FCMController;
 use App\Http\Controllers\Api\InventoryController;
+use App\Http\Controllers\Api\MarketplaceController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\AccountingController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\PierceurController;
 use App\Http\Controllers\Api\TattooerController;
 use App\Http\Controllers\Api\TattooerPlanningController;
 use App\Http\Controllers\Api\TraceabilityController;
@@ -34,6 +36,24 @@ Route::prefix('tattooers')->group(function () {
     Route::get('/{id}', [TattooerController::class, 'show']);
     Route::get('/{id}/portfolio', [TattooerController::class, 'portfolio']);
     Route::get('/{id}/availability', [TattooerController::class, 'availability']);
+});
+
+// Routes publiques Piercers (recherche, profils publics)
+Route::prefix('piercers')->group(function () {
+    Route::get('/', [PierceurController::class, 'index']);
+    Route::get('/{id}', [PierceurController::class, 'show']);
+    Route::get('/{id}/portfolio', [PierceurController::class, 'portfolio']);
+    Route::get('/{id}/availability', [PierceurController::class, 'availability']);
+    Route::get('/{id}/statistics', [PierceurController::class, 'statistics']);
+    Route::get('/{id}/working-hours', [PierceurController::class, 'working-hours']);
+});
+
+// Routes publiques Marketplace
+Route::prefix('marketplace')->group(function () {
+    Route::get('/search', [MarketplaceController::class, 'search']);
+    Route::get('/featured', [MarketplaceController::class, 'featured']);
+    Route::get('/filters', [MarketplaceController::class, 'filters']);
+    Route::get('/stats', [MarketplaceController::class, 'stats']);
 });
 
 /*
@@ -95,6 +115,26 @@ Route::middleware('auth:sanctum')->prefix('tattooers/{tattooer}')->group(functio
     Route::get('/working-hours', [TattooerController::class, 'getWorkingHours']);
     Route::put('/working-hours', [TattooerController::class, 'updateWorkingHours']);
     Route::put('/working-hours/{day}', [TattooerController::class, 'updateDayWorkingHours'])
+        ->where('day', '[0-6]');
+});
+
+// ===== PIERCERS (Protected routes) =====
+Route::middleware('auth:sanctum')->prefix('piercers/{pierceur}')->group(function () {
+    // Gestion du profil
+    Route::put('/', [PierceurController::class, 'update']);
+    Route::delete('/', [PierceurController::class, 'delete']);
+
+    // Gestion de la spécialisation
+    Route::put('/specialization', [PierceurController::class, 'updateSpecialization']);
+
+    // Gestion du portfolio
+    Route::post('/portfolio', [PierceurController::class, 'uploadPortfolioImage']);
+    Route::delete('/portfolio/{mediaId}', [PierceurController::class, 'deletePortfolioImage']);
+
+    // Gestion des horaires
+    Route::get('/working-hours', [PierceurController::class, 'getWorkingHours']);
+    Route::put('/working-hours', [PierceurController::class, 'updateWorkingHours']);
+    Route::put('/working-hours/{day}', [PierceurController::class, 'updateDayWorkingHours'])
         ->where('day', '[0-6]');
 });
 

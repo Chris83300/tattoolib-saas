@@ -13,7 +13,7 @@
             </a>
 
             @guest
-                <a href="/pour-les-professionnels" class="text-ivoire-text hover:text-beige-peau transition-colors">
+                <a href="/professionnels" class="text-ivoire-text hover:text-beige-peau transition-colors">
                     Pour les pros
                 </a>
                 <a href="{{ route('login') }}" class="text-ivoire-text hover:text-beige-peau transition-colors">

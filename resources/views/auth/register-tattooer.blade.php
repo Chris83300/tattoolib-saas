@@ -47,10 +47,22 @@
                         <!-- Nom -->
                         <div>
                             <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                                Nom / Nom d'artiste *
+                                Nom complet *
                             </label>
-                            <input type="text" name="name" required placeholder="Ex: Jean Dupont ou JD Ink"
+                            <input type="text" name="name" required placeholder="Ex: Jean Dupont"
                                 class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors">
+                        </div>
+
+                        <!-- Pseudo -->
+                        <div>
+                            <label class="block text-ivoire-text text-sm font-semibold mb-2">
+                                Pseudo <span class="text-ivoire-text/50 font-normal">(affiché publiquement)</span>
+                            </label>
+                            <input type="text" name="pseudo" placeholder="Ex: JohnDoeTattoo"
+                                class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors">
+                            <p class="text-ivoire-text/50 text-xs mt-1">
+                                Ce pseudo sera affiché sur votre profil public et dans les messages
+                            </p>
                         </div>
 
                         <!-- Email -->

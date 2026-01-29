@@ -1,0 +1,6 @@
+<!-- Avatar par défaut pour les utilisateurs -->
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="100" cy="100" r="100" fill="#2A2A2A"/>
+  <circle cx="100" cy="80" r="30" fill="#D4B59E"/>
+  <path d="M50 150 Q100 120 150 150" stroke="#D4B59E" stroke-width="3" fill="none"/>
+</svg>

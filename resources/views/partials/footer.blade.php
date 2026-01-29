@@ -6,8 +6,9 @@
             <div>
                 <h3 class="text-beige-peau font-Satoshi text-xl font-bold mb-2 flex items-center gap-2">
                     <svg class="w-8 h-8" viewBox="0 0 32 32" fill="currentColor">
-                        <path d="M8 4C8 4 8 8 12 8C16 8 16 4 16 4C16 4 16 8 20 8C24 8 24 4 24 4L24 12C24 16 20 20 16 20C12 20 8 16 8 12Z"/>
-                        <circle cx="16" cy="24" r="2" fill="currentColor"/>
+                        <path
+                            d="M8 4C8 4 8 8 12 8C16 8 16 4 16 4C16 4 16 8 20 8C24 8 24 4 24 4L24 12C24 16 20 20 16 20C12 20 8 16 8 12Z" />
+                        <circle cx="16" cy="24" r="2" fill="currentColor" />
                     </svg>
                     Ink&Pik
                 </h3>
@@ -20,8 +21,10 @@
             <div>
                 <h4 class="text-ivoire-text font-semibold mb-3">Clients</h4>
                 <ul class="space-y-2 text-sm text-ivoire-text/70">
-                    <li><a href="/marketplace" class="hover:text-beige-peau transition-colors">Trouver un artiste</a></li>
-                    <li><a href="/how-it-works" class="hover:text-beige-peau transition-colors">Comment ça marche</a></li>
+                    <li><a href="/marketplace" class="hover:text-beige-peau transition-colors">Trouver un artiste</a>
+                    </li>
+                    <li><a href="/how-it-works" class="hover:text-beige-peau transition-colors">Comment ça marche</a>
+                    </li>
                     <li><a href="/faq" class="hover:text-beige-peau transition-colors">FAQ</a></li>
                 </ul>
             </div>
@@ -30,9 +33,15 @@
             <div>
                 <h4 class="text-ivoire-text font-semibold mb-3">Professionnels</h4>
                 <ul class="space-y-2 text-sm text-ivoire-text/70">
-                    <li><a href="/pour-les-professionnels" class="hover:text-beige-peau transition-colors">Tarifs</a></li>
-                    <li><a href="/features" class="hover:text-beige-peau transition-colors">Fonctionnalités</a></li>
-                    <li><a href="/conformite" class="hover:text-beige-peau transition-colors">Conformité</a></li>
+                    <li><a href="/professionnels" class="hover:text-beige-peau transition-colors">Découvrir Ink&Pik</a>
+                    </li>
+                    <li><a href="/professionnels#pricing" class="hover:text-beige-peau transition-colors">Tarifs</a>
+                    </li>
+                    <li><a href="/professionnels#features"
+                            class="hover:text-beige-peau transition-colors">Fonctionnalités</a></li>
+                    <li><a href="/professionnels#compliance"
+                            class="hover:text-beige-peau transition-colors">Conformité</a></li>
+                    <li><a href="/register/tattooer" class="hover:text-beige-peau transition-colors">S'inscrire</a></li>
                 </ul>
             </div>
 
@@ -40,7 +49,8 @@
             <div>
                 <h4 class="text-ivoire-text font-semibold mb-3">Légal</h4>
                 <ul class="space-y-2 text-sm text-ivoire-text/70">
-                    <li><a href="/mentions-legales" class="hover:text-beige-peau transition-colors">Mentions légales</a></li>
+                    <li><a href="/mentions-legales" class="hover:text-beige-peau transition-colors">Mentions légales</a>
+                    </li>
                     <li><a href="/cgv" class="hover:text-beige-peau transition-colors">CGV</a></li>
                     <li><a href="/privacy" class="hover:text-beige-peau transition-colors">Confidentialité</a></li>
                     <li><a href="/contact" class="hover:text-beige-peau transition-colors">Contact</a></li>

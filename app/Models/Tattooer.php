@@ -8,8 +8,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use App\Traits\HasCompliance;
 use App\Traits\BookableArtist;
 use App\Traits\HasSubscription;
@@ -18,6 +20,23 @@ use App\Traits\HasStripeConnect;
 class Tattooer extends Model implements HasMedia
 {
     use HasFactory, SoftDeletes, InteractsWithMedia, HasSubscription, BookableArtist, HasCompliance, HasStripeConnect;
+
+    protected static function booted()
+    {
+        parent::booted();
+
+        static::creating(function ($tattooer) {
+            if (empty($tattooer->slug)) {
+                $tattooer->slug = Str::slug($tattooer->user->name . '-' . $tattooer->id);
+            }
+        });
+
+        static::updating(function ($tattooer) {
+            if (empty($tattooer->slug)) {
+                $tattooer->slug = Str::slug($tattooer->user->name . '-' . $tattooer->id);
+            }
+        });
+    }
 
     protected $fillable = [
         'user_id',
@@ -91,12 +110,46 @@ class Tattooer extends Model implements HasMedia
 
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('portfolio')
-            ->useDisk('public');
-
+        // Avatar
         $this->addMediaCollection('avatar')
             ->singleFile()
-            ->useDisk('public');
+            ->useFallbackUrl('/images/default-tattooer-avatar.png')
+            ->useFallbackPath(public_path('/images/default-tattooer-avatar.png'))
+            ->registerMediaConversions(function (Media $media) {
+                $this->addMediaConversion('thumb')
+                    ->width(200)
+                    ->height(200)
+                    ->sharpen(10);
+            });
+
+        // Portfolio Réalisations
+        $this->addMediaCollection('portfolio')
+            ->useFallbackUrl('/images/default-portfolio.png')
+            ->useFallbackPath(public_path('/images/default-portfolio.png'))
+            ->registerMediaConversions(function (Media $media) {
+                $this->addMediaConversion('thumb')
+                    ->width(400)
+                    ->height(400)
+                    ->sharpen(10);
+            });
+
+        // Dessins
+        $this->addMediaCollection('drawings')
+            ->registerMediaConversions(function (Media $media) {
+                $this->addMediaConversion('thumb')
+                    ->width(400)
+                    ->height(400)
+                    ->sharpen(10);
+            });
+
+        // Avant/Après (paires d'images)
+        $this->addMediaCollection('before_after')
+            ->registerMediaConversions(function (Media $media) {
+                $this->addMediaConversion('thumb')
+                    ->width(200)
+                    ->height(200)
+                    ->sharpen(10);
+            });
     }
 
     // ===== RELATIONS =====

@@ -15,6 +15,9 @@ class RegisterClient extends AuthLayoutComponent
     #[Validate('required|string|max:255')]
     public string $last_name = '';
 
+    #[Validate('nullable|string|max:50|unique:users,pseudo')]
+    public string $pseudo = '';
+
     #[Validate('required|email|unique:users,email')]
     public string $email = '';
 
@@ -34,6 +37,7 @@ class RegisterClient extends AuthLayoutComponent
         // Créer user
         $user = User::create([
             'name' => $this->first_name . ' ' . $this->last_name,
+            'pseudo' => $this->pseudo,
             'email' => $this->email,
             'password' => Hash::make($this->password),
             'role' => 'client',

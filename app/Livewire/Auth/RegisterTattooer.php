@@ -16,6 +16,9 @@ class RegisterTattooer extends AuthLayoutComponent
     #[Validate('required|string|max:255')]
     public string $name = '';
 
+    #[Validate('nullable|string|max:50|unique:users,pseudo')]
+    public string $pseudo = '';
+
     #[Validate('required|email|unique:users,email')]
     public string $email = '';
 
@@ -112,6 +115,7 @@ class RegisterTattooer extends AuthLayoutComponent
         // Créer user
         $user = User::create([
             'name' => $this->name,
+            'pseudo' => $this->pseudo,
             'email' => $this->email,
             'password' => Hash::make($this->password),
             'role' => 'tattooer',

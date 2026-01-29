@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Client;
 use App\Models\Tattooer;
+use App\Models\Pierceur;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -124,32 +125,67 @@ class RegisterController extends Controller
 
     public function submitPierceur(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'city' => 'required|string|max:255',
-            'postal_code' => 'required|string|max:10',
-            'phone' => 'nullable|string|max:20',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
+        Log::info('submitPierceur appelé avec: ' . json_encode($request->all()));
 
-        // Créer user
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'role' => 'pierceur',
-            'status' => 'pending_verification',
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'pseudo' => 'nullable|string|max:50|unique:users,pseudo',
+                'email' => 'required|email|unique:users,email',
+                'siret' => 'required|digits:14|unique:piercers,siret',
+                'specialization' => 'required|in:pierceur,bodemodeur,pierceur_bodemodeur',
+                'city' => 'required|string|max:255',
+                'postal_code' => 'required|string|max:10',
+                'phone' => 'nullable|string|max:20',
+                'password' => 'required|string|min:8|confirmed',
+            ]);
 
-        // Créer profil piercer (temporairement simple)
-        // TODO: Créer le modèle Piercer
+            Log::info('Validation pierceur passée: ' . json_encode($validated));
 
-        // Login automatique
-        Auth::login($user);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Erreur validation pierceur: ' . json_encode($e->errors()));
+            return back()->withErrors($e->errors())->withInput();
+        }
 
-        // Redirection vers page "en attente validation"
-        return redirect()->route('pierceur.pending-verification');
+        try {
+            // Créer user
+            $user = User::create([
+                'name' => $validated['name'],
+                'pseudo' => $validated['pseudo'] ?? null,
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role' => 'pierceur',
+                'status' => 'pending_verification',
+            ]);
+
+            // Créer profil pierceur
+            $pierceur = Pierceur::create([
+                'user_id' => $user->id,
+                'siret' => $validated['siret'],
+                'name' => $validated['name'],
+                'slug' => Str::slug($validated['name'] . '-' . $validated['city']),
+                'specialization' => $validated['specialization'],
+                'city' => $validated['city'],
+                'postal_code' => $validated['postal_code'],
+                'phone' => $validated['phone'] ?? null,
+                'email' => $validated['email'],
+                'subscription_plan' => 'free',
+                'is_subscribed' => false,
+                'has_compliance_badge' => false,
+            ]);
+
+            Log::info('Pierceur créé avec succès: ' . $pierceur->id);
+
+            // Login automatique
+            Auth::login($user);
+
+            // Redirection vers page "en attente validation"
+            return redirect()->route('pierceur.pending-verification');
+
+        } catch (\Exception $e) {
+            Log::error('Erreur création pierceur: ' . $e->getMessage());
+            return back()->with('error', 'Une erreur est survenue lors de la création de votre compte. Veuillez réessayer.')->withInput();
+        }
     }
 
     public function submitStudio(Request $request)

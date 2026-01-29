@@ -60,7 +60,7 @@
             <!-- Navigation Desktop -->
             <nav class="hidden md:flex items-center gap-6 text-ivoire-text">
                 <a href="/marketplace" class="hover:text-beige-peau transition-colors">Trouver un artiste</a>
-                <a href="/pour-les-pros" class="hover:text-beige-peau transition-colors">Pour les pros</a>
+                <a href="/professionnels" class="hover:text-beige-peau transition-colors">Pour les pros</a>
 
                 @guest
                     <a href="{{ route('login') }}"
@@ -112,7 +112,7 @@
             <div class="container-custom py-4 space-y-3">
                 <a href="/marketplace"
                     class="block py-2 text-ivoire-text hover:text-beige-peau transition-colors">Trouver un artiste</a>
-                <a href="/pour-les-pros"
+                <a href="/professionnels"
                     class="block py-2 text-ivoire-text hover:text-beige-peau transition-colors">Pour les pros</a>
 
                 @guest

@@ -5,14 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class Client extends Model
+class Client extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, InteractsWithMedia;
 
     protected $fillable = [
         'user_id',
-        'name',
+        'first_name',
+        'last_name',
         'phone',
         'birth_date',
         'email',
@@ -45,6 +48,21 @@ class Client extends Model
     public function appointments()
     {
         return $this->hasMany(Appointment::class);
+    }
+
+    public function conversations()
+    {
+        return $this->morphMany(Conversation::class, 'participant');
+    }
+
+    // Spatie Media Library
+    public function registerMediaCollections(): void
+    {
+        // Avatar
+        $this->addMediaCollection('avatar')
+            ->singleFile()
+            ->useFallbackUrl('/images/default-avatar.png')
+            ->useFallbackPath(public_path('/images/default-avatar.png'));
     }
 
     // Scopes

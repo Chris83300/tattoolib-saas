@@ -40,6 +40,18 @@
                         placeholder="Dupont">
                 </div>
 
+                <!-- Pseudo -->
+                <div>
+                    <label class="block text-ivoire-text text-sm font-semibold mb-2">
+                        Pseudo <span class="text-ivoire-text/50 font-normal">(affiché publiquement)</span>
+                    </label>
+                    <input type="text" name="pseudo" placeholder="Ex: Client123"
+                        class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors">
+                    <p class="text-ivoire-text/50 text-xs mt-1">
+                        Ce pseudo sera affiché sur votre profil public et dans les messages
+                    </p>
+                </div>
+
                 <!-- Email -->
                 <div>
                     <label class="block text-ivoire-text text-sm font-semibold mb-2">

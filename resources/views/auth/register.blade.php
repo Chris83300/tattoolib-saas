@@ -68,10 +68,10 @@
                     </div>
                     <h3
                         class="text-ivoire-text font-display font-bold text-lg mb-2 group-hover:text-beige-peau transition-colors">
-                        Pierceur
+                        Pierceur / Bodemodeur
                     </h3>
                     <p class="text-ivoire-text/70 text-sm">
-                        Je suis pierceur professionnel
+                        Je suis pierceur / bodemodeur professionnel
                     </p>
                 </button>
 

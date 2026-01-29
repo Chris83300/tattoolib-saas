@@ -17,8 +17,13 @@ class BookingRequests extends Component
             ->latest()
             ->get();
 
+        $pendingRequests = auth()->user()->tattooer->bookingRequests()
+            ->where('status', 'pending')
+            ->count();
+
         return view('livewire.tattooer.booking-requests', [
-            'bookingRequests' => $bookingRequests
+            'bookingRequests' => $bookingRequests,
+            'pendingRequests' => $pendingRequests
         ]);
     }
 }

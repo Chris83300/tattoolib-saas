@@ -24,6 +24,7 @@ class User extends Authenticatable
     protected $fillable = [
         'id',
         'name',
+        'pseudo', // 🆕 Pseudo public
         'email',
         'password',
         'role', // Ajout du rôle
@@ -65,6 +66,21 @@ class User extends Authenticatable
 
     // ===== RELATIONS =====
 
+    /**
+     * Relation polymorphique vers le profil selon le rôle
+     */
+    public function profile()
+    {
+        return match($this->role) {
+            'client' => $this->hasOne(Client::class),
+            'tattooer' => $this->hasOne(Tattooer::class),
+            'pierceur' => $this->hasOne(Pierceur::class),
+            'studio' => $this->hasOne(Studio::class),
+            'studio_artist' => $this->hasOne(StudioArtist::class),
+            default => null,
+        };
+    }
+
     public function client()
     {
         return $this->hasOne(Client::class);
@@ -73,6 +89,11 @@ class User extends Authenticatable
     public function tattooer()
     {
         return $this->hasOne(Tattooer::class);
+    }
+
+    public function pierceur()
+    {
+        return $this->hasOne(Pierceur::class);
     }
 
     public function studio()
@@ -99,14 +120,62 @@ class User extends Authenticatable
 
     // ===== MÉTHODES MÉTIER =====
 
+    /**
+     * Nom affiché publiquement (pseudo ou fallback name)
+     */
+    public function displayName(): string
+    {
+        return $this->pseudo ?? $this->name;
+    }
+
+    /**
+     * Nom réel (pour admin/légal uniquement)
+     */
+    public function realName(): string
+    {
+        return $this->name;
+    }
+
+    /**
+     * Avatar via Spatie (polymorphic via profile)
+     */
+    public function getAvatarUrlAttribute(): string
+    {
+        $profile = $this->profile;
+
+        if ($profile && method_exists($profile, 'hasMedia') && $profile->hasMedia('avatar')) {
+            return $profile->getFirstMediaUrl('avatar');
+        }
+
+        return '/images/default-avatar.png';
+    }
+
+    /**
+     * Helpers de rôle basés sur le champ role (plus performants)
+     */
     public function isClient(): bool
     {
-        return $this->client()->exists();
+        return $this->role === 'client';
     }
 
     public function isTattooer(): bool
     {
-        return $this->tattooer()->exists();
+        return $this->role === 'tattooer';
+    }
+
+    public function isPierceur(): bool
+    {
+        return $this->role === 'pierceur';
+    }
+
+    public function isStudio(): bool
+    {
+        return $this->role === 'studio';
+    }
+
+    public function isStudioArtist(): bool
+    {
+        return $this->role === 'studio_artist';
     }
 
     public function isStudioOwner(): bool
@@ -114,18 +183,9 @@ class User extends Authenticatable
         return $this->is_studio_owner && $this->studio_id;
     }
 
-    public function isStudioArtist(): bool
-    {
-        return $this->is_studio_artist && $this->studioArtist()->exists();
-    }
-
     public function getUserType(): ?string
     {
-        if ($this->isTattooer()) return 'tattooer';
-        if ($this->isClient()) return 'client';
-        if ($this->isStudioOwner()) return 'studio_owner';
-        if ($this->isStudioArtist()) return 'studio_artist';
-        return null;
+        return $this->role;
     }
 
     public function initials(): string
