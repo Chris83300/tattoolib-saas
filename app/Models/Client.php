@@ -14,8 +14,7 @@ class Client extends Model implements HasMedia
 
     protected $fillable = [
         'user_id',
-        'first_name',
-        'last_name',
+        'name',
         'phone',
         'birth_date',
         'email',

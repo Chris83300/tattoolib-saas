@@ -32,6 +32,7 @@ class User extends Authenticatable
         'timezone',
         'last_login_at',
         'is_active',
+        'is_admin', // Ajout du flag admin
         'fcm_token',
         'studio_id',
         'is_studio_owner',
@@ -77,7 +78,8 @@ class User extends Authenticatable
             'pierceur' => $this->hasOne(Pierceur::class),
             'studio' => $this->hasOne(Studio::class),
             'studio_artist' => $this->hasOne(StudioArtist::class),
-            default => null,
+            'admin' => $this->hasOne(Client::class)->where('id', 0), // Relation vide pour admin
+            default => $this->hasOne(Client::class)->where('id', 0), // Relation vide par défaut
         };
     }
 
@@ -212,6 +214,13 @@ class User extends Authenticatable
     public function receivesBroadcastNotificationsOn()
     {
         return 'users.' . $this->id;
+    }
+
+    // ===== ADMIN METHODS =====
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin' || $this->is_admin === true;
     }
 
     // ===== SCOPES =====

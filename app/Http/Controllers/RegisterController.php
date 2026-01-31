@@ -36,8 +36,7 @@ class RegisterController extends Controller
         // Créer profil client
         Client::create([
             'user_id' => $user->id,
-            'first_name' => $validated['first_name'],
-            'last_name' => $validated['last_name'],
+            'name' => $validated['first_name'] . ' ' . $validated['last_name'],
             'phone' => $validated['phone'] ?? null,
         ]);
 

@@ -5,6 +5,7 @@ namespace App\Livewire\Client;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Illuminate\Support\Facades\Auth;
 
 class Bookings extends Component
 {
@@ -12,7 +13,16 @@ class Bookings extends Component
     #[Title('Mes réservations - Ink&Pik')]
     public function render()
     {
-        $bookings = auth()->user()->client->bookingRequests()
+        $client = Auth::user()->profile;
+
+        if (!$client) {
+            // Si l'utilisateur n'a pas de profil client, retourner une vue vide ou un message
+            return view('livewire.client.bookings', [
+                'bookings' => collect()
+            ]);
+        }
+
+        $bookings = $client->bookingRequests()
             ->with(['tattooer', 'appointment'])
             ->latest()
             ->get();

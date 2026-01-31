@@ -1,0 +1,185 @@
+<?php
+
+namespace App\Filament\Admin\Resources\Tattooers\Tables;
+
+use Filament\Forms;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\CreateAction;
+
+class TattooersTable
+{
+    public static function configure(Table $table): Table
+    {
+        return $table
+            ->columns([
+
+                // COLONNE 1 : ID (cachée par défaut)
+                Tables\Columns\TextColumn::make('id')
+                    ->label('ID')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                // COLONNE 2 : Avatar
+                Tables\Columns\ImageColumn::make('avatar')
+                    ->label('Avatar')
+                    ->circular()
+                    ->size(50)
+                    ->defaultImageUrl(fn ($record) => $record->getFirstMediaUrl('avatar') ?: asset('images/default-avatar.png')),
+
+                // COLONNE 3 : Nom (principal)
+                Tables\Columns\TextColumn::make('name')
+                    ->label('Nom')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('medium')
+                    ->copyable()
+                    ->tooltip('Cliquer pour copier le nom')
+                    ->description(fn ($record): ?string => $record->city),
+
+                // COLONNE 4 : Email
+                Tables\Columns\TextColumn::make('user.email')
+                    ->label('Email')
+                    ->searchable()
+                    ->copyable()
+                    ->icon('heroicon-o-envelope')
+                    ->iconColor('primary')
+                    ->toggleable(),
+
+                // COLONNE 5 : SIRET
+                Tables\Columns\TextColumn::make('siret')
+                    ->label('SIRET')
+                    ->searchable()
+                    ->copyable()
+                    ->fontFamily('mono')
+                    ->color(fn ($record) => $record->siret_verified ? 'success' : 'warning')
+                    ->icon(fn ($record) => $record->siret_verified ? 'heroicon-o-check-circle' : 'heroicon-o-exclamation-triangle')
+                    ->toggleable(),
+
+                // COLONNE 6 : Ville
+                Tables\Columns\TextColumn::make('city')
+                    ->label('Ville')
+                    ->searchable()
+                    ->sortable()
+                    ->badge()
+                    ->color('primary'),
+
+                // COLONNE 7 : Statut (badge coloré)
+                Tables\Columns\BadgeColumn::make('user.status')
+                    ->label('Statut')
+                    ->colors([
+                        'warning' => 'pending_verification',
+                        'success' => 'active',
+                        'danger' => 'suspended',
+                    ])
+                    ->icons([
+                        'heroicon-o-clock' => 'pending_verification',
+                        'heroicon-o-check-circle' => 'active',
+                        'heroicon-o-x-circle' => 'suspended',
+                    ])
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'pending_verification' => 'En attente',
+                        'active' => 'Actif',
+                        'suspended' => 'Suspendu',
+                        default => $state,
+                    }),
+
+                // COLONNE 8 : Badge Conformité
+                Tables\Columns\IconColumn::make('has_compliance_badge')
+                    ->label('Badge')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-check-badge')
+                    ->falseIcon('heroicon-o-x-mark')
+                    ->trueColor('success')
+                    ->falseColor('gray')
+                    ->tooltip(fn ($record) => $record->has_compliance_badge ? 'Badge de conformité actif' : 'Badge de conformité inactif'),
+
+                // COLONNE 9 : Portfolio (compteur)
+                Tables\Columns\TextColumn::make('portfolio_count')
+                    ->label('Portfolio')
+                    ->getStateUsing(fn ($record) => $record->getMedia('portfolio')->count())
+                    ->badge()
+                    ->color(fn ($state) => $state > 0 ? 'success' : 'warning')
+                    ->icon('heroicon-o-photo')
+                    ->tooltip(fn ($record) => $record->getMedia('portfolio')->count() . ' photos dans le portfolio'),
+
+                // COLONNE 10 : Stripe Connect
+                Tables\Columns\IconColumn::make('stripe_connect_account_id')
+                    ->label('Stripe')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-credit-card')
+                    ->falseIcon('heroicon-o-x-mark')
+                    ->trueColor('success')
+                    ->falseColor('gray')
+                    ->tooltip(fn ($record) => $record->stripe_connect_account_id ? 'Stripe Connect configuré' : 'Stripe Connect non configuré')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                // COLONNE 11 : Date de création
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Créé le')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable()
+                    ->since()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                // COLONNE 12 : Date de validation
+                Tables\Columns\TextColumn::make('admin_verified_at')
+                    ->label('Validé le')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable()
+                    ->placeholder('Non validé')
+                    ->color('success')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+            ])
+
+            ->filters([
+
+                // FILTRE 1 : Statut
+                Tables\Filters\SelectFilter::make('status')
+                    ->label('Statut')
+                    ->relationship('user', 'status')
+                    ->options([
+                        'pending_verification' => 'En attente de validation',
+                        'pending_verification' => 'En attente',
+                        'active' => 'Actif',
+                        'suspended' => 'Suspendu',
+                    ]),
+
+                Tables\Filters\SelectFilter::make('subscription_plan')
+                    ->label('Plan')
+                    ->options([
+                        'free' => 'FREE',
+                        'pro' => 'PRO',
+                        'studio' => 'STUDIO',
+                    ]),
+
+                Tables\Filters\Filter::make('has_compliance_badge')
+                    ->label('Badge de conformité')
+                    ->query(fn ($query) => $query->where('has_compliance_badge', true))
+                    ->toggle(),
+
+                Tables\Filters\Filter::make('no_compliance_badge')
+                    ->label('Sans badge')
+                    ->query(fn ($query) => $query->where('has_compliance_badge', false))
+                    ->toggle(),
+            ])
+             ->recordActions([
+                EditAction::make(),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
+            ])
+
+            ->emptyStateActions([
+                CreateAction::make(),
+            ])
+            ->striped()
+            ->poll('60s');
+    }
+}

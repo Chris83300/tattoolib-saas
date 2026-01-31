@@ -5,6 +5,7 @@ namespace App\Livewire\Client;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
+use Illuminate\Support\Facades\Auth;
 
 class Profile extends Component
 {
@@ -18,7 +19,7 @@ class Profile extends Component
 
     public function mount()
     {
-        $this->user = auth()->user();
+        $this->user = Auth::user();
         $this->client = $this->user->client;
 
         // Calcul stats
