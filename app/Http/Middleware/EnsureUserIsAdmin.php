@@ -13,24 +13,34 @@ class EnsureUserIsAdmin
     {
         // Pas connecté → login
         if (!Auth::check()) {
+            // Livewire/AJAX : retourne 401
+            if ($request->expectsJson() || $request->is('livewire/*')) {
+                abort(401, 'Non authentifié');
+            }
+
             return redirect()->route('login')
                 ->with('error', 'Veuillez vous connecter pour accéder à cette page.');
         }
 
-        // Pas admin → redirection selon rôle
+        // Pas admin → bloquer
         if (!Auth::user()->isAdmin()) {
-            // Notification d'erreur (couleurs Ink&Pik)
-            if ($request->expectsJson()) {
+
+            // ✅ CRITIQUE : Autoriser les requêtes Livewire/AJAX si déjà dans /admin
+            // (sinon Filament ne peut pas charger les modals/forms)
+            if ($request->is('admin/*') && ($request->expectsJson() || $request->is('livewire/*'))) {
                 abort(403, 'Accès réservé aux administrateurs');
             }
 
-            Notification::make()
-                ->title('🚫 Accès refusé')
-                ->body('Cette section est réservée aux administrateurs de la plateforme.')
-                ->danger()
-                ->icon('heroicon-o-shield-exclamation')
-                ->iconColor('danger') // Rouge #E63946
-                ->send();
+            // Notification uniquement pour les requêtes normales (non-AJAX)
+            if (!$request->expectsJson() && !$request->is('livewire/*')) {
+                Notification::make()
+                    ->title('🚫 Accès refusé')
+                    ->body('Cette section est réservée aux administrateurs de la plateforme.')
+                    ->danger()
+                    ->icon('heroicon-o-shield-exclamation')
+                    ->iconColor('danger')
+                    ->send();
+            }
 
             $user = Auth::user();
 
@@ -38,8 +48,8 @@ class EnsureUserIsAdmin
             if ($user->role === 'tattooer') {
                 $tattooer = $user->tattooer;
                 if ($tattooer) {
-                    return redirect()->route('tattooer.profile', $tattooer->slug)
-                        ->with('success', 'Bienvenue sur votre profil artiste !');
+                    return redirect()->route('tattooer.dashboard')
+                        ->with('success', 'Bienvenue sur votre espace artiste ! 🎨');
                 }
                 return redirect('/')->with('info', 'Configurez votre profil artiste.');
             }
@@ -47,8 +57,8 @@ class EnsureUserIsAdmin
             if ($user->role === 'pierceur') {
                 $pierceur = $user->pierceur;
                 if ($pierceur) {
-                    return redirect()->route('pierceur.profile', $pierceur->slug)
-                        ->with('success', 'Bienvenue sur votre profil artiste !');
+                    return redirect()->route('pierceur.dashboard')
+                        ->with('success', 'Bienvenue sur votre espace artiste ! 💉');
                 }
                 return redirect('/')->with('info', 'Configurez votre profil artiste.');
             }

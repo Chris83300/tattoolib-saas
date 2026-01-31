@@ -24,11 +24,25 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->runInBackground();
 
-        // Exemple d'autres tâches utiles :
+        // 🆕 Envoyer les rappels de consentement (J-4) à 10h
+        $schedule->command('consents:send-reminders')
+            ->dailyAt('10:00')
+            ->withoutOverlapping()
+            ->runInBackground();
 
-        // Envoyer rappel RDV J-1
+        // 🆕 Envoyer les rappels de rendez-vous (J-1 et Jour J) à 9h
         $schedule->command('appointments:send-reminders')
-            ->dailyAt('09:00');
+            ->dailyAt('09:00')
+            ->withoutOverlapping()
+            ->runInBackground();
+
+        // 🆕 Archiver les projets terminés (J+1) à 2h du matin
+        $schedule->command('projects:archive-completed')
+            ->dailyAt('02:00')
+            ->withoutOverlapping()
+            ->runInBackground();
+
+        // Exemple d'autres tâches utiles :
 
         // Vérifier stock faible
         $schedule->command('inventory:check-low-stock')

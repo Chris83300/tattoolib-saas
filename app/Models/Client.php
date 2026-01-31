@@ -14,10 +14,13 @@ class Client extends Model implements HasMedia
 
     protected $fillable = [
         'user_id',
-        'name',
+        'first_name',
+        'last_name',
         'phone',
         'birth_date',
         'email',
+        'address',
+        'notes',
         'no_show_count',
         'is_blacklisted',
         'blacklist_reason',
@@ -54,6 +57,29 @@ class Client extends Model implements HasMedia
         return $this->morphMany(Conversation::class, 'participant');
     }
 
+    // Nouvelles relations pour le workflow client
+    public function projects()
+    {
+        return $this->hasMany(Project::class);
+    }
+
+    public function activeProject()
+    {
+        return $this->hasOne(Project::class)
+            ->whereIn('status', ['pending', 'accepted', 'in_progress'])
+            ->latest();
+    }
+
+    public function tattooHistory()
+    {
+        return $this->hasMany(TattooHistory::class)->latest();
+    }
+
+    public function consent()
+    {
+        return $this->hasOne(Consent::class)->latest();
+    }
+
     // Spatie Media Library
     public function registerMediaCollections(): void
     {
@@ -73,5 +99,123 @@ class Client extends Model implements HasMedia
     public function scopeWithNoShowCount($query, $count = 1)
     {
         return $query->where('no_show_count', '>=', $count);
+    }
+
+    // ===== MÉTHODES MÉTIER =====
+
+    /**
+     * Obtenir le nom complet
+     */
+    public function getFullNameAttribute(): string
+    {
+        return "{$this->first_name} {$this->last_name}";
+    }
+
+    /**
+     * Vérifier si le client est mineur
+     */
+    public function isMinor(): bool
+    {
+        return $this->birth_date && $this->birth_date->age < 18;
+    }
+
+    /**
+     * Obtenir l'âge du client
+     */
+    public function getAge(): int
+    {
+        return $this->birth_date ? $this->birth_date->age : 0;
+    }
+
+    /**
+     * Vérifier si le client a un projet actif
+     */
+    public function hasActiveProject(): bool
+    {
+        return $this->activeProject()->exists();
+    }
+
+    /**
+     * Obtenir le nombre total de tattoos réalisés
+     */
+    public function getTattoosCountAttribute(): int
+    {
+        return $this->tattooHistory()->count();
+    }
+
+    /**
+     * Obtenir le montant total dépensé
+     */
+    public function getTotalSpentAttribute(): float
+    {
+        return $this->tattooHistory()->sum('total_paid');
+    }
+
+    /**
+     * Vérifier si le client a un consentement valide
+     */
+    public function hasValidConsent(): bool
+    {
+        $consent = $this->consent;
+        return $consent && $consent->isValid() && $consent->isRecent();
+    }
+
+    /**
+     * Obtenir le statut du client
+     */
+    public function getStatusAttribute(): string
+    {
+        if ($this->is_blacklisted) {
+            return 'Liste noire';
+        }
+
+        if ($this->hasActiveProject()) {
+            return 'Projet en cours';
+        }
+
+        if ($this->tattoos_count > 0) {
+            return 'Client fidèle';
+        }
+
+        return 'Nouveau client';
+    }
+
+    /**
+     * Incrémenter le compteur de non-présentation
+     */
+    public function incrementNoShowCount(): void
+    {
+        $this->increment('no_show_count');
+
+        // Blacklister automatiquement après 3 no-shows
+        if ($this->no_show_count >= 3) {
+            $this->update([
+                'is_blacklisted' => true,
+                'blacklist_reason' => 'Automatique après 3 non-présentations'
+            ]);
+        }
+    }
+
+    /**
+     * Obtenir un résumé pour affichage
+     */
+    public function getSummary(): array
+    {
+        return [
+            'id' => $this->id,
+            'full_name' => $this->full_name,
+            'email' => $this->email,
+            'phone' => $this->phone,
+            'age' => $this->getAge(),
+            'is_minor' => $this->isMinor(),
+            'status' => $this->status,
+            'tattoos_count' => $this->tattoos_count,
+            'total_spent' => $this->total_spent,
+            'has_active_project' => $this->hasActiveProject(),
+            'has_valid_consent' => $this->hasValidConsent(),
+            'no_show_count' => $this->no_show_count,
+            'is_blacklisted' => $this->is_blacklisted,
+            'avatar_url' => $this->getFirstMediaUrl('avatar'),
+        ];
     }
 }

@@ -1,0 +1,283 @@
+@extends('layouts.tattooer')
+
+@section('content')
+    <div class="space-y-6">
+
+        <!-- Header avec salutation -->
+        <div class="bg-gris-fonde rounded-xl p-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-bold text-ivoire-text mb-2">
+                        Bonjour {{ auth()->user()->name }} 👋
+                    </h1>
+                    <p class="text-ivoire-text/70">
+                        Voici votre activité du jour
+                    </p>
+                </div>
+
+                <!-- Bouton profil public -->
+                <a href="{{ route('marketplace.show', $tattooer->slug) }}" target="_blank"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                        </path>
+                    </svg>
+                    Voir mon profil public
+                </a>
+            </div>
+        </div>
+
+        <!-- Stats KPI (Grid 4 colonnes) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+            <!-- Demandes en attente -->
+            <div class="bg-gris-fonde rounded-xl p-6 hover:ring-2 hover:ring-beige-peau transition-all cursor-pointer"
+                onclick="window.location.href='{{ route('tattooer.requests') }}'">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-ambre-warning/20 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-ambre-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
+                            </path>
+                        </svg>
+                    </div>
+                    @if ($stats['pending_requests'] > 0)
+                        <span class="bg-rouge-alerte text-noir-profond px-2 py-1 rounded-full text-xs font-bold">
+                            {{ $stats['pending_requests'] }}
+                        </span>
+                    @endif
+                </div>
+                <h3 class="text-3xl font-bold text-ivoire-text mb-1">
+                    {{ $stats['pending_requests'] }}
+                </h3>
+                <p class="text-ivoire-text/60 text-sm">Demandes en attente</p>
+            </div>
+
+            <!-- RDV à venir -->
+            <div class="bg-gris-fonde rounded-xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-beige-peau/20 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                            </path>
+                        </svg>
+                    </div>
+                </div>
+                <h3 class="text-3xl font-bold text-ivoire-text mb-1">
+                    {{ $stats['upcoming_appointments'] }}
+                </h3>
+                <p class="text-ivoire-text/60 text-sm">Rendez-vous à venir</p>
+            </div>
+
+            <!-- Clients totaux -->
+            <div class="bg-gris-fonde rounded-xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-vert-succes/20 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-vert-succes" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                            </path>
+                        </svg>
+                    </div>
+                </div>
+                <h3 class="text-3xl font-bold text-ivoire-text mb-1">
+                    {{ $stats['total_clients'] }}
+                </h3>
+                <p class="text-ivoire-text/60 text-sm">Clients totaux</p>
+            </div>
+
+            <!-- Revenus du mois -->
+            <div class="bg-gris-fonde rounded-xl p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-beige-peau/20 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1">
+                            </path>
+                        </svg>
+                    </div>
+                </div>
+                <h3 class="text-3xl font-bold text-ivoire-text mb-1">
+                    {{ number_format($stats['monthly_revenue'], 0) }}€
+                </h3>
+                <p class="text-ivoire-text/60 text-sm">Revenus ce mois</p>
+            </div>
+        </div>
+
+        <!-- Grid 2 colonnes (Prochains RDV + Activité récente) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <!-- Prochains rendez-vous -->
+            <div class="bg-gris-fonde rounded-xl p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-ivoire-text">
+                        📅 Prochains rendez-vous
+                    </h2>
+                    <a href="{{ route('tattooer.calendar') }}"
+                        class="text-beige-peau text-sm font-semibold hover:underline">
+                        Voir tout →
+                    </a>
+                </div>
+
+                @forelse($upcomingAppointments as $appointment)
+                    <div class="border-b border-titane/20 pb-4 mb-4 last:border-0 last:pb-0 last:mb-0">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-ivoire-text mb-1">
+                                    {{ $appointment->client->first_name }} {{ $appointment->client->last_name }}
+                                </h3>
+                                <p class="text-ivoire-text/70 text-sm mb-2">
+                                    {{ $appointment->tattoo_description ?? 'Nouveau tattoo' }}
+                                </p>
+                                <div class="flex items-center gap-4 text-xs text-ivoire-text/60">
+                                    <span>📅 {{ $appointment->appointment_date->format('d/m/Y à H:i') }}</span>
+                                    <span>⏱️ {{ $appointment->estimated_duration ?? '60' }}min</span>
+                                </div>
+                            </div>
+                            <span class="bg-vert-succes/20 text-vert-succes px-2 py-1 rounded text-xs font-semibold">
+                                Confirmé
+                            </span>
+                        </div>
+                    </div>
+                @empty
+                    <div class="text-center py-8">
+                        <svg class="w-16 h-16 mx-auto mb-4 text-ivoire-text/30" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                            </path>
+                        </svg>
+                        <p class="text-ivoire-text/60">Aucun rendez-vous à venir</p>
+                    </div>
+                @endforelse
+            </div>
+
+            <!-- Activité récente -->
+            <div class="bg-gris-fonde rounded-xl p-6">
+                <h2 class="text-xl font-bold text-ivoire-text mb-6">
+                    📊 Activité cette semaine
+                </h2>
+
+                <div class="space-y-4">
+                    <!-- Nouvelles demandes -->
+                    <div class="flex items-center justify-between p-4 bg-noir-profond rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-ambre-warning/20 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-ambre-warning" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
+                                    </path>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-ivoire-text font-semibold">Nouvelles demandes</p>
+                                <p class="text-ivoire-text/60 text-sm">7 derniers jours</p>
+                            </div>
+                        </div>
+                        <span class="text-2xl font-bold text-beige-peau">
+                            {{ $recentActivity['new_requests'] }}
+                        </span>
+                    </div>
+
+                    <!-- RDV réalisés -->
+                    <div class="flex items-center justify-between p-4 bg-noir-profond rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-vert-succes/20 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-vert-succes" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-ivoire-text font-semibold">RDV réalisés</p>
+                                <p class="text-ivoire-text/60 text-sm">7 derniers jours</p>
+                            </div>
+                        </div>
+                        <span class="text-2xl font-bold text-beige-peau">
+                            {{ $recentActivity['completed_appointments'] }}
+                        </span>
+                    </div>
+
+                    <!-- Messages non lus -->
+                    <div class="flex items-center justify-between p-4 bg-noir-profond rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-beige-peau/20 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-beige-peau" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z">
+                                    </path>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-ivoire-text font-semibold">Messages non lus</p>
+                                <p class="text-ivoire-text/60 text-sm">À répondre</p>
+                            </div>
+                        </div>
+                        <span class="text-2xl font-bold text-beige-peau">
+                            {{ $stats['unread_messages'] }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upgrade PRO (si FREE) -->
+        @if ($tattooer->subscription_plan === 'free')
+            <div class="bg-gradient-to-r from-beige-peau/20 to-beige-peau/5 border-2 border-beige-peau/30 rounded-xl p-6">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-2xl">⭐</span>
+                            <h3 class="text-xl font-bold text-ivoire-text">Passez au plan PRO</h3>
+                        </div>
+                        <p class="text-ivoire-text/70 mb-4">
+                            0% de commission + fonctionnalités avancées + stockage illimité
+                        </p>
+                        <ul class="space-y-2 text-ivoire-text/80 text-sm">
+                            <li class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-vert-succes" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                        clip-rule="evenodd"></path>
+                                </svg>
+                                0% de commission sur vos réservations
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-vert-succes" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                        clip-rule="evenodd"></path>
+                                </svg>
+                                Stockage photos illimité (chat + portfolio)
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-vert-succes" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                        clip-rule="evenodd"></path>
+                                </svg>
+                                Badge PRO sur votre profil public
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-4xl font-bold text-beige-peau mb-2">49,99€</div>
+                        <div class="text-ivoire-text/60 text-sm mb-4">/mois</div>
+                        <a href="{{ route('tattooer.upgrade') }}"
+                            class="inline-block px-8 py-3 bg-beige-peau text-noir-profond rounded-lg font-bold hover:bg-beige-peau/90 transition-colors">
+                            Passer PRO maintenant
+                        </a>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+    </div>
+@endsection

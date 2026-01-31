@@ -83,10 +83,9 @@
                     @endif
 
                     @if (in_array(auth()->user()->role, ['tattooer', 'pierceur', 'studio_artist']))
-                        <a href="{{ route('tattooer.dashboard') }}" class="hover:text-beige-peau transition-colors">Mon
+                        <a href="/tattooer/dashboard" class="hover:text-beige-peau transition-colors">Mon
                             espace pro</a>
-                        <a href="{{ route('tattooer.booking-requests') }}"
-                            class="hover:text-beige-peau transition-colors">Demandes</a>
+                        <a href="/tattooer/demandes" class="hover:text-beige-peau transition-colors">Demandes</a>
                     @endif
 
                     @if (auth()->user()->role === 'studio')
@@ -94,7 +93,7 @@
                     @endif
 
                     <!-- Lien profil direct + Déconnexion -->
-                    <a href="{{ auth()->user()->role === 'client' ? route('client.profile') : route('tattooer.profile') }}"
+                    <a href="{{ auth()->user()->role === 'client' ? '/client/profile' : '/tattooer/profil' }}"
                         class="hover:text-beige-peau transition-colors">Mon profil</a>
 
                     <form method="POST" action="{{ route('logout') }}" class="inline">
@@ -130,9 +129,9 @@
                     @endif
 
                     @if (in_array(auth()->user()->role, ['tattooer', 'pierceur', 'studio_artist']))
-                        <a href="{{ route('tattooer.dashboard') }}"
+                        <a href="/tattooer/dashboard"
                             class="block py-2 text-ivoire-text hover:text-beige-peau transition-colors">Mon espace pro</a>
-                        <a href="{{ route('tattooer.booking-requests') }}"
+                        <a href="/tattooer/demandes"
                             class="block py-2 text-ivoire-text hover:text-beige-peau transition-colors">Demandes</a>
                     @endif
 
@@ -142,7 +141,7 @@
                     @endif
 
                     <!-- Lien profil direct + Déconnexion -->
-                    <a href="{{ auth()->user()->role === 'client' ? route('client.profile') : route('tattooer.profile') }}"
+                    <a href="{{ auth()->user()->role === 'client' ? '/client/profile' : '/tattooer/profil' }}"
                         class="block py-2 text-ivoire-text hover:text-beige-peau transition-colors">Mon profil</a>
 
                     <form method="POST" action="{{ route('logout') }}" class="block">

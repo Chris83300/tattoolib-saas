@@ -2,10 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\ArtistController;
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\MarketplaceController;
 use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\LogoutController;
+use App\Http\Controllers\TattooerController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -17,9 +18,49 @@ Route::get('/professionnels', function () {
 })->name('professionnels.index');
 
 // Page marketplace
-Route::get('/marketplace', function () {
-    return view('marketplace.index');
-})->name('marketplace.index');
+Route::get('/marketplace', [MarketplaceController::class, 'index'])->name('marketplace.index');
+
+// Routes Tattooer (protégées) - AVANT les routes publiques avec slug
+Route::middleware(['auth'])->prefix('tattooer')->name('tattooer.')->group(function () {
+    Route::get('/dashboard', [TattooerController::class, 'dashboard'])->name('dashboard');
+    Route::get('/requests', [TattooerController::class, 'requests'])->name('requests');
+    Route::get('/requests/{project}', [TattooerController::class, 'requestShow'])->name('request.show');
+    Route::get('/calendar', [TattooerController::class, 'calendar'])->name('calendar');
+    Route::post('/calendar', [TattooerController::class, 'calendarStore'])->name('calendar.store');
+    Route::patch('/calendar/{event}', [TattooerController::class, 'calendarUpdate'])->name('calendar.update');
+    Route::delete('/calendar/{event}', [TattooerController::class, 'calendarDestroy'])->name('calendar.destroy');
+    Route::get('/messages', [TattooerController::class, 'messages'])->name('messages');
+    Route::get('/messages/{project}', [TattooerController::class, 'messageShow'])->name('message.show');
+    Route::get('/clients', [TattooerController::class, 'clients'])->name('clients');
+    Route::get('/clients/{client}', [TattooerController::class, 'clientShow'])->name('client.show');
+    Route::get('/portfolio', [TattooerController::class, 'portfolio'])->name('portfolio');
+    Route::post('/portfolio/upload', [TattooerController::class, 'portfolioUpload'])->name('portfolio.upload');
+    Route::post('/portfolio/before-after/store', [TattooerController::class, 'portfolioBeforeAfterStore'])->name('portfolio.before-after.store');
+    Route::delete('/portfolio/{media}', [TattooerController::class, 'portfolioDestroy'])->name('portfolio.destroy');
+    Route::delete('/portfolio/before-after/{beforeId}/{afterId}', [TattooerController::class, 'portfolioBeforeAfterDestroy'])->name('portfolio.before-after.destroy');
+    Route::get('/settings', [TattooerController::class, 'settings'])->name('settings');
+    Route::post('/settings', [TattooerController::class, 'settingsUpdate'])->name('settings.update');
+    Route::post('/settings/schedule', [TattooerController::class, 'settingsUpdateSchedule'])->name('settings.update-schedule');
+    Route::post('/settings/password', [TattooerController::class, 'settingsUpdatePassword'])->name('settings.update-password');
+    Route::get('/payments', [TattooerController::class, 'payments'])->name('payments');
+    Route::get('/upgrade', [TattooerController::class, 'upgrade'])->name('upgrade');
+
+    // Anciennes routes Livewire (gardées pour compatibilité)
+    Route::get('/profil', App\Livewire\Tattooer\Profile::class)->name('profile');
+    Route::get('/profil/edit', App\Livewire\Tattooer\Profile::class)->name('profile.edit');
+    Route::get('/portfolio-livewire', App\Livewire\Tattooer\Portfolio::class)->name('portfolio.livewire');
+    Route::get('/disponibilites', App\Livewire\Tattooer\Availability::class)->name('availability');
+    Route::get('/demandes', App\Livewire\Tattooer\BookingRequests::class)->name('demandes');
+    Route::get('/messages-livewire', App\Livewire\Tattooer\Messages::class)->name('messages.livewire');
+    Route::get('/reservations', App\Livewire\Tattooer\Bookings::class)->name('bookings');
+    Route::get('/clients-livewire', App\Livewire\Tattooer\Clients::class)->name('clients.livewire');
+    Route::get('/statistiques', App\Livewire\Tattooer\Analytics::class)->name('analytics');
+    Route::get('/parametres', App\Livewire\Tattooer\Settings::class)->name('settings.livewire');
+});
+
+// Routes marketplace publiques (APRÈS les routes authentifiées)
+Route::get('/tattooer/{slug}', [MarketplaceController::class, 'show'])->name('marketplace.show');
+Route::get('/pierceur/{slug}', [MarketplaceController::class, 'show'])->name('marketplace.show'); // Même route
 
 // Authentification
 Route::get('/login', function () {
@@ -100,7 +141,12 @@ Route::get('/register/studio', function () {
 })->name('register.studio');
 
 Route::post('/login', [LoginController::class, 'authenticate'])->name('login.authenticate');
-Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
+Route::post('/logout', function () {
+    auth()->logout();
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+    return redirect('/');
+})->name('logout');
 
 // Routes POST d'inscription (accessibles par tout le monde)
 Route::post('/register/client', function (Illuminate\Http\Request $request) {
@@ -128,27 +174,13 @@ Route::middleware(['auth'])->prefix('client')->name('client.')->group(function (
     Route::get('/parametres', App\Livewire\Client\Settings::class)->name('settings');
 });
 
-// Routes Tattooer (protégées)
-Route::middleware(['auth'])->prefix('tattooer')->name('tattooer.')->group(function () {
-    Route::get('/dashboard', App\Livewire\Tattooer\Dashboard::class)->name('dashboard');
-    Route::get('/profil', App\Livewire\Tattooer\Profile::class)->name('profile');
-    Route::get('/profil/edit', App\Livewire\Tattooer\Profile::class)->name('profile.edit');
-    Route::get('/portfolio', App\Livewire\Tattooer\Portfolio::class)->name('portfolio');
-    Route::get('/disponibilites', App\Livewire\Tattooer\Availability::class)->name('availability');
-    Route::get('/demandes', App\Livewire\Tattooer\BookingRequests::class)->name('booking-requests');
-    Route::get('/messages', App\Livewire\Tattooer\Messages::class)->name('messages');
-    Route::get('/reservations', App\Livewire\Tattooer\Bookings::class)->name('bookings');
-    Route::get('/clients', App\Livewire\Tattooer\Clients::class)->name('clients');
-    Route::get('/statistiques', App\Livewire\Tattooer\Analytics::class)->name('analytics');
-    Route::get('/parametres', App\Livewire\Tattooer\Settings::class)->name('settings');
-    Route::get('/calendar', App\Livewire\Tattooer\Calendar::class)->name('calendar');
-    Route::get('/upgrade', function () {
-        return view('professionnels.index');
-    })->name('upgrade');
-    Route::get('/compliance', function () {
-        return view('tattooer.compliance');
-    })->name('compliance');
-});
+// Routes Tattooer Calendar (publique pour réservations)
+Route::get('/tattooer/upgrade', function () {
+    return view('professionnels.index');
+})->name('upgrade');
+Route::get('/tattooer/compliance', function () {
+    return view('tattooer.compliance');
+})->name('compliance');
 
 // Routes Pierceur (protégées)
 Route::middleware(['auth'])->prefix('pierceur')->name('pierceur.')->group(function () {
@@ -201,8 +233,8 @@ Route::middleware(['auth'])->prefix('studio-artist')->name('studio-artist.')->gr
 });
 
 // Page publique artiste (Tattooer OU Pierceur)
-Route::get('/artistes/{slug}', [ArtistController::class, 'show'])
-    ->name('marketplace.show');
+Route::get('/artistes/{slug}', [MarketplaceController::class, 'show'])
+    ->name('marketplace.show.artist');
 
 // Routes en attente de validation
 Route::get('/tattooer/pending-verification', App\Livewire\Tattooer\PendingVerification::class)
@@ -220,5 +252,47 @@ Route::get('/studio/pending-verification', function () {
 Route::get('/client/profile', function () {
     return view('client.profile');
 })->middleware(['auth'])->name('client.profile');
+
+// Routes projets client
+Route::middleware(['auth'])->prefix('client')->name('client.')->group(function () {
+    Route::get('/projets', function () {
+        return view('client.projects');
+    })->name('projects');
+
+    Route::get('/projets/{project}', function ($project) {
+        return view('client.project-show', ['project' => $project]);
+    })->name('projects.show');
+});
+
+// Routes paiement acompte
+Route::middleware(['auth'])->prefix('deposit')->name('deposit.')->group(function () {
+    Route::get('/{project}/payment', [App\Http\Controllers\DepositPaymentController::class, 'show'])
+        ->name('payment');
+
+    Route::post('/{project}/checkout-session', [App\Http\Controllers\DepositPaymentController::class, 'createCheckoutSession'])
+        ->name('checkout.session');
+
+    Route::get('/{project}/success', [App\Http\Controllers\DepositPaymentController::class, 'success'])
+        ->name('success');
+
+    Route::get('/{project}/cancel', [App\Http\Controllers\DepositPaymentController::class, 'cancel'])
+        ->name('cancel');
+});
+
+// Routes formulaires de demande
+Route::middleware(['auth'])->prefix('booking-request')->name('booking-request.')->group(function () {
+    Route::get('/{bookableId}/{bookableType}', App\Livewire\BookingRequestForm::class)
+        ->name('form');
+});
+
+// Routes chat projet
+Route::middleware(['auth'])->prefix('project/{project}/chat')->name('project.chat.')->group(function () {
+    Route::get('/', App\Livewire\ProjectChat::class)->name('show');
+});
+
+// Routes demande acompte
+Route::middleware(['auth'])->prefix('project/{project}/deposit')->name('project.deposit.')->group(function () {
+    Route::get('/request', App\Livewire\RequestDeposit::class)->name('request');
+});
 
 require __DIR__.'/settings.php';

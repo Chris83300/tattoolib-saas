@@ -39,6 +39,11 @@ class TattooerPolicy
      */
     public function update(User $user, Tattooer $tattooer): bool
     {
+        // Admin peut modifier tous les profils
+        if ($user->isAdmin()) {
+            return true;
+        }
+
         // Seul le propriétaire peut modifier son profil
         return $user->id === $tattooer->user_id;
     }
@@ -48,6 +53,11 @@ class TattooerPolicy
      */
     public function delete(User $user, Tattooer $tattooer): bool
     {
+        // Admin peut supprimer tous les profils
+        if ($user->isAdmin()) {
+            return true;
+        }
+
         // Seul le propriétaire peut supprimer son profil
         return $user->id === $tattooer->user_id;
     }

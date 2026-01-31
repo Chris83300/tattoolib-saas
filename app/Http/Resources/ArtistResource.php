@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Str;
 
 class ArtistResource extends JsonResource
 {
@@ -16,178 +17,109 @@ class ArtistResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => $this->name,
+            'name' => $this->pseudo ?: $this->name, // Utiliser le pseudo pour l'affichage public, fallback vers le nom
             'slug' => $this->slug,
-            'bio' => $this->bio,
-            'artist_type' => $this->artist_type,
-            'specialization' => $this->specialization,
-            'specialization_label' => $this->getSpecializationLabel(),
-            'styles' => $this->styles ?? [],
+            'bio' => $this->bio ? Str::limit($this->bio, 150) : '',
+
+            // Localisation
             'city' => $this->city,
-            'region' => $this->region,
+            'postal_code' => $this->postal_code,
             'region_label' => $this->getRegionLabel(),
-            'is_verified' => (bool) $this->is_verified,
-            'is_pro' => $this->isPro(),
-            'subscription_plan' => $this->subscription_plan,
+
+            // Spécialisation
+            'artist_type' => $this->artist_type,
+            'specialization_label' => $this->artist_type === 'tattooer' ? 'Tatoueur' : 'Perceur',
+
+            // Stats
             'rating' => round($this->rating ?? 0, 1),
+            'reviews_count' => (int) ($this->reviews_count ?? 0),
             'appointments_count' => (int) ($this->appointments_count ?? 0),
-            'reviews_count' => $this->getReviewsCount(),
+
+            // Vérification
+            'is_verified' => (bool) ($this->siret_verified ?? false),
+            'has_compliance_badge' => (bool) ($this->has_compliance_badge ?? false),
+
+            // Images
             'avatar_url' => $this->getAvatarUrl(),
             'portfolio_images' => $this->getPortfolioImages(),
-            'studio' => $this->when($this->studio, function () {
-                return [
-                    'id' => $this->studio->id,
-                    'name' => $this->studio->name,
-                    'slug' => $this->studio->slug,
-                    'city' => $this->studio->city,
-                ];
-            }),
+
+            // Styles (pour tattooers)
+            'styles' => [],
+
+            // URLs
+            'profile_url' => route('marketplace.show', $this->slug),
+
+            // Badges
             'badges' => $this->getBadges(),
+
+            // Stats détaillées
             'stats' => [
-                'years_experience' => $this->getYearsExperience(),
-                'portfolio_count' => $this->getPortfolioCount(),
-                'average_response_time' => $this->getAverageResponseTime(),
+                'years_experience' => max(1, now()->diffInYears($this->created_at)),
+                'completed_appointments' => (int) ($this->appointments_count ?? 0),
+                'portfolio_count' => 0, // TODO: implementer
             ],
-            'created_at' => $this->created_at?->format('Y-m-d'),
-            'profile_url' => $this->getProfileUrl(),
         ];
     }
 
     protected function getSpecializationLabel(): string
     {
-        $labels = [
-            'tattooer' => 'Tatoueur',
-            'pierceur' => 'Pierceur',
-            'bodemodeur' => 'Bodemodeur',
-            'studio_artist' => 'Artiste de studio'
-        ];
-
-        return $labels[$this->specialization] ?? $this->specialization;
+        return $this->artist_type === 'tattooer' ? 'Tatoueur' : 'Perceur';
     }
 
     protected function getRegionLabel(): string
     {
-        $regions = [
-            'ile-de-france' => 'Île-de-France',
-            'provence-alpes-cote-dazur' => 'Provence-Alpes-Côte d\'Azur',
-            'auvergne-rhone-alpes' => 'Auvergne-Rhône-Alpes',
-            'occitanie' => 'Occitanie',
-            'hauts-de-france' => 'Hauts-de-France',
-            'grand-est' => 'Grand Est',
-            'bretagne' => 'Bretagne',
-            'normandie' => 'Normandie',
-            'pays-de-la-loire' => 'Pays de la Loire',
-            'centre-val-de-loire' => 'Centre-Val de Loire',
-            'bourgogne-franche-comte' => 'Bourgogne-Franche-Comté',
-            'nouvelle-aquitaine' => 'Nouvelle-Aquitaine',
-            'poitou-charentes' => 'Poitou-Charentes',
-            'corse' => 'Corse',
-        ];
-
-        return $regions[$this->region] ?? $this->region;
-    }
-
-    protected function isPro(): bool
-    {
-        return in_array($this->subscription_plan, ['pro', 'studio']);
-    }
-
-    protected function getReviewsCount(): int
-    {
-        // À implémenter avec les relations appropriées
-        return 0;
+        return $this->city ?? 'France';
     }
 
     protected function getAvatarUrl(): ?string
     {
-        if ($this->avatar_url) {
-            return $this->avatar_url;
+        // Essayer d'abord le media Spatie
+        $artistModel = $this->resource;
+
+        if (method_exists($artistModel, 'getFirstMediaUrl')) {
+            $avatar = $artistModel->getFirstMediaUrl('avatar');
+            if ($avatar) {
+                return $avatar;
+            }
         }
 
-        // Avatar par défaut selon le type d'artiste
-        $avatars = [
-            'tattooer' => 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=ffffff&background=8B7355',
-            'pierceur' => 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=ffffff&background=8B7355',
-            'bodemodeur' => 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=ffffff&background=8B7355',
-        ];
-
-        return $avatars[$this->artist_type] ?? null;
+        // Fallback vers UI Avatars avec le pseudo ou nom
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->pseudo ?: $this->name) . '&color=ffffff&background=8B7355';
     }
 
     protected function getPortfolioImages(): array
     {
-        if (!method_exists($this->resource, 'getMedia')) {
-            return [];
-        }
-
-        return $this->getMedia('portfolio')
-            ->take(6)
-            ->map(function ($media) {
-                return [
-                    'id' => $media->id,
-                    'url' => $media->getUrl(),
-                    'thumbnail' => $media->getUrl('thumbnail'),
-                    'preview' => $media->getUrl('preview'),
-                ];
-            })
-            ->toArray();
+        return [];
     }
 
     protected function getBadges(): array
     {
         $badges = [];
 
-        if ($this->is_verified) {
+        if ($this->siret_verified) {
             $badges[] = [
                 'type' => 'verified',
-                'label' => 'Vérifié',
+                'label' => '✓ Vérifié',
                 'color' => 'beige-peau',
             ];
         }
 
-        if ($this->rating >= 4.8) {
+        if ($this->rating >= 4.5 && $this->reviews_count >= 5) {
             $badges[] = [
                 'type' => 'top_rated',
-                'label' => 'Top notes',
+                'label' => '⭐ Top noté',
                 'color' => 'beige-peau',
+            ];
+        }
+
+        if ($this->has_compliance_badge) {
+            $badges[] = [
+                'type' => 'compliance',
+                'label' => '✓ Conforme',
+                'color' => 'vert-succes',
             ];
         }
 
         return $badges;
-    }
-
-    protected function getYearsExperience(): int
-    {
-        // Calcul basé sur la date de création
-        return $this->created_at ? now()->year - $this->created_at->year : 0;
-    }
-
-    protected function getPortfolioCount(): int
-    {
-        if (!method_exists($this->resource, 'getMedia')) {
-            return 0;
-        }
-
-        return $this->getMedia('portfolio')->count();
-    }
-
-    protected function getAverageResponseTime(): ?string
-    {
-        // À implémenter avec la logique de messagerie
-        return '2 heures';
-    }
-
-    protected function getProfileUrl(): string
-    {
-        $routes = [
-            'tattooer' => 'tattooers.show',
-            'pierceur' => 'pierceurs.show',
-            'bodemodeur' => 'bodemodeurs.show',
-            'studio_artist' => 'studio-artists.show',
-        ];
-
-        $route = $routes[$this->artist_type] ?? 'tattooers.show';
-
-        return route($route, $this->slug);
     }
 }

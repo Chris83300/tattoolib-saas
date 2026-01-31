@@ -47,6 +47,7 @@ class Tattooer extends Model implements HasMedia
         'slug', // Ajout du slug
         'studio_name', // ✅ Garde pour les tatoueurs indépendants
         'bio',
+        'styles', // ✅ Ajout pour les styles de tattoo
         'phone',
         'address',
         'city',
@@ -182,6 +183,11 @@ class Tattooer extends Model implements HasMedia
     public function appointments(): MorphMany
     {
         return $this->morphMany(Appointment::class, 'bookable');
+    }
+
+    public function reviews(): MorphMany
+    {
+        return $this->morphMany(Review::class, 'reviewable');
     }
 
     // ===== MÉTHODES MÉTIER =====

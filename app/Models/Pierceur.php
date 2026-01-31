@@ -176,6 +176,11 @@ class Pierceur extends Model implements HasMedia
         return $this->morphMany(Appointment::class, 'bookable');
     }
 
+    public function reviews(): MorphMany
+    {
+        return $this->morphMany(Review::class, 'reviewable');
+    }
+
     public function hasCompletedStripeOnboarding(): bool
     {
         return $this->stripe_onboarding_complete

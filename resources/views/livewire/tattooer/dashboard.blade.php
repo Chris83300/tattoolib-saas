@@ -1,10 +1,20 @@
 <div class="container mx-auto max-w-6xl">
+    <!-- DEBUG: Afficher les données -->
+    <div class="bg-yellow-500/20 border border-yellow-500 rounded-lg p-4 mb-8">
+        <h3 class="text-yellow-400 font-bold mb-2">DEBUG INFO:</h3>
+        <p class="text-yellow-300">User: {{ $user?->name ?? 'NULL' }}</p>
+        <p class="text-yellow-300">Role: {{ $user?->role ?? 'NULL' }}</p>
+        <p class="text-yellow-300">Tattooer: {{ $tattooer?->name ?? 'NULL' }}</p>
+        <p class="text-yellow-300">Pending Requests: {{ $pendingRequests ?? 'NULL' }}</p>
+        <p class="text-yellow-300">Upcoming: {{ $upcomingAppointments ?? 'NULL' }}</p>
+    </div>
+
     <!-- Header profil artiste -->
     <div class="bg-gris-fonde rounded-xl p-6 mb-8">
         <div class="flex flex-col md:flex-row md:items-center gap-4 mb-6">
             <div class="flex-1">
                 <h1 class="text-ivoire-text font-display font-bold text-3xl mb-2">
-                    Bonjour {{ $user->name }} 👋
+                    Bonjour {{ $user?->name ?? 'Utilisateur' }} 👋
                 </h1>
                 <p class="text-ivoire-text/70">
                     Voici votre tableau de bord professionnel
@@ -13,23 +23,25 @@
 
             <div class="flex flex-col gap-2">
                 <!-- Lien vers profil public -->
-                <a href="{{ route('marketplace.show', $tattooer->slug) }}" target="_blank"
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-beige-peau/20 text-beige-peau rounded-lg text-sm font-semibold hover:bg-beige-peau/30 transition-colors">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                    Voir mon profil public
-                </a>
+                @if ($tattooer)
+                    <a href="/tattooer/{{ $tattooer->slug }}" target="_blank"
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-beige-peau/20 text-beige-peau rounded-lg text-sm font-semibold hover:bg-beige-peau/30 transition-colors">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        Voir mon profil public
+                    </a>
+                @endif
 
                 <!-- Statut compte -->
-                @if ($user->status === 'pending_verification')
+                @if ($user?->status === 'pending_verification')
                     <div class="px-4 py-2 bg-yellow-500/20 text-yellow-400 rounded-lg text-sm font-semibold">
                         ⏳ Vérification en cours
                     </div>
-                @elseif ($user->status === 'verified')
+                @elseif ($user?->status === 'verified')
                     <div class="px-4 py-2 bg-green-500/20 text-green-400 rounded-lg text-sm font-semibold">
                         ✅ Compte vérifié
                     </div>
@@ -101,8 +113,7 @@
     <div class="bg-gris-fonde rounded-xl p-6">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-xl font-bold text-ivoire-text">Demandes récentes</h2>
-            <a href="{{ route('tattooer.booking-requests') }}"
-                class="text-beige-peau hover:text-beige-peau/80 transition-colors">
+            <a href="/tattooer/demandes" class="text-beige-peau hover:text-beige-peau/80 transition-colors">
                 Voir tout →
             </a>
         </div>

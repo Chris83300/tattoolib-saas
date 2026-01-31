@@ -7,6 +7,7 @@ use App\Models\Pierceur;
 use App\Models\StudioArtist;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 class MarketplaceSearchService
 {
@@ -29,72 +30,73 @@ class MarketplaceSearchService
     public function getFeaturedArtists(int $limit = 6): Collection
     {
         return $this->getBaseQuery()
-            ->where('is_verified', true)
-            ->orderBy('is_pro', 'desc') // Pro en premier
-            ->orderBy('rating', 'desc')
-            ->orderBy('appointments_count', 'desc')
+            ->orderByDesc('rating')
+            ->orderByDesc('appointments_count')
             ->limit($limit)
             ->get();
     }
 
     protected function getBaseQuery()
     {
-        // Union de tous les types d'artistes
-        $tattooers = Tattooer::query()
+        // Pour l'instant, seulement les tattooers pour éviter les problèmes de colonnes
+        return Tattooer::query()
             ->select([
-                'id', 'name', 'slug', 'bio', 'city', 'region', 'specialization',
-                'styles', 'is_verified', 'subscription_plan', 'rating',
-                'appointments_count', 'studio_id', 'avatar_url', 'created_at'
+                'tattooers.id',
+                DB::raw("'tattooer' as artist_type"),
+                'tattooers.user_id',
+                'tattooers.name',
+                'tattooers.slug',
+                'tattooers.city',
+                'tattooers.postal_code',
+                'tattooers.bio',
+                'tattooers.siret_verified',
+                'tattooers.has_compliance_badge',
+                'tattooers.created_at',
+                'users.status',
+                'users.pseudo', // Ajout du pseudo
+                DB::raw('COALESCE(AVG(reviews.rating), 0) as rating'),
+                DB::raw('COUNT(DISTINCT reviews.id) as reviews_count'),
+                DB::raw('COUNT(DISTINCT appointments.id) as appointments_count'),
             ])
-            ->selectRaw("'tattooer' as artist_type")
-            ->with(['studio', 'media' => function($query) {
-                $query->where('collection_name', 'portfolio')->limit(6);
-            }]);
-
-        $pierceurs = Pierceur::query()
-            ->select([
-                'id', 'name', 'slug', 'bio', 'city', 'region', 'specialization',
-                'styles', 'is_verified', 'subscription_plan', 'rating',
-                'appointments_count', 'studio_id', 'avatar_url', 'created_at'
-            ])
-            ->selectRaw("'pierceur' as artist_type")
-            ->with(['studio', 'media' => function($query) {
-                $query->where('collection_name', 'portfolio')->limit(6);
-            }]);
-
-        $studioArtists = StudioArtist::query()
-            ->select([
-                'id', 'artist_name as name', 'slug', 'bio', 'city', 'region', 'specialization',
-                'styles', 'is_verified', 'subscription_plan', 'rating',
-                'appointments_count', 'studio_id', 'avatar_url', 'created_at'
-            ])
-            ->selectRaw("'studio_artist' as artist_type")
-            ->with(['studio', 'media' => function($query) {
-                $query->where('collection_name', 'portfolio')->limit(6);
-            }]);
-
-        return $tattooers->union($pierceurs)->union($studioArtists);
+            ->join('users', 'tattooers.user_id', '=', 'users.id')
+            ->leftJoin('reviews', function($join) {
+                $join->on('reviews.reviewable_id', '=', 'tattooers.id')
+                     ->where('reviews.reviewable_type', '=', 'App\\Models\\Tattooer');
+            })
+            ->leftJoin('appointments', function($join) {
+                $join->on('appointments.bookable_id', '=', 'tattooers.id')
+                     ->where('appointments.bookable_type', '=', 'App\\Models\\Tattooer')
+                     ->whereIn('appointments.status', ['completed', 'confirmed']);
+            })
+            ->where('users.status', 'active')
+            ->groupBy([
+                'tattooers.id', 'tattooers.user_id', 'tattooers.name', 'tattooers.slug',
+                'tattooers.city', 'tattooers.postal_code', 'tattooers.bio',
+                'tattooers.siret_verified', 'tattooers.has_compliance_badge',
+                'tattooers.created_at', 'users.status', 'users.pseudo'
+            ]);
     }
 
     protected function applyFilters($query, array $filters)
     {
-        // Filtre par spécialisation
+        // Filtre par spécialisation (type d'artiste)
         if (!empty($filters['specialization'])) {
-            $query->where('specialization', $filters['specialization']);
+            $query->where('artist_type', $filters['specialization']);
         }
 
-        // Filtre par styles
+        // Filtre par styles (pas implémenté pour l'instant)
         if (!empty($filters['styles'])) {
-            $query->where(function($q) use ($filters) {
-                foreach ($filters['styles'] as $style) {
-                    $q->orWhereJsonContains('styles', $style);
+            // TODO: Implémenter le filtrage par styles quand la colonne existera
+        }
+
+        // Filtre par région (basé sur code postal)
+        if (!empty($filters['region'])) {
+            $postalPrefixes = $this->getPostalPrefixesForRegion($filters['region']);
+            $query->where(function($q) use ($postalPrefixes) {
+                foreach ($postalPrefixes as $prefix) {
+                    $q->orWhere('postal_code', 'LIKE', $prefix . '%');
                 }
             });
-        }
-
-        // Filtre par région
-        if (!empty($filters['region'])) {
-            $query->where('region', $filters['region']);
         }
 
         // Filtre par ville
@@ -104,7 +106,7 @@ class MarketplaceSearchService
 
         // Filtre par vérification
         if (!empty($filters['verified_only'])) {
-            $query->where('is_verified', true);
+            $query->where('siret_verified', true);
         }
 
         // Filtre par type d'artiste
@@ -165,5 +167,57 @@ class MarketplaceSearchService
             'appointments' => 'Plus de rendez-vous',
             'newest' => 'Plus récents'
         ];
+    }
+
+    /**
+     * Statistiques marketplace
+     */
+    public function getTotalArtists(): int
+    {
+        return Tattooer::whereHas('user', fn($q) => $q->where('status', 'active'))->count();
+    }
+
+    public function getVerifiedArtistsCount(): int
+    {
+        return Tattooer::whereHas('user', fn($q) => $q->where('status', 'active'))
+                ->where('siret_verified', true)
+                ->count();
+    }
+
+    public function getProArtistsCount(): int
+    {
+        return Tattooer::whereHas('user', fn($q) => $q->where('status', 'active'))
+                ->where('current_plan', 'pro')
+                ->count();
+    }
+
+    public function getTotalAppointments(): int
+    {
+        return DB::table('appointments')
+            ->whereIn('status', ['completed', 'confirmed'])
+            ->count();
+    }
+
+    /**
+     * Mapping régions → préfixes codes postaux
+     */
+    protected function getPostalPrefixesForRegion(string $region): array
+    {
+        return match($region) {
+            'ile-de-france' => ['75', '77', '78', '91', '92', '93', '94', '95'],
+            'provence-alpes-cote-azur' => ['04', '05', '06', '13', '83', '84'],
+            'auvergne-rhone-alpes' => ['01', '03', '07', '15', '26', '38', '42', '43', '63', '69', '73', '74'],
+            'occitanie' => ['09', '11', '12', '30', '31', '32', '34', '46', '48', '65', '66', '81', '82'],
+            'nouvelle-aquitaine' => ['16', '17', '19', '23', '24', '33', '40', '47', '64', '79', '86', '87'],
+            'hauts-de-france' => ['02', '59', '60', '62', '80'],
+            'grand-est' => ['08', '10', '51', '52', '54', '55', '57', '67', '68', '88'],
+            'bretagne' => ['22', '29', '35', '56'],
+            'normandie' => ['14', '27', '50', '61', '76'],
+            'pays-de-la-loire' => ['44', '49', '53', '72', '85'],
+            'centre-val-de-loire' => ['18', '28', '36', '37', '41', '45'],
+            'bourgogne-franche-comte' => ['21', '25', '39', '58', '70', '71', '89', '90'],
+            'corse' => ['20'],
+            default => [],
+        };
     }
 }

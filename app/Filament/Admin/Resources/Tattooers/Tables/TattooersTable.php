@@ -5,6 +5,12 @@ namespace App\Filament\Admin\Resources\Tattooers\Tables;
 use Filament\Forms;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\Filter;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -38,7 +44,9 @@ class TattooersTable
                     ->weight('medium')
                     ->copyable()
                     ->tooltip('Cliquer pour copier le nom')
-                    ->description(fn ($record): ?string => $record->city),
+                    ->description(fn ($record): ?string => $record->city)
+                    ->url(fn ($record) => '/admin/tattooers/'.$record->id.'/edit')
+                    ->openUrlInNewTab(false),
 
                 // COLONNE 4 : Email
                 Tables\Columns\TextColumn::make('user.email')
@@ -171,6 +179,7 @@ class TattooersTable
                 EditAction::make(),
             ])
             ->toolbarActions([
+                CreateAction::make(),
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),

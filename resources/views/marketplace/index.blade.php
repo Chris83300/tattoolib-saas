@@ -224,10 +224,15 @@
                     <span class="artist-experience"></span>
                 </div>
 
-                <!-- CTA -->
-                <x-ui.button variant="primary" size="sm" href="#" class="w-full artist-profile-link">
-                    Voir le profil
-                </x-ui.button>
+                <!-- CTA Buttons -->
+                <div class="flex gap-2">
+                    <x-ui.button variant="secondary" size="sm" href="#" class="flex-1 artist-profile-link">
+                        Voir le profil
+                    </x-ui.button>
+                    <x-ui.button variant="primary" size="sm" href="/contact" class="flex-1">
+                        📅 Prendre RDV
+                    </x-ui.button>
+                </div>
             </div>
         </div>
     </template>
