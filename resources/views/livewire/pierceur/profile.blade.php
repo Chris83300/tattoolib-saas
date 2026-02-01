@@ -126,7 +126,7 @@
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                             @foreach ($portfolioImages as $media)
                                 <div class="aspect-square rounded-lg overflow-hidden bg-titane/20">
-                                    <img src="{{ $media->getUrl('thumb') }}" alt="Portfolio"
+                                    <img src="{{ $media->getUrl() }}" alt="Portfolio"
                                         class="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer">
                                 </div>
                             @endforeach

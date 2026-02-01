@@ -19,12 +19,10 @@ class IntegrationTest extends TestCase
     public function test_complete_workflow_with_factories()
     {
         // 1. Setup des utilisateurs
-        $clientUser = User::factory()->create();
+        $clientUser = User::factory()->client()->create();
         $client = Client::factory()->create(['user_id' => $clientUser->id]);
 
-        $artistUser = User::factory()->create([
-            'is_studio_artist' => true,
-        ]);
+        $artistUser = User::factory()->studioArtist()->create();
         $artist = StudioArtist::factory()->create([
             'user_id' => $artistUser->id,
             'siret_verified' => true,
@@ -113,7 +111,7 @@ class IntegrationTest extends TestCase
     /** @test ⭐ Gestion des RDV externes */
     public function test_external_appointments_management()
     {
-        $tattooerUser = User::factory()->create();
+        $tattooerUser = User::factory()->tattooer()->create();
         $tattooer = Tattooer::factory()->create(['user_id' => $tattooerUser->id]);
 
         // Créer une journée de travail
@@ -211,7 +209,7 @@ class IntegrationTest extends TestCase
     /** @test ⭐ Gestion des conflits de créneaux */
     public function test_slot_conflicts_handling()
     {
-        $tattooerUser = User::factory()->create();
+        $tattooerUser = User::factory()->tattooer()->create();
         $tattooer = Tattooer::factory()->create(['user_id' => $tattooerUser->id]);
 
         $date = now()->addDays(2)->format('Y-m-d');

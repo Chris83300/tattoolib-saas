@@ -134,7 +134,7 @@
                                     {{ $appointment->tattoo_description ?? 'Nouveau tattoo' }}
                                 </p>
                                 <div class="flex items-center gap-4 text-xs text-ivoire-text/60">
-                                    <span>📅 {{ $appointment->appointment_date->format('d/m/Y à H:i') }}</span>
+                                    <span>📅 {{ $appointment->appointment_datetime->format('d/m/Y à H:i') }}</span>
                                     <span>⏱️ {{ $appointment->estimated_duration ?? '60' }}min</span>
                                 </div>
                             </div>

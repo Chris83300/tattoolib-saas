@@ -12,6 +12,7 @@ use App\Models\CalendarEvent;
 use App\Models\TattooHistory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -129,11 +130,11 @@ class TattooerController extends Controller
         // Événements pour FullCalendar
         $events = [];
 
-        // Rendez-vous depuis les projects
-        $appointments = Project::where('bookable_id', $tattooer->id)
+        // Rendez-vous depuis les booking requests
+        $appointments = BookingRequest::where('bookable_id', $tattooer->id)
             ->where('bookable_type', 'App\Models\Tattooer')
-            ->whereNotNull('appointment_date')
-            ->where('status', 'in_progress')
+            ->whereNotNull('appointment_datetime')
+            ->where('status', 'accepted')
             ->with('client')
             ->get();
 
@@ -141,8 +142,8 @@ class TattooerController extends Controller
             $events[] = [
                 'id' => 'appointment_' . $appointment->id,
                 'title' => 'RDV - ' . $appointment->client->first_name . ' ' . $appointment->client->last_name,
-                'start' => $appointment->appointment_date,
-                'end' => $appointment->appointment_end ?? $appointment->appointment_date->addHours(2),
+                'start' => $appointment->appointment_datetime,
+                'end' => $appointment->appointment_end ?? $appointment->appointment_datetime->addHours(2),
                 'backgroundColor' => '#06D6A0',
                 'borderColor' => '#06D6A0',
                 'editable' => false,
@@ -155,7 +156,7 @@ class TattooerController extends Controller
 
         // Événements personnalisés (pause, vacances, etc.)
         $customEvents = CalendarEvent::where('bookable_id', $tattooer->id)
-            ->where('bookable_type', 'App\\Models\\Tattooer')
+            ->where('bookable_type', Tattooer::class)
             ->get();
 
         foreach ($customEvents as $event) {
@@ -174,7 +175,7 @@ class TattooerController extends Controller
             ];
         }
 
-        return view('tattooer.calendar', compact('events'));
+        return view('tattooer.calendar', compact('tattooer', 'events'));
     }
 
     /**
@@ -547,23 +548,51 @@ class TattooerController extends Controller
     {
         $tattooer = auth()->user()->tattooer;
 
-        // On n'autorise la suppression que pour les événements custom (id numérique)
-        if (!ctype_digit((string) $event)) {
-            return response()->json(['success' => false], 422);
+        if (!$tattooer) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Profil tattooer non trouvé',
+            ], 403);
         }
 
+        // Autoriser la suppression de tous les événements (RDV inclus)
         $calendarEvent = CalendarEvent::where('id', (int) $event)
             ->where('bookable_id', $tattooer->id)
-            ->where('bookable_type', 'App\\Models\\Tattooer')
-            ->firstOrFail();
+            ->where('bookable_type', Tattooer::class)
+            ->first();
 
-        if (method_exists($calendarEvent, 'canBeDeleted') && !$calendarEvent->canBeDeleted()) {
-            return response()->json(['success' => false], 403);
+        if (!$calendarEvent) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Événement non trouvé',
+            ], 404);
         }
 
-        $calendarEvent->delete();
+        if (method_exists($calendarEvent, 'canBeDeleted') && !$calendarEvent->canBeDeleted()) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Cet événement ne peut pas être supprimé',
+            ], 403);
+        }
 
-        return response()->json(['success' => true]);
+        try {
+            $calendarEvent->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Événement supprimé avec succès',
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Erreur suppression calendrier', [
+                'event_id' => $calendarEvent->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Erreur lors de la suppression : ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**

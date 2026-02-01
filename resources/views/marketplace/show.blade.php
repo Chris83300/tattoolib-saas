@@ -82,9 +82,9 @@
                         </div>
 
                         <!-- CTA -->
-                        <a href="/contact"
+                        <a href="{{ route('booking-request.form', [$artist->id, $type]) }}"
                             class="inline-block px-8 py-4 bg-beige-peau text-noir-profond font-bold rounded-lg text-lg hover:bg-beige-peau/90 transition-colors">
-                            📅 Contacter l'artiste
+                            📅 prendre RDV
                         </a>
                     </div>
                 </div>

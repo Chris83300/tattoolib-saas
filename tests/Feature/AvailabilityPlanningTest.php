@@ -21,7 +21,7 @@ class AvailabilityPlanningTest extends TestCase
         parent::setUp();
 
         // Créer un tatoueur avec son utilisateur
-        $this->tattooerUser = User::factory()->create();
+        $this->tattooerUser = User::factory()->tattooer()->create();
         $this->tattooer = Tattooer::factory()->create([
             'user_id' => $this->tattooerUser->id,
         ]);

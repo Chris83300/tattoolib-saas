@@ -30,7 +30,7 @@ class ConsentReminderNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $appointmentDate = $this->project->appointment_date->format('d/m/Y à H:i');
+        $appointmentDate = $this->project->appointment_datetime->format('d/m/Y à H:i');
         $artistName = $this->project->bookable->user->name;
 
         return (new MailMessage)
@@ -61,8 +61,8 @@ class ConsentReminderNotification extends Notification implements ShouldQueue
             'project_id' => $this->project->id,
             'type' => 'consent_reminder',
             'title' => 'Consentement requis',
-            'message' => 'Veuillez signer le consentement pour votre rendez-vous du ' . $this->project->appointment_date->format('d/m/Y'),
-            'appointment_date' => $this->project->appointment_date,
+            'message' => 'Veuillez signer le consentement pour votre rendez-vous du ' . $this->project->appointment_datetime->format('d/m/Y'),
+            'appointment_datetime' => $this->project->appointment_datetime,
             'artist_name' => $this->project->bookable->user->name,
             'action_url' => route('client.projects.show', $this->project->id),
         ];
@@ -77,9 +77,9 @@ class ConsentReminderNotification extends Notification implements ShouldQueue
             'project_id' => $this->project->id,
             'type' => 'consent_reminder',
             'title' => 'Consentement requis',
-            'message' => 'Veuillez signer le consentement pour votre rendez-vous du ' . $this->project->appointment_date->format('d/m/Y'),
+            'message' => 'Veuillez signer le consentement pour votre rendez-vous du ' . $this->project->appointment_datetime->format('d/m/Y'),
             'data' => [
-                'appointment_date' => $this->project->appointment_date,
+                'appointment_datetime' => $this->project->appointment_datetime,
                 'artist_name' => $this->project->bookable->user->name,
                 'action_url' => route('client.projects.show', $this->project->id),
             ],

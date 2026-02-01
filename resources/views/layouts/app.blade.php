@@ -28,6 +28,9 @@
     <link rel="apple-touch-icon" href="{{ asset('images/icon-192x192.png') }}">
 
     @stack('styles')
+
+    <!-- CSRF Token for AJAX -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 
 <body class="bg-noir-profond text-ivoire-text safe-top safe-bottom">

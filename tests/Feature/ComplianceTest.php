@@ -108,7 +108,7 @@ test('compliance_command_updates_all_statuses', function () {
     // Créer 10 tatoueurs avec certifications variées
     Tattooer::factory()->count(10)->create()->each(function ($tattooer) {
         $tattooer->update([
-            'siret' => '1234567890' . str_pad($tattooer->id, 4, '0', STR_PAD_LEFT),
+            'siret' => '1234567890' . str_pad((string)$tattooer->id, 4, '0', STR_PAD_LEFT) . uniqid(),
             'siret_verified' => true,
         ]);
 

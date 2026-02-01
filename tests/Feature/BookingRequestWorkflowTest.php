@@ -23,10 +23,10 @@ class BookingRequestWorkflowTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        // Créer client et tatoueur
-        $this->clientUser = User::factory()->create();
+        // Créer client et tatoueur avec les bons rôles
+        $this->clientUser = User::factory()->client()->create();
         $this->client = Client::factory()->create(['user_id' => $this->clientUser->id]);
-        $this->tattooerUser = User::factory()->create();
+        $this->tattooerUser = User::factory()->tattooer()->create();
         $this->tattooer = Tattooer::factory()->create([
             'user_id' => $this->tattooerUser->id,
             'siret_verified' => true,

@@ -18,10 +18,10 @@ class Appointment extends Model
         'client_id',
 
         // Date/heure
-        'start_time',
-        'end_time',
-        'appointment_date',
+        'start_datetime',         // ✅ NOUVEAU (remplace start_time)
+        'end_datetime',           // ✅ NOUVEAU (remplace end_time)
         'duration_minutes',
+        // 'appointment_date',    // ❌ SUPPRIMÉ (redondant)
 
         // Montants
         'deposit_amount',
@@ -68,9 +68,9 @@ class Appointment extends Model
     ];
 
     protected $casts = [
-        'start_time' => 'datetime',
-        'end_time' => 'datetime',
-        'appointment_date' => 'date',
+        'start_datetime' => 'datetime',    // ✅ NOUVEAU (remplace start_time)
+        'end_datetime' => 'datetime',      // ✅ NOUVEAU (remplace end_time)
+        // 'appointment_date' => 'date',   // ❌ SUPPRIMÉ (redondant)
         'deposit_amount' => 'decimal:2',
         'total_price' => 'decimal:2',
         'remaining_amount' => 'decimal:2',
@@ -408,4 +408,48 @@ class Appointment extends Model
     //     ['inventory_item_id' => 1, 'quantity' => 2], // 2 aiguilles
     //     ['inventory_item_id' => 5, 'quantity' => 10], // 10ml encre noire
     // ]);
+
+
+    // ===== ACCESSORS POUR RÉTROCOMPATIBILITÉ =====
+
+    /**
+     * Rétrocompatibilité : retourner la date du RDV
+     * Remplace l'ancien champ appointment_date
+     */
+    public function getAppointmentDateAttribute(): ?\Carbon\Carbon
+    {
+        return $this->start_datetime?->startOfDay();
+    }
+
+    /**
+     * Accessor pour calculer automatiquement la durée si duration_minutes est null
+     */
+    public function getDurationMinutesAttribute(): ?int
+    {
+        if ($this->attributes['duration_minutes'] !== null) {
+            return $this->attributes['duration_minutes'];
+        }
+
+        if (!$this->start_datetime || !$this->end_datetime) {
+            return null;
+        }
+
+        return $this->start_datetime->diffInMinutes($this->end_datetime);
+    }
+
+    /**
+     * Accessor pour l'ancien start_time (rétrocompatibilité)
+     */
+    public function getStartTimeAttribute(): ?\Carbon\Carbon
+    {
+        return $this->start_datetime;
+    }
+
+    /**
+     * Accessor pour l'ancien end_time (rétrocompatibilité)
+     */
+    public function getEndTimeAttribute(): ?\Carbon\Carbon
+    {
+        return $this->end_datetime;
+    }
 }

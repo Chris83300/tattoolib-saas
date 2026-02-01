@@ -36,12 +36,6 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->runInBackground();
 
-        // 🆕 Archiver les projets terminés (J+1) à 2h du matin
-        $schedule->command('projects:archive-completed')
-            ->dailyAt('02:00')
-            ->withoutOverlapping()
-            ->runInBackground();
-
         // Exemple d'autres tâches utiles :
 
         // Vérifier stock faible

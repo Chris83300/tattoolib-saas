@@ -14,7 +14,7 @@ class PierceurFactory extends Factory
     public function definition()
     {
         return [
-            'user_id' => User::factory(),
+            'user_id' => User::factory()->create(['role' => 'pierceur']),
             'studio_id' => $this->faker->boolean(70) ? Studio::factory() : null, // 70% ont un studio
             'siret' => $this->faker->numerify('###########'),
             'siret_verified' => $this->faker->boolean(80), // 80% vérifiés
@@ -29,106 +29,77 @@ class PierceurFactory extends Factory
             'postal_code' => $this->faker->postcode,
             'email' => $this->faker->unique()->safeEmail,
 
-            // Stripe Connect
-            'stripe_connect_account_id' => $this->faker->boolean(60) ? 'acct_' . $this->faker->regexify('[A-Za-z0-9]{16}') : null,
-            'stripe_onboarding_complete' => $this->faker->boolean(60),
+            // Configuration
+            'minimum_deposit' => $this->faker->numberBetween(30, 100),
+            'default_deposit_rate' => $this->faker->numberBetween(20, 40),
+            'default_client_payment_deadline_days' => $this->faker->numberBetween(3, 14),
+            'default_design_versions_included' => $this->faker->numberBetween(1, 5),
+            'weekday_wait_days' => $this->faker->numberBetween(3, 14),
+            'weekend_wait_days' => $this->faker->numberBetween(7, 21),
 
             // Réseaux sociaux
-            'instagram' => $this->faker->userName,
-            'facebook' => $this->faker->userName,
+            'instagram' => $this->faker->optional()->userName,
+            'facebook' => $this->faker->optional()->userName,
             'tiktok' => $this->faker->optional()->userName,
             'website' => $this->faker->optional()->url,
 
-            // Paramètres par défaut
-            'minimum_deposit' => $this->faker->randomFloat(2, 30, 100),
-            'default_deposit_rate' => $this->faker->numberBetween(30, 50),
-            'default_client_payment_deadline_days' => 7,
-            'default_design_versions_included' => 3,
+            // Abonnement
+            'current_plan' => $this->faker->randomElement(['free', 'pro']),
+            'is_subscribed' => $this->faker->boolean(30),
 
-            // Délais d'attente
-            'weekday_wait_days' => $this->faker->numberBetween(0, 60),
-            'weekend_wait_days' => $this->faker->numberBetween(0, 90),
+            // Stripe Connect
+            'stripe_connect_account_id' => $this->faker->optional()->uuid,
+            'stripe_onboarding_complete' => $this->faker->boolean(50),
+            'has_accepted_payment_terms' => $this->faker->boolean(70),
 
-            // Subscription fields
-            'subscription_plan' => 'free',
-            'is_subscribed' => false,
-            'upgraded_to_pro_at' => null,
+            // Conformité
+            'has_compliance_badge' => $this->faker->boolean(60),
         ];
     }
 
-    /**
-     * Pierceur vérifié et actif
-     */
-    public function verified()
+    public function verified(): static
     {
         return $this->state(fn (array $attributes) => [
             'siret_verified' => true,
+            'has_compliance_badge' => true,
             'stripe_onboarding_complete' => true,
-            'stripe_connect_account_id' => 'acct_' . $this->faker->regexify('[A-Za-z0-9]{16}'),
         ]);
     }
 
-    /**
-     * Pierceur indépendant (sans studio)
-     */
-    public function independent()
-    {
-        return $this->state(fn (array $attributes) => [
-            'studio_id' => null,
-            'studio_name' => $this->faker->company . ' Piercing',
-        ]);
-    }
-
-    /**
-     * Pierceur avec studio
-     */
-    public function withStudio()
+    public function withStudio(): static
     {
         return $this->state(fn (array $attributes) => [
             'studio_id' => Studio::factory(),
-            'studio_name' => null,
         ]);
     }
 
-    /**
-     * Pierceur spécialisé
-     */
-    public function pierceur()
+    public function pro(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'current_plan' => 'pro',
+            'is_subscribed' => true,
+            'upgraded_to_pro_at' => now()->subMonths(rand(1, 12)),
+        ]);
+    }
+
+    public function pierceurSpecialization(): static
     {
         return $this->state(fn (array $attributes) => [
             'specialization' => 'pierceur',
         ]);
     }
 
-    /**
-     * Bodemodeur spécialisé
-     */
-    public function bodemodeur()
+    public function bodemodeur(): static
     {
         return $this->state(fn (array $attributes) => [
             'specialization' => 'bodemodeur',
         ]);
     }
 
-    /**
-     * Pierceur et bodemodeur
-     */
-    public function both()
+    public function both(): static
     {
         return $this->state(fn (array $attributes) => [
             'specialization' => 'pierceur_bodemodeur',
-        ]);
-    }
-
-    /**
-     * Pierceur PRO
-     */
-    public function pro()
-    {
-        return $this->state(fn (array $attributes) => [
-            'subscription_plan' => 'pro',
-            'is_subscribed' => true,
-            'upgraded_to_pro_at' => $this->faker->dateTimeBetween('-1 year', 'now'),
         ]);
     }
 }

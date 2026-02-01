@@ -54,8 +54,8 @@ test('it can block availability for appointment', function () {
 
     $appointment = \App\Models\Appointment::factory()->create([
         'client_id' => \App\Models\Client::factory()->create()->id,
-        'start_time' => now()->setTime(14, 0),
-        'end_time' => now()->setTime(16, 0),
+        'start_datetime' => now()->setTime(14, 0),
+        'end_datetime' => now()->setTime(16, 0),
     ]);
 
     $availability->blockForAppointment($appointment);

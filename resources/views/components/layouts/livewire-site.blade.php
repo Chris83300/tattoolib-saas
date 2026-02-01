@@ -28,13 +28,6 @@
         {{ $slot }}
     </main>
     
-    <!-- Footer site public -->
-    <x-layouts.footer />
-    
-    <!-- Livewire Scripts -->
     @livewireScripts
-    
-    <!-- Alpine.js (si besoin) -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </body>
 </html>

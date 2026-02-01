@@ -8,7 +8,7 @@ use function Pest\Laravel\getJson;
 use function Pest\Laravel\putJson;
 
 beforeEach(function () {
-    test()->user = User::factory()->create();
+    test()->user = User::factory()->tattooer()->create();
     test()->tattooer = Tattooer::factory()->create(['user_id' => test()->user->id]);
     actingAs(test()->user, 'sanctum');
 });

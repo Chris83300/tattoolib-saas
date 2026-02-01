@@ -19,10 +19,10 @@ class DebugBookingTest extends TestCase
     public function test_booking_request_creation()
     {
         // 1. Setup
-        $clientUser = User::factory()->create();
+        $clientUser = User::factory()->client()->create();
         $client = Client::factory()->create(['user_id' => $clientUser->id]);
 
-        $artistUser = User::factory()->create(['is_studio_artist' => true]);
+        $artistUser = User::factory()->studioArtist()->create();
         $artist = StudioArtist::factory()->create([
             'user_id' => $artistUser->id,
             'siret_verified' => true,
@@ -73,10 +73,10 @@ class DebugBookingTest extends TestCase
     public function test_booking_accept_endpoint()
     {
         // 1. Setup
-        $clientUser = User::factory()->create();
+        $clientUser = User::factory()->client()->create();
         $client = Client::factory()->create(['user_id' => $clientUser->id]);
 
-        $artistUser = User::factory()->create(['is_studio_artist' => true]);
+        $artistUser = User::factory()->studioArtist()->create();
         $artist = StudioArtist::factory()->create([
             'user_id' => $artistUser->id,
             'siret_verified' => true,

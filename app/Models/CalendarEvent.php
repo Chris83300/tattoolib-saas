@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CalendarEvent extends Model
 {
@@ -57,11 +56,6 @@ class CalendarEvent extends Model
     public function getTattooerAttribute()
     {
         return $this->bookable_type === 'App\\Models\\Tattooer' ? $this->bookable : null;
-    }
-
-    public function project(): BelongsTo
-    {
-        return $this->belongsTo(Project::class);
     }
 
     // ===== SCOPES =====
@@ -120,8 +114,8 @@ class CalendarEvent extends Model
     public function getTitle(): string
     {
         return match($this->type) {
-            self::TYPE_APPOINTMENT => $this->project 
-                ? "RDV - {$this->project->client->first_name} {$this->project->client->last_name}" 
+            self::TYPE_APPOINTMENT => $this->project
+                ? "RDV - {$this->project->client->first_name} {$this->project->client->last_name}"
                 : 'Rendez-vous',
             self::TYPE_BREAK => 'Pause',
             self::TYPE_VACATION => 'Vacances',
@@ -143,13 +137,12 @@ class CalendarEvent extends Model
      */
     public function canBeDeleted(): bool
     {
-        // Ne pas supprimer un RDV avec acompte payé
-        if ($this->type === self::TYPE_APPOINTMENT && 
-            $this->project && 
-            $this->project->isDepositPaid()) {
-            return false;
+        // Pour les événements custom (repos, vacances, etc.), toujours autoriser la suppression
+        if ($this->type !== self::TYPE_APPOINTMENT) {
+            return true;
         }
 
+        // Pour les RDV, on autorise la suppression (le tattooer gère son planning)
         return true;
     }
 
@@ -216,7 +209,7 @@ class CalendarEvent extends Model
         // Implémentation simple pour la récurrence hebdomadaire
         if (($this->recurrence_rule['freq'] ?? null) === 'weekly') {
             $days = $this->recurrence_rule['days'] ?? [];
-            
+
             while ($current <= $endDate) {
                 if (in_array($current->dayOfWeek, $days)) {
                     $occurrence = $this->replicate();

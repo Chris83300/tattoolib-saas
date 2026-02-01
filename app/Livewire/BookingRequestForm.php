@@ -7,10 +7,14 @@ use App\Models\Project;
 use App\Models\Tattooer;
 use App\Models\StudioArtist;
 use App\Models\Pierceur;
+use App\Models\User;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use App\Notifications\NewBookingRequestNotification;
 
 class BookingRequestForm extends Component
 {
@@ -19,6 +23,7 @@ class BookingRequestForm extends Component
     public $bookableId;
     public $bookableType;
     public $bookable;
+    public $bookableName;
 
     // Infos client
     public $firstName;
@@ -30,6 +35,7 @@ class BookingRequestForm extends Component
 
     // Détails projet
     public $description;
+    public $tattoo_size;
     public $location;
     public $style;
     public $estimatedBudget;
@@ -78,11 +84,13 @@ class BookingRequestForm extends Component
         'phone' => 'required|string|max:20',
         'birthDate' => 'required|date|before:today',
         'description' => 'required|string|min:10|max:1000',
+        'tattoo_size' => 'nullable|numeric|min:0|max:500',
         'location' => 'required|string',
         'style' => 'required|string',
         'estimatedBudget' => 'required|numeric|min:50',
         'proposedDate' => 'nullable|date|after:today',
-        'referenceImages.*' => 'image|max:10240', // 10MB max
+        'referenceImages' => 'nullable|array|max:5',
+        'referenceImages.*' => 'file|mimes:jpeg,jpg,png,webp,heic,heif|max:10240', // 10MB max
     ];
 
     protected $messages = [
@@ -100,8 +108,15 @@ class BookingRequestForm extends Component
         $this->bookable = match($bookableType) {
             'tattooer' => Tattooer::findOrFail($bookableId),
             'studio-artist' => StudioArtist::findOrFail($bookableId),
-            'piercer' => Pierceur::findOrFail($bookableId),
+            'piercer', 'pierceur' => Pierceur::findOrFail($bookableId),
             default => abort(404),
+        };
+
+        $this->bookableName = match($this->bookableType) {
+            'tattooer' => $this->bookable->user->name,
+            'studio-artist' => $this->bookable->artist_name,
+            'piercer', 'pierceur' => $this->bookable->user->name,
+            default => 'Artiste',
         };
 
         // Pré-remplir si utilisateur connecté
@@ -126,19 +141,45 @@ class BookingRequestForm extends Component
         $this->validate();
 
         try {
-            // 1. Créer ou récupérer le client
-            $client = Client::firstOrCreate([
-                'user_id' => Auth::id(),
-            ], [
-                'first_name' => $this->firstName,
-                'last_name' => $this->lastName,
-                'phone' => $this->phone,
-                'email' => $this->email,
-                'birth_date' => $this->birthDate,
-                'address' => $this->address,
-            ]);
+            DB::beginTransaction();
 
-            // 2. Créer le projet
+            // 1. Client (User + Client)
+            if (Auth::check()) {
+                $user = Auth::user();
+
+                if (!$user->isClient()) {
+                    throw new \Exception('Compte non client: veuillez vous déconnecter ou utiliser un compte client.');
+                }
+            } else {
+                $user = User::firstOrCreate(
+                    ['email' => $this->email],
+                    [
+                        'name' => trim($this->firstName . ' ' . $this->lastName),
+                        'pseudo' => Str::slug($this->firstName . ' ' . $this->lastName),
+                        'password' => bcrypt(Str::random(32)),
+                        'role' => 'client',
+                        'status' => 'active',
+                    ]
+                );
+
+                if (!$user->isClient()) {
+                    throw new \Exception('Email déjà utilisé par un autre type de compte.');
+                }
+            }
+
+            $client = Client::firstOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'first_name' => $this->firstName,
+                    'last_name' => $this->lastName,
+                    'phone' => $this->phone,
+                    'email' => $this->email,
+                    'birth_date' => $this->birthDate,
+                    'address' => $this->address,
+                ]
+            );
+
+            // 2. Project
             $project = Project::create([
                 'client_id' => $client->id,
                 'bookable_id' => $this->bookableId,
@@ -151,22 +192,35 @@ class BookingRequestForm extends Component
                 'proposed_date' => $this->proposedDate ? new \DateTime($this->proposedDate) : null,
             ]);
 
-            // 3. Upload des images de référence
+            // 3. Images de référence
             foreach ($this->referenceImages as $image) {
-                $project->addMedia($image)->toMediaCollection('reference_images');
+                $project->addMedia($image)
+                    ->toMediaCollection('reference_images');
             }
 
-            // 4. Notification au tatoueur (à implémenter)
-            // $this->bookable->user->notify(new NewBookingRequestNotification($project));
+            // 4. Notification artiste
+            if ($this->bookable && isset($this->bookable->user)) {
+                $this->bookable->user->notify(new NewBookingRequestNotification($project));
+            }
 
-            session()->flash('success', 'Votre demande de projet a été envoyée avec succès ! Vous recevrez une réponse rapidement.');
+            DB::commit();
 
-            // Redirection vers la page des projets du client
-            return redirect()->route('client.projects');
+            return redirect()->route('booking-request.success')
+                ->with('success', 'Votre demande a été envoyée avec succès !');
 
         } catch (\Exception $e) {
-            session()->flash('error', 'Une erreur est survenue lors de l\'envoi de votre demande. Veuillez réessayer.');
-            Log::error('Booking request error: ' . $e->getMessage());
+            DB::rollBack();
+            session()->flash(
+                'error',
+                config('app.debug')
+                    ? ('Une erreur est survenue: ' . $e->getMessage())
+                    : 'Une erreur est survenue lors de l\'envoi de votre demande. Veuillez réessayer.'
+            );
+            Log::error('Booking request error: ' . $e->getMessage(), [
+                'bookableId' => $this->bookableId,
+                'bookableType' => $this->bookableType,
+                'email' => $this->email,
+            ]);
         }
     }
 
@@ -178,7 +232,7 @@ class BookingRequestForm extends Component
         return match($this->bookableType) {
             'tattooer' => 'App\\Models\\Tattooer',
             'studio-artist' => 'App\\Models\\StudioArtist',
-            'piercer' => 'App\\Models\\Pierceur',
+            'piercer', 'pierceur' => 'App\\Models\\Pierceur',
             default => abort(404),
         };
     }
@@ -200,7 +254,7 @@ class BookingRequestForm extends Component
         return match($this->bookableType) {
             'tattooer' => $this->bookable->user->name,
             'studio-artist' => $this->bookable->artist_name,
-            'piercer' => $this->bookable->user->name,
+            'piercer', 'pierceur' => $this->bookable->user->name,
             default => 'Artiste',
         };
     }

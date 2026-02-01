@@ -107,7 +107,7 @@ test('api rejects suspicious input', function () {
 });
 
 test('api validates file uploads', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->tattooer()->create();
     $tattooer = Tattooer::factory()->create(['user_id' => $user->id]);
     actingAs($user, 'sanctum');
 
@@ -276,7 +276,7 @@ test('api validates string length limits', function () {
 
 // Tests de validation des enums
 test('api validates booking enum values', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->client()->create();
     $client = Client::factory()->create([
         'user_id' => $user->id,
         'is_blacklisted' => false,
@@ -299,7 +299,7 @@ test('api validates booking enum values', function () {
 
 // Tests de validation des dates
 test('api validates date ranges', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->client()->create();
     $client = Client::factory()->create([
         'user_id' => $user->id,
         'is_blacklisted' => false,

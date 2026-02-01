@@ -55,10 +55,15 @@ class Consent extends Model implements HasMedia
 
     public function registerMediaCollections(): void
     {
+        // Photo ID parent (si mineur) - unique
         $this->addMediaCollection('parent_id_photo')
             ->singleFile()
-            ->acceptsMimeTypes(['image/jpeg', 'image/png'])
-            ->maxFilesize(5 * 1024 * 1024);
+            ->acceptsMimeTypes([
+                'image/jpeg',
+                'image/png',
+                'image/webp'
+            ])
+            ->useDisk('public');
     }
 
     // ===== MÉTHODES MÉTIER =====
@@ -78,8 +83,8 @@ class Consent extends Model implements HasMedia
 
         // Si mineur, vérifier consentement parental
         if ($this->is_minor) {
-            return !empty($this->parent_signature_data) && 
-                   !empty($this->parent_name) && 
+            return !empty($this->parent_signature_data) &&
+                   !empty($this->parent_name) &&
                    $this->getMedia('parent_id_photo')->isNotEmpty();
         }
 

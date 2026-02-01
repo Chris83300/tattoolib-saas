@@ -111,11 +111,17 @@ class Tattooer extends Model implements HasMedia
 
     public function registerMediaCollections(): void
     {
-        // Avatar
+        // Avatar tatoueur (unique)
         $this->addMediaCollection('avatar')
             ->singleFile()
+            ->acceptsMimeTypes([
+                'image/jpeg',
+                'image/png',
+                'image/webp'
+            ])
             ->useFallbackUrl('/images/default-tattooer-avatar.png')
             ->useFallbackPath(public_path('/images/default-tattooer-avatar.png'))
+            ->useDisk('public')
             ->registerMediaConversions(function (Media $media) {
                 $this->addMediaConversion('thumb')
                     ->width(200)
@@ -123,10 +129,17 @@ class Tattooer extends Model implements HasMedia
                     ->sharpen(10);
             });
 
-        // Portfolio Réalisations
+        // Portfolio tattoos réalisés (multiples)
         $this->addMediaCollection('portfolio')
+            ->acceptsMimeTypes([
+                'image/jpeg',
+                'image/png',
+                'image/webp',
+                'image/heic'
+            ])
             ->useFallbackUrl('/images/default-portfolio.png')
             ->useFallbackPath(public_path('/images/default-portfolio.png'))
+            ->useDisk('public')
             ->registerMediaConversions(function (Media $media) {
                 $this->addMediaConversion('thumb')
                     ->width(400)
@@ -134,8 +147,14 @@ class Tattooer extends Model implements HasMedia
                     ->sharpen(10);
             });
 
-        // Dessins
+        // Dessins / sketches (multiples)
         $this->addMediaCollection('drawings')
+            ->acceptsMimeTypes([
+                'image/jpeg',
+                'image/png',
+                'image/webp'
+            ])
+            ->useDisk('public')
             ->registerMediaConversions(function (Media $media) {
                 $this->addMediaConversion('thumb')
                     ->width(400)
@@ -143,8 +162,15 @@ class Tattooer extends Model implements HasMedia
                     ->sharpen(10);
             });
 
-        // Avant/Après (paires d'images)
+        // Avant/Après (multiples, par paires)
         $this->addMediaCollection('before_after')
+            ->acceptsMimeTypes([
+                'image/jpeg',
+                'image/png',
+                'image/webp',
+                'image/heic'
+            ])
+            ->useDisk('public')
             ->registerMediaConversions(function (Media $media) {
                 $this->addMediaConversion('thumb')
                     ->width(200)

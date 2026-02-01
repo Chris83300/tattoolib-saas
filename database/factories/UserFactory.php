@@ -59,4 +59,54 @@ class UserFactory extends Factory
             'two_factor_confirmed_at' => now(),
         ]);
     }
+
+    /**
+     * Create a client user.
+     */
+    public function client(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'client',
+        ]);
+    }
+
+    /**
+     * Create a tattooer user.
+     */
+    public function tattooer(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'tattooer',
+        ]);
+    }
+
+    /**
+     * Create a studio owner user.
+     */
+    public function studioOwner(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'studio',
+        ]);
+    }
+
+    /**
+     * Create a studio artist user.
+     */
+    public function studioArtist(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'studio_artist',
+        ]);
+    }
+
+    /**
+     * Create a piercer user.
+     */
+    public function piercer(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => 'pierceur',
+        ]);
+    }
 }

@@ -14,7 +14,7 @@ class TattooerFactory extends Factory
     public function definition()
     {
         return [
-            'user_id' => User::factory(),
+            'user_id' => User::factory()->tattooer(),
             'studio_id' => $this->faker->boolean(70) ? Studio::factory() : null, // 70% ont un studio
             'siret' => $this->faker->numerify('###########'),
             'siret_verified' => $this->faker->boolean(80), // 80% vérifiés

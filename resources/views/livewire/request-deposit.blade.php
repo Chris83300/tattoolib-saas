@@ -1,43 +1,43 @@
-<div class="bg-white rounded-lg shadow-lg p-6">
+<div class="bg-titane/20 rounded-xl p-6 border border-titane/30">
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
-        <h2 class="text-xl font-semibold text-[#0A0A0A]">Demander un acompte</h2>
-        <span class="text-sm text-gray-500">
-            Client: {{ $project->client->full_name }}
+        <h2 class="text-xl font-bold text-ivoire-text">Demander un acompte</h2>
+        <span class="text-sm text-ivoire-text/70">
+            Client: {{ $bookingRequest->client->full_name }}
         </span>
     </div>
 
     @if (session()->has('success'))
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+        <div class="bg-vert-succes/20 border border-vert-succes text-vert-succes px-4 py-3 rounded-lg mb-4">
             {{ session('success') }}
         </div>
     @endif
 
     @if (session()->has('error'))
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div class="bg-rouge-alerte/20 border border-rouge-alerte text-rouge-alerte px-4 py-3 rounded-lg mb-4">
             {{ session('error') }}
         </div>
     @endif
 
     <!-- Résumé du projet -->
-    <div class="bg-gray-50 rounded-lg p-4 mb-6">
-        <h3 class="font-medium text-gray-900 mb-2">Résumé du projet</h3>
+    <div class="bg-noir-profond rounded-lg p-4 mb-6 border border-titane/30">
+        <h3 class="font-bold text-ivoire-text mb-2">Résumé du projet</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
-                <span class="text-gray-600">Description:</span>
-                <p class="font-medium">{{ $project->tattoo_description }}</p>
+                <span class="text-ivoire-text/70">Description:</span>
+                <p class="text-ivoire-text font-medium">{{ $bookingRequest->tattoo_description }}</p>
             </div>
             <div>
-                <span class="text-gray-600">Emplacement:</span>
-                <p class="font-medium">{{ $project->tattoo_location }}</p>
+                <span class="text-ivoire-text/70">Emplacement:</span>
+                <p class="text-ivoire-text font-medium">{{ $bookingRequest->tattoo_location }}</p>
             </div>
             <div>
-                <span class="text-gray-600">Style:</span>
-                <p class="font-medium">{{ $project->tattoo_style }}</p>
+                <span class="text-ivoire-text/70">Style:</span>
+                <p class="text-ivoire-text font-medium">{{ $bookingRequest->tattoo_style }}</p>
             </div>
             <div>
-                <span class="text-gray-600">Statut:</span>
-                <p class="font-medium">{{ $project->status_formatted }}</p>
+                <span class="text-ivoire-text/70">Statut:</span>
+                <p class="text-ivoire-text font-medium">{{ ucfirst($bookingRequest->status) }}</p>
             </div>
         </div>
     </div>
@@ -45,143 +45,154 @@
     <!-- Formulaire -->
     <form wire:submit="requestDeposit" class="space-y-6">
         <!-- Prix et acompte -->
-        <div class="border-b pb-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Tarification</h3>
-            
+        <div class="border-b border-titane/30 pb-6">
+            <h3 class="text-lg font-bold text-ivoire-text mb-4">Tarification</h3>
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <label class="block text-sm font-medium text-ivoire-text mb-2">
                         Prix total estimé (€) *
                     </label>
                     <div class="relative">
-                        <input type="number" wire:model="estimatedPrice" 
-                               wire:change="calculateDeposit"
-                               min="10" step="5"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#D4B59E] focus:border-[#D4B59E] pr-12">
-                        <span class="absolute right-3 top-2 text-gray-500">€</span>
+                        <input type="number" wire:model="estimatedPrice" min="10" step="5"
+                            class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg focus:ring-beige-peau focus:border-beige-peau text-ivoire-text pr-12">
+                        <span class="absolute right-3 top-2 text-ivoire-text/70">€</span>
                     </div>
-                    @error('estimatedPrice') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                    @error('estimatedPrice') <span class="text-rouge-alerte text-sm">{{ $message }}</span>
+                    @enderror
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <label class="block text-sm font-medium text-ivoire-text mb-2">
                         Acompte demandé (€) *
-                        <span class="text-xs text-gray-500">({{ $depositPercentage }}%)</span>
                     </label>
                     <div class="relative">
-                        <input type="number" wire:model="depositAmount" 
-                               min="10" step="5"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#D4B59E] focus:border-[#D4B59E] pr-12">
-                        <span class="absolute right-3 top-2 text-gray-500">€</span>
+                        <input type="number" wire:model="depositAmount" min="10" step="5"
+                            class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg focus:ring-beige-peau focus:border-beige-peau text-ivoire-text pr-12">
+                        <span class="absolute right-3 top-2 text-ivoire-text/70">€</span>
                     </div>
-                    @error('depositAmount') <span class="text-red-500 text-sm">{{ $message }}</span> @endif
-                    
-                    <!-- Bouton calcul automatique -->
-                    <button type="button" wire:click="calculateDeposit"
-                            class="mt-2 text-sm text-[#D4B59E] hover:text-[#C4A68E]">
-                        Calculer 30% automatiquement
-                    </button>
+                    @error('depositAmount') <span class="text-rouge-alerte text-sm">{{ $message }}</span>
+                        @endif
+
+                        <!-- Bouton calcul automatique -->
+                        <button type="button" wire:click="calculateDeposit"
+                            class="mt-2 text-sm text-beige-peau hover:text-beige-peau/80">
+                            Calculer 30% automatiquement
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Résumé financier -->
+                @if ($estimatedPrice && $depositAmount)
+                    <div class="mt-4 p-4 bg-beige-peau/10 rounded-lg border border-beige-peau/30">
+                        <div class="grid grid-cols-3 gap-4 text-center">
+                            <div>
+                                <p class="text-sm text-ivoire-text/70">Acompte</p>
+                                <p class="font-semibold text-ivoire-text">{{ number_format($depositAmount, 2) }}€</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-ivoire-text/70">Reste dû</p>
+                                <p class="font-semibold">{{ number_format($remainingAmount, 2) }}€</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">Total</p>
+                                <p class="font-semibold">{{ number_format($estimatedPrice, 2) }}€</p>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Durée et rendez-vous -->
+            <div class="border-b border-titane/30 pb-6">
+                <h3 class="text-lg font-bold text-ivoire-text mb-4">Planning</h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-ivoire-text mb-2">
+                            Durée estimée (minutes) *
+                        </label>
+                        <input type="number" wire:model="estimatedDuration" min="30" step="15"
+                            class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg focus:ring-beige-peau focus:border-beige-peau text-ivoire-text">
+                        @error('estimatedDuration') <span class="text-rouge-alerte text-sm">{{ $message }}</span>
+                        @enderror
+                        <p class="text-xs text-ivoire-text/70 mt-1">{{ floor($estimatedDuration / 60) }}h
+                            {{ $estimatedDuration % 60 }}min</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-ivoire-text mb-2">
+                            Date du rendez-vous *
+                        </label>
+                        <input type="date" wire:model="appointmentDate"
+                            class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg focus:ring-beige-peau focus:border-beige-peau text-ivoire-text">
+                        @error('appointmentDate') <span class="text-rouge-alerte text-sm">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-ivoire-text mb-2">
+                            Heure de début *
+                        </label>
+                        <select wire:model="appointmentTime"
+                            class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg focus:ring-beige-peau focus:border-beige-peau text-ivoire-text">
+                            <option value="">Sélectionnez une heure</option>
+                            <option value="09:00">09:00</option>
+                            <option value="09:30">09:30</option>
+                            <option value="10:00">10:00</option>
+                            <option value="10:30">10:30</option>
+                            <option value="11:00">11:00</option>
+                            <option value="11:30">11:30</option>
+                            <option value="14:00">14:00</option>
+                            <option value="14:30">14:30</option>
+                            <option value="15:00">15:00</option>
+                            <option value="15:30">15:30</option>
+                            <option value="16:00">16:00</option>
+                            <option value="16:30">16:30</option>
+                            <option value="17:00">17:00</option>
+                            <option value="17:30">17:30</option>
+                        </select>
+                        @error('appointmentTime') <span class="text-rouge-alerte text-sm">{{ $message }}</span>
+                        @enderror
+
+                        @if ($appointmentEndTime)
+                            <p class="text-xs text-ivoire-text/70 mt-1">
+                                Fin: {{ $appointmentEndTime }}
+                            </p>
+                        @endif
+                    </div>
                 </div>
             </div>
 
-            <!-- Résumé financier -->
-            @if($estimatedPrice && $depositAmount)
-                <div class="mt-4 p-4 bg-[#D4B59E]/10 rounded-lg">
-                    <div class="grid grid-cols-3 gap-4 text-center">
-                        <div>
-                            <p class="text-sm text-gray-600">Acompte</p>
-                            <p class="font-semibold">{{ number_format($depositAmount, 2) }}€</p>
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-600">Reste dû</p>
-                            <p class="font-semibold">{{ number_format($remainingAmount, 2) }}€</p>
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-600">Total</p>
-                            <p class="font-semibold">{{ number_format($estimatedPrice, 2) }}€</p>
-                        </div>
-                    </div>
-                </div>
-            @endif
-        </div>
+            <!-- Actions -->
+            <div class="flex justify-end space-x-4 mt-8">
+                <a href="{{ route('tattooer.requests') }}"
+                    class="px-6 py-2 border border-titane/30 text-ivoire-text rounded-lg hover:bg-titane/30 transition-colors">
+                    Annuler
+                </a>
 
-        <!-- Durée et rendez-vous -->
-        <div class="border-b pb-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Planning</h3>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Durée estimée (minutes) *
-                    </label>
-                    <input type="number" wire:model="estimatedDuration" 
-                           wire:change="calculateDuration"
-                           min="30" step="15"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#D4B59E] focus:border-[#D4B59E]">
-                    @error('estimatedDuration') <span class="text-red-500 text-sm">{{ $message }}</span> @endif
-                    <p class="text-xs text-gray-500 mt-1">{{ floor($estimatedDuration / 60) }}h {{ $estimatedDuration % 60 }}min</p>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Date du rendez-vous *
-                    </label>
-                    <input type="date" wire:model="appointmentDate" 
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#D4B59E] focus:border-[#D4B59E]">
-                    @error('appointmentDate') <span class="text-red-500 text-sm">{{ $message }}</span> @endif
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Heure de début *
-                    </label>
-                    <select wire:model="appointmentTime" 
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-[#D4B59E] focus:border-[#D4B59E]">
-                        <option value="">Sélectionnez une heure</option>
-                        @foreach($availableTimeSlots as $slot)
-                            <option value="{{ $slot }}">{{ $slot }}</option>
-                        @endforeach
-                    </select>
-                    @error('appointmentTime') <span class="text-red-500 text-sm">{{ $message }}</span> @endif
-                    
-                    @if($appointmentEndTime)
-                        <p class="text-xs text-gray-500 mt-1">
-                            Fin: {{ $appointmentEndTime }}
-                        </p>
-                    @endif
-                </div>
+                <button type="submit" wire:loading.attr="disabled"
+                    class="px-6 py-2 bg-beige-peau text-noir-profond rounded-lg hover:bg-beige-peau/90 transition-colors disabled:opacity-50 font-semibold">
+                    <span wire:loading.remove>Envoyer la demande d'acompte</span>
+                    <span wire:loading>Envoi en cours...</span>
+                </button>
             </div>
-        </div>
+        </form>
 
-        <!-- Actions -->
-        <div class="flex justify-end space-x-4">
-            <button type="button" onclick="history.back()"
-                    class="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors">
-                Annuler
-            </button>
-            
-            <button type="submit" 
-                    wire:loading.attr="disabled"
-                    class="px-6 py-2 bg-[#D4B59E] text-white rounded-md hover:bg-[#C4A68E] transition-colors disabled:opacity-50">
-                <span wire:loading.remove>Envoyer la demande d'acompte</span>
-                <span wire:loading>Envoi en cours...</span>
-            </button>
+        <!-- Informations -->
+        <div class="mt-6 p-4 bg-beige-peau/10 rounded-lg border border-beige-peau/30">
+            <h4 class="font-bold text-ivoire-text mb-2">
+                <svg class="w-5 h-5 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Important
+            </h4>
+            <ul class="text-sm text-ivoire-text/80 space-y-1">
+                <li>• Le client recevra un email avec un lien de paiement sécurisé</li>
+                <li>• Le rendez-vous sera confirmé uniquement après paiement de l'acompte</li>
+                <li>• Le client aura 48h pour payer l'acompte</li>
+                <li>• En cas de non-paiement, la demande sera automatiquement annulée</li>
+            </ul>
         </div>
-    </form>
-
-    <!-- Informations -->
-    <div class="mt-6 p-4 bg-blue-50 rounded-lg">
-        <h4 class="font-medium text-blue-900 mb-2">
-            <svg class="w-5 h-5 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            Important
-        </h4>
-        <ul class="text-sm text-blue-800 space-y-1">
-            <li>• Le client recevra un email avec un lien de paiement sécurisé</li>
-            <li>• Le rendez-vous sera confirmé uniquement après paiement de l'acompte</li>
-            <li>• Le client aura 48h pour payer l'acompte</li>
-            <li>• En cas de non-paiement, la demande sera automatiquement annulée</li>
-        </ul>
     </div>
-</div>

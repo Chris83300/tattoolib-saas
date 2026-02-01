@@ -58,17 +58,8 @@ class Client extends Model implements HasMedia
     }
 
     // Nouvelles relations pour le workflow client
-    public function projects()
-    {
-        return $this->hasMany(Project::class);
-    }
-
-    public function activeProject()
-    {
-        return $this->hasOne(Project::class)
-            ->whereIn('status', ['pending', 'accepted', 'in_progress'])
-            ->latest();
-    }
+    // public function projects() - Supprimé, utiliser bookingRequests() à la place
+    // public function activeProject() - Supprimé, utiliser activeBookingRequest() à la place
 
     public function tattooHistory()
     {
@@ -108,7 +99,12 @@ class Client extends Model implements HasMedia
      */
     public function getFullNameAttribute(): string
     {
-        return "{$this->first_name} {$this->last_name}";
+        // Utiliser le nom de l'utilisateur si first_name/last_name sont vides
+        if (empty($this->first_name) && empty($this->last_name) && $this->user) {
+            return $this->user->name;
+        }
+
+        return trim(($this->first_name ?? '') . ' ' . ($this->last_name ?? ''));
     }
 
     /**

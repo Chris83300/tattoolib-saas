@@ -51,9 +51,15 @@ class TattooHistory extends Model implements HasMedia
 
     public function registerMediaCollections(): void
     {
+        // Photos du tattoo final
         $this->addMediaCollection('photos')
-            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp'])
-            ->maxFilesize(10 * 1024 * 1024);
+            ->acceptsMimeTypes([
+                'image/jpeg',
+                'image/png',
+                'image/webp',
+                'image/heic'
+            ])
+            ->useDisk('public');
     }
 
     // ===== SCOPES =====

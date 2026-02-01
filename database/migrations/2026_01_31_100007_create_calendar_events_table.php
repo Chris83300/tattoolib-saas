@@ -19,7 +19,7 @@ return new class extends Migration
             // Types : appointment, break, vacation, closure
             $table->enum('type', ['appointment', 'break', 'vacation', 'closure']);
 
-            $table->foreignId('project_id')->nullable()->constrained()->cascadeOnDelete();
+            $table->foreignId('appointment_id')->nullable()->constrained()->cascadeOnDelete();
 
             $table->dateTime('start_datetime');
             $table->dateTime('end_datetime');

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('client_id')->constrained()->cascadeOnDelete();
             $table->unsignedBigInteger('bookable_id'); // Polymorphic
             $table->string('bookable_type'); // 'App\Models\Tattooer', 'App\Models\StudioArtist', 'App\Models\Pierceur'
-            $table->foreignId('project_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('booking_request_id')->nullable()->constrained()->cascadeOnDelete();
 
             $table->date('tattoo_date');
             $table->string('body_location');
@@ -32,7 +32,7 @@ return new class extends Migration
 
             $table->index(['client_id', 'bookable_type', 'bookable_id'], 'tattoo_histories_bookable_index');
             $table->index(['client_id', 'tattoo_date'], 'tattoo_histories_client_date_index');
-            $table->index(['project_id']);
+            $table->index(['booking_request_id']);
         });
     }
 

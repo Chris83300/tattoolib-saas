@@ -234,7 +234,7 @@
                             @foreach ($portfolioRealizations as $media)
                                 <div @click="lightbox = true; currentImage = '{{ $media->getUrl() }}'"
                                     class="aspect-square rounded-lg overflow-hidden bg-noir-profond cursor-pointer group">
-                                    <img src="{{ $media->getUrl('thumb') }}" alt="Portfolio"
+                                    <img src="{{ $media->getUrl() }}" alt="Portfolio"
                                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
                                 </div>
                             @endforeach
@@ -272,7 +272,7 @@
                             @foreach ($portfolioDrawings as $media)
                                 <div @click="lightbox = true; currentImage = '{{ $media->getUrl() }}'"
                                     class="aspect-square rounded-lg overflow-hidden bg-noir-profond cursor-pointer group">
-                                    <img src="{{ $media->getUrl('thumb') }}" alt="Dessin"
+                                    <img src="{{ $media->getUrl() }}" alt="Dessin"
                                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
                                 </div>
                             @endforeach

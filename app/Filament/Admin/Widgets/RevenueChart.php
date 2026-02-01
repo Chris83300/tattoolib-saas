@@ -23,8 +23,8 @@ class RevenueChart extends ChartWidget
         // Données de base qui existent
         $totalTattooers = Tattooer::count();
         $totalPierceurs = Pierceur::count();
-        $totalAppointments = Appointment::whereMonth('appointment_date', $currentMonth)
-            ->whereYear('appointment_date', $currentYear)
+        $totalAppointments = Appointment::whereMonth('start_datetime', $currentMonth)
+            ->whereYear('start_datetime', $currentYear)
             ->count();
 
         $activeSubscriptions = Subscription::where('status', 'active')

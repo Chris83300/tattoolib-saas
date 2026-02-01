@@ -122,7 +122,7 @@
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                         @foreach ($portfolioImages as $media)
                             <div class="aspect-square rounded-lg overflow-hidden bg-noir-profond">
-                                <img src="{{ $media->getUrl('thumb') }}" alt="Portfolio"
+                                <img src="{{ $media->getUrl() }}" alt="Portfolio"
                                     class="w-full h-full object-cover hover:scale-110 transition-transform duration-300">
                             </div>
                         @endforeach
@@ -202,7 +202,7 @@
                         <span class="text-xl">📊</span>
                         <span class="font-semibold">Dashboard</span>
                     </a>
-                    <a href="{{ route('tattooer.booking-requests') }}"
+                    <a href="{{ route('tattooer.demandes') }}"
                         class="w-full flex items-center gap-3 px-4 py-3 bg-beige-peau/10 hover:bg-beige-peau/20 text-beige-peau rounded-lg transition-colors">
                         <span class="text-xl">📅</span>
                         <span class="font-semibold">Demandes RDV</span>

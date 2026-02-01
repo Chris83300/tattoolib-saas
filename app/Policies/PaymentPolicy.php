@@ -11,10 +11,10 @@ class PaymentPolicy
     /**
      * Déterminer si l'utilisateur peut créer un payment pour ce booking
      */
-    public function create(User $user, BookingRequest $booking): bool
+    public function create(User $user): bool
     {
-        // L'utilisateur doit être le propriétaire du booking
-        return $user->id === $booking->client_id;
+        // Pour la création, on vérifie juste si l'utilisateur est un client
+        return $user->isClient();
     }
 
     /**

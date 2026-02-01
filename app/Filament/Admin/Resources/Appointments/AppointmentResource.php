@@ -104,22 +104,21 @@ class AppointmentResource extends Resource
 
                 Tables\Filters\Filter::make('today')
                     ->label('Aujourd\'hui')
-                    ->query(fn ($query) => $query->whereDate('date', now()))
+                    ->query(fn ($query) => $query->whereDate('start_datetime', now()))
                     ->toggle(),
 
                 Tables\Filters\Filter::make('this_week')
                     ->label('Cette semaine')
-                    ->query(fn ($query) => $query->whereBetween('date', [now()->startOfWeek(), now()->endOfWeek()]))
+                    ->query(fn ($query) => $query->whereBetween('start_datetime', [now()->startOfWeek(), now()->endOfWeek()]))
                     ->toggle(),
 
                 Tables\Filters\Filter::make('this_month')
                     ->label('Ce mois')
-                    ->query(fn ($query) => $query->whereMonth('date', now()->month))
+                    ->query(fn ($query) => $query->whereMonth('start_datetime', now()->month))
                     ->toggle(),
             ])
             ->actions([
-                \Filament\Tables\Actions\ViewAction::make()
-                    ->label('Voir détails'),
+                // Actions à implémenter plus tard
             ])
             ->bulkActions([
                 //

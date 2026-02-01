@@ -16,6 +16,7 @@ class Message extends Model implements HasMedia
     protected $fillable = [
         'conversation_id',
         'booking_request_id', // ✅ Ajouté depuis migration
+        'project_id', // ✅ Ajouté pour relation avec Project
         'sender_id',
         'sender_type', // ✅ Ajouté depuis migration
         'content',
@@ -38,21 +39,22 @@ class Message extends Model implements HasMedia
     // Configuration de MediaLibrary
     public function registerMediaCollections(): void
     {
+        // Pièces jointes messages (images + PDFs)
         $this->addMediaCollection('attachments')
             ->acceptsMimeTypes([
                 'image/jpeg',
                 'image/png',
-                'image/gif',
-                'application/pdf',
-                'application/msword',
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'image/webp',
+                'image/heic',
+                'application/pdf'
             ])
-            ->useDisk('public'); // ✅ Changé en 'public' pour les images de design
+            ->useDisk('public');
 
         // Conversions d'images
         $this->addMediaConversion('thumb')
             ->width(150)
             ->height(150)
+            ->sharpen(10)
             ->performOnCollections('attachments');
 
         $this->addMediaConversion('preview')
@@ -71,6 +73,11 @@ class Message extends Model implements HasMedia
     public function bookingRequest(): BelongsTo
     {
         return $this->belongsTo(BookingRequest::class);
+    }
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
     }
 
     public function sender(): BelongsTo

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Project;
+use App\Models\BookingRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -20,39 +20,39 @@ class DepositPaymentController extends Controller
     /**
      * Afficher la page de paiement de l'acompte
      */
-    public function show(Project $project)
+    public function show(BookingRequest $bookingRequest)
     {
         // Vérifier que l'utilisateur est le client du projet
-        if ($project->client->user_id !== Auth::id()) {
+        if ($bookingRequest->client->user_id !== Auth::id()) {
             abort(403, 'Non autorisé');
         }
 
         // Vérifier que le projet est en attente d'acompte
-        if ($project->status !== Project::STATUS_ACCEPTED || !$project->deposit_amount) {
-            return redirect()->route('client.projects.show', $project->id)
+        if ($bookingRequest->status !== BookingRequest::STATUS_ACCEPTED || !$bookingRequest->deposit_amount) {
+            return redirect()->route('client.booking-requests.show', $bookingRequest->id)
                 ->with('error', 'Ce projet n\'attend pas d\'acompte.');
         }
 
         // Vérifier que l'acompte n'a pas déjà été payé
-        if ($project->isDepositPaid()) {
-            return redirect()->route('client.projects.show', $project->id)
+        if ($bookingRequest->isDepositPaid()) {
+            return redirect()->route('client.booking-requests.show', $bookingRequest->id)
                 ->with('info', 'L\'acompte a déjà été payé.');
         }
 
-        return view('deposit.payment', compact('project'));
+        return view('deposit.payment', compact('bookingRequest'));
     }
 
     /**
      * Créer la session de paiement Stripe
      */
-    public function createCheckoutSession(Project $project)
+    public function createCheckoutSession(BookingRequest $bookingRequest)
     {
         // Vérifications
-        if ($project->client->user_id !== Auth::id()) {
+        if ($bookingRequest->client->user_id !== Auth::id()) {
             return response()->json(['error' => 'Non autorisé'], 403);
         }
 
-        if ($project->isDepositPaid()) {
+        if ($bookingRequest->isDepositPaid()) {
             return response()->json(['error' => 'Acompte déjà payé'], 400);
         }
 
@@ -65,29 +65,29 @@ class DepositPaymentController extends Controller
                     'price_data' => [
                         'currency' => 'eur',
                         'product_data' => [
-                            'name' => "Acompte - {$project->bookable->user->name}",
-                            'description' => "Projet: {$project->tattoo_description} ({$project->tattoo_location})",
-                            'images' => $project->getMedia('reference_images')->map(fn($media) => $media->getUrl())->toArray(),
+                            'name' => "Acompte - {$bookingRequest->bookable->user->name}",
+                            'description' => "Projet: {$bookingRequest->tattoo_description} ({$bookingRequest->tattoo_location})",
+                            'images' => $bookingRequest->getMedia('reference_images')->map(fn($media) => $media->getUrl())->toArray(),
                         ],
-                        'unit_amount' => $project->deposit_amount * 100, // Convertir en centimes
+                        'unit_amount' => $bookingRequest->deposit_amount * 100, // Convertir en centimes
                     ],
                     'quantity' => 1,
                 ]],
                 'mode' => 'payment',
-                'success_url' => route('deposit.success', $project->id) . '?session_id={CHECKOUT_SESSION_ID}',
-                'cancel_url' => route('deposit.cancel', $project->id),
+                'success_url' => route('deposit.success', $bookingRequest->id) . '?session_id={CHECKOUT_SESSION_ID}',
+                'cancel_url' => route('deposit.cancel', $bookingRequest->id),
                 'metadata' => [
-                    'project_id' => $project->id,
-                    'client_id' => $project->client->id,
-                    'bookable_id' => $project->bookable_id,
-                    'bookable_type' => $project->bookable_type,
+                    'booking_request_id' => $bookingRequest->id,
+                    'client_id' => $bookingRequest->client->id,
+                    'bookable_id' => $bookingRequest->bookable_id,
+                    'bookable_type' => $bookingRequest->bookable_type,
                     'type' => 'deposit',
                 ],
                 'customer_email' => Auth::user()->email,
                 'expires_at' => now()->addHours(48)->timestamp, // Expiration dans 48h
                 'payment_intent_data' => [
                     'metadata' => [
-                        'project_id' => $project->id,
+                        'booking_request_id' => $bookingRequest->id,
                         'type' => 'deposit',
                     ],
                 ],
@@ -104,17 +104,17 @@ class DepositPaymentController extends Controller
     /**
      * Page de succès après paiement
      */
-    public function success(Request $request, Project $project)
+    public function success(Request $request, BookingRequest $bookingRequest)
     {
         // Vérifier que l'utilisateur est le client du projet
-        if ($project->client->user_id !== Auth::id()) {
+        if ($bookingRequest->client->user_id !== Auth::id()) {
             abort(403, 'Non autorisé');
         }
 
         $sessionId = $request->get('session_id');
 
         if (!$sessionId) {
-            return redirect()->route('client.projects.show', $project->id)
+            return redirect()->route('client.booking-requests.show', $bookingRequest->id)
                 ->with('error', 'Session de paiement invalide.');
         }
 
@@ -122,39 +122,39 @@ class DepositPaymentController extends Controller
             Stripe::setApiKey(config('services.stripe.secret'));
             $session = Session::retrieve($sessionId);
 
-            // Vérifier que la session est bien pour ce projet
-            if ($session->metadata['project_id'] != $project->id) {
-                abort(400, 'Session invalide pour ce projet');
+            // Vérifier que la session est bien pour cette demande
+            if ($session->metadata['booking_request_id'] != $bookingRequest->id) {
+                abort(400, 'Session invalide pour cette demande');
             }
 
             // Vérifier que le paiement est réussi
             if ($session->payment_status !== 'paid') {
-                return redirect()->route('client.projects.show', $project->id)
+                return redirect()->route('client.booking-requests.show', $bookingRequest->id)
                     ->with('error', 'Le paiement n\'a pas été complété.');
             }
 
             // Marquer l'acompte comme payé
-            if (!$project->isDepositPaid()) {
-                $project->markDepositPaid($session->payment_intent);
+            if (!$bookingRequest->isDepositPaid()) {
+                $bookingRequest->markDepositPaid($session->payment_intent);
 
                 // Confirmer le rendez-vous
-                if ($project->appointment_date) {
-                    $project->confirmAppointment(
-                        $project->appointment_date,
-                        $project->estimated_duration ?? 120
+                if ($bookingRequest->appointment_date) {
+                    $bookingRequest->confirmAppointment(
+                        $bookingRequest->appointment_date,
+                        $bookingRequest->estimated_duration ?? 120
                     );
                 }
 
                 // Notification au tatoueur (à implémenter)
-                // $project->bookable->user->notify(new DepositPaidNotification($project));
+                // $bookingRequest->bookable->user->notify(new DepositPaidNotification($bookingRequest));
             }
 
-            return redirect()->route('client.projects.show', $project->id)
+            return redirect()->route('client.booking-requests.show', $bookingRequest->id)
                 ->with('success', 'Acompte payé avec succès ! Votre rendez-vous est confirmé.');
 
         } catch (\Exception $e) {
             Log::error('Deposit payment success error: ' . $e->getMessage());
-            return redirect()->route('client.projects.show', $project->id)
+            return redirect()->route('client.booking-requests.show', $bookingRequest->id)
                 ->with('error', 'Erreur lors de la validation du paiement.');
         }
     }
@@ -162,9 +162,9 @@ class DepositPaymentController extends Controller
     /**
      * Page d'annulation
      */
-    public function cancel(Project $project)
+    public function cancel(BookingRequest $bookingRequest)
     {
-        return redirect()->route('client.projects.show', $project->id)
+        return redirect()->route('client.booking-requests.show', $bookingRequest->id)
             ->with('info', 'Le paiement a été annulé. Vous pouvez réessayer plus tard.');
     }
 
@@ -212,32 +212,32 @@ class DepositPaymentController extends Controller
      */
     private function handleCheckoutSessionCompleted($session)
     {
-        $projectId = $session->metadata['project_id'] ?? null;
+        $bookingRequestId = $session->metadata['booking_request_id'] ?? null;
 
-        if (!$projectId) {
-            Log::error("Checkout session completed without project_id");
+        if (!$bookingRequestId) {
+            Log::error("Checkout session completed without booking_request_id");
             return;
         }
 
-        $project = Project::find($projectId);
-        if (!$project) {
-            Log::error("Project {$projectId} not found for checkout session");
+        $bookingRequest = BookingRequest::find($bookingRequestId);
+        if (!$bookingRequest) {
+            Log::error("BookingRequest {$bookingRequestId} not found for checkout session");
             return;
         }
 
         // Marquer l'acompte comme payé si ce n'est pas déjà fait
-        if (!$project->isDepositPaid()) {
-            $project->markDepositPaid($session->payment_intent);
+        if (!$bookingRequest->isDepositPaid()) {
+            $bookingRequest->markDepositPaid($session->payment_intent);
 
             // Confirmer le rendez-vous
-            if ($project->appointment_date) {
-                $project->confirmAppointment(
-                    $project->appointment_date,
-                    $project->estimated_duration ?? 120
+            if ($bookingRequest->appointment_date) {
+                $bookingRequest->confirmAppointment(
+                    $bookingRequest->appointment_date,
+                    $bookingRequest->estimated_duration ?? 120
                 );
             }
 
-            Log::info("Deposit paid for project {$projectId}");
+            Log::info("Deposit paid for booking request {$bookingRequestId}");
         }
     }
 
@@ -246,20 +246,20 @@ class DepositPaymentController extends Controller
      */
     private function handlePaymentFailed($paymentIntent)
     {
-        $projectId = $paymentIntent->metadata['project_id'] ?? null;
+        $bookingRequestId = $paymentIntent->metadata['booking_request_id'] ?? null;
 
-        if (!$projectId) {
+        if (!$bookingRequestId) {
             return;
         }
 
-        $project = Project::find($projectId);
-        if (!$project) {
+        $bookingRequest = BookingRequest::find($bookingRequestId);
+        if (!$bookingRequest) {
             return;
         }
 
         // Notifier le client de l'échec (à implémenter)
-        // $project->client->user->notify(new PaymentFailedNotification($project, $paymentIntent));
+        // $bookingRequest->client->user->notify(new PaymentFailedNotification($bookingRequest, $paymentIntent));
 
-        Log::info("Payment failed for project {$projectId}: " . $paymentIntent->last_payment_error->message ?? 'Unknown error');
+        Log::info("Payment failed for booking request {$bookingRequestId}: " . $paymentIntent->last_payment_error->message ?? 'Unknown error');
     }
 }

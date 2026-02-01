@@ -35,7 +35,7 @@ class AppointmentPolicy
             && $appointment->isPast()
             && !$appointment->tattooer_confirmation_status;
     }
-
+ 
     /**
      * Determine if the user can report an issue with the appointment.
      */
@@ -55,16 +55,14 @@ class AppointmentPolicy
         if (!$appointment->isCancellable()) {
             return false;
         }
-        if ($user->isClient() && $appointment->client?->user_id === $user->id) {
-        return true;
-    }
 
         if ($user->isClient() && $appointment->client_id === $user->client->id) {
             return true;
         }
 
-        if ($user->isTattooer() && $appointment->user_id === $user->id) {
-            return true;
+        if ($user->isTattooer()) {
+            return $appointment->bookable_type === \App\Models\Tattooer::class
+                && $appointment->bookable_id === $user->tattooer->user_id;
         }
 
         return false;

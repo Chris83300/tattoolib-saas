@@ -50,7 +50,7 @@ test('can get tattooer availability', function () {
 
 // Tests pour les routes protégées
 test('can access protected routes with auth', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->tattooer()->create();
     $tattooer = Tattooer::factory()->create(['user_id' => $user->id]);
 
     actingAs($user, 'sanctum');
@@ -76,7 +76,7 @@ test('cannot access protected routes without auth', function () {
 });
 
 test('can upload portfolio image with auth', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->tattooer()->create();
     $tattooer = Tattooer::factory()->create(['user_id' => $user->id]);
 
     actingAs($user, 'sanctum');

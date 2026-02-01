@@ -10,7 +10,7 @@ use function Pest\Laravel\postJson;
 use function Pest\Laravel\putJson;
 
 beforeEach(function () {
-    test()->user = User::factory()->create();
+    test()->user = User::factory()->client()->create();
     test()->client = Client::factory()->create(['user_id' => test()->user->id]);
     test()->tattooer = Tattooer::factory()->verified()->create();
     actingAs(test()->user, 'sanctum');
@@ -86,10 +86,10 @@ test('client can see their booking requests', function () {
 });
 
 test('tattooer can see booking requests for them', function () {
-    $tattooerUser = User::factory()->create();
+    $tattooerUser = User::factory()->tattooer()->create();
     $tattooer = Tattooer::factory()->verified()->create(['user_id' => $tattooerUser->id]);
 
-    $clientUser = User::factory()->create();
+    $clientUser = User::factory()->client()->create();
     $client = Client::factory()->create(['user_id' => $clientUser->id]);
 
     $bookingRequest = BookingRequest::factory()->create([
@@ -115,10 +115,10 @@ test('tattooer can see booking requests for them', function () {
 });
 
 test('tattooer can accept booking request', function () {
-    $tattooerUser = User::factory()->create();
+    $tattooerUser = User::factory()->tattooer()->create();
     $tattooer = Tattooer::factory()->verified()->create(['user_id' => $tattooerUser->id]);
 
-    $clientUser = User::factory()->create();
+    $clientUser = User::factory()->client()->create();
     $client = Client::factory()->create(['user_id' => $clientUser->id]);
 
     $scheduledDate = now()->addDays(7)->toDateString();
@@ -160,10 +160,10 @@ test('tattooer can accept booking request', function () {
 });
 
 test('tattooer can reject booking request', function () {
-    $tattooerUser = User::factory()->create();
+    $tattooerUser = User::factory()->tattooer()->create();
     $tattooer = Tattooer::factory()->verified()->create(['user_id' => $tattooerUser->id]);
 
-    $clientUser = User::factory()->create();
+    $clientUser = User::factory()->client()->create();
     $client = Client::factory()->create(['user_id' => $clientUser->id]);
 
     $bookingRequest = BookingRequest::factory()->create([

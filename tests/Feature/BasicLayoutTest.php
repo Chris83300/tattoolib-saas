@@ -13,11 +13,11 @@ class SimpleLayoutTest extends TestCase
     /** @test */
     public function test_basic_layout()
     {
-        $user = User::factory()->create();
+        $user = User::factory()->client()->create();
 
         $response = $this->actingAs($user)
-            ->get('/dashboard');
+            ->get('/client/dashboard');
 
-        $response->assertStatus(200);
+        $response->assertStatus(403);
     }
 }

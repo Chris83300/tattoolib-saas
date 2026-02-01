@@ -3,27 +3,22 @@
 namespace App\Livewire\Tattooer;
 
 use Livewire\Component;
-use Livewire\Attributes\Layout;
 
-#[Layout('components.layouts.livewire-site')]
 class PendingVerification extends Component
 {
-    public $user;
-    public $tattooer;
-
     public function mount()
     {
-        $this->user = auth()->user();
-        $this->tattooer = $this->user->tattooer;
-
-        // Rediriger si déjà validé
-        if ($this->user->status === 'active') {
-            return redirect()->route('tattooer.dashboard');
+        logger('PendingVerification mount called');
+        logger('User authenticated: ' . (auth()->check() ? 'yes' : 'no'));
+        if (auth()->check()) {
+            logger('User ID: ' . auth()->id());
+            logger('User status: ' . auth()->user()->status);
+            logger('Has tattooer: ' . (auth()->user()->tattooer ? 'yes' : 'no'));
         }
     }
 
     public function render()
     {
-        return view('livewire.tattooer.pending-verification');
+        return '<div><h1>Page Pending Verification</h1><p>Utilisateur: ' . (auth()->check() ? auth()->user()->name : 'Non connecté') . '</p></div>';
     }
 }

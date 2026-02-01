@@ -1,7 +1,7 @@
 @extends('layouts.tattooer')
 
 @section('content')
-    <div class="space-y-6">
+    <div class="space-y-6 lg:ml-60">
 
         @if (session('success'))
             <div class="bg-vert-succes/20 border border-vert-succes/50 text-vert-succes px-4 py-3 rounded-lg">
@@ -135,7 +135,7 @@
     @push('scripts')
         <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css' rel='stylesheet' />
         <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
-        <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/interaction@6.1.10/index.global.min.js'></script>
+        <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/locales/fr.global.min.js'></script>
 
         <style>
             /* FullCalendar readability on dark Ink&Pik background */
@@ -237,12 +237,6 @@
                     // Cliquer sur un événement
                     eventClick: function(info) {
                         const eventId = String(info.event.id);
-                        const isCustomEvent = /^[0-9]+$/.test(eventId);
-
-                        // Les RDV issus des projets sont en lecture seule ici
-                        if (!isCustomEvent) {
-                            return;
-                        }
 
                         if (confirm('Supprimer cet événement ?')) {
                             fetch(`/tattooer/calendar/${eventId}`, {
@@ -253,9 +247,21 @@
                                 }
                             }).then(async (res) => {
                                 if (!res.ok) {
+                                    const data = await res.json();
+                                    alert('Erreur lors de la suppression: ' + (data.error ||
+                                        'Erreur inconnue'));
                                     return;
                                 }
-                                info.event.remove();
+                                const data = await res.json();
+                                if (data.success) {
+                                    info.event.remove();
+                                    alert('✅ ' + (data.message || 'Événement supprimé'));
+                                } else {
+                                    alert('❌ ' + (data.error || 'Échec de la suppression'));
+                                }
+                            }).catch(error => {
+                                console.error('Erreur réseau:', error);
+                                alert('❌ Erreur réseau: ' + error.message);
                             });
                         }
                     },
@@ -331,4 +337,3 @@
             }
         </script>
     @endpush
-@endsection

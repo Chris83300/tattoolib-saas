@@ -250,25 +250,26 @@ $legacy = $beforeAfter
                 enctype="multipart/form-data">
                 @csrf
                 <div class="grid grid-cols-2 gap-4 mb-6">
+
                     <div>
-                        <label class="block text-ivoire-text font-semibold mb-2">Photo AVANT</label>
+                        <label class="block text-ivoire-text font-semibold mb-2">Photo Avant</label>
                         <label
                             class="block aspect-square border-2 border-dashed border-titane/30 rounded-lg cursor-pointer hover:border-beige-peau transition-colors">
-                            <input type="file" name="before[]" accept="image/*" multiple class="hidden"
-                                onchange="previewImage(this, 'before-preview')">
-                            <div id="before-preview"
+                            <input type="file" name="after[]" accept="image/*" multiple class="hidden"
+                                onchange="previewImage(this, 'after-preview')">
+                            <div id="after-preview"
                                 class="w-full h-full flex items-center justify-center text-ivoire-text/60">
                                 <span>+ Choisir photo</span>
                             </div>
                         </label>
                     </div>
                     <div>
-                        <label class="block text-ivoire-text font-semibold mb-2">Photo APRÈS</label>
+                        <label class="block text-ivoire-text font-semibold mb-2">Photo Après</label>
                         <label
                             class="block aspect-square border-2 border-dashed border-titane/30 rounded-lg cursor-pointer hover:border-beige-peau transition-colors">
-                            <input type="file" name="after[]" accept="image/*" multiple class="hidden"
-                                onchange="previewImage(this, 'after-preview')">
-                            <div id="after-preview"
+                            <input type="file" name="before[]" accept="image/*" multiple class="hidden"
+                                onchange="previewImage(this, 'before-preview')">
+                            <div id="before-preview"
                                 class="w-full h-full flex items-center justify-center text-ivoire-text/60">
                                 <span>+ Choisir photo</span>
                             </div>

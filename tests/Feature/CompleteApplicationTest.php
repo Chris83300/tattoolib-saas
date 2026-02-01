@@ -100,7 +100,7 @@ class CompleteApplicationTest extends TestCase
                 'payments' => ['booking_request_id', 'stripe_payment_intent_id', 'amount', 'status'],
                 'studio_artists' => ['stripe_connect_account_id', 'user_id'],
                 'tattooers' => ['stripe_connect_account_id', 'user_id', 'siret_verified'],
-                'appointments' => ['bookable_type', 'bookable_id', 'client_id', 'start_time', 'status']
+                'appointments' => ['bookable_type', 'bookable_id', 'client_id', 'start_datetime', 'status']
             ];
 
             foreach ($requiredColumns as $table => $columns) {
@@ -226,8 +226,8 @@ class CompleteApplicationTest extends TestCase
                 'bookable_id' => $artist->id,
                 'bookable_type' => Tattooer::class,
                 'client_id' => $client->id,
-                'start_time' => now()->addDays(7),
-                'end_time' => now()->addDays(7)->addHours(2),
+                'start_datetime' => now()->addDays(7),
+                'end_datetime' => now()->addDays(7)->addHours(2),
                 'duration_minutes' => 120,
                 'status' => Appointment::STATUS_CONFIRMED,
                 'deposit_amount' => 90.00,

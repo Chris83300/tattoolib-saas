@@ -56,6 +56,7 @@ class Pierceur extends Model implements HasMedia
         'postal_code',
         'email',
 
+        // Stripe Connect
         'stripe_connect_account_id',
         'stripe_onboarding_complete',
         'stripe_connect_status',
@@ -65,86 +66,53 @@ class Pierceur extends Model implements HasMedia
         'has_accepted_payment_terms',
         'payment_terms_accepted_at',
 
+        // Configuration
+        'minimum_deposit',
+        'default_deposit_rate',
+        'default_client_payment_deadline_days',
+        'default_design_versions_included',
+        'weekday_wait_days',
+        'weekend_wait_days',
+
+        // Abonnement
         'current_plan',
         'is_subscribed',
         'upgraded_to_pro_at',
 
+        // Réseaux sociaux
         'instagram',
         'facebook',
         'tiktok',
         'website',
 
-        'minimum_deposit',
-        'default_deposit_rate',
-        'default_client_payment_deadline_days',
-        'default_design_versions_included',
-
-        'weekday_wait_days',
-        'weekend_wait_days',
-
-        'is_decision_maker',
-        'compliance_status',
-        'last_compliance_check_at',
+        // Conformité
+        'has_compliance_badge',
+        'admin_verified_at',
     ];
 
     protected $casts = [
-        'siret_verified' => 'boolean',
-        'stripe_onboarding_complete' => 'boolean',
+        'admin_verified_at' => 'datetime',
         'stripe_connect_activated_at' => 'datetime',
         'stripe_connect_last_transaction_at' => 'datetime',
         'stripe_connect_deactivated_at' => 'datetime',
-        'has_accepted_payment_terms' => 'boolean',
         'payment_terms_accepted_at' => 'datetime',
-        'minimum_deposit' => 'decimal:2',
-        'is_subscribed' => 'boolean',
         'upgraded_to_pro_at' => 'datetime',
-        'is_decision_maker' => 'boolean',
-        'last_compliance_check_at' => 'datetime',
+        'is_subscribed' => 'boolean',
+        'has_compliance_badge' => 'boolean',
+        'siret_verified' => 'boolean',
+        'stripe_onboarding_complete' => 'boolean',
+        'has_accepted_payment_terms' => 'boolean',
+        'minimum_deposit' => 'decimal:2',
+        'default_deposit_rate' => 'decimal:2',
     ];
 
-    public function registerMediaCollections(): void
-    {
-        // Avatar
-        $this->addMediaCollection('avatar')
-            ->singleFile()
-            ->useFallbackUrl('/images/default-pierceur-avatar.png')
-            ->useFallbackPath(public_path('/images/default-pierceur-avatar.png'))
-            ->registerMediaConversions(function (Media $media) {
-                $this->addMediaConversion('thumb')
-                    ->width(200)
-                    ->height(200)
-                    ->sharpen(10);
-            });
+    protected $appends = ['specialization_label'];
 
-        // Portfolio Réalisations
-        $this->addMediaCollection('portfolio')
-            ->useFallbackUrl('/images/default-portfolio.png')
-            ->useFallbackPath(public_path('/images/default-portfolio.png'))
-            ->registerMediaConversions(function (Media $media) {
-                $this->addMediaConversion('thumb')
-                    ->width(400)
-                    ->height(400)
-                    ->sharpen(10);
-            });
+    protected $dates = [
+        'deleted_at',
+    ];
 
-        // Dessins
-        $this->addMediaCollection('drawings')
-            ->registerMediaConversions(function (Media $media) {
-                $this->addMediaConversion('thumb')
-                    ->width(400)
-                    ->height(400)
-                    ->sharpen(10);
-            });
-
-        // Avant/Après (paires d'images)
-        $this->addMediaCollection('before_after')
-            ->registerMediaConversions(function (Media $media) {
-                $this->addMediaConversion('thumb')
-                    ->width(200)
-                    ->height(200)
-                    ->sharpen(10);
-            });
-    }
+    // ===== RELATIONS =====
 
     public function user(): BelongsTo
     {
@@ -156,6 +124,7 @@ class Pierceur extends Model implements HasMedia
         return $this->belongsTo(Studio::class);
     }
 
+    // Relations polymorphiques (comme Tattooer)
     public function workingHours(): MorphMany
     {
         return $this->morphMany(WorkingHour::class, 'owner');
@@ -176,117 +145,92 @@ class Pierceur extends Model implements HasMedia
         return $this->morphMany(Appointment::class, 'bookable');
     }
 
-    public function reviews(): MorphMany
-    {
-        return $this->morphMany(Review::class, 'reviewable');
-    }
+    // ===== MÉTHODES MÉTIER =====
 
-    public function hasCompletedStripeOnboarding(): bool
+    public function isVerified(): bool
     {
-        return $this->stripe_onboarding_complete
-            && !empty($this->stripe_connect_account_id);
+        return $this->siret_verified && $this->has_compliance_badge;
     }
 
     public function canAcceptBookings(): bool
     {
-        return $this->siret_verified
-            && $this->hasCompletedStripeOnboarding();
+        return $this->isVerified() && $this->stripe_onboarding_complete;
     }
 
-    public function calculateDepositAmount(float $totalPrice): float
+    public function isPro(): bool
     {
-        $calculated = ($totalPrice * $this->default_deposit_rate) / 100;
-        return max($calculated, $this->minimum_deposit);
+        return $this->current_plan === 'pro';
     }
 
-    public function getSpecializationLabelAttribute(): string
+    public function isPierceur(): bool
+    {
+        return $this->specialization === 'pierceur';
+    }
+
+    public function isBodemodeur(): bool
+    {
+        return $this->specialization === 'bodemodeur';
+    }
+
+    public function isBoth(): bool
+    {
+        return $this->specialization === 'pierceur_bodemodeur';
+    }
+
+    public function getSpecializationLabel(): string
     {
         return match($this->specialization) {
             'pierceur' => 'Pierceur',
             'bodemodeur' => 'Bodemodeur',
             'pierceur_bodemodeur' => 'Pierceur / Bodemodeur',
-            default => 'Non spécifié',
+            default => 'Spécialiste',
         };
     }
 
-    public function isPierceur(): bool
+    public function getSpecializationLabelAttribute(): string
     {
-        return $this->specialization === 'pierceur' || $this->specialization === 'pierceur_bodemodeur';
+        return $this->getSpecializationLabel();
     }
 
-    public function isBodemodeur(): bool
-    {
-        return $this->specialization === 'bodemodeur' || $this->specialization === 'pierceur_bodemodeur';
-    }
-
-    public function isPro(): bool
-    {
-        return $this->subscription_plan === 'pro';
-    }
-
-    public function isFree(): bool
-    {
-        return $this->subscription_plan === 'free';
-    }
+    // ===== SCOPE =====
 
     public function scopeVerified($query)
     {
-        return $query->where('siret_verified', true);
+        return $query->where('siret_verified', true)->where('has_compliance_badge', true);
     }
 
     public function scopeActive($query)
     {
-        return $query->whereHas('user', function($q) {
-            $q->where('is_active', true);
-        });
+        return $query; // Pas de filtre pour la recherche publique
     }
 
-    public function scopeByCity($query, string $city)
-    {
-        return $query->where('city', 'like', "%{$city}%");
-    }
-
-    public function scopeBySpecialization($query, string $specialization)
+    public function scopeBySpecialization($query, $specialization)
     {
         return $query->where('specialization', $specialization);
     }
 
-    public function scopeSearch($query, string $search)
+    public function scopeByCity($query, $city)
     {
-        return $query->where(function($q) use ($search) {
+        return $query->where('city', $city);
+    }
+
+    public function scopeSearch($query, $search)
+    {
+        return $query->where(function ($q) use ($search) {
             $q->where('name', 'like', "%{$search}%")
               ->orWhere('studio_name', 'like', "%{$search}%")
-              ->orWhere('city', 'like', "%{$search}%")
-              ->orWhereHas('studio', function($sq) use ($search) {
-                  $sq->where('name', 'like', "%{$search}%");
-              });
+              ->orWhere('city', 'like', "%{$search}%");
         });
     }
 
-    public function getStudioNameAttribute(): ?string
+    // ===== MÉDIAS =====
+
+    public function registerMediaCollections(): void
     {
-        if ($this->studio_id && $this->studio) {
-            return $this->studio->name;
-        }
-
-        return $this->attributes['studio_name'] ?? null;
-    }
-
-    public function getFullAddressAttribute(): string
-    {
-        if ($this->studio_id && $this->studio) {
-            return $this->studio->full_address;
-        }
-
-        return "{$this->address}, {$this->postal_code} {$this->city}";
-    }
-
-    public function getTaxRate(): float
-    {
-        return match($this->country) {
-            'FR' => 20.0,
-            'BE' => 21.0,
-            default => 0.0,
-        };
+        $this->addMediaCollection('portfolio')
+            ->useDisk('public')
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp'])
+            ->maxFiles(20)
+            ->maxSize(5 * 1024 * 1024); // 5MB
     }
 }

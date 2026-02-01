@@ -14,6 +14,11 @@ class ConversationObserver
     {
         $message->loadMissing('conversation');
 
+        // Si le message n'a pas de conversation (messages de projet), ignorer
+        if (!$message->conversation) {
+            return;
+        }
+
         $message->conversation->update([
             'last_message_id' => $message->id,
             'last_message_at' => $message->created_at,

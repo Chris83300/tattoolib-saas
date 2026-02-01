@@ -18,10 +18,10 @@ class CleanIntegrationTest extends TestCase
     public function test_clean_workflow_with_studio_artists()
     {
         // 1. Setup des utilisateurs
-        $clientUser = User::factory()->create();
+        $clientUser = User::factory()->client()->create();
         $client = Client::factory()->create(['user_id' => $clientUser->id]);
 
-        $artistUser = User::factory()->create();
+        $artistUser = User::factory()->studioArtist()->create();
         $artist = StudioArtist::factory()->create([
             'user_id' => $artistUser->id,
             'stripe_connect_account_id' => 'acct_test_' . uniqid(),
@@ -67,7 +67,7 @@ class CleanIntegrationTest extends TestCase
     {
         $client = Client::factory()->create();
 
-        $artistUser = User::factory()->create(['is_studio_artist' => true]);
+        $artistUser = User::factory()->studioArtist()->create();
         $artist = StudioArtist::factory()->create(['user_id' => $artistUser->id]);
 
         // Créer des availabilities pour le StudioArtist

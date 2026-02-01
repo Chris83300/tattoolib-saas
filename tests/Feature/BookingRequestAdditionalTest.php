@@ -19,16 +19,16 @@ class BookingRequestAdditionalTest extends TestCase
     /** @test ⭐ Conflit de créneaux */
     public function test_cannot_accept_overlapping_appointments()
     {
-        $tattooerUser = User::factory()->create();
+        $tattooerUser = User::factory()->tattooer()->create();
         $tattooer = Tattooer::factory()->create([
             'user_id' => $tattooerUser->id,
             'siret_verified' => true,
             'stripe_onboarding_complete' => true,
             'stripe_connect_account_id' => 'acct_test_' . uniqid(),
         ]);
-        $clientUser1 = User::factory()->create();
+        $clientUser1 = User::factory()->client()->create();
         $client1 = Client::factory()->create(['user_id' => $clientUser1->id]);
-        $clientUser2 = User::factory()->create();
+        $clientUser2 = User::factory()->client()->create();
         $client2 = Client::factory()->create(['user_id' => $clientUser2->id]);
 
         $date = now()->addDays(5)->format('Y-m-d');
@@ -124,9 +124,9 @@ class BookingRequestAdditionalTest extends TestCase
     /** @test ⭐ Workflow complet avec paiement simulé */
     public function test_complete_workflow_with_stripe_simulation()
     {
-        $clientUser = User::factory()->create();
+        $clientUser = User::factory()->client()->create();
         $client = Client::factory()->create(['user_id' => $clientUser->id]);
-        $tattooerUser = User::factory()->create();
+        $tattooerUser = User::factory()->tattooer()->create();
         $tattooer = Tattooer::factory()->create([
             'user_id' => $tattooerUser->id,
             'siret_verified' => true,
@@ -232,7 +232,7 @@ class BookingRequestAdditionalTest extends TestCase
     /** @test ⭐ Performance sous charge */
     public function test_handles_concurrent_booking_requests()
     {
-        $tattooerUser = User::factory()->create();
+        $tattooerUser = User::factory()->tattooer()->create();
         $tattooer = Tattooer::factory()->create([
             'user_id' => $tattooerUser->id,
             'siret_verified' => true,

@@ -37,8 +37,8 @@ test('client can see their appointments', function () {
         'bookable_type' => Tattooer::class,
         'bookable_id' => test()->tattooer->user_id,
         'status' => Appointment::STATUS_CONFIRMED,
-        'start_time' => now()->addDay(),
-        'end_time' => now()->addDay()->addHours(2),
+        'start_datetime' => now()->addDay(),
+        'end_datetime' => now()->addDay()->addHours(2),
     ]);
 
     $response = getJson('/api/appointments');
@@ -56,8 +56,8 @@ test('client can see their appointments', function () {
             'data' => [
                 '*' => [
                     'id',
-                    'start_time',
-                    'end_time',
+                    'start_datetime',
+                    'end_datetime',
                     'status',
                     'bookable' => [
                         'id'
@@ -74,8 +74,8 @@ test('client can see upcoming appointments', function () {
         'bookable_type' => Tattooer::class,
         'bookable_id' => test()->tattooer->user_id,
         'status' => Appointment::STATUS_CONFIRMED,
-        'start_time' => now()->addDays(2),
-        'end_time' => now()->addDays(2)->addHours(2),
+        'start_datetime' => now()->addDays(2),
+        'end_datetime' => now()->addDays(2)->addHours(2),
     ]);
 
     $response = getJson('/api/appointments?filter=upcoming');
@@ -91,8 +91,8 @@ test('client can see past appointments', function () {
         'bookable_type' => Tattooer::class,
         'bookable_id' => test()->tattooer->user_id,
         'status' => Appointment::STATUS_COMPLETED,
-        'start_time' => now()->subDays(2),
-        'end_time' => now()->subDays(2)->addHours(2),
+        'start_datetime' => now()->subDays(2),
+        'end_datetime' => now()->subDays(2)->addHours(2),
     ]);
 
     $response = getJson('/api/appointments?filter=past');
@@ -107,8 +107,8 @@ test('client can cancel appointment', function () {
         'bookable_type' => Tattooer::class,
         'bookable_id' => test()->tattooer->user_id,
         'status' => Appointment::STATUS_CONFIRMED,
-        'start_time' => now()->addDay(),
-        'end_time' => now()->addDay()->addHours(2),
+        'start_datetime' => now()->addDay(),
+        'end_datetime' => now()->addDay()->addHours(2),
     ]);
 
     $response = postJson("/api/appointments/{$appointment->id}/cancel", [
@@ -127,11 +127,11 @@ test('tattooer can confirm appointment completion', function () {
         'bookable_type' => Tattooer::class,
         'bookable_id' => test()->tattooer->user_id,
         'status' => Appointment::STATUS_CONFIRMED,
-        'start_time' => now()->subHour(), // RDV qui vient de se terminer
-        'end_time' => now()->addHour(),
+        'start_datetime' => now()->subHour(), // RDV qui vient de se terminer
+        'end_datetime' => now()->addHour(),
     ]);
 
-    // Se connecter en tant que tatoueur
+    // Se connecter en tant que tatoueur (pas le client)
     actingAs(test()->tattooer->user, 'sanctum');
 
     // Vérifier que l'appointment existe toujours avant l'appel API
@@ -157,8 +157,8 @@ test('client can report issue', function () {
         'bookable_type' => Tattooer::class,
         'bookable_id' => test()->tattooer->user_id,
         'status' => Appointment::STATUS_COMPLETED,
-        'start_time' => now()->subDays(2),
-        'end_time' => now()->subDays(2)->addHours(2),
+        'start_datetime' => now()->subDays(2),
+        'end_datetime' => now()->subDays(2)->addHours(2),
     ]);
 
     $response = postJson("/api/appointments/{$appointment->id}/report-issue", [

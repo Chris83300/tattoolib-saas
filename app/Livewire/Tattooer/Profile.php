@@ -23,15 +23,15 @@ class Profile extends Component
         // Stats
         $this->stats = (object) [
             'appointments_this_month' => $this->tattooer->appointments()
-                ->whereMonth('appointment_date', now()->month)
-                ->whereYear('appointment_date', now()->year)
+                ->whereMonth('start_datetime', now()->month)
+                ->whereYear('start_datetime', now()->year)
                 ->count(),
             'total_clients' => $this->tattooer->appointments()
                 ->distinct('client_id')
                 ->count('client_id'),
             'monthly_revenue' => $this->tattooer->appointments()
-                ->whereMonth('appointment_date', now()->month)
-                ->whereYear('appointment_date', now()->year)
+                ->whereMonth('start_datetime', now()->month)
+                ->whereYear('start_datetime', now()->year)
                 ->where('status', 'completed')
                 ->sum('total_price'),
             'pending_requests' => $this->tattooer->bookingRequests()

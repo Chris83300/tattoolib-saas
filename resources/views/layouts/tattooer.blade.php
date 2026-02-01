@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Dashboard') - Ink&Pik</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <!-- CSRF Token for AJAX -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 
 <body class="bg-noir-profond">
@@ -13,7 +16,8 @@
     <div class="flex min-h-screen">
 
         <!-- Sidebar Desktop (cachée sur mobile) -->
-        <aside class="hidden lg:flex lg:flex-col lg:w-64 bg-gris-fonde border-r border-titane/20 fixed h-full">
+        <aside
+            class="hidden lg:flex lg:flex-col lg:w-64 bg-gris-fonde border-r border-titane/20 fixed h-full top-0 left-0 z-10">
 
             <!-- Logo -->
             <div class="p-6 border-b border-titane/20">
@@ -46,7 +50,7 @@
                     </svg>
                     <span class="font-semibold">Demandes</span>
                     @php
-                        $pendingCount = \App\Models\Project::where('bookable_id', auth()->user()->tattooer->id)
+                        $pendingCount = \App\Models\BookingRequest::where('bookable_id', auth()->user()->tattooer->id)
                             ->where('bookable_type', 'App\Models\Tattooer')
                             ->where('status', 'pending')
                             ->count();

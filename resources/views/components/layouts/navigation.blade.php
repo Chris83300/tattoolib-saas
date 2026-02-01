@@ -49,7 +49,7 @@
                         class="text-ivoire-text hover:text-beige-peau transition-colors">
                         Mon espace pro
                     </a>
-                    <a href="{{ route('tattooer.booking-requests') }}"
+                    <a href="{{ route('tattooer.demandes') }}"
                         class="text-ivoire-text hover:text-beige-peau transition-colors">
                         Demandes
                     </a>

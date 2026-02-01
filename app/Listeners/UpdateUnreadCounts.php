@@ -11,6 +11,11 @@ class UpdateUnreadCounts
         $message = $event->message;
         $conversation = $message->conversation;
 
+        // Si le message n'a pas de conversation (messages de projet), ignorer
+        if (!$conversation) {
+            return;
+        }
+
         // Marquer comme non lu pour tous les participants SAUF l'expéditeur
         $conversation->participants()
             ->where('user_id', '!=', $message->sender_id) // ✅ CORRIGÉ

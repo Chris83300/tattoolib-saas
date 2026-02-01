@@ -1,7 +1,7 @@
 @extends('layouts.tattooer')
 
 @section('content')
-    <div class="space-y-6">
+    <div class="space-y-4 md:space-y-6">
 
         <!-- Messages Flash -->
         @if (session('success'))
@@ -28,30 +28,34 @@
 
         <!-- Header -->
         <div>
-            <h1 class="text-2xl md:text-3xl font-bold text-ivoire-text mb-2">
+            <h1 class="text-xl md:text-3xl font-bold text-ivoire-text mb-2">
                 Paramètres
             </h1>
-            <p class="text-ivoire-text/70">
+            <p class="text-ivoire-text/70 text-sm md:text-base">
                 Gérez votre profil et vos préférences
             </p>
         </div>
 
         <!-- Tabs -->
-        <div class="bg-gris-fonde rounded-xl p-2">
-            <div class="flex gap-2 overflow-x-auto">
-                <button onclick="switchTab('profile')" class="tab-btn px-4 py-2 rounded-lg font-semibold whitespace-nowrap"
+        <div class="bg-gris-fonde rounded-xl p-2 -mx-4 px-4 md:mx-0 md:px-2">
+            <div class="flex gap-2 overflow-x-auto pb-2 md:pb-0 hide-scrollbar snap-x snap-mandatory">
+                <button onclick="switchTab('profile')"
+                    class="tab-btn min-h-11 px-4 py-2.5 md:py-2 rounded-lg font-semibold whitespace-nowrap snap-start flex-shrink-0 text-sm md:text-base"
                     data-tab="profile">
                     👤 Profil
                 </button>
-                <button onclick="switchTab('schedule')" class="tab-btn px-4 py-2 rounded-lg font-semibold whitespace-nowrap"
+                <button onclick="switchTab('schedule')"
+                    class="tab-btn min-h-11 px-4 py-2.5 md:py-2 rounded-lg font-semibold whitespace-nowrap snap-start flex-shrink-0 text-sm md:text-base"
                     data-tab="schedule">
                     🕐 Horaires
                 </button>
-                <button onclick="switchTab('stripe')" class="tab-btn px-4 py-2 rounded-lg font-semibold whitespace-nowrap"
+                <button onclick="switchTab('stripe')"
+                    class="tab-btn min-h-11 px-4 py-2.5 md:py-2 rounded-lg font-semibold whitespace-nowrap snap-start flex-shrink-0 text-sm md:text-base"
                     data-tab="stripe">
                     💳 Stripe
                 </button>
-                <button onclick="switchTab('password')" class="tab-btn px-4 py-2 rounded-lg font-semibold whitespace-nowrap"
+                <button onclick="switchTab('password')"
+                    class="tab-btn min-h-11 px-4 py-2.5 md:py-2 rounded-lg font-semibold whitespace-nowrap snap-start flex-shrink-0 text-sm md:text-base"
                     data-tab="password">
                     🔒 Sécurité
                 </button>
@@ -63,7 +67,7 @@
             <form action="{{ route('tattooer.settings.update') }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
-                <div class="bg-gris-fonde rounded-xl p-6 space-y-6">
+                <div class="bg-gris-fonde rounded-xl p-4 md:p-6 space-y-6">
 
                     <!-- Avatar -->
                     <div>
@@ -75,14 +79,14 @@
 
                             <div class="flex flex-col gap-2">
                                 <label
-                                    class="px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold cursor-pointer hover:bg-beige-peau/90 transition-colors inline-block">
+                                    class="min-h-11 px-4 py-3 md:py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold cursor-pointer hover:bg-beige-peau/90 transition-colors inline-block text-center text-sm md:text-base active:scale-95">
                                     Changer photo
                                     <input type="file" name="avatar" accept="image/*" class="hidden"
                                         onchange="previewAvatar(this)">
                                 </label>
                                 @if ($tattooer->hasMedia('avatar'))
                                     <button type="button" onclick="deleteAvatar()"
-                                        class="px-4 py-2 bg-rouge-alerte/20 text-rouge-alerte rounded-lg font-semibold hover:bg-rouge-alerte/30 transition-colors">
+                                        class="min-h-11 px-4 py-3 md:py-2 bg-rouge-alerte/20 text-rouge-alerte rounded-lg font-semibold hover:bg-rouge-alerte/30 transition-colors text-sm md:text-base active:scale-95">
                                         Supprimer
                                     </button>
                                 @endif
@@ -95,26 +99,26 @@
                         <div>
                             <label class="block font-semibold text-ivoire-text mb-2">Pseudo *</label>
                             <input type="text" name="pseudo" value="{{ $tattooer->user->name ?? '' }}" required
-                                class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
+                                class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
                             <p class="text-xs text-ivoire-text/60 mt-1">Affiché sur votre profil public</p>
                         </div>
 
                         <div>
                             <label class="block font-semibold text-ivoire-text mb-2">Nom du salon</label>
                             <input type="text" name="studio_name" value="{{ $tattooer->studio_name ?? '' }}"
-                                class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
+                                class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
                         </div>
 
                         <div>
                             <label class="block font-semibold text-ivoire-text mb-2">Email *</label>
                             <input type="email" name="email" value="{{ $tattooer->user->email }}" required
-                                class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
+                                class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
                         </div>
 
                         <div>
                             <label class="block font-semibold text-ivoire-text mb-2">Téléphone *</label>
                             <input type="tel" name="phone" value="{{ $tattooer->phone ?? '' }}" required
-                                class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
+                                class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
                         </div>
                     </div>
 
@@ -123,13 +127,13 @@
                         <div class="md:col-span-2">
                             <label class="block font-semibold text-ivoire-text mb-2">Adresse</label>
                             <input type="text" name="address" value="{{ $tattooer->address ?? '' }}"
-                                class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
+                                class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
                         </div>
 
                         <div>
                             <label class="block font-semibold text-ivoire-text mb-2">Ville *</label>
                             <input type="text" name="city" value="{{ $tattooer->city ?? '' }}" required
-                                class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
+                                class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
                         </div>
                     </div>
 
@@ -137,7 +141,7 @@
                     <div>
                         <label class="block font-semibold text-ivoire-text mb-2">Bio / Présentation</label>
                         <textarea name="bio" rows="6" maxlength="1000"
-                            class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau"
+                            class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base"
                             onkeyup="updateCharCount(this, 'bio-count')">{{ $tattooer->bio ?? '' }}</textarea>
                         <p class="text-xs text-ivoire-text/60 mt-1">
                             <span id="bio-count">{{ strlen($tattooer->bio ?? '') }}</span>/1000 caractères
@@ -170,7 +174,7 @@
 
                             @foreach ($allStyles as $style)
                                 <label
-                                    class="flex items-center gap-2 p-3 bg-noir-profond rounded-lg cursor-pointer hover:bg-noir-profond/80 transition-colors">
+                                    class="flex items-center gap-2 p-3 bg-noir-profond rounded-lg cursor-pointer hover:bg-noir-profond/80 transition-colors active:scale-95">
                                     <input type="checkbox" name="styles[]" value="{{ $style }}"
                                         {{ in_array($style, $currentStyles) ? 'checked' : '' }}
                                         class="w-4 h-4 text-beige-peau focus:ring-beige-peau">
@@ -183,7 +187,7 @@
                     <!-- Bouton sauvegarder -->
                     <div class="flex justify-end">
                         <button type="submit"
-                            class="px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
+                            class="w-full md:w-auto min-h-11 px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors text-sm md:text-base active:scale-95">
                             💾 Enregistrer les modifications
                         </button>
                     </div>
@@ -193,7 +197,7 @@
 
         <!-- TAB: Horaires -->
         <div id="tab-schedule" class="tab-content hidden">
-            <div class="bg-gris-fonde rounded-xl p-6">
+            <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
                 <h3 class="text-xl font-bold text-ivoire-text mb-4">Horaires d'ouverture</h3>
 
                 <form action="{{ route('tattooer.settings.update-schedule') }}" method="POST">
@@ -245,7 +249,7 @@
 
                     <div class="mt-6 flex justify-end">
                         <button type="submit"
-                            class="px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
+                            class="w-full md:w-auto min-h-11 px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors text-sm md:text-base active:scale-95">
                             💾 Enregistrer les horaires
                         </button>
                     </div>
@@ -255,7 +259,7 @@
 
         <!-- TAB: Stripe Connect -->
         <div id="tab-stripe" class="tab-content hidden">
-            <div class="bg-gris-fonde rounded-xl p-6">
+            <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
                 <h3 class="text-xl font-bold text-ivoire-text mb-4">Configuration Stripe Connect</h3>
 
                 @if ($tattooer->stripe_connect_id ?? false)
@@ -337,10 +341,10 @@
 
         <!-- TAB: Mot de passe -->
         <div id="tab-password" class="tab-content hidden">
-            <div class="bg-gris-fonde rounded-xl p-6">
+            <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
                 <h3 class="text-xl font-bold text-ivoire-text mb-4">Changer mon mot de passe</h3>
 
-                <form action="{{ route('tattooer.settings.update-password') }}" method="POST" class="max-w-md"> 
+                <form action="{{ route('tattooer.settings.update-password') }}" method="POST" class="max-w-md">
                     @csrf
 
                     <div class="space-y-4">
@@ -366,7 +370,7 @@
 
                     <div class="mt-6">
                         <button type="submit"
-                            class="px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
+                            class="w-full md:w-auto min-h-11 px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors text-sm md:text-base active:scale-95">
                             🔒 Changer le mot de passe
                         </button>
                     </div>
@@ -377,6 +381,17 @@
     </div>
 
     @push('scripts')
+        <style>
+            .hide-scrollbar {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+
+            .hide-scrollbar::-webkit-scrollbar {
+                display: none;
+            }
+        </style>
+
         <script>
             function switchTab(tabName) {
                 try {
@@ -389,8 +404,19 @@
                     el.classList.add('text-ivoire-text');
                 });
 
-                document.getElementById('tab-' + tabName).classList.remove('hidden');
-                document.querySelector(`[data-tab="${tabName}"]`).classList.add('bg-beige-peau', 'text-noir-profond');
+                const content = document.getElementById('tab-' + tabName);
+                const btn = document.querySelector(`[data-tab="${tabName}"]`);
+                if (content) content.classList.remove('hidden');
+                if (btn) {
+                    btn.classList.add('bg-beige-peau', 'text-noir-profond');
+                    try {
+                        btn.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'nearest',
+                            inline: 'center'
+                        });
+                    } catch (e) {}
+                }
             }
 
             let initialTab = 'profile';

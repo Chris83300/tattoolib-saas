@@ -30,7 +30,7 @@ class RecentActivity extends ChartWidget
             $newUsers[] = User::whereDate('created_at', $date->format('Y-m-d'))->count();
 
             // RDV par jour
-            $appointments[] = Appointment::whereDate('appointment_date', $date->format('Y-m-d'))->count();
+            $appointments[] = Appointment::whereDate('start_datetime', $date->format('Y-m-d'))->count();
 
             // Abonnements actifs par jour
             $activeSubscriptions[] = Subscription::where('status', 'active')
