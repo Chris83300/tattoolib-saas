@@ -129,7 +129,7 @@ class Conversation extends Model
         $this->update([
             'expiry_type' => self::EXPIRY_DEPOSIT_PENDING,
             'deposit_deadline_at' => now()->addDays($depositDelayDays),
-            'expires_at' => now()->addDays($depositDelayDays),
+            'expires_at' => now()->addDays($depositDelayDays), // ⭐ CRITICAL : Initialiser expires_at
             'is_expired' => false,
         ]);
     }
@@ -234,6 +234,28 @@ class Conversation extends Model
         return now()->greaterThanOrEqualTo($warningDate);
     }
 
+    /**
+     * Calculer le nombre de messages non lus pour le client
+     */
+    public function getUnreadCountAttribute(): int
+    {
+        return $this->messages()
+            ->where('sender_type', '!=', 'client')
+            ->whereNull('read_by_client_at')
+            ->count();
+    }
+
+    /**
+     * Calculer le nombre de messages non lus pour le tattooer
+     */
+    public function getUnreadCountForTattooerAttribute(): int
+    {
+        return $this->messages()
+            ->where('sender_type', 'client')
+            ->whereNull('read_by_tattooer_at')
+            ->count();
+    }
+
     // ===========================================
     // ACTIONS EXPIRATION
     // ===========================================
@@ -315,13 +337,32 @@ class Conversation extends Model
         };
     }
 
+    public function getTimeUntilExpiry(): string
+    {
+        if (!$this->expires_at) {
+            return '';
+        }
+
+        $now = now();
+        $diff = $now->diff($this->expires_at);
+
+        // Si plus de 24h, afficher les jours
+        if ($diff->days > 0) {
+            return "{$diff->days} jour(s)";
+        }
+
+        // Sinon afficher les heures
+        return "{$diff->h} heure(s)";
+    }
+
     public function getDaysUntilExpiry(): ?int
     {
         if (!$this->expires_at) {
             return null;
         }
 
-        return (int) now()->diffInDays($this->expires_at, false);
+        $days = now()->diffInDays($this->expires_at, false);
+        return (int) max(0, $days); // Forcer entier et éviter les nombres négatifs
     }
 
     public function getExpiryWarningMessage(): ?string
@@ -331,13 +372,14 @@ class Conversation extends Model
         }
 
         if ($this->isDepositPending() && $this->expires_at) {
+            $timeLeft = $this->getTimeUntilExpiry();
             $days = $this->getDaysUntilExpiry();
 
             if ($days <= 2) {
-                return "⚠️ URGENT : Cette conversation sera supprimée dans {$days} jour(s) si l'acompte n'est pas payé.";
+                return "⚠️ URGENT : Cette conversation sera supprimée dans {$timeLeft} si l'acompte n'est pas payé.";
             }
 
-            return "⏱️ Cette conversation expire dans {$days} jours sans paiement acompte.";
+            return "⏱️ Cette conversation expire dans {$timeLeft} sans paiement acompte.";
         }
 
         return null;

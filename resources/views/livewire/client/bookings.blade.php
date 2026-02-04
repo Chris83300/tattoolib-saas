@@ -1,8 +1,8 @@
 <div class="min-h-screen bg-noir-profond">
-  
+
   <!-- Container principal -->
   <div class="container mx-auto px-4 py-8 max-w-4xl">
-    
+
     <!-- Header -->
     <div class="mb-6">
       <h1 class="text-beige-peau font-display text-2xl font-bold">
@@ -12,81 +12,148 @@
         Gérez vos rendez-vous et demandes de réservation
       </p>
     </div>
-    
+
     <!-- Liste des réservations -->
     <div class="space-y-4">
-      
-      <!-- Exemple de réservation -->
-      <div class="bg-gris-fonde rounded-xl p-6 border border-titane/20">
-        <div class="flex items-start justify-between">
-          <div class="flex-1">
-            <div class="flex items-center gap-3 mb-3">
-              <div class="w-12 h-12 bg-beige-peau/20 rounded-full flex items-center justify-center">
-                <span class="text-beige-peau font-bold">JD</span>
-              </div>
-              <div>
-                <h3 class="text-ivoire-text font-semibold">Jean Dupont</h3>
-                <p class="text-ivoire-text/70 text-sm">Tatoueur professionnel</p>
-              </div>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-              <div>
-                <span class="text-ivoire-text/50 text-xs">Date</span>
-                <p class="text-ivoire-text font-medium">15 Mars 2024</p>
-              </div>
-              <div>
-                <span class="text-ivoire-text/50 text-xs">Heure</span>
-                <p class="text-ivoire-text font-medium">14:00</p>
-              </div>
-              <div>
-                <span class="text-ivoire-text/50 text-xs">Statut</span>
-                <span class="inline-block px-2 py-1 bg-vert-succes/20 text-vert-succes text-xs rounded-full">
-                  Confirmé
-                </span>
-              </div>
-            </div>
-            
-            <div class="mt-4">
-              <span class="text-ivoire-text/50 text-xs">Design</span>
-              <p class="text-ivoire-text text-sm mt-1">Dragon tribal sur avant-bras</p>
-            </div>
+
+      @php
+          $bookingRequests = \App\Models\BookingRequest::where('client_id', auth()->user()->client->id)
+              ->with(['bookable.user', 'appointment'])
+              ->latest('created_at')
+              ->get();
+      @endphp
+
+      @if($bookingRequests->isEmpty())
+        <!-- État vide -->
+        <div class="text-center py-12">
+          <div class="inline-flex items-center justify-center w-16 h-16 bg-noir-profond rounded-full mb-4">
+            <svg class="w-8 h-8 text-ivoire-text/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
           </div>
-          
-          <div class="flex flex-col gap-2 ml-4">
-            <button class="px-3 py-2 bg-beige-peau hover:bg-beige-peau/90 text-noir-profond text-sm font-medium rounded-lg transition-colors">
-              Voir détails
-            </button>
-            <button class="px-3 py-2 border border-titane/30 text-ivoire-text text-sm font-medium rounded-lg hover:border-beige-peau transition-colors">
-              Contacter
-            </button>
-          </div>
+
+          <h3 class="text-lg font-semibold text-ivoire-text mb-2">Aucune réservation</h3>
+          <p class="text-ivoire-text/70 mb-6 max-w-md mx-auto">
+            Vous n'avez pas encore de demande de tatouage en cours.
+          </p>
+
+          <a href="{{ route('marketplace.index') }}"
+             class="inline-flex items-center gap-2 bg-beige-peau text-noir-profond px-6 py-3 rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            Découvrir les artistes
+          </a>
         </div>
-      </div>
-      
+      @else
+        @foreach($bookingRequests as $bookingRequest)
+          <div class="bg-gris-fonde rounded-xl p-6 border border-titane/20">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-3 mb-3">
+                  <!-- Avatar artiste -->
+                  <div class="w-12 h-12 bg-beige-peau/20 rounded-full flex items-center justify-center">
+                    @if($bookingRequest->bookable && $bookingRequest->bookable->getFirstMediaUrl('avatar'))
+                      <img src="{{ $bookingRequest->bookable->getFirstMediaUrl('avatar') }}"
+                           alt="{{ $bookingRequest->bookable->user->name }}"
+                           class="w-12 h-12 rounded-full object-cover">
+                    @else
+                      <span class="text-beige-peau font-bold text-lg">
+                        {{ substr($bookingRequest->bookable->user->name ?? 'Artiste', 0, 2) }}
+                      </span>
+                    @endif
+                  </div>
+                  <div>
+                    <h3 class="text-ivoire-text font-semibold">
+                      {{ $bookingRequest->bookable->user->name ?? 'Artiste non assigné' }}
+                    </h3>
+                    <p class="text-ivoire-text/70 text-sm">
+                      {{ $bookingRequest->bookable_type === 'App\Models\Tattooer' ? 'Tatoueur' : 'Pierceur' }}
+                    </p>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                  <div>
+                    <span class="text-ivoire-text/50 text-xs">Date de demande</span>
+                    <p class="text-ivoire-text font-medium">{{ $bookingRequest->created_at->format('d/m/Y') }}</p>
+                  </div>
+                  <div>
+                    <span class="text-ivoire-text/50 text-xs">RDV</span>
+                    <p class="text-ivoire-text font-medium">
+                      @if($bookingRequest->appointment)
+                        {{ $bookingRequest->appointment->appointment_datetime->format('d/m/Y H:i') }}
+                      @else
+                        Non planifié
+                      @endif
+                    </p>
+                  </div>
+                  <div>
+                    <span class="text-ivoire-text/50 text-xs">Statut</span>
+                    <span class="inline-block px-2 py-1 text-xs rounded-full
+                      {{ $bookingRequest->status === 'pending' ? 'bg-ambre-warning/20 text-ambre-warning' : '' }}
+                      {{ $bookingRequest->status === 'accepted' ? 'bg-vert-succes/20 text-vert-succes' : '' }}
+                      {{ $bookingRequest->status === 'in_progress' ? 'bg-beige-peau/20 text-beige-peau' : '' }}
+                      {{ $bookingRequest->status === 'completed' ? 'bg-vert-succes/20 text-vert-succes' : '' }}
+                      {{ $bookingRequest->status === 'cancelled' ? 'bg-rouge-alerte/20 text-rouge-alerte' : '' }}">
+                      {{ match($bookingRequest->status) {
+                        'pending' => '⏳ En attente',
+                        'accepted' => '✓ Acceptée',
+                        'in_progress' => '🎨 En cours',
+                        'completed' => '✅ Terminée',
+                        'cancelled' => '❌ Annulée',
+                        default => $bookingRequest->status,
+                      }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <span class="text-ivoire-text/50 text-xs">Design</span>
+                    <p class="text-ivoire-text text-sm mt-1">
+                      {{ \Illuminate\Support\Str::limit($bookingRequest->tattoo_description ?? 'Non spécifié', 80) }}
+                    </p>
+                  </div>
+                  <div>
+                    <span class="text-ivoire-text/50 text-xs">Localisation</span>
+                    <p class="text-ivoire-text text-sm mt-1">
+                      {{ $bookingRequest->tattoo_location ?? 'Non spécifiée' }}
+                    </p>
+                  </div>
+                </div>
+
+                @if($bookingRequest->estimated_total_price)
+                <div class="mt-2">
+                  <span class="text-ivoire-text/50 text-xs">Budget estimé</span>
+                  <p class="text-ivoire-text text-sm mt-1">
+                    💰 {{ number_format($bookingRequest->estimated_total_price, 0) }}€
+                  </p>
+                </div>
+                @endif
+              </div>
+
+              <div class="flex flex-col gap-2 ml-4">
+                <a href="{{ route('client.booking-requests.show', $bookingRequest) }}"
+                   class="px-3 py-2 bg-beige-peau hover:bg-beige-peau/90 text-noir-profond text-sm font-medium rounded-lg transition-colors text-center">
+                  Voir détails
+                </a>
+
+                @if($bookingRequest->status === 'accepted' && $bookingRequest->conversation)
+                  <a href="{{ route('client.chat', $bookingRequest->conversation->id) }}"
+                     class="px-3 py-2 border border-titane/30 text-ivoire-text text-sm font-medium rounded-lg hover:border-beige-peau transition-colors text-center">
+                    Contacter
+                  </a>
+                @endif
+              </div>
+            </div>
+          </div>
+        @endforeach
+      @endif
+
     </div>
-    
-    <!-- Message si aucune réservation -->
-    <div class="bg-gris-fonde rounded-xl p-12 text-center">
-      <div class="w-16 h-16 bg-beige-peau/20 rounded-full flex items-center justify-center mx-auto mb-4">
-        <svg class="w-8 h-8 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-        </svg>
-      </div>
-      <h3 class="text-ivoire-text font-display font-bold text-lg mb-2">
-        Aucune réservation
-      </h3>
-      <p class="text-ivoire-text/70 text-sm mb-4">
-        Vous n'avez pas encore de réservation programmée.
-      </p>
-      <a href="/marketplace" class="inline-flex items-center gap-2 px-4 py-2 bg-beige-peau hover:bg-beige-peau/90 text-noir-profond font-medium rounded-lg transition-colors">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-        </svg>
-        Trouver un artiste
-      </a>
-    </div>
-    
+
   </div>
-  
 </div>

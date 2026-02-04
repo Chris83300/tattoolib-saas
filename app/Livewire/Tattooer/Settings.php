@@ -22,6 +22,9 @@ class Settings extends Component
 
     public $phone = '';
     public $bio = '';
+    public $experience_years = '';
+    public $wait_time_days = '';
+    public $price_from = '';
     public $avatar;
     public $testAvatar; // Pour l'upload séparé
 
@@ -51,6 +54,9 @@ class Settings extends Component
         $this->email = $user->email;
         $this->phone = $tattooer->phone ?? '';
         $this->bio = $tattooer->bio ?? '';
+        $this->experience_years = $tattooer->experience_years ?? '';
+        $this->wait_time_days = $tattooer->wait_time_days ?? '';
+        $this->price_from = $tattooer->price_from ?? '';
 
         $this->artistName = $tattooer->name ?? '';
         $this->siret = $tattooer->siret ?? '';
@@ -91,6 +97,9 @@ class Settings extends Component
                 'email' => 'required|email|max:255|unique:users,email,' . Auth::id(),
                 'phone' => 'nullable|string|max:20',
                 'bio' => 'nullable|string|max:1000',
+                'experience_years' => 'nullable|integer|min:0|max:50',
+                'wait_time_days' => 'nullable|integer|min:0|max:365',
+                'price_from' => 'nullable|numeric|min:0',
                 'avatar' => 'nullable|image|mimes:jpeg,png,gif|max:2048',
             ]);
 
@@ -109,6 +118,9 @@ class Settings extends Component
             $tattooer->update([
                 'phone' => $this->phone,
                 'bio' => $this->bio,
+                'experience_years' => $this->experience_years,
+                'wait_time_days' => $this->wait_time_days,
+                'price_from' => $this->price_from,
             ]);
 
             Log::info('Données utilisateur mises à jour');

@@ -1,132 +1,275 @@
 <div class="min-h-screen bg-noir-profond">
-  
-  <!-- Container principal -->
-  <div class="container mx-auto px-4 py-8 max-w-4xl">
-    
-    <!-- Header -->
-    <div class="mb-6">
-      <a href="{{ route('client.profile') }}" class="text-ivoire-text/70 text-sm hover:text-beige-peau mb-4 inline-block">
-        ← Retour à mon profil
-      </a>
-      <h1 class="text-beige-peau font-display text-2xl font-bold">
-        Paramètres du compte
-      </h1>
+
+    <!-- Container principal -->
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+
+        <!-- Header -->
+        <div class="mb-6">
+            <a href="{{ route('client.profile') }}"
+                class="text-ivoire-text/70 text-sm hover:text-beige-peau mb-4 inline-block">
+                ← Retour à mon profil
+            </a>
+            <h1 class="text-beige-peau font-display text-2xl font-bold">
+                Paramètres du compte
+            </h1>
+        </div>
+
+        <!-- Notifications -->
+        @if (session()->has('success'))
+            <div class="mb-4 p-4 bg-vert-succes/20 border border-vert-succes/30 rounded-lg">
+                <p class="text-vert-succes">{{ session()->get('success') }}</p>
+            </div>
+        @endif
+
+        <!-- Formulaire paramètres -->
+        <div class="bg-gris-fonde rounded-xl p-6 space-y-6">
+
+            <!-- Avatar et pseudo -->
+            <div>
+                <h2 class="text-ivoire-text font-display font-bold text-lg mb-4">
+                    Avatar et pseudo
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Avatar -->
+                    <div>
+                        <label class="block text-ivoire-text text-sm font-semibold mb-2">
+                            Avatar
+                        </label>
+                        <div class="flex items-center gap-4">
+                            <div
+                                class="w-20 h-20 rounded-full overflow-hidden bg-beige-peau/10 flex items-center justify-center">
+                                @if (auth()->user()->getFirstMediaUrl('avatar'))
+                                    <img src="{{ auth()->user()->getFirstMediaUrl('avatar') }}" alt="Avatar"
+                                        class="w-full h-full object-cover">
+                                @else
+                                    <svg class="w-10 h-10 text-beige-peau" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd"
+                                            d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd">
+                                        </path>
+                                    </svg>
+                                @endif
+                            </div>
+
+                            <div class="flex-1">
+                                <!-- Upload Avatar -->
+                                <form wire:submit="uploadAvatar" class="mb-4">
+                                    <input type="file" wire:model="testAvatar" accept="image/*"
+                                        class="w-full px-4 py-2 bg-noir-profond border border-titane/20 rounded-lg text-ivoire-text focus:border-beige-peau focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-beige-peau file:text-noir-profond hover:file:bg-beige-peau/90">
+
+                                    @if ($testAvatar)
+                                        <div class="text-vert-succes text-sm mt-2">
+                                            ✅ Fichier sélectionné: {{ $testAvatar->getClientOriginalName() }}
+                                        </div>
+                                    @endif
+
+                                    <button type="submit" wire:loading.attr="disabled"
+                                        class="mt-2 px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold disabled:opacity-50">
+                                        <span wire:loading>
+                                            Upload en cours...
+                                        </span>
+                                        <span wire:loading.remove>
+                                            Uploader l'avatar
+                                        </span>
+                                    </button>
+                                </form>
+
+                                <!-- Suppression -->
+                                @if (auth()->user()->getFirstMediaUrl('avatar'))
+                                    <button wire:click="removeAvatar" type="button"
+                                        class="px-4 py-2 border border-rouge-alerte/30 text-rouge-alerte rounded-lg font-medium hover:border-rouge-alerte transition-colors text-sm">
+                                        Supprimer l'avatar
+                                    </button>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pseudo -->
+                    <div>
+                        <label class="block text-ivoire-text text-sm font-semibold mb-2">
+                            Pseudo (affiché publiquement)
+                        </label>
+                        <input type="text" wire:model.live="pseudo" placeholder="Choisissez un pseudo" maxlength="30"
+                            class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:outline-none">
+                        <p class="text-ivoire-text/50 text-xs mt-1">
+                            {{ 30 - strlen($this->pseudo) }} caractères restants
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Date de naissance -->
+                <div class="mt-6">
+                    <label class="block text-ivoire-text text-sm font-semibold mb-2">
+                        Date de naissance
+                    </label>
+                    <input type="date" wire:model="birth_date" max="{{ now()->subYears(16)->format('Y-m-d') }}"
+                        class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:outline-none">
+                    <p class="text-ivoire-text/50 text-xs mt-1">
+                        Vous devez avoir au moins 16 ans
+                    </p>
+                </div>
+
+                <div class="mt-4">
+                    <button wire:click="updateProfile"
+                        class="px-6 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
+                        Enregistrer les modifications
+                    </button>
+                </div>
+            </div>
+
+            <!-- Informations personnelles -->
+            <div class="border-t border-titane/20 pt-6">
+                <h2 class="text-ivoire-text font-display font-bold text-lg mb-4">
+                    Informations personnelles
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-ivoire-text text-sm font-semibold mb-2">
+                            Nom complet
+                        </label>
+                        <input type="text" value="{{ auth()->user()->name }}" disabled
+                            class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 opacity-60">
+                    </div>
+
+                    <div>
+                        <label class="block text-ivoire-text text-sm font-semibold mb-2">
+                            Email
+                        </label>
+                        <input type="email" value="{{ auth()->user()->email }}" disabled
+                            class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 opacity-60">
+                    </div>
+                </div>
+
+                <p class="text-ivoire-text/50 text-sm mt-2">
+                    Pour modifier vos informations personnelles, contactez le support.
+                </p>
+            </div>
+
+            <!-- Sécurité -->
+            <div class="border-t border-titane/20 pt-6">
+                <h2 class="text-ivoire-text font-display font-bold text-lg mb-4">
+                    Sécurité
+                </h2>
+
+                <div class="space-y-3">
+                    <button
+                        class="w-full text-left px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg hover:border-beige-peau transition-colors">
+                        <div class="flex items-center justify-between">
+                            <span class="text-ivoire-text">Changer le mot de passe</span>
+                            <svg class="w-5 h-5 text-ivoire-text/50" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7">
+                                </path>
+                            </svg>
+                        </div>
+                    </button>
+
+                    <button
+                        class="w-full text-left px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg hover:border-beige-peau transition-colors">
+                        <div class="flex items-center justify-between">
+                            <span class="text-ivoire-text">Activer l'authentification à deux facteurs</span>
+                            <svg class="w-5 h-5 text-ivoire-text/50" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7">
+                                </path>
+                            </svg>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Préférences -->
+            <div class="border-t border-titane/20 pt-6">
+                <h2 class="text-ivoire-text font-display font-bold text-lg mb-4">
+                    Préférences
+                </h2>
+
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-ivoire-text">Recevoir les notifications par email</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" checked class="sr-only peer">
+                            <div
+                                class="w-11 h-6 bg-noir-profond border border-titane/30 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-beige-peau">
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Danger zone -->
+            <div class="border-t border-rouge-alerte/20 pt-6">
+                <h2 class="text-rouge-alerte font-display font-bold text-lg mb-4">
+                    Zone de danger
+                </h2>
+
+                <div class="space-y-3">
+                    <button
+                        class="w-full text-left px-4 py-3 bg-noir-profond border border-rouge-alerte/30 rounded-lg hover:border-rouge-alerte transition-colors">
+                        <div class="flex items-center justify-between">
+                            <span class="text-rouge-alerte">Supprimer mon compte</span>
+                            <svg class="w-5 h-5 text-rouge-alerte/50" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </div>
+                    </button>
+                </div>
+
+                <p class="text-ivoire-text/50 text-sm mt-2">
+                    La suppression de votre compte est irréversible.
+                </p>
+            </div>
+
+        </div>
+
     </div>
-    
-    <!-- Formulaire paramètres -->
-    <div class="bg-gris-fonde rounded-xl p-6 space-y-6">
-      
-      <!-- Informations personnelles -->
-      <div>
-        <h2 class="text-ivoire-text font-display font-bold text-lg mb-4">
-          Informations personnelles
-        </h2>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-ivoire-text text-sm font-semibold mb-2">
-              Prénom
-            </label>
-            <input 
-              type="text" 
-              value="{{ auth()->user()->name }}"
-              disabled
-              class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 opacity-60">
-          </div>
-          
-          <div>
-            <label class="block text-ivoire-text text-sm font-semibold mb-2">
-              Email
-            </label>
-            <input 
-              type="email" 
-              value="{{ auth()->user()->email }}"
-              disabled
-              class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 opacity-60">
-          </div>
-        </div>
-        
-        <p class="text-ivoire-text/50 text-sm mt-2">
-          Pour modifier vos informations personnelles, contactez le support.
-        </p>
-      </div>
-      
-      <!-- Sécurité -->
-      <div class="border-t border-titane/20 pt-6">
-        <h2 class="text-ivoire-text font-display font-bold text-lg mb-4">
-          Sécurité
-        </h2>
-        
-        <div class="space-y-3">
-          <button class="w-full text-left px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg hover:border-beige-peau transition-colors">
-            <div class="flex items-center justify-between">
-              <span class="text-ivoire-text">Changer le mot de passe</span>
-              <svg class="w-5 h-5 text-ivoire-text/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-              </svg>
-            </div>
-          </button>
-          
-          <button class="w-full text-left px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg hover:border-beige-peau transition-colors">
-            <div class="flex items-center justify-between">
-              <span class="text-ivoire-text">Activer l'authentification à deux facteurs</span>
-              <svg class="w-5 h-5 text-ivoire-text/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-              </svg>
-            </div>
-          </button>
-        </div>
-      </div>
-      
-      <!-- Préférences -->
-      <div class="border-t border-titane/20 pt-6">
-        <h2 class="text-ivoire-text font-display font-bold text-lg mb-4">
-          Préférences
-        </h2>
-        
-        <div class="space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-ivoire-text">Recevoir les notifications par email</span>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" checked class="sr-only peer">
-              <div class="w-11 h-6 bg-noir-profond border border-titane/30 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-beige-peau"></div>
-            </label>
-          </div>
-          
-          <div class="flex items-center justify-between">
-            <span class="text-ivoire-text">Afficher le profil publiquement</span>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" class="sr-only peer">
-              <div class="w-11 h-6 bg-noir-profond border border-titane/30 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-beige-peau"></div>
-            </label>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Danger zone -->
-      <div class="border-t border-rouge-alerte/20 pt-6">
-        <h2 class="text-rouge-alerte font-display font-bold text-lg mb-4">
-          Zone de danger
-        </h2>
-        
-        <div class="space-y-3">
-          <button class="w-full text-left px-4 py-3 bg-noir-profond border border-rouge-alerte/30 rounded-lg hover:border-rouge-alerte transition-colors">
-            <div class="flex items-center justify-between">
-              <span class="text-rouge-alerte">Supprimer mon compte</span>
-              <svg class="w-5 h-5 text-rouge-alerte/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-              </svg>
-            </div>
-          </button>
-        </div>
-        
-        <p class="text-ivoire-text/50 text-sm mt-2">
-          La suppression de votre compte est irréversible.
-        </p>
-      </div>
-      
-    </div>
-    
-  </div>
-  
+
 </div>
+
+<!-- Scripts Livewire -->
+<script>
+    document.addEventListener('livewire:init', () => {
+        Livewire.on('profile-updated', (message) => {
+            // Afficher une notification de succès
+            const notification = document.createElement('div');
+            notification.className =
+                'fixed top-4 right-4 p-4 bg-vert-succes/20 border border-vert-succes/30 rounded-lg text-vert-succes z-50';
+            notification.innerHTML = `<p>${message}</p>`;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        });
+
+        Livewire.on('avatar-uploaded', (message) => {
+            // Afficher une notification de succès
+            const notification = document.createElement('div');
+            notification.className =
+                'fixed top-4 right-4 p-4 bg-vert-succes/20 border border-vert-succes/30 rounded-lg text-vert-succes z-50';
+            notification.innerHTML = `<p>${message}</p>`;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        });
+
+        Livewire.on('avatar-removed', (message) => {
+            // Afficher une notification de succès
+            const notification = document.createElement('div');
+            notification.className =
+                'fixed top-4 right-4 p-4 bg-vert-succes/20 border border-vert-succes/30 rounded-lg text-vert-succes z-50';
+            notification.innerHTML = `<p>${message}</p>`;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        });
+    });
+</script>

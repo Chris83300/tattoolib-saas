@@ -2,7 +2,7 @@
 
 namespace App\Livewire;
 
-use App\Models\Project;
+use App\Models\BookingRequest;
 use App\Models\Message;
 use Livewire\Component;
 use Livewire\Attributes\On;
@@ -14,7 +14,7 @@ class ProjectChat extends Component
 {
     use WithFileUploads;
 
-    public Project $project;
+    public BookingRequest $bookingRequest;
     public $message = '';
     public $attachments = [];
     public $messages = [];
@@ -25,27 +25,27 @@ class ProjectChat extends Component
     ];
 
     protected $listeners = [
-        'echo:project-chat.{project.id},MessageSent' => 'refreshMessages',
+        'echo:booking-request-chat.{bookingRequest.id},MessageSent' => 'refreshMessages',
         'refreshChat' => 'loadMessages',
     ];
 
-    public function mount(Project $project)
+    public function mount(BookingRequest $bookingRequest)
     {
-        $this->project = $project;
-        $this->authorize('view', $project);
+        $this->bookingRequest = $bookingRequest;
+        $this->authorize('view', $bookingRequest);
         $this->loadMessages();
     }
 
     public function loadMessages()
     {
-        $this->messages = $this->project->messages()
-            ->with('sender', 'media')
+        $this->messages = $this->bookingRequest->messages()
+            ->with('sender', 'media') // ✅ Utilise la relation BookingRequest::messages()
             ->orderBy('created_at')
             ->get()
             ->map(function ($message) {
                 return [
                     'id' => $message->id,
-                    'content' => $message->message,
+                    'content' => $message->content, // ✅ Corrigé: message -> content
                     'sender_name' => $message->sender->name,
                     'sender_type' => $message->sender_type,
                     'is_me' => $message->sender_id === Auth::id(),
@@ -68,12 +68,13 @@ class ProjectChat extends Component
         $this->validate();
 
         try {
-            // Créer le message
+            // Créer le message avec les bonnes colonnes
             $message = Message::create([
-                'project_id' => $this->project->id,
+                'conversation_id' => $this->bookingRequest->conversation->id,
+                'booking_request_id' => $this->bookingRequest->id,
                 'sender_id' => Auth::id(),
                 'sender_type' => $this->getSenderType(),
-                'message' => $this->message,
+                'content' => $this->message, // ✅ Corrigé: message -> content
             ]);
 
             // Upload des pièces jointes

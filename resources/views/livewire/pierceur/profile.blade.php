@@ -53,7 +53,7 @@
                             Modifier
                         </a>
                         @if ($pierceur->slug)
-                            <a href="{{ route('marketplace.show', $pierceur->slug) }}" target="_blank"
+                            <a href="{{ route('marketplace.pierceur.show', $pierceur->slug) }}" target="_blank"
                                 class="px-4 py-2 border border-beige-peau text-beige-peau hover:bg-beige-peau/10 font-semibold rounded-lg transition-colors">
                                 Voir profil public
                             </a>

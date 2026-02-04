@@ -3,7 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Client;
-use App\Models\Project;
+use App\Models\BookingRequest;
 use App\Models\Tattooer;
 use App\Models\StudioArtist;
 use App\Models\Pierceur;
@@ -28,6 +28,7 @@ class BookingRequestForm extends Component
     // Infos client
     public $firstName;
     public $lastName;
+    public $pseudo;
     public $email;
     public $phone;
     public $birthDate;
@@ -81,16 +82,18 @@ class BookingRequestForm extends Component
         'firstName' => 'required|string|max:255',
         'lastName' => 'required|string|max:255',
         'email' => 'required|email|max:255',
-        'phone' => 'required|string|max:20',
+        'phone' => 'nullable|string|max:20',
+        'pseudo' => 'nullable|string|max:255',
+        'address' => 'nullable|string|max:255',
         'birthDate' => 'required|date|before:today',
         'description' => 'required|string|min:10|max:1000',
-        'tattoo_size' => 'nullable|numeric|min:0|max:500',
+        'tattoo_size' => 'required|numeric|min:0|max:500',
         'location' => 'required|string',
         'style' => 'required|string',
         'estimatedBudget' => 'required|numeric|min:50',
         'proposedDate' => 'nullable|date|after:today',
         'referenceImages' => 'nullable|array|max:5',
-        'referenceImages.*' => 'file|mimes:jpeg,jpg,png,webp,heic,heif|max:10240', // 10MB max
+        'referenceImages.*' => 'file|mimes:jpeg,jpg,png,webp,heic,heif,gif,svg|max:10240', // 10MB max
     ];
 
     protected $messages = [
@@ -113,9 +116,9 @@ class BookingRequestForm extends Component
         };
 
         $this->bookableName = match($this->bookableType) {
-            'tattooer' => $this->bookable->user->name,
+            'tattooer' => $this->bookable->user->pseudo ?? $this->bookable->user->name,
             'studio-artist' => $this->bookable->artist_name,
-            'piercer', 'pierceur' => $this->bookable->user->name,
+            'piercer', 'pierceur' => $this->bookable->user->pseudo ?? $this->bookable->user->name,
             default => 'Artiste',
         };
 
@@ -123,12 +126,15 @@ class BookingRequestForm extends Component
         if (Auth::check()) {
             $user = Auth::user();
             $this->email = $user->email;
+            $this->pseudo = $user->pseudo ?? $user->name;
 
             // Si le client existe déjà
             $existingClient = Client::where('user_id', $user->id)->first();
             if ($existingClient) {
                 $this->firstName = $existingClient->first_name;
                 $this->lastName = $existingClient->last_name;
+                $this->email = $existingClient->email;
+                $this->pseudo = $existingClient->pseudo;
                 $this->phone = $existingClient->phone;
                 $this->birthDate = $existingClient->birth_date?->format('Y-m-d');
                 $this->address = $existingClient->address;
@@ -138,6 +144,14 @@ class BookingRequestForm extends Component
 
     public function submitRequest()
     {
+        Log::info('BookingRequestForm::submitRequest called', [
+            'bookableId' => $this->bookableId,
+            'bookableType' => $this->bookableType,
+            'firstName' => $this->firstName,
+            'lastName' => $this->lastName,
+            'email' => $this->email,
+        ]);
+
         $this->validate();
 
         try {
@@ -179,28 +193,36 @@ class BookingRequestForm extends Component
                 ]
             );
 
-            // 2. Project
-            $project = Project::create([
+            // 2. BookingRequest
+            $bookingRequest = BookingRequest::create([
                 'client_id' => $client->id,
                 'bookable_id' => $this->bookableId,
                 'bookable_type' => $this->getBookableModelClass(),
-                'status' => Project::STATUS_PENDING,
-                'tattoo_description' => $this->description,
-                'tattoo_location' => $this->location,
-                'tattoo_style' => $this->style,
-                'estimated_price' => $this->estimatedBudget,
-                'proposed_date' => $this->proposedDate ? new \DateTime($this->proposedDate) : null,
+                'status' => BookingRequest::STATUS_PENDING,
+
+                // Détails projet
+                'description' => $this->description,
+                'body_zone' => $this->location,
+                'tattoo_size' => $this->tattoo_size ?? 'Moyen',
+                'estimated_total_price' => $this->estimatedBudget,
+                'preferred_date' => $this->proposedDate ? new \DateTime($this->proposedDate) : null,
             ]);
 
             // 3. Images de référence
             foreach ($this->referenceImages as $image) {
-                $project->addMedia($image)
+                $bookingRequest->addMedia($image)
                     ->toMediaCollection('reference_images');
             }
 
             // 4. Notification artiste
             if ($this->bookable && isset($this->bookable->user)) {
-                $this->bookable->user->notify(new NewBookingRequestNotification($project));
+                try {
+                    $this->bookable->user->notify(new NewBookingRequestNotification($bookingRequest));
+                    Log::info('Notification envoyée avec succès à l\'artiste');
+                } catch (\Exception $e) {
+                    Log::error('Erreur envoi notification: ' . $e->getMessage());
+                    // On continue même si la notification échoue
+                }
             }
 
             DB::commit();
@@ -243,7 +265,27 @@ class BookingRequestForm extends Component
     public function removeReferenceImage($index)
     {
         unset($this->referenceImages[$index]);
-        $this->referenceImages = array_values($this->referenceImages);
+        $this->referenceImages = array_values($this->referenceImages); // Réindexer le tableau
+    }
+
+    /**
+     * Nettoyer les images invalides
+     */
+    public function cleanReferenceImages()
+    {
+        $this->referenceImages = array_filter($this->referenceImages, function($image) {
+            if (!$image) return false;
+
+            try {
+                // Vérification simple : juste vérifier qu'on a un objet avec une extension
+                $extension = $image->extension();
+                return !empty($extension);
+            } catch (\Exception $e) {
+                Log::error('Erreur validation image: ' . $e->getMessage());
+                return false;
+            }
+        });
+        $this->referenceImages = array_values($this->referenceImages); // Réindexer
     }
 
     /**
@@ -261,6 +303,9 @@ class BookingRequestForm extends Component
 
     public function render()
     {
+        // Nettoyer les images invalides avant le rendu
+        $this->cleanReferenceImages();
+
         return view('livewire.booking-request-form');
     }
 }

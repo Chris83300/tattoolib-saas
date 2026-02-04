@@ -47,10 +47,14 @@ class ArtistResource extends JsonResource
             'styles' => [],
 
             // URLs
-            'profile_url' => route('marketplace.show', $this->slug),
+            'profile_url' => route('marketplace.tattooer.show', $this->slug),
+            'contact_url' => $this->getContactUrl(),
 
             // Badges
             'badges' => $this->getBadges(),
+
+            // Vérifier si le client a déjà une demande en cours
+            'has_active_request' => $this->hasActiveRequestForCurrentUser(),
 
             // Stats détaillées
             'stats' => [
@@ -121,5 +125,43 @@ class ArtistResource extends JsonResource
         }
 
         return $badges;
+    }
+
+    protected function getContactUrl(): ?string
+    {
+        if (!auth()->check() || !auth()->user()->client) {
+            return route('login');
+        }
+
+        // Vérifier si le client a déjà une demande active
+        if ($this->hasActiveRequestForCurrentUser()) {
+            return null; // Pas de bouton contacter
+        }
+
+        return route('client.booking-request.form', [$this->id, $this->getMorphClass()]);
+    }
+
+    protected function hasActiveRequestForCurrentUser(): bool
+    {
+        if (!auth()->check() || !auth()->user()->client) {
+            return false;
+        }
+
+        $client = auth()->user()->client;
+
+        return \App\Models\BookingRequest::where('client_id', $client->id)
+            ->where('bookable_type', $this->getMorphClass())
+            ->where('bookable_id', $this->id)
+            ->whereIn('status', ['pending', 'accepted', 'awaiting_deposit', 'deposit_paid', 'design_sent', 'confirmed'])
+            ->exists();
+    }
+
+    protected function getMorphClass(): string
+    {
+        return match($this->artist_type) {
+            'tattooer' => 'App\\Models\\Tattooer',
+            'pierceur' => 'App\\Models\\Pierceur',
+            default => 'App\\Models\\Tattooer',
+        };
     }
 }

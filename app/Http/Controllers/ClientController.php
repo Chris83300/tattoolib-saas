@@ -67,7 +67,7 @@ class ClientController extends Controller
         $query = BookingRequest::where('client_id', $client->id)
             ->with('bookable', 'conversation.messages');
 
-        // Filtrer par statut si demandé
+        // Filtrer par statut si spécifié
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
@@ -101,33 +101,115 @@ class ClientController extends Controller
         $client = Auth::user()->client;
 
         // Vérifier que le client est participant de la conversation
-        if (!$client || !$conversation->users()->where('user_id', $client->user_id)->exists()) {
+        if (!$client || !$conversation->participants()->where('user_id', $client->user_id)->exists()) {
             abort(403, 'Non autorisé');
         }
 
         $bookingRequest = $conversation->bookingRequest;
 
-        // Vérifier que le chat est ouvert
-        $chatOpen = $bookingRequest &&
-                   $bookingRequest->status === 'accepted' &&
-                   $bookingRequest->accepted_at;
+        // Vérifier que le chat est ouvert en utilisant la méthode du modèle
+        $chatOpen = $bookingRequest && $bookingRequest->isChatOpen();
+
+        // ⭐ Récupérer les informations d'expiration pour l'affichage
+        $expiryInfo = null;
+        if ($conversation) {
+            // Toujours récupérer les infos si la conversation existe
+            $expiryInfo = [
+                'expires_at' => $conversation->expires_at,
+                'days_remaining' => $conversation->getDaysUntilExpiry(),
+                'time_remaining' => $conversation->getTimeUntilExpiry(),
+                'warning_message' => $conversation->getExpiryWarningMessage(),
+                'is_expired' => $conversation->isExpired(),
+                'expiry_type' => $conversation->expiry_type,
+                'deposit_deadline_at' => $conversation->deposit_deadline_at,
+            ];
+        }
 
         if (!$chatOpen) {
             $messages = collect([]);
         } else {
             // Récupérer les messages de la conversation
             $messages = $conversation->messages()
-                ->with('sender', 'media')
-                ->orderBy('created_at')
+                ->with('sender')
+                ->orderBy('created_at', 'asc')
                 ->get();
 
-            // Marquer les messages du tattooer comme lus
-            $conversation->messages()
-                ->where('sender_type', 'tattooer')
-                ->update(['read_by_client_at' => now()]);
+            // Marquer les messages comme lus par le client
+            $messages->where('sender_type', '!=', 'client')
+                ->whereNull('read_by_client_at')
+                ->each(function ($message) {
+                    $message->update(['read_by_client_at' => now()]);
+                });
         }
 
-        return view('client.chat', compact('conversation', 'bookingRequest', 'messages', 'chatOpen'));
+        return view('client.chat', compact('conversation', 'bookingRequest', 'messages', 'chatOpen', 'expiryInfo'));
+    }
+
+    /**
+     * Supprimer une demande de réservation (uniquement si rejetée)
+     */
+    public function bookingRequestDelete(BookingRequest $bookingRequest)
+    {
+        $client = auth()->user()->client;
+
+        // Vérifier que la demande appartient au client
+        if ($bookingRequest->client_id !== $client->id) {
+            abort(403, 'Cette demande ne vous appartient pas.');
+        }
+
+        // Vérifier que la demande est rejetée (seul statut autorisé pour suppression)
+        if ($bookingRequest->status !== 'rejected') {
+            return redirect()->back()
+                ->with('error', 'Seules les demandes refusées peuvent être supprimées.');
+        }
+
+        // Supprimer la conversation associée si elle existe (hard delete)
+        if ($bookingRequest->conversation) {
+            $bookingRequest->conversation->messages()->delete(); // Supprimer messages
+            $bookingRequest->conversation->delete(); // Supprimer conversation
+        }
+
+        // Supprimer la demande (hard delete - définitif)
+        $bookingRequest->forceDelete(); // Hard delete au lieu de soft delete
+
+        return redirect()->route('client.booking-requests')
+            ->with('success', 'La demande refusée a été supprimée définitivement de la base de données.');
+    }
+
+    /**
+     * Annuler une demande de réservation
+     */
+    public function bookingRequestCancel(BookingRequest $bookingRequest)
+    {
+        $client = auth()->user()->client;
+
+        // Vérifier que la demande appartient au client
+        if ($bookingRequest->client_id !== $client->id) {
+            abort(403, 'Cette demande ne vous appartient pas.');
+        }
+
+        // Vérifier que la demande peut être annulée
+        if (!in_array($bookingRequest->status, ['pending', 'accepted'])) {
+            return redirect()->back()
+                ->with('error', 'Cette demande ne peut plus être annulée.');
+        }
+
+        // Mettre à jour le statut
+        $bookingRequest->update([
+            'status' => 'cancelled',
+            'cancelled_by' => 'client',
+            'cancelled_at' => now(),
+            'cancellation_reason' => 'Annulation par le client',
+            'chat_status' => 'closed',
+        ]);
+
+        // Fermer la conversation associée
+        if ($bookingRequest->conversation) {
+            $bookingRequest->conversation->update(['status' => 'closed']);
+        }
+
+        return redirect()->route('client.booking-requests')
+            ->with('success', 'Votre demande a été annulée avec succès.');
     }
 
     /**
@@ -190,31 +272,44 @@ class ClientController extends Controller
         $client = Auth::user()->client;
 
         // Vérifier que le client est participant de la conversation
-        if (!$client || !$conversation->users()->where('user_id', $client->user_id)->exists()) {
+        if (!$client || !$conversation->participants()->where('user_id', $client->user_id)->exists()) {
             abort(403, 'Non autorisé');
         }
 
         $bookingRequest = $conversation->bookingRequest;
 
-        // Vérifier que le chat est ouvert
-        $chatOpen = $bookingRequest &&
-                   $bookingRequest->status === 'accepted' &&
-                   $bookingRequest->accepted_at;
+        // Vérifier que le chat est ouvert en utilisant la méthode du modèle
+        $chatOpen = $bookingRequest && $bookingRequest->isChatOpen();
 
         if (!$chatOpen) {
             return back()->with('error', 'Le chat est fermé');
         }
 
         $validated = $request->validate([
-            'content' => 'required|string|max:2000',
+            'content' => 'nullable|string|max:2000',
             'attachments.*' => 'nullable|file|mimes:jpeg,jpg,png,webp,pdf|max:10240',
         ]);
 
+        // Conserver le contenu même si vide quand il y a des pièces jointes
+        $content = $validated['content'] ?? '';
+
+        // Si le contenu est vide mais il y a des pièces jointes, ajouter un message par défaut
+        if (empty($content) && $request->hasFile('attachments')) {
+            $content = 'Image envoyée';
+        }
+
+        // Bloquer les pièces jointes si l'acompte n'est pas payé
+        if ($request->hasFile('attachments') && !$bookingRequest->deposit_paid_at) {
+            return back()->with('error', 'Les pièces jointes ne sont autorisées qu\'après paiement de l\'acompte');
+        }
+
         // Créer le message
         $message = $conversation->messages()->create([
+            'conversation_id' => $conversation->id,
+            'booking_request_id' => $bookingRequest->id, // ✅ Ajouté
             'sender_id' => Auth::id(),
             'sender_type' => 'client',
-            'content' => $validated['content'],
+            'content' => $content,
         ]);
 
         // Upload pièces jointes
@@ -223,6 +318,15 @@ class ClientController extends Controller
                 $message->addMedia($file)->toMediaCollection('attachments');
             }
         }
+
+        // Mettre à jour la conversation
+        $conversation->update([
+            'last_message_id' => $message->id,
+            'last_message_at' => now(),
+        ]);
+
+        // TODO: Notification au tattooer
+        // $bookingRequest->bookable->user->notify(new NewMessageNotification($message));
 
         return back()->with('success', 'Message envoyé');
     }

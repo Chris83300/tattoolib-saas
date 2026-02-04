@@ -36,6 +36,18 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->runInBackground();
 
+        // 🆕 Gérer le statut des chats (fermeture automatique) toutes les 10 minutes
+        $schedule->command('chat:manage-status')
+            ->everyTenMinutes()
+            ->withoutOverlapping()
+            ->runInBackground();
+
+        // ⭐ Nettoyer les conversations expirées toutes les heures
+        $schedule->command('app:schedule-conversation-cleanup')
+            ->hourly()
+            ->withoutOverlapping()
+            ->runInBackground();
+
         // Exemple d'autres tâches utiles :
 
         // Vérifier stock faible

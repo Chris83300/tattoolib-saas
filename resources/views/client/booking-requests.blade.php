@@ -7,12 +7,12 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <!-- En-tête -->
             <div class="mb-8">
-                <a href="{{ route('client.dashboard') }}"
+                <a href="{{ route('client.profile') }}"
                     class="inline-flex items-center text-ivoire-text/80 hover:text-ivoire-text mb-4">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
-                    Retour au tableau de bord
+                    Retour au profile
                 </a>
 
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
@@ -21,7 +21,7 @@
                         <p class="text-ivoire-text/70">Historique de toutes vos demandes de tatouage</p>
                     </div>
 
-                    <a href="{{ route('booking-request.form') }}"
+                    <a href="{{ route('marketplace.index') }}"
                         class="inline-flex items-center px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -81,18 +81,19 @@
                             Vous n'avez pas encore fait de demande de tatouage
                         @endif
                     </p>
-                    <a href="{{ route('booking-request.form') }}"
+                    <a href="{{ route('marketplace.index') }}"
                         class="inline-flex items-center px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
-                        Faire ma première demande
+                        Faire une demande de tatouage
                     </a>
                 </div>
             @else
                 <div class="space-y-4">
                     @foreach ($bookingRequests as $bookingRequest)
-                        <div class="bg-gris-fonde rounded-xl p-6 border border-titane/30">
+                        <div
+                            class="bg-gris-fonde rounded-xl p-6 border border-titane/30 {{ $bookingRequest->status === 'deposit_paid' ? 'ring-2 ring-vert-succes/50' : '' }} {{ $bookingRequest->status === 'rejected' ? 'ring-2 ring-rouge-alerte/50' : '' }}">
                             <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                                 <!-- Informations principales -->
                                 <div class="flex-1">
@@ -102,22 +103,50 @@
                                                 {{ $bookingRequest->tattoo_description }}
                                             </h3>
                                             <div class="flex items-center gap-3 mb-3">
-                                                <span
-                                                    class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-                                                {{ $bookingRequest->status === 'pending' ? 'bg-ambre-warning/20 text-ambre-warning' : '' }}
-                                                {{ $bookingRequest->status === 'accepted' ? 'bg-vert-succes/20 text-vert-succes' : '' }}
-                                                {{ $bookingRequest->status === 'in_progress' ? 'bg-beige-peau/20 text-beige-peau' : '' }}
-                                                {{ $bookingRequest->status === 'completed' ? 'bg-vert-succes/20 text-vert-succes' : '' }}
-                                                {{ $bookingRequest->status === 'cancelled' ? 'bg-rouge-alerte/20 text-rouge-alerte' : '' }}">
-                                                    {{ match ($bookingRequest->status) {
-                                                        'pending' => '⏳ En attente',
-                                                        'accepted' => '✓ Acceptée',
-                                                        'in_progress' => '🎨 En cours',
-                                                        'completed' => '✅ Terminée',
-                                                        'cancelled' => '❌ Annulée',
-                                                        default => $bookingRequest->status,
-                                                    } }}
-                                                </span>
+                                                @if ($bookingRequest->status === 'deposit_paid')
+                                                    <!-- Statut deposit_paid - design spécial -->
+                                                    <div
+                                                        class="inline-flex items-center px-4 py-2 bg-vert-succes/20 border border-vert-succes/30 rounded-full">
+                                                        <svg class="w-5 h-5 mr-2 text-vert-succes" fill="none"
+                                                            stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                        <span class="text-vert-succes font-medium">💰 Acompte payé</span>
+                                                    </div>
+                                                @elseif ($bookingRequest->status === 'rejected')
+                                                    <!-- Statut rejected - design spécial -->
+                                                    <div
+                                                        class="inline-flex items-center px-4 py-2 bg-rouge-alerte/20 border border-rouge-alerte/30 rounded-full">
+                                                        <svg class="w-5 h-5 mr-2 text-rouge-alerte" fill="none"
+                                                            stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>
+                                                        <span class="text-rouge-alerte font-medium">❌ Demande refusée</span>
+                                                    </div>
+                                                @else
+                                                    <!-- Autres statuts - design existant -->
+                                                    <span
+                                                        class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                                                    {{ $bookingRequest->status === 'pending' ? 'bg-ambre-warning/20 text-ambre-warning' : '' }}
+                                                    {{ $bookingRequest->status === 'accepted' || $bookingRequest->status === 'awaiting_deposit' ? 'bg-vert-succes/20 text-vert-succes' : '' }}
+                                                    {{ $bookingRequest->status === 'in_progress' ? 'bg-beige-peau/20 text-beige-peau' : '' }}
+                                                    {{ $bookingRequest->status === 'completed' ? 'bg-vert-succes/20 text-vert-succes' : '' }}
+                                                    {{ $bookingRequest->status === 'cancelled' ? 'bg-rouge-alerte/20 text-rouge-alerte' : '' }}">
+                                                        {{ match ($bookingRequest->status) {
+                                                            'pending' => '⏳ En attente',
+                                                            'accepted' => '✓ Acceptée',
+                                                            'awaiting_deposit' => '✓ Acceptée',
+                                                            'in_progress' => '🎨 En cours',
+                                                            'completed' => '✅ Terminée',
+                                                            'cancelled' => '❌ Annulée',
+                                                            default => $bookingRequest->status,
+                                                        } }}
+                                                    </span>
+                                                @endif
+
                                                 @if ($bookingRequest->unread_messages > 0)
                                                     <span
                                                         class="inline-flex items-center justify-center px-2 py-1 bg-rouge-alerte text-ivoire-text rounded-full text-xs font-bold">
@@ -125,15 +154,43 @@
                                                     </span>
                                                 @endif
                                             </div>
+
+                                            <!-- Message informatif selon statut -->
+                                            @if ($bookingRequest->status === 'deposit_paid')
+                                                <div
+                                                    class="bg-vert-succes/10 border border-vert-succes/20 rounded-lg p-3 mb-3">
+                                                    <p class="text-vert-succes text-sm font-medium">
+                                                        🎉 Super ! Votre acompte a été payé. Le chat est maintenant
+                                                        permanent pour finaliser votre projet.
+                                                    </p>
+                                                </div>
+                                            @elseif ($bookingRequest->status === 'rejected')
+                                                <div
+                                                    class="bg-rouge-alerte/10 border border-rouge-alerte/20 rounded-lg p-3 mb-3">
+                                                    <p class="text-rouge-alerte text-sm font-medium">
+                                                        😔 Cette demande n'a pas pu être acceptée. Vous pouvez faire une
+                                                        nouvelle demande.
+                                                    </p>
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
 
                                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                                        <div>
-                                            <span class="text-ivoire-text/70 block text-sm mb-1">Emplacement</span>
-                                            <span
-                                                class="text-ivoire-text font-medium">{{ $bookingRequest->tattoo_location }}</span>
-                                        </div>
+                                        @if ($bookingRequest->body_zone)
+                                            <div>
+                                                <span class="text-ivoire-text/70 block text-sm mb-1">Emplacement</span>
+                                                <span
+                                                    class="text-ivoire-text font-medium">{{ $bookingRequest->body_zone }}</span>
+                                            </div>
+                                        @endif
+                                        @if ($bookingRequest->tattoo_size)
+                                            <div>
+                                                <span class="text-ivoire-text/70 block text-sm mb-1">Taille</span>
+                                                <span
+                                                    class="text-ivoire-text font-medium">{{ $bookingRequest->tattoo_size }}</span>
+                                            </div>
+                                        @endif
                                         @if ($bookingRequest->tattoo_style)
                                             <div>
                                                 <span class="text-ivoire-text/70 block text-sm mb-1">Style</span>
@@ -141,11 +198,20 @@
                                                     class="text-ivoire-text font-medium">{{ $bookingRequest->tattoo_style }}</span>
                                             </div>
                                         @endif
-                                        @if ($bookingRequest->estimated_price)
+                                        @if ($bookingRequest->price_range_min && $bookingRequest->price_range_max)
                                             <div>
-                                                <span class="text-ivoire-text/70 block text-sm mb-1">Budget estimé</span>
+                                                <span class="text-ivoire-text/70 block text-sm mb-1">Estimation
+                                                    tattoo</span>
                                                 <span
-                                                    class="text-ivoire-text font-medium">{{ number_format($bookingRequest->estimated_price, 0) }}€</span>
+                                                    class="text-ivoire-text font-medium">{{ number_format($bookingRequest->price_range_min, 0) }}€
+                                                    - {{ number_format($bookingRequest->price_range_max, 0) }}€</span>
+                                            </div>
+                                        @elseif ($bookingRequest->estimated_total_price)
+                                            <div>
+                                                <span class="text-ivoire-text/70 block text-sm mb-1">Estimation
+                                                    tattoo</span>
+                                                <span
+                                                    class="text-ivoire-text font-medium">{{ number_format($bookingRequest->estimated_total_price, 0) }}€</span>
                                             </div>
                                         @endif
                                         <div>
@@ -156,30 +222,78 @@
                                     </div>
 
                                     @if ($bookingRequest->bookable)
-                                        <div class="flex items-center gap-2 text-sm text-ivoire-text/70 mb-4">
-                                            <div
-                                                class="w-8 h-8 bg-beige-peau rounded-full flex items-center justify-center">
-                                                <svg class="w-4 h-4 text-noir-profond" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                </svg>
-                                            </div>
-                                            <span>
-                                                Artiste: {{ $bookingRequest->bookable->user->name }}
-                                                @if ($bookingRequest->bookable_type === 'App\Models\Tattooer')
-                                                    (Tatoueur)
-                                                @elseif($bookingRequest->bookable_type === 'App\Models\StudioArtist')
-                                                    (Artiste studio)
+                                        <div class="flex items-center gap-3 text-sm text-ivoire-text/70 mb-4">
+                                            <div class="w-10 h-10 rounded-full overflow-hidden bg-beige-peau/10">
+                                                @if ($bookingRequest->bookable->getFirstMediaUrl('avatar'))
+                                                    <img src="{{ $bookingRequest->bookable->getFirstMediaUrl('avatar') }}"
+                                                        alt="Avatar de {{ $bookingRequest->bookable->user->name }}"
+                                                        class="w-full h-full object-cover">
+                                                @elseif ($bookingRequest->bookable->user->getFirstMediaUrl('avatar'))
+                                                    <img src="{{ $bookingRequest->bookable->user->getFirstMediaUrl('avatar') }}"
+                                                        alt="Avatar de {{ $bookingRequest->bookable->user->name }}"
+                                                        class="w-full h-full object-cover">
+                                                @else
+                                                    <div
+                                                        class="w-full h-full bg-beige-peau rounded-full flex items-center justify-center">
+                                                        <svg class="w-5 h-5 text-noir-profond" fill="none"
+                                                            stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                        </svg>
+                                                    </div>
                                                 @endif
-                                            </span>
+                                            </div>
+                                            <div>
+                                                <span
+                                                    class="font-medium text-ivoire-text">{{ $bookingRequest->bookable->user->name }}</span>
+                                                <div class="text-xs">
+                                                    @if ($bookingRequest->bookable_type === 'App\Models\Tattooer')
+                                                        Tatoueur indépendant
+                                                    @elseif($bookingRequest->bookable_type === 'App\Models\StudioArtist')
+                                                        Artiste de studio
+                                                    @endif
+                                                </div>
+                                            </div>
                                         </div>
                                     @endif
                                 </div>
 
                                 <!-- Actions -->
                                 <div class="flex flex-col gap-2 lg:w-48">
-                                    @if ($bookingRequest->status === 'accepted')
+                                    @if ($bookingRequest->status === 'deposit_paid')
+                                        <!-- Actions pour deposit_paid -->
+                                        <a href="{{ route('client.chat', $bookingRequest->conversation) }}"
+                                            class="flex items-center justify-center px-4 py-3 bg-vert-succes text-noir-profond rounded-lg font-semibold hover:bg-vert-succes/90 transition-colors">
+                                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.009 9.009 0 00-2.617-.656L4 19l1.383-5.344A9.002 9.002 0 016 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                            </svg>
+                                            Discuter
+                                        </a>
+                                    @elseif ($bookingRequest->status === 'rejected')
+                                        <!-- Actions pour rejected -->
+                                        <a href="{{ route('marketplace.index') }}"
+                                            class="flex items-center justify-center px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
+                                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M12 4v16m8-8H4" />
+                                            </svg>
+                                            Nouvelle demande
+                                        </a>
+                                        <button onclick="confirmDelete({{ $bookingRequest->id }})"
+                                            class="flex items-center justify-center px-4 py-2 bg-rouge-alerte text-ivoire-text rounded-lg font-semibold hover:bg-rouge-alerte/90 transition-colors">
+                                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                            Supprimer
+                                        </button>
+                                    @elseif ($bookingRequest->status === 'accepted' || $bookingRequest->status === 'awaiting_deposit')
+                                        <!-- Actions existantes -->
                                         <a href="{{ route('client.chat', $bookingRequest->conversation) }}"
                                             class="flex items-center justify-center px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
                                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor"
@@ -191,9 +305,11 @@
                                         </a>
                                     @endif
 
-                                    @if ($bookingRequest->deposit_requested_at && !$bookingRequest->deposit_paid_at)
-                                        <a href="{{ route('deposit.payment', $bookingRequest) }}"
-                                            class="flex items-center justify-center px-4 py-2 bg-vert-succes text-noir-profond rounded-lg font-semibold hover:bg-vert-succes/90 transition-colors">
+                                    @if (
+                                        ($bookingRequest->status === 'awaiting_deposit' || $bookingRequest->deposit_requested_at) &&
+                                            !$bookingRequest->deposit_paid_at)
+                                        <a href="{{ route('deposit.payment', $bookingRequest->id) }}"
+                                            class="flex items-center justify-center px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
                                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -227,4 +343,38 @@
             @endif
         </div>
     </div>
+
+    <!-- Script pour la suppression -->
+    <script>
+        function confirmDelete(bookingRequestId) {
+            if (confirm(
+                    'Êtes-vous sûr de vouloir supprimer définitivement cette demande ?\n\nCette action est irréversible.'
+                )) {
+                // Créer un formulaire temporaire pour la suppression
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/client/booking-request/${bookingRequestId}/delete`;
+
+                // Ajouter le token CSRF
+                const csrfToken = document.querySelector('meta[name="csrf-token"]');
+                if (csrfToken) {
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = '_token';
+                    csrfInput.value = csrfToken.getAttribute('content');
+                    form.appendChild(csrfInput);
+                }
+
+                // Ajouter la méthode DELETE (spoofing)
+                const methodInput = document.createElement('input');
+                methodInput.type = 'hidden';
+                methodInput.name = '_method';
+                methodInput.value = 'DELETE';
+                form.appendChild(methodInput);
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    </script>
 @endsection

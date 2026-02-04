@@ -1,0 +1,718 @@
+# AUDIT DE QUALITÉ DE CODE - TATTOOLIB SAAS
+# Analyse des controllers, resources et requests (hors API/Auth/Client déjà audités)
+# Généré le : 4 février 2026
+# Basé sur : contexte_general.txt + audit_securite.txt
+
+==============================================
+## 1. SYNTHÈSE DE LA QUALITÉ DE CODE
+==============================================
+
+### 🟢 Points forts identifiés
+- **Structure MVC cohérente** : Controllers bien organisés
+- **Form Requests** : Validation centralisée et réutilisable
+- **API Resources** : Transformation des données propre
+- **Logging structuré** : Utilisation de Log::info() pour le debugging
+- **Gestion des erreurs** : Try/catch bien implémentés
+- **Utilisation des traits** : Code réutilisable (HasMedia, etc.)
+
+### 🟡 Points moyens identifiés
+- **Code dupliqué** : Logique de vérification répétée
+- **Controllers volumineux** : Certaines méthodes trop longues
+- **Requêtes N+1** : Eager loading partiellement implémenté
+- **TODOs non résolus** : 4 TODOs identifiés
+
+### 🔴 Points faibles critiques
+- **Validation incohérente** : Pas de Form Request pour certains controllers
+- **Performance** : Requêtes multiples dans les boucles
+- **Sécurité** : Pas de sanitization XSS (déjà identifié dans audit_securite.txt)
+- **Magic strings** : Constantes non définies
+
+==============================================
+## 2. ANALYSE DÉTAILLÉE PAR FICHIER
+
+==============================================
+## 2.1 CONTROLLERS PRINCIPAUX
+
+### DepositController.php
+**Taille** : 133 lignes - ✅ Taille correcte
+
+#### 🟢 Forces
+- **Validation des accès** : Vérification propriété booking request
+- **Gestion des états** : Vérification statut et délais
+- **Stripe bien intégré** : Configuration correcte des sessions
+- **Logging absent** : Pas de logs de debug en production
+
+#### 🔴 Faiblesses
+1. **Code dupliqué** : Vérifications répétées dans payment() et process()
+```php
+// Dans payment() - lignes 20-41
+if ($bookingRequest->client_id !== $client->id) {
+    abort(403, 'Cette demande ne vous appartient pas.');
+}
+
+// Dans process() - lignes 54-68
+if ($bookingRequest->client_id !== $client->id) {
+    abort(403, 'Cette demande ne vous appartient pas.');
+}
+```
+
+2. **Pas de Form Request** : Validation directement dans le controller
+
+#### 🔄 Optimisations recommandées
+```php
+// Créer un trait ou une méthode privée
+private function validateBookingRequestAccess(BookingRequest $bookingRequest): void
+{
+    $client = auth()->user()->client;
+    
+    abort_if($bookingRequest->client_id !== $client->id, 403, 'Cette demande ne vous appartient pas.');
+    abort_if($bookingRequest->deposit_paid_at, 302, route('client.booking-request.show', $bookingRequest))
+        ->with('info', 'L\'acompte a déjà été payé.');
+    abort_if($bookingRequest->client_payment_deadline?->isPast(), 302, route('client.booking-requests'))
+        ->with('error', 'Le délai de paiement est expiré.');
+}
+```
+
+---
+
+### MarketplaceController.php
+**Taille** : 62 lignes - ✅ Taille correcte
+
+#### 🟢 Forces
+- **Code simple et lisible** : Logique claire
+- **Requêtes optimisées** : with() utilisé correctement
+- **Gestion du fallback** : Recherche dans pierceurs si pas trouvé dans tattooers
+
+#### 🔴 Faiblesses
+1. **Requêtes multiples** : 2 requêtes séparées au lieu d'une union
+```php
+// Lignes 25-41 : 2 requêtes séparées
+$artist = Tattooer::where('slug', $slug)->first();
+if (!$artist) {
+    $artist = Pierceur::where('slug', $slug)->first();
+}
+```
+
+2. **Hardcoded values** : Stats temporaires avec valeurs fixes
+```php
+$stats = [
+    'rating' => 0, // Temporaire
+    'reviews_count' => 0, // Temporaire
+];
+```
+
+#### 🔄 Optimisations recommandées
+```php
+// Utiliser une requête union
+$artist = Tattooer::where('slug', $slug)
+    ->whereHas('user', fn($q) => $q->whereIn('status', ['active', 'pending_verification']))
+    ->with('user')
+    ->first();
+
+if (!$artist) {
+    $artist = Pierceur::where('slug', $slug)
+        ->whereHas('user', fn($q) => $q->whereIn('status', ['active', 'pending_verification']))
+        ->with('user')
+        ->first();
+}
+
+// Ou mieux : créer une méthode dans un Service
+$artist = $this->artistService->findBySlug($slug);
+```
+
+---
+
+### RegisterController.php
+**Taille** : 222 lignes - ⚠️ Un peu long
+
+#### 🟢 Forces
+- **Validation robuste** : Règles de validation complètes
+- **Gestion des erreurs** : Try/catch avec logging
+- **Transactions implicites** : Création user + profil atomique
+
+#### 🔴 Faiblesses
+1. **Code très dupliqué** : 3 méthodes quasi identiques
+```php
+// submitClient(), submitTattooer(), submitPierceur() 
+// Toutes ont la même structure : validation -> user -> profil -> login
+```
+
+2. **Logging de debug en production** : Log::info() avec données sensibles
+```php
+Log::info('submitTattooer appelé avec: ' . json_encode($request->all()));
+Log::info('Validation passée: ' . json_encode($validated));
+```
+
+3. **TODO non résolu** : Modèle Studio non implémenté
+```php
+// TODO: Créer le modèle Studio (ligne 213)
+```
+
+#### 🔄 Optimisations recommandées
+```php
+// Créer une méthode de base réutilisable
+private function registerUser(array $userData, array $profileData, string $role): User
+{
+    DB::beginTransaction();
+    
+    try {
+        $user = User::create([
+            'name' => $userData['name'],
+            'email' => $userData['email'],
+            'password' => Hash::make($userData['password']),
+            'role' => $role,
+            'status' => $role === 'client' ? 'active' : 'pending_verification',
+        ]);
+
+        $this->createProfile($user, $profileData, $role);
+        
+        DB::commit();
+        
+        Auth::login($user);
+        
+        return $user;
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error('Registration failed', ['role' => $role, 'error' => $e->getMessage()]);
+        throw $e;
+    }
+}
+```
+
+---
+
+### StripeWebhookController.php
+**Taille** : 129 lignes - ✅ Taille correcte
+
+#### 🟢 Forces
+- **Sécurité webhook** : Vérification signature implémentée ✅
+- **Gestion des erreurs** : Try/catch approprié
+- **Logging structuré** : Logs informatifs sans données sensibles
+
+#### 🔴 Faiblesses
+1. **TODO non résolu** : Notifications manquantes
+```php
+// TODO: Notification tattooer (ligne 100)
+```
+
+2. **Logique métier dans le controller** : Devrait être dans un Service
+```php
+// Lignes 77-98 : Logique complexe de mise à jour
+$bookingRequest->update([...]);
+$bookingRequest->update([...]);
+if ($bookingRequest->conversation) {
+    $bookingRequest->conversation->update([...]);
+}
+```
+
+#### 🔄 Optimisations recommandées
+```php
+// Créer un BookingRequestService
+class BookingRequestService 
+{
+    public function markDepositPaid(BookingRequest $bookingRequest, string $paymentIntent): void
+    {
+        DB::transaction(function () use ($bookingRequest, $paymentIntent) {
+            $bookingRequest->update([
+                'status' => BookingRequest::STATUS_DEPOSIT_PAID,
+                'deposit_paid_at' => now(),
+                'stripe_payment_intent_id' => $paymentIntent,
+            ]);
+            
+            $this->extendChat($bookingRequest);
+            $this->notifyTattooer($bookingRequest);
+        });
+    }
+}
+```
+
+---
+
+### TattooerController.php
+**Taille** : 1312 lignes - 🔴 TROP VOLUMINEUX
+
+#### 🟢 Forces
+- **Méthodes bien nommées** : Noms explicites
+- **Validation présente** : validate() utilisé
+- **Gestion médias** : Spatie MediaLibrary bien intégré
+
+#### 🔴 Faiblesses critiques
+1. **Controller monolithique** : 1312 lignes = 10+ controllers
+2. **Code massivement dupliqué** : Vérifications accès répétées
+3. **Méthodes trop longues** : acceptRequest() 75+ lignes
+4. **Requêtes N+1** : Plusieurs boucles avec ->get()
+5. **TODO non résolu** : Notifications manquantes
+
+#### 🔄 Optimisations recommandées
+**Découpage suggéré** :
+- `TattooerProfileController` : 200 lignes
+- `TattooerBookingController` : 150 lignes  
+- `TattooerCalendarController` : 100 lignes
+- `TattooerMessageController` : 100 lignes
+- `TattooerPortfolioController` : 100 lignes
+- `TattooerSettingsController` : 150 lignes
+
+---
+
+==============================================
+## 2.2 API RESOURCES
+
+### ArtistResource.php
+**Taille** : 168 lignes - ✅ Taille correcte
+
+#### 🟢 Forces
+- **Transformation propre** : toArray() bien structuré
+- **Méthodes utilitaires** : getAvatarUrl(), getBadges()
+- **Fallbacks intelligents** : UI Avatars si pas d'avatar
+- **Lazy loading** : getPortfolioImages() vide pour l'instant
+
+#### 🔴 Faiblesses
+1. **Requête dans le Resource** : hasActiveRequestForCurrentUser()
+```php
+// Lignes 152-156 : Requête DB dans le Resource
+return \App\Models\BookingRequest::where('client_id', $client->id)
+    ->where('bookable_type', $this->getMorphClass())
+    ->where('bookable_id', $this->id)
+    ->whereIn('status', [...])
+    ->exists();
+```
+
+2. **Logique conditionnelle complexe** : getContactUrl()
+```php
+// Lignes 132-142 : Logique métier dans le Resource
+if (!auth()->check() || !auth()->user()->client) {
+    return route('login');
+}
+```
+
+3. **Hardcoded values** : Couleurs des badges
+```php
+'color' => 'beige-peau', // Ligne 107
+'color' => 'vert-succes', // Ligne 123
+```
+
+#### 🔄 Optimisations recommandées
+```php
+// Précharger les données dans le controller
+$artist->load(['activeRequests' => function($query) {
+    $query->where('client_id', auth()->user()->client->id ?? 0);
+}]);
+
+// Créer des constantes pour les couleurs
+class BadgeColors {
+    const VERIFIED = 'beige-peau';
+    const SUCCESS = 'vert-succes';
+    const WARNING = 'orange-warning';
+}
+
+// Déplacer la logique vers un Service
+class ArtistService 
+{
+    public function getContactUrl(Artist $artist): ?string 
+    {
+        return $this->contactUrlGenerator->generate($artist);
+    }
+}
+```
+
+---
+
+### PierceurResource.php & Collections
+**Analyse** : Similaires à ArtistResource, mêmes recommandations
+
+---
+
+==============================================
+## 2.3 FORM REQUESTS
+
+### StoreFcmTokenRequest.php
+**Taille** : 39 lignes - ✅ Excellent
+
+#### 🟢 Forces
+- **Validation simple** : Règles minimales et appropriées
+- **Autorisation correcte** : Auth::check()
+- **Messages personnalisés** : Messages d'erreur clairs
+
+#### 🔴 Faiblesses
+Aucune - Code parfait pour ce cas d'usage
+
+---
+
+### UpdateBookingRequestRequest.php
+**Taille** : 45 lignes - ✅ Bon
+
+#### 🟢 Forces
+- **Validation conditionnelle** : sometimes() bien utilisé
+- **Règles cohérentes** : Similaires à StoreBookingRequestRequest
+
+#### 🔴 Faiblesses
+1. **authorize() = true** : Pas de vérification d'autorisation
+```php
+public function authorize(): bool
+{
+    return true; // ❌ Devrait vérifier la propriété
+}
+```
+
+#### 🔄 Optimisations recommandées
+```php
+public function authorize(): bool
+{
+    $bookingRequest = $this->route('booking_request');
+    $user = auth()->user();
+    
+    return $user && (
+        ($user->isClient() && $bookingRequest->client_id === $user->client->id) ||
+        ($user->isTattooer() && $bookingRequest->bookable->user_id === $user->id)
+    );
+}
+```
+
+---
+
+### StoreBookingRequestRequest.php
+**Taille** : 58 lignes - ✅ Bon
+
+#### 🟢 Forces
+- **Validation complète** : Toutes les règles nécessaires
+- **Messages personnalisés** : Messages d'erreur détaillés
+
+#### 🔴 Faiblesses
+1. **authorize() = true** : Pas de vérification (même problème)
+
+---
+
+==============================================
+## 3. PROBLÈMES RÉCURRENTS IDENTIFIÉS
+
+### 3.1 Code Dupliqué
+
+#### Vérifications d'accès
+**Présent dans** : DepositController, TattooerController, ClientController
+```php
+// Pattern répété
+if ($bookingRequest->client_id !== $client->id) {
+    abort(403, 'Cette demande ne vous appartient pas.');
+}
+```
+
+#### Création utilisateurs
+**Présent dans** : RegisterController (3 méthodes similaires)
+```php
+// Pattern répété
+$user = User::create([...]);
+$profile = [Model]::create([...]);
+Auth::login($user);
+return redirect()->route([...]);
+```
+
+#### Upload de médias
+**Présent dans** : TattooerController (multiple méthodes)
+```php
+// Pattern répété
+if ($request->hasFile('avatar')) {
+    $tattooer->addMedia($request->file('avatar'))->toMediaCollection('avatar');
+}
+```
+
+### 3.2 Requêtes N+1 Identifiées
+
+#### MarketplaceController
+```php
+// 2 requêtes séparées au lieu d'une optimisée
+$artist = Tattooer::where('slug', $slug)->first();
+if (!$artist) {
+    $artist = Pierceur::where('slug', $slug)->first();
+}
+```
+
+#### ArtistResource
+```php
+// Requête dans le Resource (N+1 potentiel)
+return \App\Models\BookingRequest::where(...)->exists();
+```
+
+#### TattooerController
+```php
+// Boucles avec ->get() (identifié dans grep_search)
+foreach ($appointments as $appointment) {
+    // $appointment->client génère N+1
+}
+```
+
+### 3.3 TODOs Non Résolus
+
+1. **TattooerController:471** - Notification client message
+2. **StripeWebhookController:100** - Notification tattooer acompte  
+3. **RegisterController:213** - Créer modèle Studio
+4. **ClientController:277** - Notification tattooer message
+
+### 3.4 Magic Strings et Hardcoded Values
+
+#### Couleurs et textes
+```php
+'color' => 'beige-peau',
+'color' => 'vert-succes',
+'rating' => 0, // Temporaire
+```
+
+#### Routes et URLs
+```php
+return route('marketplace.tattooer.show', $this->slug);
+```
+
+==============================================
+## 4. ANALYSE DE PERFORMANCE
+
+### 4.1 Requêtes Optimisées ✅
+
+#### Eager loading correct
+```php
+// MarketplaceController:46
+$artist->load(['media']);
+
+// TattooerController:178
+$bookingRequest->load(['client.user', 'conversation', 'media']);
+```
+
+#### Pagination utilisée
+```php
+// Api controllers
+->paginate(20);
+```
+
+### 4.2 Problèmes de Performance 🔴
+
+#### Requêtes multiples évitables
+```php
+// DepositController : 2x les mêmes vérifications
+// RegisterController : 3x la même logique
+// MarketplaceController : 2 requêtes au lieu d'une
+```
+
+#### Requêtes dans les boucles
+```php
+// TattooerController : foreach avec ->get()
+// ArtistResource : Requête DB dans le Resource
+```
+
+#### Chargement de données inutiles
+```php
+// ArtistResource : Toutes les données chargées même si non utilisées
+```
+
+### 4.3 Recommandations Performance
+
+1. **Implémenter un cache** : Pour les stats et données fréquemment accédées
+2. **Utiliser eager loading systématique** : Éviter les N+1
+3. **Déplacer la logique métier** : Des Resources vers les Services
+4. **Optimiser les requêtes** : Union au lieu de multiples requêtes
+
+---
+
+==============================================
+## 5. SUGGESTIONS D'ARCHITECTURE
+
+### 5.1 Services à Créer
+
+#### BookingRequestService
+```php
+class BookingRequestService 
+{
+    public function validateAccess(BookingRequest $bookingRequest, User $user): void;
+    public function markDepositPaid(BookingRequest $bookingRequest, string $paymentIntent): void;
+    public function extendChat(BookingRequest $bookingRequest): void;
+}
+```
+
+#### ArtistService
+```php
+class ArtistService 
+{
+    public function findBySlug(string $slug): ?Model;
+    public function getPublicProfile(Artist $artist): array;
+    public function getContactUrl(Artist $artist): ?string;
+}
+```
+
+#### RegistrationService
+```php
+class RegistrationService 
+{
+    public function register(array $data, string $role): User;
+    public function createProfile(User $user, array $data, string $role): void;
+}
+```
+
+### 5.2 Traits à Créer
+
+#### ValidatesBookingRequestAccess
+```php
+trait ValidatesBookingRequestAccess 
+{
+    protected function validateBookingRequestAccess(BookingRequest $bookingRequest): void;
+    protected function validateBookingRequestStatus(BookingRequest $bookingRequest, array $allowedStatuses): void;
+}
+```
+
+#### HandlesMediaUpload
+```php
+trait HandlesMediaUpload 
+{
+    protected function uploadAvatar($model, $file): void;
+    protected function uploadBanner($model, $file): void;
+    protected function uploadPortfolio($model, array $files): void;
+}
+```
+
+### 5.3 Constants à Définir
+
+#### BadgeColors
+```php
+class BadgeColors 
+{
+    const VERIFIED = 'beige-peau';
+    const SUCCESS = 'vert-succes';
+    const WARNING = 'orange-warning';
+    const INFO = 'bleu-info';
+}
+```
+
+#### BookingRequestStatus
+```php
+class BookingRequestStatus 
+{
+    const PENDING = 'pending';
+    const ACCEPTED = 'accepted';
+    const AWAITING_DEPOSIT = 'awaiting_deposit';
+    // ...
+}
+```
+
+---
+
+==============================================
+## 6. RECOMMANDATIONS PRIORITAIRES
+
+### 🚨 URGENT (Cette semaine)
+
+#### 1. Découper TattooerController
+**Action** : Séparer en 6 controllers spécialisés
+**Impact** : Maintenabilité massive, code testable
+
+#### 2. Créer BookingRequestService
+**Action** : Extraire la logique métier des controllers
+**Impact** : Réduction code dupliqué, meilleure séparation des responsabilités
+
+#### 3. Résoudre les 4 TODOs
+**Action** : Implémenter les notifications manquantes
+**Impact** : Fonctionnalités complètes
+
+### ⚠️ IMPORTANT (Dans les 2 semaines)
+
+#### 4. Optimiser les requêtes N+1
+**Action** : Identifier et corriger toutes les boucles avec ->get()
+**Impact** : Performance x2-x3
+
+#### 5. Créer les Services manquants
+**Action** : ArtistService, RegistrationService
+**Impact** : Code plus propre, réutilisable
+
+#### 6. Ajouter les authorizations dans Form Requests
+**Action** : Implémenter authorize() dans tous les Form Requests
+**Impact** : Sécurité renforcée
+
+### 🔄 AMÉLIORATIONS CONTINUES
+
+#### 7. Implémenter le cache
+**Action** : Cache Redis pour les stats et profils publics
+**Impact** : Performance x5 pour données fréquemment accédées
+
+#### 8. Créer les traits réutilisables
+**Action** : ValidatesBookingRequestAccess, HandlesMediaUpload
+**Impact** : Réduction code dupliqué
+
+#### 9. Définir les constantes
+**Action** : Remplacer tous les magic strings
+**Impact** : Maintenance facilitée
+
+#### 10. Ajouter les tests unitaires
+**Action** : Tester les Services et les Form Requests
+**Impact** : Qualité et confiance dans le code
+
+---
+
+==============================================
+## 7. MÉTRIQUES DE QUALITÉ ACTUELLES
+
+### Taille des fichiers
+- **TattooerController** : 1312 lignes 🔴 (Trop grand)
+- **DepositController** : 133 lignes ✅ (Correct)
+- **MarketplaceController** : 62 lignes ✅ (Correct)
+- **RegisterController** : 222 lignes ⚠️ (Un peu grand)
+
+### Complexité cyclomatique estimée
+- **TattooerController** : Élevée 🔴
+- **Autres controllers** : Moyenne ✅
+
+### Couverture de validation
+- **Form Requests** : 4/6 avec authorize() = true ⚠️
+- **Validation inline** : Présente mais dupliquée ⚠️
+
+### Performance
+- **Requêtes N+1** : 3 identifiés 🔴
+- **Eager loading** : Partiellement implémenté ⚠️
+- **Cache** : Non implémenté 🔴
+
+### Code dupliqué
+- **Vérifications accès** : 5+ occurrences 🔴
+- **Création utilisateurs** : 3 occurrences 🔴
+- **Upload médias** : 4+ occurrences 🔴
+
+---
+
+==============================================
+## 8. SCORE DE QUALITÉ GLOBAL
+
+### Calcul basé sur les critères :
+- **Structure** : 6/10 (bon mais TattooerController monolithique)
+- **Validation** : 7/10 (présente mais dupliquée)
+- **Performance** : 5/10 (N+1 présents, pas de cache)
+- **Maintenabilité** : 4/10 (code dupliqué, controllers volumineux)
+- **Sécurité** : 6/10 (voir audit_securite.txt)
+- **Tests** : 2/10 (apparemment absents)
+
+### **Score global : 5.0/10**
+
+**Classification** : ⚠️ **Moyen** - Améliorations nécessaires pour la production
+
+Avec les corrections recommandées (découpage controllers, services, cache), le score passerait à **8.0/10**.
+
+---
+
+==============================================
+## 9. CONCLUSION ET RECOMMANDATIONS FINALES
+
+### État actuel
+Le code présente des **fondations solides** avec Laravel bien utilisé, mais souffre de **problèmes de scalabilité** :
+- Controllers trop volumineux
+- Code dupliqué important  
+- Performance sous-optimale
+
+### Feuille de route suggérée
+1. **Semaine 1** : Découper TattooerController + créer BookingRequestService
+2. **Semaine 2** : Optimiser les requêtes N+1 + implémenter le cache
+3. **Semaine 3** : Créer les Services restants + traits
+4. **Semaine 4** : Tests unitaires + documentation
+
+### Impact attendu
+- **Performance** : x2-x3 plus rapide
+- **Maintenabilité** : Code modulaire et testable
+- **Qualité** : Score 8/10 atteignable
+
+### Recommandation finale
+Le code est **fonnellement correct** mais nécessite une **refactorisation structurée** avant la mise en production à grande échelle. Les problèmes identifiés sont des **anti-patterns classiques** qui deviendront des blocants à la montée en charge.
+
+==============================================
+Fin de l'audit de qualité de code - 4 février 2026
+==============================================

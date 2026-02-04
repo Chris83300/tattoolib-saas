@@ -1,3 +1,26 @@
+php artisan tinker
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+
+User::create([
+    'name' => 'Admin',
+    'email' => 'admin@inkpik.com',
+    'password' => Hash::make('Admin123!'),
+    'is_admin' => true,
+]);
+
+
+
 admin@inkpik.com
 
 Admin123!
+
+phrase marketing :
+
+Trouver un tatoueur n’a jamais été le vrai problème.
+
+Le vrai enjeu, c’est de permettre aux artistes de travailler dans de bonnes conditions.
+
+C’est exactement ce pour quoi Ink&Pik a vu le jour.
+
+Un outil penser par un Tatoueur pour des Tatoueurs/Pierceur et Bodemodeur (personne n'est mis de côté)

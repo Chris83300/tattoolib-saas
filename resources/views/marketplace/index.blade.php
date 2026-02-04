@@ -229,9 +229,11 @@
                     <x-ui.button variant="secondary" size="sm" href="#" class="flex-1 artist-profile-link">
                         Voir le profil
                     </x-ui.button>
-                    <x-ui.button variant="primary" size="sm" href="/contact" class="flex-1">
-                        📅 Prendre RDV
-                    </x-ui.button>
+
+                    <!-- Bouton Contacter dynamique -->
+                    <div class="flex-1 artist-contact-container">
+                        <!-- Sera remplacé par JavaScript -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -462,6 +464,35 @@
                     // Lien profil
                     const profileLink = card.querySelector('.artist-profile-link');
                     profileLink.href = artist.profile_url;
+
+                    // Bouton Contacter dynamique
+                    const contactContainer = card.querySelector('.artist-contact-container');
+
+                    if (artist.has_active_request) {
+                        // Badge "Demande en cours"
+                        contactContainer.innerHTML = `
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-beige-peau/20 text-beige-peau rounded-lg text-sm font-semibold w-full justify-center">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Demande en cours
+                            </span>
+                        `;
+                    } else if (artist.contact_url) {
+                        // Bouton normal "Contacter"
+                        contactContainer.innerHTML = `
+                            <x-ui.button variant="primary" size="sm" href="${artist.contact_url}" class="flex-1">
+                                Contacter
+                            </x-ui.button>
+                        `;
+                    } else {
+                        // Pas de bouton (non connecté ou autre)
+                        contactContainer.innerHTML = `
+                            <x-ui.button variant="secondary" size="sm" href="/login" class="flex-1">
+                                Se connecter
+                            </x-ui.button>
+                        `;
+                    }
 
                     return card;
                 },

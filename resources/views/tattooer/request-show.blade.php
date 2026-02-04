@@ -3,7 +3,7 @@
 @section('title', 'Détails de la demande')
 
 @section('content')
-    <div class="min-h-screen bg-noir-profond">
+    <div x-data="{ showModal: false }" class="min-h-screen bg-noir-profond">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <!-- En-tête -->
             <div class="mb-8">
@@ -26,39 +26,47 @@
                     <div class="bg-titane/20 rounded-xl p-6 border border-titane/30">
                         <h2 class="text-xl font-bold text-ivoire-text mb-4">Informations client</h2>
 
-                        @if ($bookingRequest->client)
-                            <div class="space-y-3">
-                                <div class="flex justify-between">
-                                    <span class="text-ivoire-text/70">Nom complet :</span>
-                                    <span class="text-ivoire-text font-semibold">
-                                        {{ $bookingRequest->client->first_name }} {{ $bookingRequest->client->last_name }}
-                                    </span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-ivoire-text/70">Email :</span>
-                                    <span class="text-ivoire-text">{{ $bookingRequest->client->user->email }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-ivoire-text/70">Téléphone :</span>
-                                    <span
-                                        class="text-ivoire-text">{{ $bookingRequest->client->phone ?: 'Non renseigné' }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-ivoire-text/70">Date de naissance :</span>
-                                    <span class="text-ivoire-text">
-                                        {{ $bookingRequest->client->birth_date ? $bookingRequest->client->birth_date->format('d/m/Y') . ' (' . $bookingRequest->client->birth_date->age . ' ans)' : 'Non renseignée' }}
-                                    </span>
-                                </div>
-                                @if ($bookingRequest->client->address)
-                                    <div class="flex justify-between">
-                                        <span class="text-ivoire-text/70">Adresse :</span>
-                                        <span class="text-ivoire-text">{{ $bookingRequest->client->address }}</span>
-                                    </div>
-                                @endif
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-ivoire-text/70">Nom complet :</span>
+                                <span class="text-ivoire-text font-semibold">
+                                    {{ $bookingRequest->client?->first_name }} {{ $bookingRequest->client?->last_name }}
+                                </span>
                             </div>
-                        @else
-                            <p class="text-ivoire-text/50">Informations client non disponibles</p>
-                        @endif
+                            @if ($bookingRequest->client?->pseudo)
+                                <div class="flex justify-between">
+                                    <span class="text-ivoire-text/70">Pseudo :</span>
+                                    <span class="text-ivoire-text">{{ $bookingRequest->client->pseudo }}</span>
+                                </div>
+                            @endif
+                            <div class="flex justify-between">
+                                <span class="text-ivoire-text/70">Email :</span>
+                                <span
+                                    class="text-ivoire-text">{{ $bookingRequest->client?->user?->email ?: 'Non renseigné' }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-ivoire-text/70">Téléphone :</span>
+                                <span
+                                    class="text-ivoire-text">{{ $bookingRequest->client?->phone ?: 'Non renseigné' }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-ivoire-text/70">Date de naissance :</span>
+                                <span class="text-ivoire-text">
+                                    @if ($bookingRequest->client?->birth_date)
+                                        {{ $bookingRequest->client->birth_date->format('d/m/Y') }}
+                                        ({{ $bookingRequest->client->birth_date->age }} ans)
+                                    @else
+                                        Non renseignée
+                                    @endif
+                                </span>
+                            </div>
+                            @if ($bookingRequest->client?->address)
+                                <div class="flex justify-between">
+                                    <span class="text-ivoire-text/70">Adresse :</span>
+                                    <span class="text-ivoire-text">{{ $bookingRequest->client->address }}</span>
+                                </div>
+                            @endif
+                        </div>
                     </div>
 
                     <!-- Détails du projet -->
@@ -68,31 +76,35 @@
                         <div class="space-y-4">
                             <div>
                                 <span class="text-ivoire-text/70 block mb-1">Description :</span>
-                                <p class="text-ivoire-text">{{ $bookingRequest->tattoo_description }}</p>
+                                <p class="text-ivoire-text">{{ $bookingRequest->description }}</p>
                             </div>
 
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <span class="text-ivoire-text/70 block mb-1">Emplacement :</span>
-                                    <span
-                                        class="text-ivoire-text font-semibold">{{ $bookingRequest->tattoo_location }}</span>
+                                    <span class="text-ivoire-text font-semibold">{{ $bookingRequest->body_zone }}</span>
                                 </div>
                                 <div>
-                                    <span class="text-ivoire-text/70 block mb-1">Style :</span>
-                                    <span class="text-ivoire-text font-semibold">{{ $bookingRequest->tattoo_style }}</span>
+                                    <span class="text-ivoire-text/70 block mb-1">Taille :</span>
+                                    <span class="text-ivoire-text font-semibold">{{ $bookingRequest->tattoo_size }}</span>
                                 </div>
                             </div>
 
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <span class="text-ivoire-text/70 block mb-1">Prix estimé :</span>
+                                    <span class="text-ivoire-text/70 block mb-1">Budget estimé :</span>
                                     <span
-                                        class="text-ivoire-text font-semibold">{{ $bookingRequest->estimated_price ? number_format($bookingRequest->estimated_price, 2, ',', ' ') . ' €' : 'Non défini' }}</span>
+                                        class="text-ivoire-text font-semibold">{{ $bookingRequest->estimated_total_price ? number_format($bookingRequest->estimated_total_price, 2, ',', ' ') . ' €' : 'Non défini' }}</span>
                                 </div>
                                 <div>
-                                    <span class="text-ivoire-text/70 block mb-1">Date proposée :</span>
-                                    <span
-                                        class="text-ivoire-text font-semibold">{{ $bookingRequest->proposed_date ? $bookingRequest->proposed_date->format('d/m/Y') : 'Non définie' }}</span>
+                                    <span class="text-ivoire-text/70 block mb-1">Date souhaitée :</span>
+                                    <span class="text-ivoire-text font-semibold">
+                                        @if ($bookingRequest->preferred_date)
+                                            {{ $bookingRequest->preferred_date->format('d/m/Y') }}
+                                        @else
+                                            Non définie
+                                        @endif
+                                    </span>
                                 </div>
                             </div>
 
@@ -137,15 +149,11 @@
                             <h3 class="text-lg font-bold text-ivoire-text mb-4">Actions</h3>
 
                             <div class="space-y-3">
-                                <form action="{{ route('tattooer.request-accept', $bookingRequest) }}" method="POST"
-                                    class="inline">
-                                    @csrf
-                                    <button type="submit"
-                                        class="w-full px-4 py-3 bg-vert-succes text-noir-profond rounded-lg font-semibold hover:bg-vert-succes/90 transition-colors"
-                                        onclick="return confirm('Accepter cette demande ?')">
-                                        ✓ Accepter
-                                    </button>
-                                </form>
+                                <!-- Bouton modal acceptation (uniquement si pending) -->
+                                <button type="button" @click="showModal = true" @click.stop
+                                    class="w-full px-4 py-3 bg-vert-succes text-noir-profond rounded-lg font-semibold hover:bg-vert-succes/90 transition-all">
+                                    ✓ Accepter la demande
+                                </button>
 
                                 <form action="{{ route('tattooer.request-reject', $bookingRequest) }}" method="POST"
                                     class="inline">
@@ -158,26 +166,107 @@
                                 </form>
                             </div>
                         </div>
-                    @endif
+                    @elseif (in_array($bookingRequest->status, ['accepted', 'awaiting_deposit', 'deposit_paid', 'design_sent', 'confirmed']))
+                        <!-- Ici : AFFICHER les détails de la demande (infos remplies dans modal) -->
+                        <div class="bg-vert-succes/10 border border-vert-succes/30 rounded-xl p-6">
+                            <h3 class="text-lg font-bold text-ivoire-text mb-4">📋 Détails de votre proposition</h3>
 
-                    @if ($bookingRequest->status === 'accepted')
-                        <div class="bg-titane/20 rounded-xl p-6 border border-titane/30">
-                            <h3 class="text-lg font-bold text-ivoire-text mb-4">Prochaines étapes</h3>
+                            <div class="space-y-4">
+                                <!-- 💰 Fourchette prix -->
+                                @if ($bookingRequest->price_range_min || $bookingRequest->price_range_max)
+                                    <div class="bg-noir-profond/50 rounded-lg p-4">
+                                        <h4 class="font-semibold text-ivoire-text/80 text-sm mb-2">💰 Tarif estimé</h4>
+                                        <p class="text-ivoire-text">
+                                            Entre <span
+                                                class="font-bold text-beige-peau">{{ number_format($bookingRequest->price_range_min, 2, ',', ' ') }}
+                                                €</span>
+                                            et <span
+                                                class="font-bold text-beige-peau">{{ number_format($bookingRequest->price_range_max, 2, ',', ' ') }}
+                                                €</span>
+                                        </p>
+                                        @if ($bookingRequest->estimated_total_price)
+                                            <p class="text-ivoire-text/60 text-sm mt-1">
+                                                Estimation finale : <span
+                                                    class="text-ivoire-text font-semibold">{{ number_format($bookingRequest->estimated_total_price, 2, ',', ' ') }}
+                                                    €</span>
+                                            </p>
+                                        @endif
+                                    </div>
+                                @endif
 
-                            <div class="space-y-3">
-                                <!-- Bouton Chat -->
-                                <a href="{{ route('tattooer.message.show', $bookingRequest) }}"
-                                    class="block w-full px-4 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors text-center">
-                                    💬 Discuter avec le client
-                                </a>
+                                <!-- 📅 Dates proposées -->
+                                @if (
+                                    $bookingRequest->proposed_dates &&
+                                        is_array($bookingRequest->proposed_dates) &&
+                                        count($bookingRequest->proposed_dates) > 0)
+                                    <div class="bg-noir-profond/50 rounded-lg p-4">
+                                        <h4 class="font-semibold text-ivoire-text/80 text-sm mb-2">📅 Dates proposées</h4>
+                                        <div class="flex flex-wrap gap-2">
+                                            @foreach ($bookingRequest->proposed_dates as $date)
+                                                <span
+                                                    class="px-3 py-1 bg-beige-peau/20 text-beige-peau rounded-full text-sm font-medium">
+                                                    {{ \Carbon\Carbon::parse($date)->format('l d/m/Y') }}
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
 
-                                <!-- Bouton Demande acompte -->
-                                <a href="{{ route('booking-request.deposit.request', $bookingRequest) }}"
-                                    class="block w-full px-4 py-3 bg-vert-succes text-noir-profond rounded-lg font-semibold hover:bg-vert-succes/90 transition-colors text-center">
-                                    💰 Demander un acompte
-                                </a>
+                                <!-- 💬 Message tattooer -->
+                                @if ($bookingRequest->tattooer_notes)
+                                    <div class="bg-noir-profond/50 rounded-lg p-4">
+                                        <h4 class="font-semibold text-ivoire-text/80 text-sm mb-2">💬 Votre message</h4>
+                                        <p class="text-ivoire-text/80 whitespace-pre-wrap">
+                                            {{ $bookingRequest->tattooer_notes }}</p>
+                                    </div>
+                                @endif
                             </div>
                         </div>
+
+                        <!-- Chat + Actions -->
+                        <div class="bg-titane/20 rounded-xl p-6 border border-titane/30 mt-4">
+                            <h3 class="text-lg font-bold text-ivoire-text mb-4">Actions</h3>
+                            <div class="space-y-3">
+                                @if ($bookingRequest->conversation)
+                                    <a href="{{ route('tattooer.message.show', $bookingRequest) }}"
+                                        class="block w-full px-4 py-3 bg-beige-peau text-noir-profond rounded-xl font-bold text-center hover:bg-beige-peau/90 transition-all">
+                                        💬 Chat avec le client
+                                    </a>
+                                @endif
+
+                                <form action="{{ route('tattooer.request-reject', $bookingRequest) }}" method="POST">
+                                    @csrf
+                                    <button type="submit"
+                                        class="w-full px-4 py-3 bg-rouge-alerte/20 border border-rouge-alerte/30 text-rouge-alerte rounded-xl font-semibold text-center hover:bg-rouge-alerte/30 transition-all"
+                                        onclick="return confirm('Annuler ce projet ? Cette action est irréversible.')">
+                                        ✕ Annuler le projet
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    @elseif ($bookingRequest->status === 'completed')
+                        <!-- Afficher résumé final -->
+                        <div class="bg-vert-succes/10 border border-vert-succes/30 rounded-xl p-6">
+                            <h3 class="text-lg font-bold text-ivoire-text mb-4">✅ Projet terminé</h3>
+                            <p class="text-ivoire-text">Ce projet a été réalisé avec succès.</p>
+                        </div>
+                    @elseif (in_array($bookingRequest->status, ['cancelled', 'rejected']))
+                        <!-- Afficher statut final avec raison -->
+                        <div class="bg-rouge-alerte/10 border border-rouge-alerte/30 rounded-xl p-6">
+                            <h3 class="text-lg font-bold text-ivoire-text mb-4">❌ Projet annulé</h3>
+                            <p class="text-ivoire-text">
+                                @if ($bookingRequest->cancellation_reason)
+                                    Raison : {{ $bookingRequest->cancellation_reason }}
+                                @else
+                                    Ce projet a été annulé.
+                                @endif
+                            </p>
+                        </div>
+                    @endif
+
+                    <!-- La modal n'est incluse QUE si status = pending -->
+                    @if ($bookingRequest->status === 'pending')
+                        @include('tattooer.modals.accept-booking')
                     @endif
 
                     <!-- Timeline -->
@@ -222,6 +311,11 @@
         </div>
     </div>
 
+    <!-- Inclure le modal d'acceptation (uniquement si status = pending) -->
+    @if ($bookingRequest->status === 'pending')
+        @include('tattooer.modals.accept-booking', ['bookingRequest' => $bookingRequest])
+    @endif
+
     <!-- Lightbox -->
     <div id="lightbox" class="fixed inset-0 z-50 bg-noir-profond/95 backdrop-blur-sm hidden" onclick="closeLightbox()">
         <div class="flex items-center justify-center h-full p-4">
@@ -249,4 +343,9 @@
             }
         });
     </script>
+
+    <!-- Inclure le modal d'acceptation (uniquement si status = pending) -->
+    @if ($bookingRequest->status === 'pending')
+        @include('tattooer.modals.accept-booking', ['bookingRequest' => $bookingRequest])
+    @endif
 @endsection

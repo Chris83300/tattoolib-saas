@@ -132,7 +132,7 @@ class MarketplaceSearchService
             case 'pro_first':
             default:
                 // Tri par pertinence : vérifié → notes → rendez-vous → expérience
-                $query->orderBy('is_verified', 'desc')
+                $query->orderBy('siret_verified', 'desc')
                       ->orderBy('rating', 'desc')
                       ->orderBy('appointments_count', 'desc')
                       ->orderBy('created_at', 'desc');

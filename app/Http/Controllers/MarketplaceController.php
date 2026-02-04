@@ -24,7 +24,7 @@ class MarketplaceController extends Controller
     {
         // Chercher dans tattooers
         $artist = Tattooer::where('slug', $slug)
-            ->whereHas('user', fn($q) => $q->where('status', 'active'))
+            ->whereHas('user', fn($q) => $q->whereIn('status', ['active', 'pending_verification']))
             ->with('user')
             ->first();
 
@@ -33,7 +33,7 @@ class MarketplaceController extends Controller
         // Si pas trouvé, chercher dans pierceurs
         if (!$artist) {
             $artist = Pierceur::where('slug', $slug)
-                ->whereHas('user', fn($q) => $q->where('status', 'active'))
+                ->whereHas('user', fn($q) => $q->whereIn('status', ['active', 'pending_verification']))
                 ->with('user')
                 ->first();
 

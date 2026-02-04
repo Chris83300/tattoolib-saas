@@ -3,12 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\BookingRequest;
-use App\Models\Payment;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Stripe\Stripe;
 use Stripe\Webhook;
+use Stripe\Exception\SignatureVerificationException;
 
 class StripeWebhookController extends Controller
 {
@@ -19,108 +17,112 @@ class StripeWebhookController extends Controller
      */
     public function handleWebhook(Request $request)
     {
-        Stripe::setApiKey(config('services.stripe.secret'));
-
         $payload = $request->getContent();
         $sigHeader = $request->header('Stripe-Signature');
         $webhookSecret = config('services.stripe.webhook_secret');
-
+        
         try {
-            // Vérifier signature webhook
-            $event = Webhook::constructEvent(
-                $payload,
-                $sigHeader,
-                $webhookSecret
-            );
-
-        } catch (\UnexpectedValueException $e) {
-            Log::error('Webhook Stripe : Payload invalide', ['error' => $e->getMessage()]);
-            return response()->json(['error' => 'Invalid payload'], 400);
-
-        } catch (\Stripe\Exception\SignatureVerificationException $e) {
-            Log::error('Webhook Stripe : Signature invalide', ['error' => $e->getMessage()]);
+            $event = Webhook::constructEvent($payload, $sigHeader, $webhookSecret);
+        } catch (SignatureVerificationException $e) {
+            Log::error('Webhook Stripe: Signature invalide', ['error' => $e->getMessage()]);
             return response()->json(['error' => 'Invalid signature'], 400);
         }
-
-        // Gérer événement
+        
+        // Gérer événements
         switch ($event->type) {
+            case 'checkout.session.completed':
+                $this->handleCheckoutCompleted($event->data->object);
+                break;
+                
             case 'payment_intent.succeeded':
                 $this->handlePaymentSucceeded($event->data->object);
                 break;
-
+                
             case 'payment_intent.payment_failed':
                 $this->handlePaymentFailed($event->data->object);
                 break;
-
+                
             default:
-                Log::info('Webhook Stripe non géré : ' . $event->type);
+                Log::info('Stripe event non géré: ' . $event->type);
         }
-
+        
         return response()->json(['status' => 'success']);
     }
-
+    
     /**
-     * Paiement réussi
+     * Gérer la complétion d'une session checkout
      */
-    private function handlePaymentSucceeded($paymentIntent)
+    protected function handleCheckoutCompleted($session)
     {
-        $bookingRequestId = $paymentIntent->metadata->booking_request_id ?? null;
-
+        $bookingRequestId = $session->metadata->booking_request_id ?? null;
+        
         if (!$bookingRequestId) {
-            Log::error('Webhook : booking_request_id manquant', [
-                'payment_intent_id' => $paymentIntent->id
-            ]);
+            Log::error('Webhook Stripe: booking_request_id manquant');
             return;
         }
-
-        DB::transaction(function () use ($paymentIntent, $bookingRequestId) {
-
-            // 1. Mettre à jour Payment
-            $payment = Payment::where('stripe_payment_intent_id', $paymentIntent->id)
-                ->first();
-
-            if ($payment) {
-                $payment->update([
-                    'status' => 'succeeded',
-                    'paid_at' => now(),
-                ]);
-            }
-
-            // 2. Mettre à jour BookingRequest
-            $bookingRequest = BookingRequest::find($bookingRequestId);
-
-            if ($bookingRequest) {
-                $bookingRequest->update([
-                    'deposit_paid_at' => now(),
-                    'status' => BookingRequest::STATUS_DEPOSIT_PAID,
-                ]);
-
-                Log::info('Acompte payé avec succès', [
-                    'booking_request_id' => $bookingRequestId,
-                    'amount' => $paymentIntent->amount / 100,
-                ]);
-            }
-        });
-    }
-
-    /**
-     * Paiement échoué
-     */
-    private function handlePaymentFailed($paymentIntent)
-    {
-        $payment = Payment::where('stripe_payment_intent_id', $paymentIntent->id)
-            ->first();
-
-        if ($payment) {
-            $payment->update([
-                'status' => 'failed',
-                'failure_reason' => $paymentIntent->last_payment_error->message ?? 'Unknown error',
-            ]);
-
-            Log::warning('Paiement échoué', [
-                'payment_id' => $payment->id,
-                'reason' => $paymentIntent->last_payment_error->message ?? 'Unknown',
+        
+        $bookingRequest = BookingRequest::find($bookingRequestId);
+        
+        if (!$bookingRequest) {
+            Log::error('Webhook Stripe: BookingRequest non trouvé', ['id' => $bookingRequestId]);
+            return;
+        }
+        
+        // Vérifier si déjà payé
+        if ($bookingRequest->deposit_paid_at) {
+            Log::info('Acompte déjà marqué comme payé', ['booking_request_id' => $bookingRequestId]);
+            return;
+        }
+        
+        // Marquer acompte payé
+        $bookingRequest->update([
+            'status' => BookingRequest::STATUS_DEPOSIT_PAID,
+            'deposit_paid_at' => now(),
+            'stripe_payment_intent_id' => $session->payment_intent,
+        ]);
+        
+        // Prolonger chat jusqu'au RDV (ou +30 jours si pas encore fixé)
+        $chatExpiresAt = $bookingRequest->appointment_datetime 
+            ?? now()->addDays(30);
+        
+        $bookingRequest->update([
+            'chat_closes_at' => $chatExpiresAt,
+        ]);
+        
+        // Mettre à jour conversation
+        if ($bookingRequest->conversation) {
+            $bookingRequest->conversation->update([
+                'expiry_type' => 'permanent',
+                'expires_at' => $chatExpiresAt,
             ]);
         }
+        
+        // TODO: Notification tattooer
+        // Mail::to($bookingRequest->bookable->user)->send(new DepositPaid($bookingRequest));
+        
+        Log::info('Acompte payé avec succès', [
+            'booking_request_id' => $bookingRequestId,
+            'amount' => $session->amount_total / 100,
+            'payment_intent' => $session->payment_intent
+        ]);
+    }
+    
+    /**
+     * Gérer le succès d'un paiement intent
+     */
+    protected function handlePaymentSucceeded($paymentIntent)
+    {
+        Log::info('Payment intent succeeded', ['id' => $paymentIntent->id]);
+    }
+    
+    /**
+     * Gérer l'échec d'un paiement intent
+     */
+    protected function handlePaymentFailed($paymentIntent)
+    {
+        Log::warning('Payment intent failed', [
+            'id' => $paymentIntent->id,
+            'last_payment_error' => $paymentIntent->last_payment_error ?? null
+        ]);
     }
 }

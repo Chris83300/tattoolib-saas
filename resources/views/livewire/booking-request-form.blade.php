@@ -55,7 +55,16 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-ivoire-text/80 mb-2">Téléphone *</label>
+                        <label class="block text-sm font-semibold text-ivoire-text/80 mb-2">Pseudo</label>
+                        <input type="text" wire:model="pseudo"
+                            class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
+                        @error('pseudo')
+                            <span class="text-rouge-alerte text-sm">{{ $message }}</span>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-ivoire-text/80 mb-2">Téléphone</label>
                         <input type="tel" wire:model="phone"
                             class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
                         @error('phone')
@@ -168,7 +177,8 @@
             <!-- Images de référence -->
             <div>
                 <h2 class="text-lg font-bold mb-2 text-ivoire-text">Images de référence</h2>
-                <p class="text-sm text-ivoire-text/70 mb-4">Ajoutez jusqu'à 5 images (PNG, JPG, WebP, HEIC - Max 10MB)
+                <p class="text-sm text-ivoire-text/70 mb-4">Ajoutez jusqu'à 5 images (PNG, JPG, WebP, HEIC, GIF, SVG -
+                    Max 10MB)
                 </p>
 
                 <div class="border-2 border-dashed border-titane/30 rounded-lg p-6 bg-noir-profond">
@@ -191,18 +201,39 @@
                     @if (count($referenceImages) > 0)
                         <div class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
                             @foreach ($referenceImages as $index => $image)
-                                <div class="relative group">
-                                    <img src="{{ $image->temporaryUrl() }}" alt="Reference {{ $index + 1 }}"
-                                        class="w-full h-32 object-cover rounded-lg">
-                                    <button type="button" wire:click="removeReferenceImage({{ $index }})"
-                                        class="absolute top-2 right-2 bg-rouge-alerte text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
-                                </div>
+                                @if ($image)
+                                    <div class="relative group">
+                                        @if ($image->extension() && in_array($image->extension(), ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg']))
+                                            <img src="{{ $image->temporaryUrl() }}"
+                                                alt="Reference {{ $index + 1 }}"
+                                                class="w-full h-32 object-cover rounded-lg"
+                                                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <div class="w-full h-32 bg-titane/20 rounded-lg flex items-center justify-center"
+                                                style="display:none;">
+                                                <span class="text-ivoire-text/50 text-sm">
+                                                    Image {{ $index + 1 }}<br>
+                                                    <small>{{ $image->extension() }}</small>
+                                                </span>
+                                            </div>
+                                        @else
+                                            <div
+                                                class="w-full h-32 bg-titane/20 rounded-lg flex items-center justify-center">
+                                                <span class="text-ivoire-text/50 text-sm">
+                                                    Image {{ $index + 1 }}<br>
+                                                    <small>{{ $image->extension() ?: 'Inconnu' }}</small>
+                                                </span>
+                                            </div>
+                                        @endif
+                                        <button type="button" wire:click="removeReferenceImage({{ $index }})"
+                                            class="absolute top-2 right-2 bg-rouge-alerte text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                @endif
                             @endforeach
                         </div>
                     @endif

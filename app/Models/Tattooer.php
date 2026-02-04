@@ -81,8 +81,15 @@ class Tattooer extends Model implements HasMedia
         'default_client_payment_deadline_days',
         'default_tattooer_design_deadline_days',
         'default_design_versions_included',
+        'years_of_experience',
+        'minimum_price',
+        'wait_time_weeks_min',
+        'wait_time_weeks_max',
 
-        // Délais d'attente
+        // Horaires d'ouverture
+        'working_hours',
+
+        // Délais d'attente (anciens)
         'weekday_wait_days',
         'weekend_wait_days',
 
@@ -126,6 +133,22 @@ class Tattooer extends Model implements HasMedia
                 $this->addMediaConversion('thumb')
                     ->width(200)
                     ->height(200)
+                    ->sharpen(10);
+            });
+
+        // Bannière profil (unique)
+        $this->addMediaCollection('banner')
+            ->singleFile()
+            ->acceptsMimeTypes([
+                'image/jpeg',
+                'image/png',
+                'image/webp'
+            ])
+            ->useDisk('public')
+            ->registerMediaConversions(function (Media $media) {
+                $this->addMediaConversion('thumb')
+                    ->width(400)
+                    ->height(133)
                     ->sharpen(10);
             });
 

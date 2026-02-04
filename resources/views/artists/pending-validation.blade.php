@@ -88,7 +88,8 @@
                 <!-- Actions -->
                 <div class="space-y-3">
                     <!-- Prévisualiser le profil (mode brouillon) -->
-                    <button onclick="window.open('{{ route('marketplace.show', $artist->slug) }}?preview=true', '_blank')"
+                    <button
+                        onclick="window.open('{{ route('marketplace.tattooer.show', $artist->slug) }}?preview=true', '_blank')"
                         class="block w-full px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
                         👁️ Prévisualiser mon profil (brouillon)
                     </button>

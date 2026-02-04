@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr" class="scroll-smooth">
+<html lang="fr" class="scroll-smooth" x-data="{ menuOpen: false }">
 
 <head>
     <meta charset="utf-8">
@@ -20,8 +20,16 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
         rel="stylesheet">
 
-    <!-- Vite Assets -->
+    <!-- Scripts -->
+    @livewireStyles
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @livewireScripts
+
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
 
     <!-- PWA Manifest -->
     <link rel="manifest" href="{{ asset('manifest.json') }}">
@@ -110,7 +118,9 @@
         <!-- Mobile Menu -->
         <div x-show="menuOpen" x-cloak x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
-            class="md:hidden border-t border-titane/20">
+            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0"
+            x-transition:leave-end="opacity-0 -translate-y-2"
+            class="md:hidden border-t border-titane/20 bg-noir-profond absolute top-full left-0 right-0 shadow-lg z-50">
             <div class="container-custom py-4 space-y-3">
                 <a href="/marketplace"
                     class="block py-2 text-ivoire-text hover:text-beige-peau transition-colors">Trouver un artiste</a>
@@ -172,15 +182,10 @@
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.store('app', {
-                menuOpen: false,
                 isInstalled: false,
                 showInstallPrompt: false,
                 notificationsOpen: false,
-                unreadCount: 0,
-
-                toggleSidebar() {
-                    this.menuOpen = !this.menuOpen;
-                }
+                unreadCount: 0
             });
         });
     </script>

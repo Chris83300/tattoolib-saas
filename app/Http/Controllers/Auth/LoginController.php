@@ -18,15 +18,15 @@ class LoginController extends Controller
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            
+
             $user = Auth::user();
-            
+
             // Redirection selon le rôle
             switch ($user->role) {
                 case 'client':
                     return redirect()->route('client.profile');
                 case 'tattooer':
-                    return redirect()->route('tattooer.dashboard');
+                    return redirect()->route('tattooer.profile');
                 case 'pierceur':
                     return redirect()->route('tattooer.dashboard'); // Temporairement
                 case 'studio':

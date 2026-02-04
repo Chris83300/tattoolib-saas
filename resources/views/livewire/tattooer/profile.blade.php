@@ -52,7 +52,7 @@
                     Modifier
                 </a>
                 @if ($tattooer->slug)
-                    <a href="{{ route('marketplace.show', $tattooer->slug) }}" target="_blank"
+                    <a href="{{ route('marketplace.tattooer.show', $tattooer->slug) }}" target="_blank"
                         class="px-4 py-2 border border-beige-peau text-beige-peau hover:bg-beige-peau/10 font-semibold rounded-lg transition-colors">
                         Voir profil public
                     </a>
@@ -67,46 +67,7 @@
         <!-- Colonne Principale (2/3) -->
         <div class="lg:col-span-2 space-y-6">
 
-            <!-- Bio -->
-            <div class="bg-gris-fonde rounded-xl p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-xl font-Satoshi font-bold text-ivoire-text">Bio</h2>
-                    <button wire:click="toggleBioEdit" class="text-beige-peau text-sm font-semibold hover:underline">
-                        {{ $editingBio ? 'Annuler' : 'Modifier' }}
-                    </button>
-                </div>
 
-                @if (!$editingBio)
-                    <!-- Affichage bio -->
-                    <p class="text-ivoire-text/80 leading-relaxed">
-                        {{ $tattooer->bio ?: 'Aucune bio renseignée.' }}
-                    </p>
-                @else
-                    <!-- Édition bio -->
-                    <form wire:submit.prevent="updateBio" class="space-y-4">
-                        <textarea wire:model="bio" rows="4" placeholder="Parlez-nous de vous, de votre style, de votre expérience..."
-                            class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau transition-colors resize-none"></textarea>
-
-                        <div class="flex gap-3">
-                            <button type="submit" wire:loading.attr="disabled"
-                                class="px-4 py-2 bg-beige-peau hover:bg-beige-peau/90 disabled:bg-titane disabled:cursor-not-allowed text-noir-profond font-semibold rounded-lg transition-colors">
-                                <span wire:loading.remove wire:target="updateBio">Enregistrer</span>
-                                <span wire:loading wire:target="updateBio">...</span>
-                            </button>
-                            <button type="button" wire:click="toggleBioEdit"
-                                class="px-4 py-2 border border-titane text-ivoire-text hover:bg-titane/10 font-semibold rounded-lg transition-colors">
-                                Annuler
-                            </button>
-                        </div>
-                    </form>
-                @endif
-
-                @if (session()->has('bio_success'))
-                    <div class="mt-4 bg-vert-succes/10 border border-vert-succes rounded-lg p-3">
-                        <p class="text-vert-succes text-sm">{{ session('bio_success') }}</p>
-                    </div>
-                @endif
-            </div>
 
             <!-- Portfolio (Spatie Media) -->
             <div class="bg-gris-fonde rounded-xl p-6">
@@ -239,7 +200,7 @@
                 <p class="text-ivoire-text/70 text-sm mb-4">
                     Partagez votre profil avec vos clients
                 </p>
-                <a href="{{ route('marketplace.show', $tattooer->slug) }}" target="_blank"
+                <a href="{{ route('marketplace.tattooer.show', $tattooer->slug) }}" target="_blank"
                     class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-beige-peau hover:bg-beige-peau/90 text-noir-profond font-bold rounded-lg transition-colors">
                     <span>Voir mon profil</span>
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

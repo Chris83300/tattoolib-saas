@@ -200,7 +200,15 @@ class BookingRequestController extends Controller
             'total_price' => $validated['total_price'],
             'total_deposit_amount' => $depositAmount,
             'deposit_deadline' => $depositDeadline,
+            'client_payment_deadline' => $depositDeadline,
         ]);
+
+        // ⭐ Initialiser la conversation avec le délai d'acompte
+        if ($bookingRequest->conversation) {
+            $bookingRequest->conversation->initializeDepositPendingPhase(
+                $validated['deposit_deadline_hours'] / 24 // Convertir heures en jours
+            );
+        }
 
         return response()->json([
             'message' => 'Demande acceptée. En attente du paiement de l\'acompte.',
@@ -243,6 +251,13 @@ class BookingRequestController extends Controller
             return response()->json(['message' => 'Demande non acceptée'], 422);
         }
 
+        // Vérifier la deadline via la conversation
+        $conversation = $bookingRequest->conversation;
+        if ($conversation && $conversation->isDepositPending() && $conversation->shouldExpire()) {
+            return response()->json(['message' => 'Délai de paiement dépassé'], 422);
+        }
+
+        // Vérification legacy pour compatibilité
         if ($bookingRequest->deposit_deadline && now()->isAfter($bookingRequest->deposit_deadline)) {
             return response()->json(['message' => 'Délai de paiement dépassé'], 422);
         }
@@ -253,6 +268,11 @@ class BookingRequestController extends Controller
             'status' => BookingRequest::STATUS_DEPOSIT_PAID,
             'deposit_paid_at' => now(),
         ]);
+
+        // ⭐ Transitionner la conversation vers la phase permanente
+        if ($conversation) {
+            $conversation->transitionToPermanentPhase();
+        }
 
         return response()->json([
             'message' => 'Acompte payé avec succès',

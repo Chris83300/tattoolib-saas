@@ -103,7 +103,8 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // ===== WEBHOOKS (PAS d'auth, vérifié par signature) =====
-Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook']);
+Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook'])
+    ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
 
 // ===== TATTOOERS (Protected routes) =====
 Route::middleware('auth:sanctum')->prefix('tattooers/{tattooer}')->group(function () {

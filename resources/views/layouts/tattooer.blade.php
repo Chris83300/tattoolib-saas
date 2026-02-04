@@ -7,6 +7,9 @@
     <title>@yield('title', 'Dashboard') - Ink&Pik</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
     <!-- CSRF Token for AJAX -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
@@ -39,6 +42,16 @@
                         </path>
                     </svg>
                     <span class="font-semibold">Vue d'ensemble</span>
+                </a>
+
+                <a href="{{ route('tattooer.profile') }}"
+                    class="flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs('tattooer.profile') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text hover:bg-noir-profond' }} transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z">
+                        </path>
+                    </svg>
+                    <span class="font-semibold">Mon Profil</span>
                 </a>
 
                 <a href="{{ route('tattooer.requests') }}"
@@ -82,14 +95,36 @@
                     </svg>
                     <span class="font-semibold">Messages</span>
                     @php
-                        $unreadCount = \App\Models\Message::whereHas(
-                            'bookingRequest',
-                            fn($q) => $q
-                                ->where('bookable_id', auth()->user()->tattooer->id)
-                                ->where('bookable_type', 'App\Models\Tattooer'),
-                        )
-                            ->where('sender_type', 'client')
-                            ->count();
+                        $tattooer = auth()->user()->tattooer;
+
+                        // Récupérer toutes les conversations du tattooer
+                        $conversationIds = \App\Models\Conversation::whereHas('bookingRequest', function ($q) use (
+                            $tattooer,
+                        ) {
+                            $q->where('bookable_type', 'App\\Models\\Tattooer')->where('bookable_id', $tattooer->id);
+                        })->pluck('id');
+
+                        // Compter messages non-lus
+                        $unreadCount = 0;
+
+                        foreach ($conversationIds as $conversationId) {
+                            $conversation = \App\Models\Conversation::find($conversationId);
+
+                            if ($conversation) {
+                                $pivot = $conversation
+                                    ->participants()
+                                    ->where('user_id', auth()->id())
+                                    ->first()?->pivot;
+
+                                $lastReadAt = $pivot?->last_read_at ?? now()->subYears(10);
+
+                                $unreadCount += $conversation
+                                    ->messages()
+                                    ->where('sender_id', '!=', auth()->id())
+                                    ->where('created_at', '>', $lastReadAt)
+                                    ->count();
+                            }
+                        }
                     @endphp
                     @if ($unreadCount > 0)
                         <span

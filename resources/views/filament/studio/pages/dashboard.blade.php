@@ -13,8 +13,8 @@
             </div>
 
             <div class="flex gap-3">
-                <x-filament::button href="{{ route('marketplace.show', auth()->user()->studio->slug) }}" target="_blank"
-                    icon="heroicon-o-arrow-top-right-on-square" color="gray">
+                <x-filament::button href="{{ route('marketplace.studio.show', auth()->user()->studio->slug) }}"
+                    target="_blank" icon="heroicon-o-arrow-top-right-on-square" color="gray">
                     Voir profil public
                 </x-filament::button>
 

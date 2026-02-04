@@ -2,7 +2,7 @@
 
 namespace App\Notifications;
 
-use App\Models\Project;
+use App\Models\BookingRequest;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -11,7 +11,7 @@ class NewBookingRequestNotification extends Notification
 {
     use Queueable;
 
-    public function __construct(public Project $project)
+    public function __construct(public BookingRequest $bookingRequest)
     {
     }
 
@@ -22,23 +22,23 @@ class NewBookingRequestNotification extends Notification
 
     public function toMail($notifiable): MailMessage
     {
-        $clientName = $this->project->client?->full_name ?? 'Client';
+        $clientName = $this->bookingRequest->client?->pseudo ?? 'Client';
 
         return (new MailMessage)
             ->subject('Nouvelle demande de projet - Ink&Pik')
             ->greeting('Bonjour ' . ($notifiable->name ?? ''))
             ->line('Vous avez reçu une nouvelle demande de projet.')
             ->line('Client : ' . $clientName)
-            ->line('Projet : ' . str($this->project->tattoo_description)->limit(120))
+            ->line('Projet : ' . str($this->bookingRequest->description)->limit(120))
             ->action('Voir les demandes', route('tattooer.requests'));
     }
 
     public function toArray($notifiable): array
     {
         return [
-            'project_id' => $this->project->id,
-            'client_name' => $this->project->client?->full_name,
-            'status' => $this->project->status,
+            'booking_request_id' => $this->bookingRequest->id,
+            'client_name' => $this->bookingRequest->client?->pseudo,
+            'status' => $this->bookingRequest->status,
         ];
     }
 }

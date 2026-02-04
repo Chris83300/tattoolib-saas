@@ -2,11 +2,14 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\ClientController;
+use App\Http\Controllers\DepositController;
 use App\Http\Controllers\MarketplaceController;
+use App\Http\Controllers\TattooerController;
+use App\Http\Controllers\TattooerProfileController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\LogoutController;
-use App\Http\Controllers\TattooerController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -22,10 +25,11 @@ Route::get('/marketplace', [MarketplaceController::class, 'index'])->name('marke
 
 // Routes Tattooer (protégées) - AVANT les routes publiques avec slug
 Route::middleware(['auth'])->prefix('tattooer')->name('tattooer.')->group(function () {
+    Route::get('/profil', [TattooerController::class, 'profile'])->name('profile');
     Route::get('/dashboard', [TattooerController::class, 'dashboard'])->name('dashboard');
     Route::get('/requests', [TattooerController::class, 'requests'])->name('requests');
     Route::get('/requests/{bookingRequest}', [TattooerController::class, 'requestShow'])->name('request.show');
-    Route::post('/requests/{bookingRequest}/accept', [TattooerController::class, 'requestAccept'])->name('request-accept');
+    Route::post('/requests/{bookingRequest}/accept', [TattooerController::class, 'acceptRequest'])->name('request.accept');
     Route::post('/requests/{bookingRequest}/reject', [TattooerController::class, 'requestReject'])->name('request-reject');
     Route::get('/calendar', [TattooerController::class, 'calendar'])->name('calendar');
     Route::get('/calendar/events', [TattooerController::class, 'calendarEvents'])->name('calendar.events');
@@ -33,10 +37,11 @@ Route::middleware(['auth'])->prefix('tattooer')->name('tattooer.')->group(functi
     Route::patch('/calendar/{event}', [TattooerController::class, 'calendarUpdate'])->name('calendar.update');
     Route::delete('/calendar/{event}', [TattooerController::class, 'calendarDestroy'])->name('calendar.destroy');
     Route::get('/messages', [TattooerController::class, 'messages'])->name('messages');
-    Route::get('/messages/{conversation}', [TattooerController::class, 'messageShow'])->name('message.show');
-    Route::post('/message/{conversation}/send', [TattooerController::class, 'messageSend'])->name('message.send');
+    Route::get('/messages/{bookingRequest}', [TattooerController::class, 'messageShow'])->name('message.show');
+    Route::post('/message/{bookingRequest}/send', [TattooerController::class, 'messageSend'])->name('message.send');
     Route::get('/clients', [TattooerController::class, 'clients'])->name('clients');
     Route::get('/clients/{client}', [TattooerController::class, 'clientShow'])->name('client.show');
+    Route::get('/clients/{clientId}/requests', [TattooerController::class, 'clientRequests'])->name('tattooer.client-requests');
     Route::get('/portfolio', [TattooerController::class, 'portfolio'])->name('portfolio');
     Route::post('/portfolio/upload', [TattooerController::class, 'portfolioUpload'])->name('portfolio.upload');
     Route::post('/portfolio/before-after/store', [TattooerController::class, 'portfolioBeforeAfterStore'])->name('portfolio.before-after.store');
@@ -44,13 +49,16 @@ Route::middleware(['auth'])->prefix('tattooer')->name('tattooer.')->group(functi
     Route::delete('/portfolio/before-after/{beforeId}/{afterId}', [TattooerController::class, 'portfolioBeforeAfterDestroy'])->name('portfolio.before-after.destroy');
     Route::get('/settings', [TattooerController::class, 'settings'])->name('settings');
     Route::post('/settings', [TattooerController::class, 'settingsUpdate'])->name('settings.update');
+    Route::delete('/settings/avatar', [TattooerController::class, 'deleteAvatar'])->name('settings.delete-avatar');
+    Route::delete('/settings/banner', [TattooerController::class, 'deleteBanner'])->name('settings.delete-banner');
     Route::post('/settings/schedule', [TattooerController::class, 'settingsUpdateSchedule'])->name('settings.update-schedule');
     Route::post('/settings/password', [TattooerController::class, 'settingsUpdatePassword'])->name('settings.update-password');
+    Route::post('/settings/hours', [TattooerController::class, 'updateHours'])->name('tattooer.settings.hours.update');
     Route::get('/payments', [TattooerController::class, 'payments'])->name('payments');
     Route::get('/upgrade', [TattooerController::class, 'upgrade'])->name('upgrade');
+    Route::get('/compliance', [TattooerController::class, 'compliance'])->name('compliance');
 
     // Anciennes routes Livewire (gardées pour compatibilité)
-    Route::get('/profil', App\Livewire\Tattooer\Profile::class)->name('profile');
     Route::get('/profil/edit', App\Livewire\Tattooer\Profile::class)->name('profile.edit');
     Route::get('/portfolio-livewire', App\Livewire\Tattooer\Portfolio::class)->name('portfolio.livewire');
     Route::get('/disponibilites', App\Livewire\Tattooer\Availability::class)->name('availability');
@@ -68,8 +76,8 @@ Route::get('/tattooer/pending-verification', function () {
 })->middleware(['auth'])->name('tattooer.pending-verification');
 
 // Routes marketplace publiques (APRÈS les routes authentifiées)
-Route::get('/tattooer/{slug}', [MarketplaceController::class, 'show'])->name('marketplace.show');
-Route::get('/pierceur/{slug}', [MarketplaceController::class, 'show'])->name('marketplace.show'); // Même route
+Route::get('/tattooer/{slug}', [MarketplaceController::class, 'show'])->name('marketplace.tattooer.show');
+Route::get('/pierceur/{slug}', [MarketplaceController::class, 'show'])->name('marketplace.pierceur.show');
 
 // Authentification
 Route::get('/login', function () {
@@ -80,7 +88,7 @@ Route::get('/login', function () {
             case 'client':
                 return redirect()->route('client.profile');
             case 'tattooer':
-                return redirect()->route('tattooer.dashboard');
+                return redirect()->route('tattooer.profile');
             case 'pierceur':
                 return redirect()->route('pierceur.dashboard');
             case 'studio':
@@ -185,8 +193,6 @@ Route::middleware(['auth'])->prefix('client')->name('client.')->group(function (
     // Messages / Conversations
     Route::get('/messages', [App\Http\Controllers\ClientController::class, 'messages'])->name('messages');
 
-    Route::get('/profil', App\Livewire\Client\Profile::class)->name('profile');
-    Route::get('/profil/edit', App\Livewire\Client\Profile::class)->name('profile.edit');
     Route::get('/reservations', App\Livewire\Client\Bookings::class)->name('bookings');
     Route::get('/parametres', App\Livewire\Client\Settings::class)->name('settings');
 });
@@ -282,33 +288,31 @@ Route::get('/studio/pending-verification', function () {
 })->middleware(['auth'])->name('studio.pending-verification');
 
 // Routes profil client
-Route::get('/client/profile', function () {
-    return view('client.profile');
-})->middleware(['auth'])->name('client.profile');
+Route::get('/client/profile', [App\Http\Controllers\Client\ProfileController::class, 'index'])
+    ->middleware(['auth'])
+    ->name('client.profile');
 
 // Routes booking-requests client
 Route::middleware(['auth'])->prefix('client')->name('client.')->group(function () {
-    Route::get('/booking-requests', function () {
-        return view('client.booking-requests');
-    })->name('booking-requests');
+    Route::get('/booking-requests', [ClientController::class, 'bookingRequests'])->name('booking-requests');
 
-    Route::get('/booking-requests/{bookingRequest}', function ($bookingRequest) {
-        return view('client.booking-request-show', ['bookingRequest' => $bookingRequest]);
-    })->name('booking-requests.show');
+    Route::get('/booking-requests/{bookingRequest}', [ClientController::class, 'bookingRequestShow'])->name('booking-request.show');
+    Route::post('/booking-requests/{bookingRequest}/cancel', [ClientController::class, 'bookingRequestCancel'])->name('booking-request.cancel');
+    Route::delete('/booking-request/{bookingRequest}/delete', [ClientController::class, 'bookingRequestDelete'])->name('booking-request.delete');
 });
 
 // Routes paiement acompte
 Route::middleware(['auth'])->prefix('deposit')->name('deposit.')->group(function () {
-    Route::get('/{bookingRequest}/payment', [App\Http\Controllers\DepositPaymentController::class, 'show'])
+    Route::get('/{bookingRequest}/payment', [App\Http\Controllers\DepositController::class, 'payment'])
         ->name('payment');
 
-    Route::post('/{bookingRequest}/checkout-session', [App\Http\Controllers\DepositPaymentController::class, 'createCheckoutSession'])
-        ->name('checkout.session');
+    Route::post('/{bookingRequest}/process', [App\Http\Controllers\DepositController::class, 'process'])
+        ->name('process');
 
-    Route::get('/{bookingRequest}/success', [App\Http\Controllers\DepositPaymentController::class, 'success'])
+    Route::get('/{bookingRequest}/success', [App\Http\Controllers\DepositController::class, 'success'])
         ->name('success');
 
-    Route::get('/{bookingRequest}/cancel', [App\Http\Controllers\DepositPaymentController::class, 'cancel'])
+    Route::get('/{bookingRequest}/cancel', [App\Http\Controllers\DepositController::class, 'cancel'])
         ->name('cancel');
 });
 
@@ -319,7 +323,7 @@ Route::prefix('booking-request')->name('booking-request.')->group(function () {
     })->name('success');
 
     Route::get('/{bookableId}/{bookableType}', function (int $bookableId, string $bookableType) {
-        return view('booking-request.show', compact('bookableId', 'bookableType'));
+        return view('booking-request-form', compact('bookableId', 'bookableType'));
     })->name('form')->where([
         'bookableId' => '[0-9]+',
         'bookableType' => 'tattooer|pierceur|piercer|studio-artist',

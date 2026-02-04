@@ -6,7 +6,7 @@
 <div class="min-h-screen bg-noir-profond py-8">
     <div class="container-custom px-4">
         <div class="max-w-4xl mx-auto">
-            
+
             <!-- Header -->
             <div class="text-center mb-12">
                 <h1 class="text-4xl md:text-5xl font-display font-bold text-ivoire-text mb-4">
@@ -88,9 +88,9 @@
                             </div>
                         </div>
                         <div class="flex-1">
-                            <h3 class="text-xl font-bold text-ivoire-text mb-2">Documents ARS</h3>
+                            <h3 class="text-xl font-bold text-ivoire-text mb-2">Documents Légaux</h3>
                             <p class="text-ivoire-text/70 mb-3">
-                                Téléchargez vos documents de conformité (diplôme, assurance, etc.).
+                                Téléchargez vos documents de conformité (ARS, Hygiène, etc.).
                             </p>
                             <a href="{{ route('tattooer.profile') }}" class="text-beige-peau hover:underline">
                                 Télécharger mes documents →
