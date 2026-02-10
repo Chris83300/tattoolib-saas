@@ -8,7 +8,7 @@ use App\Models\User;
 class TattooerPolicy
 {
     /**
-     * Determine if the user can view any tattooers.
+     * Voir la liste des tatoueurs
      */
     public function viewAny(?User $user): bool
     {
@@ -17,16 +17,26 @@ class TattooerPolicy
     }
 
     /**
-     * Determine if the user can view the tattooer profile.
+     * Voir profil (public)
      */
     public function view(?User $user, Tattooer $tattooer): bool
     {
-        // Tout le monde peut voir un profil public
-        return true;
+        // Profil public si vérifié et actif
+        if ($tattooer->siret_verified && $tattooer->status === 'active') {
+            return true;
+        }
+
+        // Propriétaire peut toujours voir son profil
+        if ($user && $user->isTattooer() && $user->tattooer->id === $tattooer->id) {
+            return true;
+        }
+
+        // Admin
+        return $user && $user->isAdmin();
     }
 
     /**
-     * Determine if the user can create a tattooer profile.
+     * Créer un profil tatoueur
      */
     public function create(User $user): bool
     {
@@ -35,7 +45,7 @@ class TattooerPolicy
     }
 
     /**
-     * Determine if the user can update the tattooer profile.
+     * Modifier profil
      */
     public function update(User $user, Tattooer $tattooer): bool
     {
@@ -45,11 +55,11 @@ class TattooerPolicy
         }
 
         // Seul le propriétaire peut modifier son profil
-        return $user->id === $tattooer->user_id;
+        return $user->isTattooer() && $user->tattooer->id === $tattooer->id;
     }
 
     /**
-     * Determine if the user can delete the tattooer profile.
+     * Supprimer profil
      */
     public function delete(User $user, Tattooer $tattooer): bool
     {
@@ -59,22 +69,56 @@ class TattooerPolicy
         }
 
         // Seul le propriétaire peut supprimer son profil
-        return $user->id === $tattooer->user_id;
+        return $user->isTattooer() && $user->tattooer->id === $tattooer->id;
     }
 
     /**
-     * Determine if the user can manage working hours.
+     * Upload portfolio
+     */
+    public function uploadPortfolio(User $user, Tattooer $tattooer): bool
+    {
+        return $user->isTattooer() && $user->tattooer->id === $tattooer->id;
+    }
+
+    /**
+     * Gérer horaires
      */
     public function manageWorkingHours(User $user, Tattooer $tattooer): bool
     {
-        return $user->id === $tattooer->user_id;
+        return $user->isTattooer() && $user->tattooer->id === $tattooer->id;
     }
 
     /**
-     * Determine if the user can manage portfolio.
+     * Gérer portfolio
      */
     public function managePortfolio(User $user, Tattooer $tattooer): bool
     {
-        return $user->id === $tattooer->user_id;
+        return $user->isTattooer() && $user->tattooer->id === $tattooer->id;
+    }
+
+    /**
+     * Upgrade vers PRO
+     */
+    public function upgrade(User $user, Tattooer $tattooer): bool
+    {
+        return $user->isTattooer()
+            && $user->tattooer->id === $tattooer->id
+            && !$tattooer->is_subscribed;
+    }
+
+    /**
+     * Voir les statistiques
+     */
+    public function viewStats(User $user, Tattooer $tattooer): bool
+    {
+        return $user->isTattooer() && $user->tattooer->id === $tattooer->id;
+    }
+
+    /**
+     * Gérer les disponibilités
+     */
+    public function manageAvailability(User $user, Tattooer $tattooer): bool
+    {
+        return $user->isTattooer() && $user->tattooer->id === $tattooer->id;
     }
 }

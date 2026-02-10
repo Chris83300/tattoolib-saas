@@ -227,7 +227,7 @@
                             </div>
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-medium text-ivoire-text truncate">
-                                    {{ auth()->user()->client->pseudo ?? auth()->user()->name }}
+                                    {{ auth()->user()->client->pseudo ?? (auth()->user()->pseudo ?? auth()->user()->first_name . ' ' . auth()->user()->last_name) }}
                                 </p>
                                 <p class="text-xs text-ivoire-text/50">
                                     Client

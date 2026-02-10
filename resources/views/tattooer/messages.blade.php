@@ -41,7 +41,7 @@
                                         <div>
                                             <!-- PSEUDO (pas nom/prénom) -->
                                             <h3 class="font-semibold text-ivoire-text">
-                                                {{ $conversation->client->user->name }}
+                                                {{ $conversation->client->user->pseudo ?? $conversation->client->user->first_name . ' ' . $conversation->client->user->last_name }}
                                             </h3>
                                             <p class="text-sm text-ivoire-text/60">
                                                 {{ $conversation->description ? Str::limit($conversation->description, 50) : 'Nouvelle demande de projet' }}

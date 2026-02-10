@@ -3,7 +3,9 @@
 @section('title', 'Détails de la demande')
 
 @section('content')
-    <div x-data="{ showModal: false }" class="min-h-screen bg-noir-profond">
+    <div x-data="{ showModal: false }" x-init="$listen('booking-accepted', () => {
+        window.location.reload();
+    })" class="min-h-screen bg-noir-profond">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <!-- En-tête -->
             <div class="mb-8">
@@ -112,12 +114,12 @@
                                 <span class="text-ivoire-text/70 block mb-1">Statut :</span>
                                 <span
                                     class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-                                @if ($bookingRequest->status === 'pending') bg-jaune-alerte/20 text-jaune-alerte
-                                @elseif($bookingRequest->status === 'accepted') bg-vert-succes/20 text-vert-succes
-                                @elseif($bookingRequest->status === 'in_progress') bg-beige-peau/20 text-beige-peau
-                                @elseif($bookingRequest->status === 'completed') bg-vert-succes/20 text-vert-succes
-                                @elseif($bookingRequest->status === 'cancelled') bg-rouge-alerte/20 text-rouge-alerte @endif">
-                                    {{ ucfirst($bookingRequest->status) }}
+                                @if ($bookingRequest->status->value === 'pending') bg-jaune-alerte/20 text-jaune-alerte
+                                @elseif($bookingRequest->status->value === 'accepted') bg-vert-succes/20 text-vert-succes
+                                @elseif($bookingRequest->status->value === 'in_progress') bg-beige-peau/20 text-beige-peau
+                                @elseif($bookingRequest->status->value === 'completed') bg-vert-succes/20 text-vert-succes
+                                @elseif($bookingRequest->status->value === 'cancelled') bg-rouge-alerte/20 text-rouge-alerte @endif">
+                                    {{ ucfirst($bookingRequest->status->value) }}
                                 </span>
                             </div>
                         </div>
@@ -144,26 +146,28 @@
                 <!-- Colonne latérale -->
                 <div class="space-y-6">
                     <!-- Actions -->
-                    @if ($bookingRequest->status === 'pending')
+                    @if ($bookingRequest->status->value === 'pending')
                         <div class="bg-titane/20 rounded-xl p-6 border border-titane/30">
                             <h3 class="text-lg font-bold text-ivoire-text mb-4">Actions</h3>
 
                             <div class="space-y-3">
-                                <!-- Bouton modal acceptation (uniquement si pending) -->
-                                <button type="button" @click="showModal = true" @click.stop
-                                    class="w-full px-4 py-3 bg-vert-succes text-noir-profond rounded-lg font-semibold hover:bg-vert-succes/90 transition-all">
-                                    ✓ Accepter la demande
-                                </button>
-
-                                <form action="{{ route('tattooer.request-reject', $bookingRequest) }}" method="POST"
-                                    class="inline">
-                                    @csrf
-                                    <button type="submit"
-                                        class="w-full px-4 py-3 bg-rouge-alerte text-ivoire-text rounded-lg font-semibold hover:bg-rouge-alerte/90 transition-colors"
-                                        onclick="return confirm('Refuser cette demande ?')">
-                                        ✕ Refuser
+                                @if ($bookingRequest->status->value === 'pending')
+                                    <button type="button"
+                                        onclick="Livewire.dispatch('open-accept-modal', { bookingRequestId: {{ $bookingRequest->id }} })"
+                                        class="px-4 py-2 bg-vert-succes text-noir-profond rounded-lg font-semibold hover:bg-vert-succes/90 transition-colors">
+                                        ✓ Accepter
                                     </button>
-                                </form>
+
+                                    <form action="{{ route('tattooer.request-reject', $bookingRequest) }}" method="POST"
+                                        class="inline">
+                                        @csrf
+                                        <button type="submit"
+                                            class="px-4 py-2 bg-rouge-alerte/20 border border-rouge-alerte/30 text-rouge-alerte rounded-lg font-semibold hover:bg-rouge-alerte/30 transition-colors"
+                                            onclick="return confirm('Refuser cette demande ?')">
+                                            ✕ Refuser
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
                         </div>
                     @elseif (in_array($bookingRequest->status, ['accepted', 'awaiting_deposit', 'deposit_paid', 'design_sent', 'confirmed']))
@@ -184,13 +188,6 @@
                                                 class="font-bold text-beige-peau">{{ number_format($bookingRequest->price_range_max, 2, ',', ' ') }}
                                                 €</span>
                                         </p>
-                                        @if ($bookingRequest->estimated_total_price)
-                                            <p class="text-ivoire-text/60 text-sm mt-1">
-                                                Estimation finale : <span
-                                                    class="text-ivoire-text font-semibold">{{ number_format($bookingRequest->estimated_total_price, 2, ',', ' ') }}
-                                                    €</span>
-                                            </p>
-                                        @endif
                                     </div>
                                 @endif
 
@@ -244,13 +241,13 @@
                                 </form>
                             </div>
                         </div>
-                    @elseif ($bookingRequest->status === 'completed')
+                    @elseif ($bookingRequest->status->value === 'completed')
                         <!-- Afficher résumé final -->
                         <div class="bg-vert-succes/10 border border-vert-succes/30 rounded-xl p-6">
                             <h3 class="text-lg font-bold text-ivoire-text mb-4">✅ Projet terminé</h3>
                             <p class="text-ivoire-text">Ce projet a été réalisé avec succès.</p>
                         </div>
-                    @elseif (in_array($bookingRequest->status, ['cancelled', 'rejected']))
+                    @elseif (in_array($bookingRequest->status->value, ['cancelled', 'rejected']))
                         <!-- Afficher statut final avec raison -->
                         <div class="bg-rouge-alerte/10 border border-rouge-alerte/30 rounded-xl p-6">
                             <h3 class="text-lg font-bold text-ivoire-text mb-4">❌ Projet annulé</h3>
@@ -264,9 +261,141 @@
                         </div>
                     @endif
 
-                    <!-- La modal n'est incluse QUE si status = pending -->
-                    @if ($bookingRequest->status === 'pending')
-                        @include('tattooer.modals.accept-booking')
+                    <!-- PROPOSITION TATTOOER — visible dès que status >= accepted -->
+                    @if (in_array($bookingRequest->status->value, [
+                            \App\Enums\BookingRequestStatus::ACCEPTED->value,
+                            \App\Enums\BookingRequestStatus::DEPOSIT_REQUESTED->value,
+                            \App\Enums\BookingRequestStatus::DEPOSIT_PAID->value,
+                            \App\Enums\BookingRequestStatus::DATE_CONFIRMED->value,
+                            \App\Enums\BookingRequestStatus::COMPLETED->value,
+                        ]))
+                        <div
+                            class="bg-gradient-to-br from-vert-succes/10 to-vert-succes/5 rounded-xl p-6 border border-vert-succes/30">
+                            <h3 class="text-xl font-bold text-ivoire-text mb-4 flex items-center gap-2">
+                                <svg class="w-6 h-6 text-vert-succes" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Proposition faite au client
+                            </h3>
+
+                            <div class="space-y-4">
+                                <!-- 💰 Fourchette prix -->
+                                <div class="bg-noir-profond/50 rounded-lg p-4">
+                                    <h4 class="font-semibold text-ivoire-text/80 text-sm mb-2">💰 Tarif estimé</h4>
+                                    @if ($bookingRequest->price_estimate_min || $bookingRequest->price_estimate_max)
+                                        <p class="text-ivoire-text">
+                                            Entre <span
+                                                class="font-bold text-beige-peau">{{ number_format($bookingRequest->price_estimate_min, 2, ',', ' ') }}
+                                                €</span>
+                                            et <span
+                                                class="font-bold text-beige-peau">{{ number_format($bookingRequest->price_estimate_max, 2, ',', ' ') }}
+                                                €</span>
+                                        </p>
+                                        @if ($bookingRequest->estimated_total_price)
+                                            <p class="text-ivoire-text/60 text-sm mt-1">
+                                                Estimation finale : <span
+                                                    class="text-ivoire-text font-semibold">{{ number_format($bookingRequest->estimated_total_price, 2, ',', ' ') }}
+                                                    €</span>
+                                            </p>
+                                        @endif
+                                    @else
+                                        <p class="text-ivoire-text/60">Tarif non encore défini</p>
+                                    @endif
+                                </div>
+
+                                <!-- 📅 Sélection des dates -->
+                                <div class="bg-noir-profond/50 rounded-lg p-4">
+                                    <h4 class="font-semibold text-ivoire-text/80 text-sm mb-2">📅 Dates proposées</h4>
+                                    @if ($bookingRequest->proposed_dates && !empty($bookingRequest->proposed_dates))
+                                        <div class="space-y-2">
+                                            @foreach ($bookingRequest->proposed_dates as $index => $date)
+                                                <div class="flex items-center justify-between text-sm">
+                                                    <span class="text-ivoire-text">
+                                                        {{ \Carbon\Carbon::parse($date['date'])->format('d/m/Y') }}
+                                                    </span>
+                                                    @if ($date['period'])
+                                                        <span
+                                                            class="px-2 py-1 bg-beige-peau/20 text-beige-peau text-xs rounded-full">
+                                                            {{ $date['period'] === 'morning' ? 'Matin' : ($date['period'] === 'afternoon' ? 'Après-midi' : 'Soir') }}
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                        @if ($bookingRequest->date_selection_deadline)
+                                            <p class="text-ivoire-text/60 text-xs mt-2">
+                                                Date limite de sélection :
+                                                {{ \Carbon\Carbon::parse($bookingRequest->date_selection_deadline)->format('d/m/Y à H:i') }}
+                                            </p>
+                                        @endif
+                                    @else
+                                        <p class="text-ivoire-text/60">Dates non encore proposées</p>
+                                    @endif
+                                </div>
+
+                                <!-- 🎨 Phase création -->
+                                @if ($bookingRequest->included_design_versions)
+                                    <div class="bg-noir-profond/50 rounded-lg p-4">
+                                        <h4 class="font-semibold text-ivoire-text/80 text-sm mb-2">🎨 Phase création</h4>
+                                        <div class="grid grid-cols-2 gap-3 text-sm">
+                                            <div>
+                                                <span class="text-ivoire-text/60">Dessins inclus :</span>
+                                                <span
+                                                    class="text-ivoire-text font-semibold ml-2">{{ $bookingRequest->included_design_versions }}</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-ivoire-text/60">Modifs/dessin :</span>
+                                                <span
+                                                    class="text-ivoire-text font-semibold ml-2">{{ $bookingRequest->modifications_per_design ?? 2 }}</span>
+                                            </div>
+                                            @if ($bookingRequest->design_modification_rules)
+                                                <div class="col-span-2">
+                                                    <span class="text-ivoire-text/60">Règles de modification :</span>
+                                                    <p class="text-ivoire-text mt-1">
+                                                        {{ $bookingRequest->design_modification_rules }}</p>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endif
+
+                                <!-- Acompte -->
+                                <div class="bg-noir-profond/50 rounded-lg p-4">
+                                    <h4 class="font-semibold text-ivoire-text mb-2">Acompte</h4>
+                                    @if ($bookingRequest->total_deposit_amount)
+                                        <div class="space-y-2 text-sm">
+                                            <div class="flex justify-between">
+                                                <span class="text-ivoire-text/60">Montant :</span>
+                                                <span
+                                                    class="text-ivoire-text font-semibold">{{ number_format($bookingRequest->total_deposit_amount, 2, ',', ' ') }}€</span>
+                                            </div>
+                                            @if ($bookingRequest->deposit_deadline)
+                                                <div class="flex justify-between">
+                                                    <span class="text-ivoire-text/60">Date limite :</span>
+                                                    <span class="text-ivoire-text">
+                                                        {{ is_string($bookingRequest->deposit_deadline)
+                                                            ? \Carbon\Carbon::parse($bookingRequest->deposit_deadline)->format('d/m/Y')
+                                                            : $bookingRequest->deposit_deadline->format('d/m/Y') }}
+                                                    </span>
+                                                </div>
+                                            @endif
+                                            @if ($bookingRequest->deposit_covers_description)
+                                                <div>
+                                                    <span class="text-ivoire-text/60">Ce que couvre l'acompte :</span>
+                                                    <p class="text-ivoire-text mt-1">
+                                                        {{ $bookingRequest->deposit_covers_description ? 'Dessin et RDV' : 'Non spécifié' }}
+                                                    </p>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <p class="text-ivoire-text/60">Acompte non encore défini</p>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
                     @endif
 
                     <!-- Timeline -->
@@ -311,11 +440,6 @@
         </div>
     </div>
 
-    <!-- Inclure le modal d'acceptation (uniquement si status = pending) -->
-    @if ($bookingRequest->status === 'pending')
-        @include('tattooer.modals.accept-booking', ['bookingRequest' => $bookingRequest])
-    @endif
-
     <!-- Lightbox -->
     <div id="lightbox" class="fixed inset-0 z-50 bg-noir-profond/95 backdrop-blur-sm hidden" onclick="closeLightbox()">
         <div class="flex items-center justify-center h-full p-4">
@@ -344,8 +468,7 @@
         });
     </script>
 
-    <!-- Inclure le modal d'acceptation (uniquement si status = pending) -->
-    @if ($bookingRequest->status === 'pending')
-        @include('tattooer.modals.accept-booking', ['bookingRequest' => $bookingRequest])
-    @endif
+    <!-- Modal d'acceptation Livewire -->
+    <livewire:tattooer.accept-booking-modal />
+
 @endsection

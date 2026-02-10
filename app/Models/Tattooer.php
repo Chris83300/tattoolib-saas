@@ -8,18 +8,29 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use App\Models\Client;
+use App\Models\BookingRequest;
+use App\Models\StudioArtist;
+use App\Models\Pierceur;
+use App\Models\User;
+use App\Models\Appointment;
+use App\Models\Availability;
 use App\Traits\HasCompliance;
 use App\Traits\BookableArtist;
 use App\Traits\HasSubscription;
 use App\Traits\HasStripeConnect;
+use App\Traits\HasWorkingHours;
+use App\Traits\HandlesMedia;
+use App\Traits\CalculatesStats;
 
 class Tattooer extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia, HasSubscription, BookableArtist, HasCompliance, HasStripeConnect;
+    use HasFactory, SoftDeletes, InteractsWithMedia, HasSubscription, BookableArtist, HasCompliance, HasStripeConnect, HasWorkingHours, HandlesMedia, CalculatesStats;
 
     protected static function booted()
     {
@@ -36,6 +47,13 @@ class Tattooer extends Model implements HasMedia
                 $tattooer->slug = Str::slug($tattooer->user->name . '-' . $tattooer->id);
             }
         });
+
+        static::saved(function ($tattooer) {
+            // Mettre à jour la date de validation si le statut change vers "active"
+            if ($tattooer->isDirty('user.status') && $tattooer->user->status === 'active') {
+                $tattooer->admin_verified_at = now();
+            }
+        });
     }
 
     protected $fillable = [
@@ -43,55 +61,48 @@ class Tattooer extends Model implements HasMedia
         'studio_id', // ✅ Relation avec Studio
         'siret',
         'siret_verified',
-        'name',
-        'slug', // Ajout du slug
-        'studio_name', // ✅ Garde pour les tatoueurs indépendants
-        'bio',
-        'styles', // ✅ Ajout pour les styles de tattoo
-        'phone',
-        'address',
-        'city',
-        'postal_code',
-        'email',
-
-        // Stripe Connect
-        'stripe_connect_account_id',
-        'stripe_onboarding_complete',
-        'stripe_connect_status',
-        'stripe_connect_activated_at',
-        'stripe_connect_last_transaction_at',
-        'stripe_connect_deactivated_at',
-        'has_accepted_payment_terms',
-        'payment_terms_accepted_at',
-
-        // Subscription fields
-        'current_plan',
-        'is_subscribed',
-        'upgraded_to_pro_at',
-
-        // Réseaux sociaux
-        'instagram',
-        'facebook',
-        'tiktok',
-        'website',
-
-        // Paramètres par défaut
-        'minimum_deposit',
-        'default_deposit_rate',
-        'default_client_payment_deadline_days',
-        'default_tattooer_design_deadline_days',
-        'default_design_versions_included',
-        'years_of_experience',
-        'minimum_price',
-        'wait_time_weeks_min',
-        'wait_time_weeks_max',
-
-        // Horaires d'ouverture
-        'working_hours',
-
-        // Délais d'attente (anciens)
-        'weekday_wait_days',
-        'weekend_wait_days',
+        'first_name', // ✅ Ajout pour inscription
+        'last_name', // ✅ Ajout pour inscription
+        'pseudo', // ✅ Ajout pour inscription
+        'name', // ✅ Nom complet (fallback)
+        'studio_name', // ✅ Nom du studio (indépendant)
+        'bio', // ✅ Description du tatoueur
+        'working_hours', // ✅ Horaires JSON
+        'styles', // ✅ Styles de tatouage (JSON)
+        'years_of_experience', // ✅ Expérience
+        'minimum_price', // ✅ Prix minimum
+        'wait_time_weeks_min', // ✅ Temps d'attente min
+        'wait_time_weeks_max', // ✅ Temps d'attente max
+        'slug', // ✅ URL slug
+        'phone', // ✅ Téléphone
+        'address', // ✅ Adresse
+        'city', // ✅ Ville
+        'postal_code', // ✅ Code postal
+        'email', // ✅ Email professionnel
+        'stripe_connect_account_id', // ✅ Stripe Connect
+        'stripe_connect_status', // ✅ Statut Stripe Connect
+        'stripe_connect_activated_at', // ✅ Date activation Stripe
+        'stripe_connect_last_transaction_at', // ✅ Dernière transaction Stripe
+        'stripe_connect_deactivated_at', // ✅ Date désactivation Stripe
+        'has_accepted_payment_terms', // ✅ CGU paiements
+        'payment_terms_accepted_at', // ✅ Date acceptation CGU
+        'current_plan', // ✅ Plan actuel
+        'is_subscribed', // ✅ Statut abonnement
+        'has_compliance_badge', // ✅ Badge conformité
+        'upgraded_to_pro_at', // ✅ Date upgrade PRO
+        'stripe_onboarding_complete', // ✅ Onboarding Stripe terminé
+        'instagram', // ✅ Instagram
+        'facebook', // ✅ Facebook
+        'tiktok', // ✅ TikTok
+        'website', // ✅ Site web
+        'minimum_deposit', // ✅ Acompte minimum
+        'default_deposit_rate', // ✅ Taux acompte défaut
+        'default_client_payment_deadline_days', // ✅ Délai paiement client
+        'default_tattooer_design_deadline_days', // ✅ Délai design tattooer
+        'default_design_versions_included', // ✅ Versions design incluses
+        'weekday_wait_days', // ✅ Jours attente semaine
+        'weekend_wait_days', // ✅ Jours attente week-end
+        'admin_verified_at', // ✅ Date validation admin
 
         // Conformité réglementaire
         'is_decision_maker',
@@ -102,16 +113,25 @@ class Tattooer extends Model implements HasMedia
     protected $casts = [
         'siret_verified' => 'boolean',
         'stripe_onboarding_complete' => 'boolean',
+        'has_accepted_payment_terms' => 'boolean',
+        'is_decision_maker' => 'boolean',
+        'has_compliance_badge' => 'boolean',
+        'is_subscribed' => 'boolean',
+        'working_hours' => 'string', // ✅ Garder comme string pour JSON decode
+        'styles' => 'json', // ✅ Styles de tatouage (JSON)
+        'years_of_experience' => 'integer',
+        'minimum_price' => 'decimal:2',
+        'wait_time_weeks_min' => 'integer',
+        'wait_time_weeks_max' => 'integer',
         'stripe_connect_activated_at' => 'datetime',
         'stripe_connect_last_transaction_at' => 'datetime',
         'stripe_connect_deactivated_at' => 'datetime',
-        'has_accepted_payment_terms' => 'boolean',
         'payment_terms_accepted_at' => 'datetime',
-        'minimum_deposit' => 'decimal:2',
-        'is_subscribed' => 'boolean',
         'upgraded_to_pro_at' => 'datetime',
-        'is_decision_maker' => 'boolean',
         'last_compliance_check_at' => 'datetime',
+        'admin_verified_at' => 'datetime',
+        'minimum_deposit' => 'decimal:2',
+        'user_status' => 'string',
     ];
 
     // ===== CONFIGURATION MEDIALIBRARY =====
@@ -223,6 +243,28 @@ class Tattooer extends Model implements HasMedia
     {
         return $this->morphMany(Availability::class, 'owner');
     }
+
+    // ===== ACCESSORS =====
+
+    public function getFullNameAttribute(): string
+    {
+        return $this->pseudo ??
+               trim(($this->first_name ?? '') . ' ' . ($this->last_name ?? '')) ?:
+               $this->name ??
+               'N/A';
+    }
+
+    public function getLocationAttribute(): string
+    {
+        return $this->city . ($this->postal_code ? ' (' . $this->postal_code . ')' : '');
+    }
+
+    public function getUserStatusAttribute(): string
+    {
+        return $this->user->status ?? 'pending_verification';
+    }
+
+    // ===== FILAMENT SYNC METHODS =====
 
     public function bookingRequests(): MorphMany
     {

@@ -52,6 +52,12 @@ class MarketplaceSearchService
                 'tattooers.siret_verified',
                 'tattooers.has_compliance_badge',
                 'tattooers.created_at',
+                'tattooers.years_of_experience',
+                'tattooers.wait_time_weeks_min',
+                'tattooers.wait_time_weeks_max',
+                'tattooers.minimum_price',
+                'tattooers.styles', // AJOUT: colonne styles
+                'tattooers.working_hours', // AJOUT: colonne working_hours
                 'users.status',
                 'users.pseudo', // Ajout du pseudo
                 DB::raw('COALESCE(AVG(reviews.rating), 0) as rating'),
@@ -73,7 +79,10 @@ class MarketplaceSearchService
                 'tattooers.id', 'tattooers.user_id', 'tattooers.name', 'tattooers.slug',
                 'tattooers.city', 'tattooers.postal_code', 'tattooers.bio',
                 'tattooers.siret_verified', 'tattooers.has_compliance_badge',
-                'tattooers.created_at', 'users.status', 'users.pseudo'
+                'tattooers.created_at', 'tattooers.years_of_experience',
+                'tattooers.wait_time_weeks_min', 'tattooers.wait_time_weeks_max',
+                'tattooers.minimum_price', 'tattooers.styles', 'tattooers.working_hours',
+                'users.status', 'users.pseudo'
             ]);
     }
 

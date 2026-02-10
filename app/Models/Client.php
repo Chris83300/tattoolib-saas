@@ -16,6 +16,7 @@ class Client extends Model implements HasMedia
         'user_id',
         'first_name',
         'last_name',
+        'pseudo', // Changé de 'name' à 'pseudo'
         'phone',
         'birth_date',
         'email',
@@ -77,7 +78,7 @@ class Client extends Model implements HasMedia
         // Avatar
         $this->addMediaCollection('avatar')
             ->singleFile()
-            ->useFallbackUrl('/images/default-avatar.png')
+            ->useFallbackUrl(asset('images/default-avatar.png'))
             ->useFallbackPath(public_path('/images/default-avatar.png'));
     }
 
@@ -95,16 +96,12 @@ class Client extends Model implements HasMedia
     // ===== MÉTHODES MÉTIER =====
 
     /**
-     * Obtenir le nom complet
+     * Obtenir le pseudo
      */
-    public function getFullNameAttribute(): string
+    public function getPseudoAttribute(): string
     {
-        // Utiliser le nom de l'utilisateur si first_name/last_name sont vides
-        if (empty($this->first_name) && empty($this->last_name) && $this->user) {
-            return $this->user->name;
-        }
-
-        return trim(($this->first_name ?? '') . ' ' . ($this->last_name ?? ''));
+        // Priorité: pseudo > first_name + last_name
+        return $this->attributes['pseudo'] ?? trim(($this->attributes['first_name'] ?? '') . ' ' . ($this->attributes['last_name'] ?? ''));
     }
 
     /**
@@ -199,7 +196,7 @@ class Client extends Model implements HasMedia
     {
         return [
             'id' => $this->id,
-            'full_name' => $this->full_name,
+            'full_name' => $this->pseudo, // Utiliser le pseudo pour le full_name
             'email' => $this->email,
             'phone' => $this->phone,
             'age' => $this->getAge(),

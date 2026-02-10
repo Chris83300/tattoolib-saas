@@ -1,60 +1,111 @@
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
     <!-- Stat Card : En attente -->
     <a href="{{ route('client.booking-requests', ['status' => 'pending']) }}"
-        class="bg-gradient-to-br from-ambre-warning/20 to-ambre-warning/10 rounded-xl border border-ambre-warning/30 p-6 hover:from-ambre-warning/30 hover:to-ambre-warning/20 transition-all cursor-pointer group">
-        <div class="flex items-center justify-between mb-4">
+        class="bg-gradient-to-br from-ambre-warning/20 to-ambre-warning/10 rounded-xl border border-ambre-warning/30 p-4 sm:p-6 hover:from-ambre-warning/30 hover:to-ambre-warning/20 transition-all cursor-pointer group">
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
             <div
-                class="w-12 h-12 bg-ambre-warning/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                <svg class="w-6 h-6 text-ambre-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                class="w-10 h-10 sm:w-12 sm:h-12 bg-ambre-warning/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-ambre-warning" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
             </div>
-            <span class="text-3xl font-bold text-ambre-warning">{{ $pendingBookings }}</span>
+            <span class="text-2xl sm:text-3xl font-bold text-ambre-warning">{{ $pendingBookings }}</span>
         </div>
-        <h3 class="text-ivoire-text font-semibold">En attente</h3>
-        <p class="text-ivoire-text/60 text-sm mt-1">Réponse de l'artiste</p>
-        <div class="mt-3 text-ambre-warning text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-            → Voir les demandes en attente
+        <h3 class="text-ivoire-text font-semibold text-sm sm:text-base">En attente</h3>
+        <p class="text-ivoire-text/60 text-xs sm:text-sm mt-1">Réponse de l'artiste</p>
+        <div
+            class="mt-2 sm:mt-3 text-ambre-warning text-xs sm:text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+            → Voir les demandes
         </div>
     </a>
 
     <!-- Stat Card : Acceptées -->
     <a href="{{ route('client.booking-requests', ['status' => 'accepted']) }}"
-        class="bg-gradient-to-br from-vert-succes/20 to-vert-succes/10 rounded-xl border border-vert-succes/30 p-6 hover:from-vert-succes/30 hover:to-vert-succes/20 transition-all cursor-pointer group">
-        <div class="flex items-center justify-between mb-4">
+        class="bg-gradient-to-br from-vert-succes/20 to-vert-succes/10 rounded-xl border border-vert-succes/30 p-4 sm:p-6 hover:from-vert-succes/30 hover:to-vert-succes/20 transition-all cursor-pointer group">
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
             <div
-                class="w-12 h-12 bg-vert-succes/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                <svg class="w-6 h-6 text-vert-succes" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                class="w-10 h-10 sm:w-12 sm:h-12 bg-vert-succes/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-vert-succes" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                 </svg>
             </div>
-            <span class="text-3xl font-bold text-vert-succes">{{ $acceptedBookings }}</span>
+            <span class="text-2xl sm:text-3xl font-bold text-vert-succes">{{ $acceptedBookings }}</span>
         </div>
-        <h3 class="text-ivoire-text font-semibold">Acceptées</h3>
-        <p class="text-ivoire-text/60 text-sm mt-1">Prêtes à planifier</p>
-        <div class="mt-3 text-vert-succes text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-            → Voir les demandes acceptées
+        <h3 class="text-ivoire-text font-semibold text-sm sm:text-base">Acceptées</h3>
+        <p class="text-ivoire-text/60 text-xs sm:text-sm mt-1">Prêtes à planifier</p>
+        <div
+            class="mt-2 sm:mt-3 text-vert-succes text-xs sm:text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+            → Voir les demandes
         </div>
     </a>
 
     <!-- Stat Card : Terminées -->
     <a href="{{ route('client.booking-requests', ['status' => 'completed']) }}"
-        class="bg-gradient-to-br from-beige-peau/20 to-beige-peau/10 rounded-xl border border-beige-peau/30 p-6 hover:from-beige-peau/30 hover:to-beige-peau/20 transition-all cursor-pointer group">
-        <div class="flex items-center justify-between mb-4">
+        class="bg-gradient-to-br from-beige-peau/20 to-beige-peau/10 rounded-xl border border-beige-peau/30 p-4 sm:p-6 hover:from-beige-peau/30 hover:to-beige-peau/20 transition-all cursor-pointer group">
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
             <div
-                class="w-12 h-12 bg-beige-peau/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                <svg class="w-6 h-6 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                class="w-10 h-10 sm:w-12 sm:h-12 bg-beige-peau/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-beige-peau" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
             </div>
-            <span class="text-3xl font-bold text-beige-peau">{{ $completedBookings }}</span>
+            <span class="text-2xl sm:text-3xl font-bold text-beige-peau">{{ $completedBookings }}</span>
         </div>
-        <h3 class="text-ivoire-text font-semibold">Terminées</h3>
-        <p class="text-ivoire-text/60 text-sm mt-1">Projets réalisés</p>
-        <div class="mt-3 text-beige-peau text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-            → Voir les projets terminés
+        <h3 class="text-ivoire-text font-semibold text-sm sm:text-base">Terminées</h3>
+        <p class="text-ivoire-text/60 text-xs sm:text-sm mt-1">Projets réalisés</p>
+        <div
+            class="mt-2 sm:mt-3 text-beige-peau text-xs sm:text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+            → Voir les projets
+        </div>
+    </a>
+
+    <!-- Stat Card : Refusées -->
+    <a href="{{ route('client.booking-requests', ['status' => 'rejected']) }}"
+        class="bg-gradient-to-br from-rouge-alerte/20 to-rouge-alerte/10 rounded-xl border border-rouge-alerte/30 p-4 sm:p-6 hover:from-rouge-alerte/30 hover:to-rouge-alerte/20 transition-all cursor-pointer group">
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
+            <div
+                class="w-10 h-10 sm:w-12 sm:h-12 bg-rouge-alerte/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-rouge-alerte" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                    </path>
+                </svg>
+            </div>
+            <span class="text-2xl sm:text-3xl font-bold text-rouge-alerte">{{ $rejectedBookings ?? 0 }}</span>
+        </div>
+        <h3 class="text-ivoire-text font-semibold text-sm sm:text-base">Refusées</h3>
+        <p class="text-ivoire-text/60 text-xs sm:text-sm mt-1">Non retenues</p>
+        <div
+            class="mt-2 sm:mt-3 text-rouge-alerte text-xs sm:text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+            → Voir les refus
+        </div>
+    </a>
+
+    <!-- Stat Card : Annulées -->
+    <a href="{{ route('client.booking-requests', ['status' => 'cancelled']) }}"
+        class="bg-gradient-to-br from-orange-500/20 to-orange-500/10 rounded-xl border border-orange-500/30 p-4 sm:p-6 hover:from-orange-500/30 hover:to-orange-500/20 transition-all cursor-pointer group">
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
+            <div
+                class="w-10 h-10 sm:w-12 sm:h-12 bg-orange-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-orange-500" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
+                    </path>
+                </svg>
+            </div>
+            <span class="text-2xl sm:text-3xl font-bold text-orange-500">{{ $cancelledBookings ?? 0 }}</span>
+        </div>
+        <h3 class="text-ivoire-text font-semibold text-sm sm:text-base">Annulées</h3>
+        <p class="text-ivoire-text/60 text-xs sm:text-sm mt-1">Après acceptation</p>
+        <div
+            class="mt-2 sm:mt-3 text-orange-500 text-xs sm:text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+            → Voir les annulations
         </div>
     </a>
 </div>
@@ -136,7 +187,7 @@
                     class="block p-4 bg-noir-profond rounded-lg border border-beige-peau/10 hover:border-beige-peau/30 transition-all group">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-4">
-                            <img src="{{ $booking->bookable->getFirstMediaUrl('avatar') ?: asset('images/default-avatar.png') }}"
+                            <img src="{{ $booking->bookable->user->getFirstMediaUrl('avatar') ?: asset('images/default-avatar.png') }}"
                                 alt="Artiste" class="w-12 h-12 rounded-full">
                             <div>
                                 <h3
@@ -148,15 +199,15 @@
                         <div class="text-right">
                             <span
                                 class="px-3 py-1 rounded-full text-xs font-semibold
-                            {{ $booking->status === 'pending' ? 'bg-ambre-warning/20 text-ambre-warning' : '' }}
-                            {{ $booking->status === 'accepted' ? 'bg-vert-succes/20 text-vert-succes' : '' }}
-                            {{ $booking->status === 'completed' ? 'bg-beige-peau/20 text-beige-peau' : '' }}">
-                                {{ ucfirst($booking->status) }}
+                            {{ $booking->status === \App\Enums\BookingRequestStatus::PENDING ? 'bg-ambre-warning/20 text-ambre-warning' : '' }}
+                            {{ $booking->status === \App\Enums\BookingRequestStatus::ACCEPTED ? 'bg-vert-succes/20 text-vert-succes' : '' }}
+                            {{ $booking->status === \App\Enums\BookingRequestStatus::COMPLETED ? 'bg-beige-peau/20 text-beige-peau' : '' }}">
+                                {{ $booking->status->label() }}
                             </span>
                             <p class="text-xs text-ivoire-text/60 mt-1">{{ $booking->created_at->diffForHumans() }}
                             </p>
 
-                            @if ($booking->status === 'accepted' && $booking->conversation)
+                            @if ($booking->status === \App\Enums\BookingRequestStatus::ACCEPTED && $booking->conversation)
                                 <div class="mt-2">
                                     <a href="{{ route('client.chat', $booking->conversation) }}"
                                         class="text-xs text-vert-succes hover:text-vert-succes/80 font-semibold"

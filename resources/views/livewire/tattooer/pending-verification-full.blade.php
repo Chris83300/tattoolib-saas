@@ -1,34 +1,6 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vérification en attente - Ink&Pik</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'noir-profond': '#0A0A0A',
-                        'gris-fonde': '#1A1A1A',
-                        'titane': '#2A2A2A',
-                        'ivoire-text': '#F5F5F5',
-                        'beige-peau': '#D4B59E',
-                        'ambre-warning': '#F59E0B',
-                        'vert-succes': '#06D6A0'
-                    },
-                    fontFamily: {
-                        'display': ['Playfair Display', 'serif'],
-                        'satoshi': ['Satoshi', 'sans-serif']
-                    }
-                }
-            }
-        }
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Satoshi:wght@300;400;500;700&display=swap" rel="stylesheet">
-</head>
-<body class="bg-noir-profond text-ivoire-text min-h-screen">
+@extends('layouts.app')
+
+@section('content')
     <div class="min-h-screen bg-noir-profond flex items-center justify-center px-4">
         <div class="max-w-2xl w-full">
 
@@ -136,6 +108,4 @@
             window.location.href = "{{ route('tattooer.profile') }}";
         }, 10000);
     </script>
-
-</body>
-</html>
+@endsection

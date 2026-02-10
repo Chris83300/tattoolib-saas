@@ -7,16 +7,27 @@
             <div class="flex items-center gap-6">
                 <!-- Avatar -->
                 <div class="relative">
-                    <img src="{{ $this->user->getFirstMediaUrl('avatar') ?: asset('images/default-avatar.png') }}"
-                        alt="Avatar" class="w-24 h-24 rounded-full border-4 border-beige-peau shadow-lg">
-                    <div
-                        class="absolute bottom-0 right-0 w-6 h-6 bg-vert-succes border-2 border-gris-fonde rounded-full">
+                    <div class="w-24 h-24 rounded-full overflow-hidden border-2 border-cuivre/60 bg-beige-peau/10">
+                        @if (auth()->user()->getFirstMediaUrl('avatar'))
+                            <img src="{{ auth()->user()->getFirstMediaUrl('avatar') }}" alt="Avatar"
+                                class="w-full h-full object-cover">
+                        @else
+                            <div class="w-full h-full flex items-center justify-center">
+                                <svg class="w-10 h-10 text-beige-peau" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                                        clip-rule="evenodd">
+                                    </path>
+                                </svg>
+                            </div>
+                        @endif
                     </div>
                 </div>
 
                 <!-- Nom + Stats rapides -->
                 <div>
-                    <h1 class="text-2xl font-bold text-ivoire-text">{{ $this->client->pseudo ?? $this->user->name }}</h1>
+                    <h1 class="text-2xl font-bold text-ivoire-text">
+                        {{ $this->client->pseudo ?? ($this->user->pseudo ?? $this->user->first_name . ' ' . $this->user->last_name) }}
+                    </h1>
                     <p class="text-ivoire-text/60 text-sm mt-1">{{ $this->user->email }}</p>
 
                     <div class="flex items-center gap-4 mt-3">

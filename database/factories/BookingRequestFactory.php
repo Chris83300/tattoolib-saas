@@ -6,6 +6,7 @@ use App\Models\BookingRequest;
 use App\Models\Client;
 use App\Models\StudioArtist;
 use App\Models\Tattooer;
+use App\Enums\BookingRequestStatus;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class BookingRequestFactory extends Factory
@@ -31,28 +32,70 @@ class BookingRequestFactory extends Factory
             'tattooer_design_deadline_days' => 7,
             'client_payment_deadline' => now()->addDays(7),
             'tattooer_design_deadline' => now()->addDays(7),
-            'status' => $this->faker->randomElement(['pending', 'accepted', 'rejected']),
+            'status' => $this->faker->randomElement(BookingRequestStatus::cases()),
         ];
     }
 
     public function pending()
     {
         return $this->state(fn (array $attributes) => [
-            'status' => 'pending',
+            'status' => BookingRequestStatus::PENDING,
         ]);
     }
 
     public function accepted()
     {
         return $this->state(fn (array $attributes) => [
-            'status' => 'accepted',
+            'status' => BookingRequestStatus::ACCEPTED,
         ]);
     }
 
-    public function rejected()
+    public function depositRequested()
     {
         return $this->state(fn (array $attributes) => [
-            'status' => 'rejected',
+            'status' => BookingRequestStatus::DEPOSIT_REQUESTED,
+        ]);
+    }
+
+    public function depositPaid()
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => BookingRequestStatus::DEPOSIT_PAID,
+        ]);
+    }
+
+    public function dateConfirmed()
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => BookingRequestStatus::DATE_CONFIRMED,
+        ]);
+    }
+
+    public function completed()
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => BookingRequestStatus::COMPLETED,
+        ]);
+    }
+
+    public function cancelled()
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => BookingRequestStatus::CANCELLED,
+        ]);
+    }
+
+    public function expired()
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => BookingRequestStatus::EXPIRED,
+        ]);
+    }
+
+    public function noShow()
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => BookingRequestStatus::NO_SHOW,
         ]);
     }
 }

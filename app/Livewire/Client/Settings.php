@@ -26,7 +26,8 @@ class Settings extends Component
         $user = Auth::user();
         $client = $user->client;
 
-        $this->pseudo = $client->pseudo ?? $user->name;
+        // Priorité: client.pseudo > user.pseudo > user.first_name > vide
+        $this->pseudo = $client->pseudo ?? $user->pseudo ?? $user->first_name ?? '';
         $this->birth_date = $client->birth_date?->format('Y-m-d') ?? '';
     }
 
@@ -45,38 +46,73 @@ class Settings extends Component
         $user = Auth::user();
         $client = $user->client;
 
-        // Mettre à jour pseudo sur User
-        $user->update(['name' => $this->pseudo]);
+        try {
+            // Mettre à jour pseudo sur User (dans pseudo et name)
+            if (empty($user->pseudo) || $user->pseudo !== $this->pseudo) {
+                $result = $user->update([
+                    'pseudo' => $this->pseudo,
+                ]);
+            }
 
-        // Mettre à jour date de naissance sur Client
-        if ($client) {
-            $client->update([
-                'pseudo' => $this->pseudo,
-                'birth_date' => $this->birth_date ? $this->birth_date : null,
-            ]);
+            // Mettre à jour pseudo sur Client (dans pseudo)
+            if ($client) {
+                $result = $client->update([
+                    'pseudo' => $this->pseudo,  // Utiliser la colonne pseudo
+                    'birth_date' => $this->birth_date ? $this->birth_date : null,
+                ]);
+            }
+
+            // Vérifier réellement
+            $client->refresh();
+
+            // Rafraîchir les données pour l'affichage
+            $this->pseudo = $this->pseudo;
+
+            $this->dispatch('profile-updated', 'Profil mis à jour avec succès !');
+
+        } catch (\Exception $e) {
+
+            $this->dispatch('profile-update-error', 'Erreur: ' . $e->getMessage());
         }
-
-        $this->dispatch('profile-updated', 'Profil mis à jour avec succès !');
     }
 
     public function uploadAvatar()
     {
-        $this->validate([
-            'testAvatar' => 'required|image|mimes:jpeg,png,gif,webp|max:2048', // 2MB max
-        ]);
 
-        $user = Auth::user();
+        // Validation avec debug
+        try {
+            $this->validate([
+                'testAvatar' => 'required|image|mimes:jpeg,png,gif,webp|max:5120', // 5MB max
+            ]);
+        } catch (\Exception $e) {
+            $this->dispatch('avatar-upload-error', 'Erreur validation: ' . $e->getMessage());
+            return;
+        }
 
-        // Supprimer l'ancien avatar s'il existe
-        $user->clearMediaCollection('avatar');
+        try {
+            $user = Auth::user();
+            $client = $user->client;
 
-        // Ajouter le nouvel avatar avec le bon chemin et nom
-        $media = $user->addMedia($this->testAvatar->getRealPath())
-             ->usingFileName($this->testAvatar->getClientOriginalName())
-             ->toMediaCollection('avatar');
 
-        $this->testAvatar = null;
-        $this->dispatch('avatar-uploaded', 'Avatar mis à jour avec succès !');
+            $path = $this->testAvatar->store('avatars', 'public');
+
+
+
+            // Test upload sur User d'abord
+            $user->clearMediaCollection('avatar');
+            $media = $user->addMedia($this->testAvatar)
+                 ->usingFileName($this->testAvatar->getClientOriginalName())
+                 ->toMediaCollection('avatar');
+
+
+            $this->testAvatar = null;
+            $this->dispatch('avatar-uploaded', 'Avatar mis à jour avec succès !');
+
+        } catch (\Exception $e) {
+
+
+            $this->dispatch('avatar-upload-error', 'Erreur: ' . $e->getMessage());
+        }
     }
 
     public function removeAvatar()
@@ -88,14 +124,69 @@ class Settings extends Component
         $this->dispatch('avatar-removed', 'Avatar supprimé avec succès !');
     }
 
-    public function getAvatarUrlProperty()
+    protected $listeners = ['test-debug' => 'testDebug', 'confirm-delete' => 'deleteAccount', 'cancel-delete' => 'cancelDelete'];
+
+    public function cancelDelete()
     {
-        $user = Auth::user();
+        $this->dispatch('hide-confirm-dialog');
+    }
 
-        if ($user && $user->getFirstMediaUrl('avatar')) {
-            return $user->getFirstMediaUrl('avatar');
+
+
+    public function confirmDeleteAccount()
+    {
+        // Afficher une alerte de confirmation
+        $this->dispatch('show-confirm-dialog', [
+            'title' => '⚠️ Suppression du compte',
+            'message' => 'Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est IRREVERSIBLE et supprimera définitivement toutes vos données.',
+            'confirmText' => 'Oui, supprimer mon compte',
+            'cancelText' => 'Annuler'
+        ]);
+    }
+
+    public function deleteAccount()
+    {
+        try {
+            $user = Auth::user();
+            $client = $user->client;
+
+
+            // Supprimer l'avatar
+            $user->clearMediaCollection('avatar');
+
+            // Supprimer les données du client
+            if ($client) {
+                // Conserver les données importantes pour le tattooer
+                $tattooerData = [
+                    'first_name' => $client->first_name,
+                    'last_name' => $client->last_name,
+                    'email' => $client->email,
+                    'phone' => $client->phone,
+                    'birth_date' => $client->birth_date,
+                    'notes' => $client->notes,
+                    'no_show_count' => $client->no_show_count,
+                    'is_blacklisted' => $client->is_blacklisted,
+                    'blacklist_reason' => $client->blacklist_reason,
+                ];
+
+
+                $client->delete();
+            }
+
+            // Supprimer l'utilisateur
+            $user->delete();
+
+            // Déconnexion
+            Auth::logout();
+
+            $this->dispatch('account-deleted', 'Compte supprimé avec succès');
+
+            // Redirection vers page d'accueil
+            return redirect()->route('home');
+
+        } catch (\Exception $e) {
+
+            $this->dispatch('account-delete-error', 'Erreur lors de la suppression du compte');
         }
-
-        return null;
     }
 }

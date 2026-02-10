@@ -1,97 +1,152 @@
 <?php
 
+namespace Tests\Feature;
+
 use Tests\TestCase;
-use App\Models\Conversation;
-use App\Models\Tattooer;
+use App\Models\User;
 use App\Models\BookingRequest;
+use App\Models\Conversation;
+use App\Models\Message;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Carbon\Carbon;
 
-test('new conversation starts_in_deposit_pending_phase', function () {
-    $conversation = Conversation::factory()->create([
-        'expiry_type' => Conversation::EXPIRY_DEPOSIT_PENDING,
-        'expires_at' => now()->addDays(5),
-    ]);
+class ConversationExpirationTest extends TestCase
+{
+    use RefreshDatabase;
 
-    expect($conversation->isDepositPending())->toBeTrue();
-    expect($conversation->expires_at)->not->toBeNull();
-    expect($conversation->getDaysUntilExpiry())->toBeGreaterThanOrEqual(4);
-});
+    /** @test */
+    public function conversation_expires_after_7_days_if_deposit_not_paid()
+    {
+        $booking = BookingRequest::factory()->create([
+            'status' => BookingRequest::STATUS_AWAITING_DEPOSIT,
+        ]);
 
-test('conversation_transitions_to_permanent_after_deposit', function () {
-    $conversation = Conversation::factory()->create([
-        'expiry_type' => Conversation::EXPIRY_DEPOSIT_PENDING,
-    ]);
+        $conversation = Conversation::factory()->create([
+            'booking_request_id' => $booking->id,
+            'expiry_type' => 'deposit_pending',
+            'deposit_deadline_at' => now()->addDays(7),
+        ]);
 
-    $conversation->transitionToPermanentPhase();
+        // Avancer le temps de 8 jours
+        Carbon::setTestNow(now()->addDays(8));
 
-    expect($conversation->isPermanent())->toBeTrue();
-    expect($conversation->expires_at)->toBeNull();
-});
+        // Exécuter commande d'expiration
+        $this->artisan('conversations:check-expiration');
 
-test('free_plan_conversation_deleted_after_appointment', function () {
-    $tattooer = Tattooer::factory()->create();
-    $tattooer->createFreeSubscription();
+        $conversation->refresh();
+        expect($conversation->is_expired)->toBeTrue();
+        expect($conversation->status)->toBe('expired');
+    }
 
-    $booking = BookingRequest::factory()->create([
-        'bookable_type' => Tattooer::class,
-        'bookable_id' => $tattooer->id,
-    ]);
+    /** @test */
+    public function conversation_becomes_permanent_after_deposit_paid()
+    {
+        $booking = BookingRequest::factory()->create([
+            'status' => BookingRequest::STATUS_DEPOSIT_PAID,
+        ]);
 
-    $conversation = Conversation::factory()->create([
-        'booking_request_id' => $booking->id,
-        'expiry_type' => Conversation::EXPIRY_PERMANENT,
-    ]);
+        $conversation = Conversation::factory()->create([
+            'booking_request_id' => $booking->id,
+            'expiry_type' => 'permanent',
+            'deposit_deadline_at' => null,
+        ]);
 
-    $conversation->transitionToPostAppointmentPhase();
+        // Avancer le temps de 100 jours
+        Carbon::setTestNow(now()->addDays(100));
 
-    expect($conversation->isPostAppointment())->toBeTrue();
-    expect($conversation->expires_at)->not->toBeNull();
-    expect($conversation->getDaysUntilExpiry())->toBe(0); // Suppression immédiate
-});
+        $this->artisan('conversations:check-expiration');
 
-test('pro_plan_conversation_archived_after_appointment', function () {
-    $tattooer = Tattooer::factory()->create();
-    $tattooer->upgradeToPro('sub_test', 'price_test');
+        $conversation->refresh();
+        expect($conversation->is_expired)->toBeFalse();
+    }
 
-    $booking = BookingRequest::factory()->create([
-        'bookable_type' => Tattooer::class,
-        'bookable_id' => $tattooer->id,
-    ]);
+    /** @test */
+    public function free_plan_conversation_deleted_after_appointment()
+    {
+        $tattooer = User::factory()->tattooer()->create();
+        $tattooer->tattooer->update(['is_subscribed' => false]);
 
-    $conversation = Conversation::factory()->create([
-        'booking_request_id' => $booking->id,
-        'expiry_type' => Conversation::EXPIRY_PERMANENT,
-    ]);
+        $booking = BookingRequest::factory()->create([
+            'bookable_id' => $tattooer->tattooer->id,
+            'bookable_type' => get_class($tattooer->tattooer),
+            'status' => BookingRequest::STATUS_CONFIRMED,
+        ]);
 
-    $conversation->transitionToPostAppointmentPhase();
+        $conversation = Conversation::factory()->create([
+            'booking_request_id' => $booking->id,
+            'expiry_type' => 'post_appointment',
+            'appointment_completed_at' => now()->subDay(),
+        ]);
 
-    expect($conversation->isArchived())->toBeTrue();
-    expect($conversation->expires_at)->toBeNull(); // Jamais supprimé
-    expect($conversation->images_preserved)->toBeTrue();
-});
+        $this->artisan('conversations:cleanup');
 
-test('expired_conversations_are_detected', function () {
-    $conversation = Conversation::factory()->create([
-        'expiry_type' => Conversation::EXPIRY_DEPOSIT_PENDING,
-        'expires_at' => now()->subDay(),
-    ]);
+        $this->assertDatabaseMissing('conversations', [
+            'id' => $conversation->id,
+        ]);
+    }
 
-    expect($conversation->shouldExpire())->toBeTrue();
+    /** @test */
+    public function pro_plan_conversation_archived_after_appointment()
+    {
+        $tattooer = User::factory()->tattooer()->create();
+        $tattooer->tattooer->update(['is_subscribed' => true]);
 
-    $conversation->markAsExpired();
+        $booking = BookingRequest::factory()->create([
+            'bookable_id' => $tattooer->tattooer->id,
+            'bookable_type' => get_class($tattooer->tattooer),
+            'status' => BookingRequest::STATUS_CONFIRMED,
+        ]);
 
-    expect($conversation->isExpired())->toBeTrue();
-});
+        $conversation = Conversation::factory()->create([
+            'booking_request_id' => $booking->id,
+            'expiry_type' => 'post_appointment',
+            'appointment_completed_at' => now()->subDay(),
+        ]);
 
-test('conversation_warning_message_is_correct', function () {
-    $conversation = Conversation::factory()->create([
-        'expiry_type' => Conversation::EXPIRY_DEPOSIT_PENDING,
-        'expires_at' => now()->addHours(23), // Moins de 1 jour
-    ]);
+        $this->artisan('conversations:cleanup');
 
-    $message = $conversation->getExpiryWarningMessage();
+        $conversation->refresh();
+        expect($conversation->status)->toBe('archived');
+        expect($conversation->archived_at)->not->toBeNull();
+        expect($conversation->images_preserved)->toBeTrue();
+    }
 
-    expect($message)->toContain('URGENT');
-    expect($message)->toContain('jour(s)');
-});
+    /** @test */
+    public function cannot_send_message_in_expired_conversation()
+    {
+        $client = User::factory()->client()->create();
+        
+        $conversation = Conversation::factory()->create([
+            'is_expired' => true,
+            'status' => 'expired',
+        ]);
+
+        $response = $this->actingAs($client, 'sanctum')
+            ->postJson('/api/messages', [
+                'conversation_id' => $conversation->id,
+                'content' => 'Test message',
+            ]);
+
+        $response->assertForbidden();
+    }
+
+    /** @test */
+    public function warning_sent_2_days_before_expiration()
+    {
+        $booking = BookingRequest::factory()->create([
+            'status' => BookingRequest::STATUS_AWAITING_DEPOSIT,
+        ]);
+
+        $conversation = Conversation::factory()->create([
+            'booking_request_id' => $booking->id,
+            'expiry_type' => 'deposit_pending',
+            'deposit_deadline_at' => now()->addDays(2),
+            'expiry_warning_sent_at' => null,
+        ]);
+
+        $this->artisan('conversations:send-expiration-warnings');
+
+        $conversation->refresh();
+        expect($conversation->expiry_warning_sent_at)->not->toBeNull();
+    }
+}

@@ -54,14 +54,14 @@
                             </path>
                         </svg>
                     </div>
-                    @if ($stats['pending_requests'] > 0)
+                    @if ($stats['active_projects'] > 0)
                         <span class="bg-rouge-alerte text-noir-profond px-2 py-1 rounded-full text-xs font-bold">
-                            {{ $stats['pending_requests'] }}
+                            {{ $stats['active_projects'] }}
                         </span>
                     @endif
                 </div>
                 <h3 class="text-3xl font-bold text-ivoire-text mb-1">
-                    {{ $stats['pending_requests'] }}
+                    {{ $stats['active_projects'] }}
                 </h3>
                 <p class="text-ivoire-text/60 text-sm">Demandes en attente</p>
             </div>
@@ -78,7 +78,7 @@
                     </div>
                 </div>
                 <h3 class="text-3xl font-bold text-ivoire-text mb-1">
-                    {{ $stats['upcoming_appointments'] }}
+                    {{ count($upcomingAppointments) }}
                 </h3>
                 <p class="text-ivoire-text/60 text-sm">Rendez-vous à venir</p>
             </div>
@@ -112,7 +112,7 @@
                     </div>
                 </div>
                 <h3 class="text-3xl font-bold text-ivoire-text mb-1">
-                    {{ number_format($stats['monthly_revenue'], 0) }}€
+                    {{ number_format($stats['total_earnings'], 0) }}€
                 </h3>
                 <p class="text-ivoire-text/60 text-sm">Revenus ce mois</p>
             </div>
@@ -231,7 +231,7 @@
                             </div>
                         </div>
                         <span class="text-2xl font-bold text-beige-peau">
-                            {{ $stats['unread_messages'] }}
+                            {{ $stats['unread_messages'] ?? 0 }}
                         </span>
                     </div>
                 </div>

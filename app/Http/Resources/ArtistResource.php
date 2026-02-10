@@ -44,7 +44,18 @@ class ArtistResource extends JsonResource
             'portfolio_images' => $this->getPortfolioImages(),
 
             // Styles (pour tattooers)
-            'styles' => [],
+            'styles' => $this->getStyles(),
+
+            // Horaires et disponibilités
+            'working_hours' => $this->getWorkingHours(),
+            'is_open_today' => $this->isOpenToday(),
+            'opening_days' => $this->getOpeningDays(),
+
+            // Prix et délais
+            'minimum_price' => $this->minimum_price,
+            'wait_time_weeks_min' => $this->wait_time_weeks_min,
+            'wait_time_weeks_max' => $this->wait_time_weeks_max,
+            'wait_time_display' => $this->getWaitTimeDisplay(),
 
             // URLs
             'profile_url' => route('marketplace.tattooer.show', $this->slug),
@@ -58,7 +69,7 @@ class ArtistResource extends JsonResource
 
             // Stats détaillées
             'stats' => [
-                'years_experience' => max(1, now()->diffInYears($this->created_at)),
+                'years_experience' => (int) ($this->years_of_experience ?? 1),
                 'completed_appointments' => (int) ($this->appointments_count ?? 0),
                 'portfolio_count' => 0, // TODO: implementer
             ],
@@ -75,25 +86,142 @@ class ArtistResource extends JsonResource
         return $this->city ?? 'France';
     }
 
+    protected function getStyles(): array
+    {
+        // Les styles sont maintenant directement disponibles depuis la query
+        if (isset($this->styles)) {
+            if (is_array($this->styles)) {
+                return array_filter($this->styles);
+            }
+            if (is_string($this->styles)) {
+                return array_filter(array_map('trim', explode(',', $this->styles)));
+            }
+        }
+
+        return [];
+    }
+
+    protected function getWorkingHours(): array
+    {
+        // Les working_hours sont maintenant directement disponibles depuis la query
+        if (isset($this->working_hours)) {
+            if (is_array($this->working_hours)) {
+                return $this->working_hours;
+            }
+            if (is_string($this->working_hours)) {
+                return json_decode($this->working_hours, true) ?? [];
+            }
+        }
+
+        return [];
+    }
+
+    protected function isOpenToday(): bool
+    {
+        $workingHours = $this->getWorkingHours();
+        $today = strtolower(now()->format('l'));
+
+        if (!isset($workingHours[$today])) {
+            return false;
+        }
+
+        $daySchedule = $workingHours[$today];
+        return !empty($daySchedule['open']) && !empty($daySchedule['close']);
+    }
+
+    protected function getOpeningDays(): array
+    {
+        $workingHours = $this->getWorkingHours();
+        $openingDays = [];
+
+        $days = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
+
+        foreach ($days as $day) {
+            if (isset($workingHours[$day]) && !empty($workingHours[$day]['open'])) {
+                $openingDays[] = ucfirst($day);
+            }
+        }
+
+        return $openingDays;
+    }
+
+    protected function getWaitTimeDisplay(): string
+    {
+        $min = $this->wait_time_weeks_min;
+        $max = $this->wait_time_weeks_max;
+
+        if ($min && $max && $min != $max) {
+            return "$min-$max semaines";
+        }
+
+        if ($min) {
+            return "$min semaine" . ($min > 1 ? 's' : '');
+        }
+
+        return 'Disponible rapidement';
+    }
+
     protected function getAvatarUrl(): ?string
     {
-        // Essayer d'abord le media Spatie
         $artistModel = $this->resource;
 
+        // Essayer d'abord le media Spatie du tattooer
         if (method_exists($artistModel, 'getFirstMediaUrl')) {
             $avatar = $artistModel->getFirstMediaUrl('avatar');
-            if ($avatar) {
+            if ($avatar && $avatar !== '/images/default-tattooer-avatar.png') {
                 return $avatar;
             }
         }
 
+        // Essayer le media Spatie de l'utilisateur associé
+        if (method_exists($artistModel, 'user') && $artistModel->user) {
+            $userAvatar = $artistModel->user->getFirstMediaUrl('avatar');
+            if ($userAvatar && $userAvatar !== '/images/default-tattooer-avatar.png') {
+                return $userAvatar;
+            }
+        }
+
         // Fallback vers UI Avatars avec le pseudo ou nom
-        return 'https://ui-avatars.com/api/?name=' . urlencode($this->pseudo ?: $this->name) . '&color=ffffff&background=8B7355';
+        $name = $this->pseudo ?: $this->name ?: 'Artiste';
+        return 'https://ui-avatars.com/api/?name=' . urlencode($name) . '&color=ffffff&background=8B7355&size=200';
     }
 
     protected function getPortfolioImages(): array
     {
-        return [];
+        $artistModel = $this->resource;
+        $portfolioImages = [];
+
+        // Chercher dans les médias du tattooer
+        if (method_exists($artistModel, 'getMedia')) {
+            $portfolioMedia = $artistModel->getMedia('portfolio');
+
+            if ($portfolioMedia->isNotEmpty()) {
+                $portfolioImages = $portfolioMedia->map(function ($media) {
+                    return [
+                        'url' => $media->getUrl(),
+                        'thumb_url' => $media->getUrl('thumb'),
+                        'name' => $media->name,
+                    ];
+                })->toArray();
+            }
+        }
+
+        // Si pas d'images dans le tattooer, chercher dans l'utilisateur
+        if (empty($portfolioImages) && method_exists($artistModel, 'user') && $artistModel->user) {
+            $userPortfolioMedia = $artistModel->user->getMedia('portfolio');
+
+            if ($userPortfolioMedia->isNotEmpty()) {
+                $portfolioImages = $userPortfolioMedia->map(function ($media) {
+                    return [
+                        'url' => $media->getUrl(),
+                        'thumb_url' => $media->getUrl('thumb'),
+                        'name' => $media->name,
+                    ];
+                })->toArray();
+            }
+        }
+
+        return $portfolioImages;
     }
 
     protected function getBadges(): array
@@ -129,7 +257,7 @@ class ArtistResource extends JsonResource
 
     protected function getContactUrl(): ?string
     {
-        if (!auth()->check() || !auth()->user()->client) {
+        if (!auth()->guard()->check() || !auth()->guard()->user()->client) {
             return route('login');
         }
 
@@ -143,11 +271,11 @@ class ArtistResource extends JsonResource
 
     protected function hasActiveRequestForCurrentUser(): bool
     {
-        if (!auth()->check() || !auth()->user()->client) {
+        if (!auth()->guard()->check() || !auth()->guard()->user()->client) {
             return false;
         }
 
-        $client = auth()->user()->client;
+        $client = auth()->guard()->user()->client;
 
         return \App\Models\BookingRequest::where('client_id', $client->id)
             ->where('bookable_type', $this->getMorphClass())

@@ -6,6 +6,7 @@ use App\Models\Appointment;
 use App\Models\BookingRequest;
 use App\Models\Client;
 use App\Models\Tattooer;
+use App\Enums\AppointmentStatus;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class AppointmentFactory extends Factory
@@ -28,42 +29,49 @@ class AppointmentFactory extends Factory
             'duration_minutes' => $this->faker->numberBetween(60, 240), // minutes
             'total_price' => $this->faker->numberBetween(100, 800),
             'deposit_amount' => $this->faker->numberBetween(20, 200),
-            'status' => $this->faker->randomElement(['confirmed', 'completed', 'cancelled', 'client_no_show', 'tattooer_no_show', 'disputed']),
+            'status' => $this->faker->randomElement(AppointmentStatus::cases()),
         ];
     }
 
-    public function pendingConfirmation()
+    public function scheduled()
     {
         return $this->state(fn (array $attributes) => [
-            'status' => 'pending_confirmation',
+            'status' => AppointmentStatus::SCHEDULED,
         ]);
     }
 
     public function confirmed()
     {
         return $this->state(fn (array $attributes) => [
-            'status' => 'confirmed',
+            'status' => AppointmentStatus::CONFIRMED,
+        ]);
+    }
+
+    public function inProgress()
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => AppointmentStatus::IN_PROGRESS,
         ]);
     }
 
     public function completed()
     {
         return $this->state(fn (array $attributes) => [
-            'status' => 'completed',
+            'status' => AppointmentStatus::COMPLETED,
         ]);
     }
 
     public function cancelled()
     {
         return $this->state(fn (array $attributes) => [
-            'status' => 'cancelled',
+            'status' => AppointmentStatus::CANCELLED,
         ]);
     }
 
     public function noShow()
     {
         return $this->state(fn (array $attributes) => [
-            'status' => 'no_show',
+            'status' => AppointmentStatus::NO_SHOW,
         ]);
     }
 }

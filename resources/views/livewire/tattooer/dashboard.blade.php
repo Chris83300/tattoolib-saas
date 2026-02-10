@@ -122,7 +122,9 @@
             <div class="border-b border-ivoire-text/10 pb-4 mb-4 last:border-0 last:pb-0 last:mb-0">
                 <div class="flex justify-between items-start">
                     <div>
-                        <h3 class="font-semibold text-ivoire-text">{{ $request->client->name ?? 'Client' }}</h3>
+                        <h3 class="font-semibold text-ivoire-text">
+                            {{ $request->client->pseudo ?? ($request->client->first_name . ' ' . $request->client->last_name ?? 'Client') }}
+                        </h3>
                         <p class="text-ivoire-text/70 text-sm">{{ $request->tattoo_description ?? 'Non spécifié' }}</p>
                         <p class="text-ivoire-text/50 text-xs mt-1">{{ $request->created_at->format('d/m/Y H:i') }}</p>
                     </div>

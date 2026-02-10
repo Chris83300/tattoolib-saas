@@ -11,10 +11,10 @@ class CalendarEvent extends Model
     use HasFactory;
 
     protected $fillable = [
-        'bookable_id', 'bookable_type', 'type', 'project_id',
+        'bookable_id', 'bookable_type', 'type', 'title', 'project_id',
         'start_datetime', 'end_datetime',
         'is_recurring', 'recurrence_rule',
-        'notes', 'color'
+        'notes', 'color', 'appointment_id'
     ];
 
     protected $casts = [

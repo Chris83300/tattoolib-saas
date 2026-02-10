@@ -34,17 +34,23 @@ class TattooersTable
                     ->label('Avatar')
                     ->circular()
                     ->size(50)
-                    ->defaultImageUrl(fn ($record) => $record->getFirstMediaUrl('avatar') ?: asset('images/default-avatar.png')),
+                    ->getStateUsing(fn ($record) => $record->getFirstMediaUrl('avatar'))
+                    ->defaultImageUrl(url('/images/default-avatar.png')),
 
                 // COLONNE 3 : Nom (principal)
-                Tables\Columns\TextColumn::make('name')
+                Tables\Columns\TextColumn::make('full_name')
                     ->label('Nom')
-                    ->searchable()
+                    ->searchable(['first_name', 'last_name', 'name', 'pseudo'])
                     ->sortable()
                     ->weight('medium')
                     ->copyable()
                     ->tooltip('Cliquer pour copier le nom')
-                    ->description(fn ($record): ?string => $record->city)
+                    ->description(fn ($record): ?string => $record->location)
+                    ->getStateUsing(fn ($record): string =>
+                        $record->pseudo ??
+                        trim(($record->first_name ?? '') . ' ' . ($record->last_name ?? '')) ?:
+                        $record->name ?? 'N/A'
+                    )
                     ->url(fn ($record) => '/admin/tattooers/'.$record->id.'/edit')
                     ->openUrlInNewTab(false),
 
@@ -57,6 +63,15 @@ class TattooersTable
                     ->iconColor('primary')
                     ->toggleable(),
 
+                // COLONNE 5 : Profil Public
+                Tables\Columns\TextColumn::make('profile_link')
+                    ->label('Profil')
+                    ->url(fn ($record) => route('marketplace.show.artist', $record->slug))
+                    ->icon('heroicon-o-photo')
+                    ->iconColor('primary')
+                    ->openUrlInNewTab(true)
+                    ->tooltip('Voir le profil public du tatoueur'),
+
                 // COLONNE 5 : SIRET
                 Tables\Columns\TextColumn::make('siret')
                     ->label('SIRET')
@@ -67,10 +82,10 @@ class TattooersTable
                     ->icon(fn ($record) => $record->siret_verified ? 'heroicon-o-check-circle' : 'heroicon-o-exclamation-triangle')
                     ->toggleable(),
 
-                // COLONNE 6 : Ville
-                Tables\Columns\TextColumn::make('city')
-                    ->label('Ville')
-                    ->searchable()
+                // COLONNE 6 : Ville + Code Postal
+                Tables\Columns\TextColumn::make('location')
+                    ->label('Localisation')
+                    ->searchable(['city', 'postal_code'])
                     ->sortable()
                     ->badge()
                     ->color('primary'),

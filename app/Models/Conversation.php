@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ConversationStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,6 +19,7 @@ class Conversation extends Model
     // CONSTANTES EXPIRATION
     // ===========================================
 
+    // Garder pour rétrocompatibilité mais déprécié
     const EXPIRY_DEPOSIT_PENDING = 'deposit_pending';
     const EXPIRY_PERMANENT = 'permanent';
     const EXPIRY_POST_APPOINTMENT = 'post_appointment';
@@ -53,6 +55,9 @@ class Conversation extends Model
         'is_expired' => 'boolean',
         'images_preserved' => 'boolean',
         'expiry_warning_sent_at' => 'datetime',
+
+        // === 🎯 CAST VERS ENUM ===
+        'status' => ConversationStatus::class,
     ];
 
     // Relation avec les messages
@@ -79,6 +84,111 @@ class Conversation extends Model
     public function bookingRequest(): BelongsTo
     {
         return $this->belongsTo(BookingRequest::class);
+    }
+
+    // ===========================================
+    // MÉTHODES STATUT (UTILISE L'ENUM)
+    // ===========================================
+
+    /**
+     * Transition vers un nouveau statut avec validation
+     */
+    public function transitionTo(ConversationStatus $status): bool
+    {
+        if (!$this->status->canTransitionTo($status)) {
+            return false;
+        }
+
+        $this->status = $status;
+        return $this->save();
+    }
+
+    /**
+     * Obtenir le statut actuel en tant qu'enum
+     */
+    public function getStatusEnum(): ConversationStatus
+    {
+        return $this->status;
+    }
+
+    /**
+     * Vérifier si le statut actuel peut transitionner vers un autre
+     */
+    public function canTransitionTo(ConversationStatus $status): bool
+    {
+        return $this->status->canTransitionTo($status);
+    }
+
+    /**
+     * Obtenir les transitions possibles depuis le statut actuel
+     */
+    public function getPossibleTransitions(): array
+    {
+        return $this->status->getPossibleTransitions();
+    }
+
+    /**
+     * Vérifier si le statut est terminal
+     */
+    public function isStatusTerminal(): bool
+    {
+        return $this->status->isTerminal();
+    }
+
+    /**
+     * Vérifier si le statut est actif (discussion possible)
+     */
+    public function isStatusActive(): bool
+    {
+        return $this->status->isActive();
+    }
+
+    /**
+     * Vérifier si l'envoi de messages est permis
+     */
+    public function allowsStatusMessaging(): bool
+    {
+        return $this->status->allowsMessaging();
+    }
+
+    /**
+     * Vérifier si l'envoi d'images est permis
+     */
+    public function allowsStatusImages(): bool
+    {
+        return $this->status->allowsImages();
+    }
+
+    /**
+     * Vérifier si la conversation est en lecture seule
+     */
+    public function isStatusReadOnly(): bool
+    {
+        return $this->status->isReadOnly();
+    }
+
+    /**
+     * Vérifier si la conversation est fermée
+     */
+    public function isStatusClosed(): bool
+    {
+        return $this->status->isClosed();
+    }
+
+    /**
+     * Vérifier si la conversation peut être archivée
+     */
+    public function canBeStatusArchived(): bool
+    {
+        return $this->status->canBeArchived();
+    }
+
+    /**
+     * Vérifier si la conversation peut être supprimée
+     */
+    public function canBeStatusDeleted(): bool
+    {
+        return $this->status->canBeDeleted();
     }
 
     // ===========================================

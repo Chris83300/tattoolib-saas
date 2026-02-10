@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Services\InputSanitizerService;
 
 class StoreMessageRequest extends FormRequest
 {
@@ -15,13 +16,45 @@ class StoreMessageRequest extends FormRequest
     }
 
     /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->filled('content')) {
+            $sanitizer = app(InputSanitizerService::class);
+            $this->merge([
+                'content' => $sanitizer->sanitizeText($this->content)
+            ]);
+        }
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      */
     public function rules(): array
     {
         return [
-            'content' => 'required_without:attachment|string|max:5000',
-            'attachment' => 'nullable|file|max:10240|mimes:jpg,jpeg,png,gif,pdf,doc,docx',
+            'content' => [
+                'required_without:attachment',
+                'string',
+                'max:5000',
+                'regex:/^[^<>]*$/', // Interdit < et > après sanitization
+            ],
+            'attachment' => [
+                'nullable',
+                'file',
+                'mimes:jpeg,png,webp,pdf',
+                'max:10240', // 10MB
+                function ($attribute, $value, $fail) {
+                    // Vérification type MIME réel
+                    $realMimeType = $value->getMimeType();
+                    $allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+
+                    if (!in_array($realMimeType, $allowedMimes)) {
+                        $fail('Le type de fichier n\'est pas autorisé.');
+                    }
+                },
+            ],
             'is_design_version' => 'nullable|boolean',
             'design_version_number' => 'nullable|required_if:is_design_version,true|integer|min:1',
         ];

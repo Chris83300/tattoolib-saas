@@ -58,12 +58,17 @@
 
         </form>
 
-        <!-- Lien inscription -->
-        <div class="text-center mt-6">
+        <!-- Lien inscription + mot de passe oublié -->
+        <div class="text-center mt-6 space-y-3">
             <p class="text-ivoire-text/70 text-sm">
                 Pas encore de compte ?
                 <a href="{{ route('register') }}" class="text-beige-peau font-semibold hover:underline">
                     S'inscrire
+                </a>
+            </p>
+            <p class="text-ivoire-text/70 text-sm">
+                <a href="{{ route('password.request') }}" class="text-beige-peau font-semibold hover:underline">
+                    Mot de passe oublié ?
                 </a>
             </p>
         </div>

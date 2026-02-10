@@ -6,12 +6,14 @@ use App\Models\Appointment;
 use App\Models\BookingRequest;
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Models\Tattooer;
+use App\Models\Client;
 use App\Policies\AppointmentPolicy;
 use App\Policies\BookingRequestPolicy;
 use App\Policies\ConversationPolicy;
 use App\Policies\MessagePolicy;
-use App\Models\Tattooer;
 use App\Policies\TattooerPolicy;
+use App\Policies\ClientPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
@@ -27,6 +29,7 @@ class AuthServiceProvider extends ServiceProvider
         BookingRequest::class => BookingRequestPolicy::class,
         Appointment::class => AppointmentPolicy::class,
         Tattooer::class => TattooerPolicy::class,
+        Client::class => ClientPolicy::class,
     ];
 
     /**

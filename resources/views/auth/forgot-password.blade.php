@@ -1,0 +1,57 @@
+@extends('layouts.guest')
+
+@section('title', 'Mot de passe oublié - Ink&Pik')
+
+<div class="min-h-screen bg-noir-profond flex items-center justify-center px-4 py-12">
+    <div class="max-w-md w-full">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <a href="{{ route('login') }}" class="text-ivoire-text/70 text-sm hover:text-beige-peau mb-4 inline-block">
+                ← Retour à la connexion
+            </a>
+            <h1 class="text-beige-peau font-display text-2xl font-bold">
+                Mot de passe oublié
+            </h1>
+            <p class="text-ivoire-text/70 text-sm mt-2">
+                Recevez un lien pour réinitialiser votre mot de passe
+            </p>
+        </div>
+
+        <!-- Formulaire -->
+        <form action="{{ route('password.email') }}" method="POST" class="bg-gris-fonde rounded-xl p-6 space-y-4">
+            @csrf
+
+            <!-- Messages de succès -->
+            @if (session('status'))
+                <div class="bg-vert-succes/10 border border-vert-succes/30 rounded-lg p-4 mb-4">
+                    <p class="text-vert-succes text-sm">{{ session('status') }}</p>
+                </div>
+            @endif
+
+            <!-- Email -->
+            <div>
+                <label class="block text-ivoire-text text-sm font-semibold mb-2">
+                    Email *
+                </label>
+                <input type="email" name="email" required value="{{ old('email') }}"
+                    class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors"
+                    placeholder="votre@email.com">
+            </div>
+
+            <!-- Erreurs -->
+            @if ($errors->any())
+                <div class="bg-rouge-alerte/10 border border-rouge-alerte/30 rounded-lg p-3">
+                    @foreach ($errors->all() as $error)
+                        <p class="text-rouge-alerte text-sm">{{ $error }}</p>
+                    @endforeach
+                </div>
+            @endif
+
+            <!-- Submit -->
+            <button type="submit"
+                class="w-full bg-beige-peau hover:bg-beige-peau/90 text-noir-profond font-bold py-3 rounded-lg transition-colors">
+                Envoyer le lien de réinitialisation
+            </button>
+        </form>
+    </div>
+</div>

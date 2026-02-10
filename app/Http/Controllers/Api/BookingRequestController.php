@@ -18,443 +18,336 @@ class BookingRequestController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-
-        $query = BookingRequest::query()
-            ->with(['client.user', 'bookable.user', 'conversation']);
-
-        // Filtrer selon le type d'utilisateur
-        if ($user->isClient()) {
-            $query->where('client_id', $user->client->id);
-        } elseif ($user->isTattooer()) {
-            $query->where('bookable_type', \App\Models\Tattooer::class)
-                  ->where('bookable_id', $user->tattooer->id);
-        } elseif ($user->isStudioArtist()) {
-            $query->where('bookable_type', \App\Models\StudioArtist::class)
-                  ->where('bookable_id', $user->studioArtist->id);
-        } elseif ($user->is_admin) {
-            // Admin peut voir tous les booking requests
-            // Pas de filtrage
-        } else {
-            return response()->json([
-                'message' => 'Profil incomplet'
-            ], 403);
+        
+        if (!$user) {
+            return response()->json(['message' => 'Non authentifié'], 401);
         }
 
-        // Filtres optionnels
-        if ($request->has('status')) {
-            $query->where('status', $request->status);
+        // Si c'est un client, afficher ses demandes
+        if ($user->hasRole('client')) {
+            $bookingRequests = BookingRequest::where('client_id', $user->client->id)
+                ->with(['bookable.user'])
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
+        // Si c'est un tattooer, afficher les demandes reçues
+        elseif ($user->hasRole('tattooer')) {
+            $bookingRequests = BookingRequest::where('bookable_id', $user->tattooer->id)
+                ->where('bookable_type', Tattooer::class)
+                ->with(['client.user'])
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
+        // Si c'est un studio, afficher les demandes de ses artistes
+        elseif ($user->hasRole('studio')) {
+            $bookingRequests = BookingRequest::whereHas('bookable', function ($query) use ($user) {
+                $query->where('studio_id', $user->studio->id);
+            })
+                ->with(['bookable.user', 'client.user'])
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
+        else {
+            return response()->json(['message' => 'Rôle non autorisé'], 403);
         }
 
-        $bookingRequests = $query
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
-
-        return response()->json($bookingRequests);
-    }
-
-    /**
-     * Afficher une demande spécifique
-     */
-    public function show(Request $request, BookingRequest $bookingRequest)
-    {
-        Gate::authorize('view', $bookingRequest);
-
-        $bookingRequest->load([
-            'client.user',
-            'bookable.user',
-            'conversation.lastMessage',
-            'appointment'
+        return response()->json([
+            'data' => $bookingRequests->map(function ($booking) {
+                return [
+                    'id' => $booking->id,
+                    'client' => $booking->client ? [
+                        'id' => $booking->client->id,
+                        'user' => [
+                            'id' => $booking->client->user->id,
+                            'name' => $booking->client->user->name,
+                            'email' => $booking->client->user->email,
+                        ]
+                    ] : null,
+                    'bookable' => [
+                        'id' => $booking->bookable_id,
+                        'type' => class_basename($booking->bookable_type),
+                        'user' => $booking->bookable->user ? [
+                            'id' => $booking->bookable->user->id,
+                            'name' => $booking->bookable->user->name,
+                        ] : null,
+                    ],
+                    'status' => $booking->status,
+                    'created_at' => $booking->created_at,
+                    'updated_at' => $booking->updated_at,
+                ];
+            })
         ]);
-
-        return response()->json($bookingRequest);
     }
 
     /**
-     * ⭐ Client demande un RDV (avec préférence date/horaire)
+     * Créer une nouvelle demande de réservation
      */
     public function store(StoreBookingRequestRequest $request)
     {
+        $validated = $request->validated();
         $user = $request->user();
 
-        if (!$user->isClient()) {
-            return response()->json(['message' => 'Accès réservé aux clients'], 403);
+        if (!$user || !$user->hasRole('client')) {
+            return response()->json(['message' => 'Non autorisé'], 403);
         }
 
-        $validated = $request->validated();
+        try {
+            $bookingRequest = BookingRequest::create([
+                'client_id' => $user->client->id,
+                'bookable_id' => $validated['bookable_id'],
+                'bookable_type' => $validated['bookable_type'],
+                'project_description' => $validated['project_description'],
+                'estimated_duration_hours' => $validated['estimated_duration_hours'],
+                'estimated_price' => $validated['estimated_price'],
+                'preferred_date' => $validated['preferred_date'] ?? null,
+                'preferred_period' => $validated['preferred_period'] ?? null,
+                'status' => BookingRequest::STATUS_PENDING,
+            ]);
 
-        // Récupérer le tatoueur depuis les relations polymorphiques
-        if ($validated['bookable_type'] === Tattooer::class) {
-            $tattooer = Tattooer::findOrFail($validated['bookable_id']);
-        } else {
-            return response()->json(['message' => 'Type de bookable non supporté'], 422);
-        }
-
-        // Vérifier que le client n'est pas blacklisté
-        if ($user->client->is_blacklisted) {
             return response()->json([
-                'message' => 'Votre compte est suspendu',
-                'reason' => $user->client->blacklist_reason,
-            ], 403);
-        }
+                'message' => 'Demande créée avec succès',
+                'data' => $bookingRequest->load(['bookable.user', 'client.user']),
+            ], 201);
 
-        // Vérifier que le tatoueur peut accepter des réservations
-        if (!$tattooer->canAcceptBookings()) {
+        } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Ce tatoueur n\'accepte pas de nouvelles réservations pour le moment'
-            ], 422);
+                'message' => 'Erreur lors de la création de la demande',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-        // ⭐ Vérifier que la date demandée a de la disponibilité
-        if (isset($validated['preferred_date'])) {
-            $hasAvailability = Availability::hasAvailabilityOnDate(
-                $tattooer->user_id, // Utiliser user_id pour les availabilities
-                $validated['preferred_date']
-            );
-
-            if (!$hasAvailability) {
-                return response()->json([
-                    'message' => 'Aucune disponibilité pour cette date'
-                ], 422);
-            }
-        }
-
-        $bookingRequest = BookingRequest::create([
-            'client_id' => $user->client->id,
-            'bookable_type' => $validated['bookable_type'],
-            'bookable_id' => $validated['bookable_id'],
-            'tattoo_size' => $validated['tattoo_size'],
-            'body_zone' => $validated['body_zone'],
-            'description' => $validated['description'],
-            'preferred_date' => $validated['preferred_date'] ?? null,
-            'preferred_time_slot' => $validated['preferred_time_slot'] ?? 'anytime',
-            'preferred_time_notes' => $validated['preferred_time_notes'] ?? null,
-            'estimated_budget' => $validated['estimated_budget'] ?? null,
-            'status' => BookingRequest::STATUS_PENDING,
-
-            // Valeurs par défaut du tatoueur
-            'client_payment_deadline_days' => $tattooer->default_client_payment_deadline_days,
-            'tattooer_design_deadline_days' => $tattooer->default_tattooer_design_deadline_days,
-            'included_design_versions' => $tattooer->default_design_versions_included,
-        ]);
-
-        return response()->json([
-            'message' => 'Demande envoyée avec succès',
-            'booking_request' => $bookingRequest->load('bookable.user'),
-        ], 201);
     }
 
     /**
-     * ⭐ Tatoueur accepte + fixe heure exacte
+     * Afficher une demande de réservation spécifique
      */
-    public function accept(Request $request, BookingRequest $bookingRequest)
+    public function show(Request $request, $id)
     {
-        Gate::authorize('accept', $bookingRequest);
+        $user = $request->user();
+        $bookingRequest = BookingRequest::with(['bookable.user', 'client.user'])->find($id);
 
+        if (!$bookingRequest) {
+            return response()->json(['message' => 'Demande non trouvée'], 404);
+        }
+
+        // Vérifier les permissions
+        $canView = false;
+        
+        if ($user->hasRole('client') && $bookingRequest->client_id === $user->client->id) {
+            $canView = true;
+        } elseif ($user->hasRole('tattooer') && $bookingRequest->bookable_id === $user->tattooer->id) {
+            $canView = true;
+        } elseif ($user->hasRole('studio') && $bookingRequest->bookable->studio_id === $user->studio->id) {
+            $canView = true;
+        }
+
+        if (!$canView) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
+
+        return response()->json([
+            'data' => [
+                'id' => $bookingRequest->id,
+                'client' => [
+                    'id' => $bookingRequest->client->id,
+                    'user' => [
+                        'id' => $bookingRequest->client->user->id,
+                        'name' => $bookingRequest->client->user->name,
+                        'email' => $bookingRequest->client->user->email,
+                    ]
+                ],
+                'bookable' => [
+                    'id' => $bookingRequest->bookable_id,
+                    'type' => class_basename($bookingRequest->bookable_type),
+                    'user' => $bookingRequest->bookable->user ? [
+                        'id' => $bookingRequest->bookable->user->id,
+                        'name' => $bookingRequest->bookable->user->name,
+                    ] : null,
+                ],
+                'project_description' => $bookingRequest->project_description,
+                'estimated_duration_hours' => $bookingRequest->estimated_duration_hours,
+                'estimated_price' => $bookingRequest->estimated_price,
+                'preferred_date' => $bookingRequest->preferred_date,
+                'preferred_period' => $bookingRequest->preferred_period,
+                'status' => $bookingRequest->status,
+                'created_at' => $bookingRequest->created_at,
+                'updated_at' => $bookingRequest->updated_at,
+            ]
+        ]);
+    }
+
+    /**
+     * Mettre à jour une demande de réservation
+     */
+    public function update(Request $request, $id)
+    {
+        $user = $request->user();
+        $bookingRequest = BookingRequest::find($id);
+
+        if (!$bookingRequest) {
+            return response()->json(['message' => 'Demande non trouvée'], 404);
+        }
+
+        // Vérifier les permissions (seul le client peut modifier sa demande)
+        if (!$user->hasRole('client') || $bookingRequest->client_id !== $user->client->id) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
+
+        // Seules les demandes en attente peuvent être modifiées
         if ($bookingRequest->status !== BookingRequest::STATUS_PENDING) {
-            return response()->json([
-                'message' => 'Cette demande ne peut plus être acceptée'
-            ], 422);
+            return response()->json(['message' => 'Cette demande ne peut plus être modifiée'], 403);
         }
 
         $validated = $request->validate([
-            'scheduled_date' => 'required|date|after_or_equal:today',
-            'scheduled_start_time' => 'required|date_format:H:i',
-            'scheduled_duration_minutes' => 'required|integer|min:30|max:480',
-            'total_price' => 'required|numeric|min:0',
-            'deposit_rate' => 'required|numeric|min:0|max:100',
-            'deposit_deadline_hours' => 'required|integer|min:24|max:720', // 1j à 30j
+            'project_description' => 'sometimes|string|max:1000',
+            'estimated_duration_hours' => 'sometimes|integer|min:1|max:8',
+            'estimated_price' => 'sometimes|numeric|min:50|max:5000',
+            'preferred_date' => 'sometimes|date|after_or_equal:today',
+            'preferred_period' => 'sometimes|in:morning,afternoon',
         ]);
 
-        $scheduledEndTime = \Carbon\Carbon::createFromFormat('H:i', $validated['scheduled_start_time'])
-            ->addMinutes($validated['scheduled_duration_minutes'])
-            ->format('H:i');
-
-        // ⭐ Vérifier disponibilité créneau
-        $slots = Availability::getAvailableSlotsForDay(
-            $bookingRequest->bookable->id,
-            $validated['scheduled_date']
-        );
-
-        $isAvailable = false;
-        foreach ($slots as $slot) {
-            if ($slot['start_time'] <= $validated['scheduled_start_time'] &&
-                $slot['end_time'] >= $scheduledEndTime) {
-                $isAvailable = true;
-                break;
-            }
-        }
-
-        if (!$isAvailable) {
-            return response()->json(['message' => 'Créneau non disponible'], 422);
-        }
-
-        $depositAmount = $validated['total_price'] * ($validated['deposit_rate'] / 100);
-        $depositDeadline = now()->addHours($validated['deposit_deadline_hours']);
-
-        $bookingRequest->update([
-            'status' => BookingRequest::STATUS_ACCEPTED,
-            'accepted_at' => now(),
-            'scheduled_start_time' => $validated['scheduled_start_time'],
-            'scheduled_end_time' => $scheduledEndTime,
-            'scheduled_duration_minutes' => $validated['scheduled_duration_minutes'],
-            'total_price' => $validated['total_price'],
-            'total_deposit_amount' => $depositAmount,
-            'deposit_deadline' => $depositDeadline,
-            'client_payment_deadline' => $depositDeadline,
-        ]);
-
-        // ⭐ Initialiser la conversation avec le délai d'acompte
-        if ($bookingRequest->conversation) {
-            $bookingRequest->conversation->initializeDepositPendingPhase(
-                $validated['deposit_deadline_hours'] / 24 // Convertir heures en jours
-            );
-        }
+        $bookingRequest->update($validated);
 
         return response()->json([
-            'message' => 'Demande acceptée. En attente du paiement de l\'acompte.',
-            'booking_request' => $bookingRequest->fresh(['conversation']),
+            'message' => 'Demande mise à jour avec succès',
+            'data' => $bookingRequest->fresh(['bookable.user', 'client.user']),
         ]);
     }
 
     /**
-     * Rejeter une demande (tatoueur)
+     * Supprimer une demande de réservation
      */
-    public function reject(Request $request, BookingRequest $bookingRequest)
+    public function destroy(Request $request, $id)
     {
-        Gate::authorize('reject', $bookingRequest);
+        $user = $request->user();
+        $bookingRequest = BookingRequest::find($id);
+
+        if (!$bookingRequest) {
+            return response()->json(['message' => 'Demande non trouvée'], 404);
+        }
+
+        // Vérifier les permissions
+        $canDelete = false;
+        
+        if ($user->hasRole('client') && $bookingRequest->client_id === $user->client->id) {
+            $canDelete = true;
+        } elseif ($user->hasRole('tattooer') && $bookingRequest->bookable_id === $user->tattooer->id) {
+            $canDelete = true;
+        } elseif ($user->hasRole('studio') && $bookingRequest->bookable->studio_id === $user->studio->id) {
+            $canDelete = true;
+        }
+
+        if (!$canDelete) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
+
+        // Seules les demandes en attente peuvent être supprimées
+        if ($bookingRequest->status !== BookingRequest::STATUS_PENDING) {
+            return response()->json(['message' => 'Cette demande ne peut plus être supprimée'], 403);
+        }
+
+        $bookingRequest->delete();
+
+        return response()->json([
+            'message' => 'Demande supprimée avec succès',
+        ]);
+    }
+
+    /**
+     * Accepter une demande de réservation (tattooer)
+     */
+    public function accept(Request $request, $id)
+    {
+        $user = $request->user();
+        
+        if (!$user->hasRole('tattooer')) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
+
+        $bookingRequest = BookingRequest::with(['client.user'])->find($id);
+        
+        if (!$bookingRequest) {
+            return response()->json(['message' => 'Demande non trouvée'], 404);
+        }
+
+        if ($bookingRequest->bookable_id !== $user->tattooer->id) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
 
         if ($bookingRequest->status !== BookingRequest::STATUS_PENDING) {
-            return response()->json([
-                'message' => 'Cette demande ne peut plus être rejetée'
-            ], 422);
+            return response()->json(['message' => 'Cette demande ne peut plus être acceptée'], 403);
         }
 
-        $bookingRequest->reject();
-
-        return response()->json([
-            'message' => 'Demande rejetée',
-        ]);
-    }
-
-    /**
-     * ⭐ Client paie l'acompte → RDV confirmé
-     */
-    public function confirmDeposit(Request $request, BookingRequest $bookingRequest)
-    {
-        $user = $request->user();
-
-        if (!$user->isClient() || $bookingRequest->client_id !== $user->client->id) {
-            return response()->json(['message' => 'Accès non autorisé'], 403);
-        }
-
-        if ($bookingRequest->status !== BookingRequest::STATUS_ACCEPTED) {
-            return response()->json(['message' => 'Demande non acceptée'], 422);
-        }
-
-        // Vérifier la deadline via la conversation
-        $conversation = $bookingRequest->conversation;
-        if ($conversation && $conversation->isDepositPending() && $conversation->shouldExpire()) {
-            return response()->json(['message' => 'Délai de paiement dépassé'], 422);
-        }
-
-        // Vérification legacy pour compatibilité
-        if ($bookingRequest->deposit_deadline && now()->isAfter($bookingRequest->deposit_deadline)) {
-            return response()->json(['message' => 'Délai de paiement dépassé'], 422);
-        }
-
-        // TODO: Intégration Stripe ici
-        // Pour l'instant, on simule le paiement réussi
-        $bookingRequest->update([
-            'status' => BookingRequest::STATUS_DEPOSIT_PAID,
-            'deposit_paid_at' => now(),
+        $validated = $request->validate([
+            'estimated_price' => 'required|numeric|min:50|max:5000',
+            'estimated_duration_hours' => 'required|integer|min:1|max:8',
+            'deposit_rate' => 'required|integer|min:0|max:100',
+            'deposit_deadline_hours' => 'required|integer|min:1|max:168',
+            'proposed_dates' => 'required|array|min:1|max:3',
+            'proposed_dates.*.date' => 'required|date|after_or_equal:today',
+            'proposed_dates.*.period' => 'required|in:morning,afternoon',
         ]);
 
-        // ⭐ Transitionner la conversation vers la phase permanente
-        if ($conversation) {
-            $conversation->transitionToPermanentPhase();
-        }
-
-        return response()->json([
-            'message' => 'Acompte payé avec succès',
-            'booking_request' => $bookingRequest->fresh(),
-        ]);
-    }
-
-    /**
-     * ⭐ Vérifier les demandes expirées (job cron)
-     */
-    public function checkExpiredRequests()
-    {
-        $expiredRequests = BookingRequest::where('status', BookingRequest::STATUS_ACCEPTED)
-            ->where('deposit_deadline', '<', now())
-            ->whereNull('deposit_paid_at')
-            ->get();
-
-        foreach ($expiredRequests as $request) {
-            $request->update([
-                'status' => BookingRequest::STATUS_EXPIRED,
-                'expired_at' => now(),
+        try {
+            $bookingRequest->update([
+                'status' => BookingRequest::STATUS_ACCEPTED,
+                'accepted_at' => now(),
+                'estimated_price' => $validated['estimated_price'],
+                'estimated_duration_hours' => $validated['estimated_duration_hours'],
+                'deposit_rate' => $validated['deposit_rate'],
+                'deposit_deadline_hours' => $validated['deposit_deadline_hours'],
+                'proposed_dates' => $validated['proposed_dates'],
+                'date_selection_deadline' => now()->addHours(48),
             ]);
-        }
 
-        return response()->json([
-            'message' => 'Vérification terminée',
-            'expired_count' => $expiredRequests->count(),
-        ]);
+            return response()->json([
+                'message' => 'Demande acceptée avec succès',
+                'data' => $bookingRequest->load(['bookable.user', 'client.user']),
+            ]);
+
+        } catch (\App\Exceptions\BookingException $e) {
+            return response()->json([
+                'error' => $e->getMessage(),
+            ], 422);
+        }
     }
 
     /**
-     * Marquer l'acompte comme payé (webhook Stripe)
+     * Rejeter une demande de réservation (tattooer)
      */
-    public function markDepositPaid(Request $request, BookingRequest $bookingRequest)
+    public function reject(Request $request, $id)
     {
-        $request->validate([
-            'payment_intent_id' => 'required|string',
-        ]);
-
-        if ($bookingRequest->status !== BookingRequest::STATUS_AWAITING_DEPOSIT) {
-            return response()->json([
-                'message' => 'Statut invalide'
-            ], 422);
+        $user = $request->user();
+        
+        if (!$user->hasRole('tattooer')) {
+            return response()->json(['message' => 'Non autorisé'], 403);
         }
 
-        $bookingRequest->markDepositPaid($request->payment_intent_id);
-
-        return response()->json([
-            'message' => 'Acompte confirmé',
-            'booking_request' => $bookingRequest->fresh(),
-        ]);
-    }
-
-    /**
-     * Envoyer le design (tatoueur)
-     */
-    public function sendDesign(Request $request, BookingRequest $bookingRequest)
-    {
-        Gate::authorize('sendDesign', $bookingRequest);
-
-        if ($bookingRequest->status !== BookingRequest::STATUS_DEPOSIT_PAID
-            && $bookingRequest->status !== BookingRequest::STATUS_DESIGN_SENT) {
-            return response()->json([
-                'message' => 'L\'acompte doit être payé avant d\'envoyer le design'
-            ], 422);
+        $bookingRequest = BookingRequest::find($id);
+        
+        if (!$bookingRequest) {
+            return response()->json(['message' => 'Demande non trouvée'], 404);
         }
 
-        // Vérifier qu'il reste des versions disponibles
-        if (!$bookingRequest->canSendNewDesignVersion()) {
-            return response()->json([
-                'message' => 'Nombre maximum de versions atteint',
-                'used' => $bookingRequest->design_versions_used,
-                'included' => $bookingRequest->included_design_versions,
-            ], 422);
+        if ($bookingRequest->bookable_id !== $user->tattooer->id) {
+            return response()->json(['message' => 'Non autorisé'], 403);
         }
 
-        $bookingRequest->sendDesign();
-
-        return response()->json([
-            'message' => 'Design envoyé',
-            'booking_request' => $bookingRequest->fresh(),
-        ]);
-    }
-
-    /**
-     * Confirmer le rendez-vous final
-     */
-    public function confirmAppointment(Request $request, BookingRequest $bookingRequest)
-    {
-        Gate::authorize('confirmAppointment', $bookingRequest);
-
-        $request->validate([
-            'appointment_datetime' => 'required|date|after:now',
-            'duration_minutes' => 'required|integer|min:30|max:480',
-        ]);
-
-        if ($bookingRequest->status !== BookingRequest::STATUS_DESIGN_SENT) {
-            return response()->json([
-                'message' => 'Le design doit être validé avant de confirmer le RDV'
-            ], 422);
+        if ($bookingRequest->status !== BookingRequest::STATUS_PENDING) {
+            return response()->json(['message' => 'Cette demande ne peut plus être rejetée'], 403);
         }
 
-        $bookingRequest->confirm(
-            new \DateTime($request->appointment_datetime),
-            $request->duration_minutes
-        );
-
-        return response()->json([
-            'message' => 'Rendez-vous confirmé',
-            'booking_request' => $bookingRequest->fresh(['appointment']),
-        ]);
-    }
-
-    /**
-     * Annuler une demande
-     */
-    public function cancel(Request $request, BookingRequest $bookingRequest)
-    {
-        Gate::authorize('cancel', $bookingRequest);
-
-        $request->validate([
-            'reason' => 'nullable|string|max:500',
+        $validated = $request->validate([
+            'rejection_reason' => 'required|string|max:500',
         ]);
 
         $bookingRequest->update([
-            'status' => BookingRequest::STATUS_CANCELLED,
+            'status' => BookingRequest::STATUS_REJECTED,
+            'rejected_at' => now(),
+            'rejection_reason' => $validated['rejection_reason'],
         ]);
-
-        // TODO: Logique de remboursement si nécessaire
 
         return response()->json([
-            'message' => 'Demande annulée',
+            'message' => 'Demande rejetée avec succès',
         ]);
-    }
-
-    /**
-     * Statistiques pour le tatoueur
-     */
-    public function statistics(Request $request)
-    {
-        $user = $request->user();
-
-        if (!$user->isTattooer()) {
-            return response()->json([
-                'message' => 'Réservé aux tatoueurs'
-            ], 403);
-        }
-
-        $tattooerId = $user->tattooer->id;
-
-        $stats = [
-            'pending' => BookingRequest::where('bookable_type', \App\Models\Tattooer::class)
-                ->where('bookable_id', $tattooerId)
-                ->where('status', BookingRequest::STATUS_PENDING)->count(),
-
-            'accepted' => BookingRequest::where('bookable_type', \App\Models\Tattooer::class)
-                ->where('bookable_id', $tattooerId)
-                ->where('status', BookingRequest::STATUS_ACCEPTED)->count(),
-
-            'awaiting_deposit' => BookingRequest::where('bookable_type', \App\Models\Tattooer::class)
-                ->where('bookable_id', $tattooerId)
-                ->where('status', BookingRequest::STATUS_AWAITING_DEPOSIT)->count(),
-
-            'in_progress' => BookingRequest::where('bookable_type', \App\Models\Tattooer::class)
-                ->where('bookable_id', $tattooerId)
-                ->whereIn('status', [
-                    BookingRequest::STATUS_DEPOSIT_PAID,
-                    BookingRequest::STATUS_DESIGN_SENT,
-                ])->count(),
-
-            'confirmed' => BookingRequest::where('bookable_type', \App\Models\Tattooer::class)
-                ->where('bookable_id', $tattooerId)
-                ->where('status', BookingRequest::STATUS_CONFIRMED)->count(),
-
-            'overdue_designs' => BookingRequest::where('bookable_type', \App\Models\Tattooer::class)
-                ->where('bookable_id', $tattooerId)
-                ->where('status', BookingRequest::STATUS_DEPOSIT_PAID)
-                ->where('tattooer_design_deadline', '<', now())
-                ->whereNull('design_sent_at')
-                ->count(),
-        ];
-
-        return response()->json($stats);
     }
 }

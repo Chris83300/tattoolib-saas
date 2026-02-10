@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AppointmentStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -86,10 +87,109 @@ class Appointment extends Model
         'client_reported_issue' => 'boolean',
         'client_dispute_refund' => 'boolean',
         'requires_manual_review' => 'boolean',
+
+        // === 🎯 CAST VERS ENUM ===
+        'status' => AppointmentStatus::class,
     ];
 
-    // ===== CONSTANTES =====
+    // ===== MÉTHODES STATUT (UTILISE L'ENUM) =====
 
+    /**
+     * Transition vers un nouveau statut avec validation
+     */
+    public function transitionTo(AppointmentStatus $status): bool
+    {
+        if (!$this->status->canTransitionTo($status)) {
+            return false;
+        }
+
+        $this->status = $status;
+        return $this->save();
+    }
+
+    /**
+     * Obtenir le statut actuel en tant qu'enum
+     */
+    public function getStatusEnum(): AppointmentStatus
+    {
+        return $this->status;
+    }
+
+    /**
+     * Vérifier si le statut actuel peut transitionner vers un autre
+     */
+    public function canTransitionTo(AppointmentStatus $status): bool
+    {
+        return $this->status->canTransitionTo($status);
+    }
+
+    /**
+     * Obtenir les transitions possibles depuis le statut actuel
+     */
+    public function getPossibleTransitions(): array
+    {
+        return $this->status->getPossibleTransitions();
+    }
+
+    /**
+     * Vérifier si le statut est terminal
+     */
+    public function isStatusTerminal(): bool
+    {
+        return $this->status->isTerminal();
+    }
+
+    /**
+     * Vérifier si le statut est actif
+     */
+    public function isStatusActive(): bool
+    {
+        return $this->status->isActive();
+    }
+
+    /**
+     * Vérifier si le RDV est dans le passé
+     */
+    public function isStatusPast(): bool
+    {
+        return $this->status->isPast();
+    }
+
+    /**
+     * Vérifie si le RDV nécessite une confirmation
+     */
+    public function needsStatusConfirmation(): bool
+    {
+        return $this->status->needsConfirmation();
+    }
+
+    /**
+     * Vérifie si le RDV peut être annulé
+     */
+    public function isStatusCancellable(): bool
+    {
+        return $this->status->isCancellable();
+    }
+
+    /**
+     * Vérifie si le RDV peut être confirmé comme terminé
+     */
+    public function canBeStatusCompleted(): bool
+    {
+        return $this->status->canBeCompleted();
+    }
+
+    /**
+     * Vérifie si le RDV peut signaler une absence
+     */
+    public function canReportStatusNoShow(): bool
+    {
+        return $this->status->canReportNoShow();
+    }
+
+    // ===== MÉTHODES RÉTROCOMPATIBILITÉ (CONSTANTES) =====
+
+    // Garder pour rétrocompatibilité mais déprécié
     const STATUS_CONFIRMED = 'confirmed';
     const STATUS_COMPLETED = 'completed';
     const STATUS_CANCELLED = 'cancelled';
@@ -128,22 +228,65 @@ class Appointment extends Model
 
     // ===== SCOPES =====
 
+    public function scopeScheduled($query)
+    {
+        return $query->where('status', AppointmentStatus::SCHEDULED);
+    }
+
+    public function scopeConfirmed($query)
+    {
+        return $query->where('status', AppointmentStatus::CONFIRMED);
+    }
+
+    public function scopeInProgress($query)
+    {
+        return $query->where('status', AppointmentStatus::IN_PROGRESS);
+    }
+
     public function scopeUpcoming($query)
     {
-        return $query->where('start_time', '>', now())
-            ->where('status', self::STATUS_CONFIRMED)
-            ->orderBy('start_time');
+        return $query->where('start_datetime', '>', now())
+            ->whereIn('status', [AppointmentStatus::SCHEDULED, AppointmentStatus::CONFIRMED])
+            ->orderBy('start_datetime');
     }
 
     public function scopePast($query)
     {
-        return $query->where('start_time', '<', now())
-            ->orderBy('start_time', 'desc');
+        return $query->where('start_datetime', '<', now())
+            ->orderBy('start_datetime', 'desc');
     }
 
     public function scopeCompleted($query)
     {
-        return $query->where('status', self::STATUS_COMPLETED);
+        return $query->where('status', AppointmentStatus::COMPLETED);
+    }
+
+    public function scopeCancelled($query)
+    {
+        return $query->where('status', AppointmentStatus::CANCELLED);
+    }
+
+    public function scopeNoShow($query)
+    {
+        return $query->where('status', AppointmentStatus::NO_SHOW);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->whereIn('status', [
+            AppointmentStatus::SCHEDULED,
+            AppointmentStatus::CONFIRMED,
+            AppointmentStatus::IN_PROGRESS
+        ]);
+    }
+
+    public function scopeTerminal($query)
+    {
+        return $query->whereIn('status', [
+            AppointmentStatus::COMPLETED,
+            AppointmentStatus::CANCELLED,
+            AppointmentStatus::NO_SHOW
+        ]);
     }
 
     public function scopeForTattooer($query, int $tattooerId)
@@ -184,11 +327,12 @@ class Appointment extends Model
     public function confirmCompletion(string $note = null): void
     {
         $this->update([
-            'status' => self::STATUS_COMPLETED,
             'tattooer_confirmation_status' => self::TATTOOER_CONFIRMATION_COMPLETED,
             'tattooer_confirmation_note' => $note,
             'tattooer_confirmed_at' => now(),
         ]);
+
+        $this->transitionTo(AppointmentStatus::COMPLETED);
 
         // TODO: Event AppointmentCompleted
     }
@@ -199,11 +343,12 @@ class Appointment extends Model
     public function reportClientNoShow(string $note = null): void
     {
         $this->update([
-            'status' => self::STATUS_CLIENT_NO_SHOW,
             'tattooer_confirmation_status' => self::TATTOOER_CONFIRMATION_CLIENT_NO_SHOW,
             'tattooer_confirmation_note' => $note,
             'tattooer_confirmed_at' => now(),
         ]);
+
+        $this->transitionTo(AppointmentStatus::NO_SHOW);
 
         // Incrémenter le compteur de no-show du client
         $this->client->incrementNoShow();
@@ -221,8 +366,9 @@ class Appointment extends Model
             'client_issue_description' => $description,
             'client_reported_at' => now(),
             'requires_manual_review' => true,
-            'status' => self::STATUS_DISPUTED,
         ]);
+
+        $this->transitionTo(AppointmentStatus::CANCELLED);
 
         // TODO: Event AppointmentDisputed
     }
@@ -232,15 +378,16 @@ class Appointment extends Model
      */
     public function cancel(string $cancelledBy, string $reason): void
     {
-        $daysBeforeAppointment = now()->diffInDays($this->start_time, false);
+        $daysBeforeAppointment = now()->diffInDays($this->start_datetime, false);
 
         $this->update([
-            'status' => self::STATUS_CANCELLED,
             'cancelled_by' => $cancelledBy,
             'cancelled_at' => now(),
             'cancellation_reason' => $reason,
             'days_before_appointment' => max(0, $daysBeforeAppointment),
         ]);
+
+        $this->transitionTo(AppointmentStatus::CANCELLED);
 
         // Logique de remboursement selon les conditions
         $this->processRefund($cancelledBy, $daysBeforeAppointment);
@@ -321,16 +468,16 @@ class Appointment extends Model
      */
     public function isPast(): bool
     {
-        return $this->start_time->isPast();
+        return $this->start_datetime->isPast();
     }
 
     /**
-     * Vérifier si le RDV nécessite confirmation
+     * Vérifier si le RDV nécessite une confirmation
      */
     public function needsConfirmation(): bool
     {
         return $this->isPast()
-            && $this->status === self::STATUS_CONFIRMED
+            && $this->status === AppointmentStatus::CONFIRMED
             && !$this->tattooer_confirmation_status;
     }
 
@@ -339,8 +486,7 @@ class Appointment extends Model
      */
     public function isCancellable(): bool
     {
-        return in_array($this->status, [self::STATUS_CONFIRMED])
-            && $this->start_time->isFuture();
+        return $this->status->isCancellable() && $this->start_datetime->isFuture();
     }
 
     /**

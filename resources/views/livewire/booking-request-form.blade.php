@@ -162,11 +162,11 @@
 
                         <div>
                             <label class="block text-sm font-semibold text-ivoire-text/80 mb-2">Date souhaitée</label>
-                            <input type="date" wire:model="proposedDate"
-                                class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
-                            @error('proposedDate')
-                                <span class="text-rouge-alerte text-sm">{{ $message }}</span>
-                            @enderror
+
+                            {{-- Calendrier disponibilités --}}
+                            <livewire:components.availability-calendar :tattooer-id="$bookable->id" mode="single"
+                                :show-period-selector="true" wire-model="preferredDate" />
+
                             <p class="text-xs text-ivoire-text/50 mt-2">Optionnel - L'artiste vous proposera les dates
                                 disponibles</p>
                         </div>

@@ -2,118 +2,157 @@
 
 namespace Tests\Feature;
 
-use App\Models\Client;
-use App\Models\StudioArtist;
-use App\Models\BookingRequest;
-use App\Models\Payment;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
+use App\Models\User;
+use App\Models\BookingRequest;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 
 class StripePaymentTest extends TestCase
 {
     use RefreshDatabase;
 
     /** @test */
-    public function it_can_create_payment_intent_with_direct_charges()
+    public function validates_payment_intent_before_confirming_deposit()
     {
-        // Créer artiste avec Stripe Account
-        $artist = StudioArtist::factory()->create([
-            'stripe_connect_account_id' => 'acct_test_123456789',
-            'artist_name' => 'Test Artist',
-            'status' => 'active',
-        ]);
-
-        // Créer client
-        $client = Client::factory()->create();
-
-        // Créer booking accepté avec prix
+        $client = User::factory()->client()->create();
         $booking = BookingRequest::factory()->create([
-            'client_id' => $client->id,
-            'bookable_type' => StudioArtist::class,
-            'bookable_id' => $artist->id,
-            'status' => BookingRequest::STATUS_ACCEPTED,
-            'estimated_price' => 200.00,
+            'client_id' => $client->client->id,
+            'status' => BookingRequest::STATUS_AWAITING_DEPOSIT,
+            'total_deposit_amount' => 90,
         ]);
 
-        // Données de test
-        $paymentData = [
-            'booking_request_id' => $booking->id,
-        ];
-
-        // Simuler la requête API
-        $response = $this->actingAs($client->user)
-            ->postJson("/api/bookings/{$booking->id}/payment/deposit", $paymentData);
-
-        // Assertions
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'client_secret',
-                'payment_id',
-                'amount',
-                'currency',
+        // PaymentIntent ID invalide
+        $response = $this->actingAs($client, 'sanctum')
+            ->postJson("/api/booking-requests/{$booking->id}/confirm-deposit", [
+                'payment_intent_id' => 'invalid_id',
             ]);
 
-        // Vérifier que le payment a été créé
-        $this->assertDatabaseHas('payments', [
-            'booking_request_id' => $booking->id,
-            'amount' => 60.00, // 30% de 200€
-            'status' => 'pending',
-            'payment_type' => 'deposit',
-        ]);
+        $response->assertStatus(422);
     }
 
     /** @test */
-    public function it_requires_authentication_to_create_payment()
+    public function verifies_payment_amount_matches_deposit()
     {
-        $booking = BookingRequest::factory()->create();
-
-        // Tenter sans authentification
-        $response = $this->postJson("/api/bookings/{$booking->id}/payment/deposit", []);
-
-        $response->assertStatus(401);
-    }
-
-    /** @test */
-    public function it_validates_booking_ownership()
-    {
-        // Créer deux clients
-        $client1 = Client::factory()->create();
-        $client2 = Client::factory()->create();
-
-        $artist = StudioArtist::factory()->create();
+        $client = User::factory()->client()->create();
         $booking = BookingRequest::factory()->create([
-            'client_id' => $client1->id,
-            'bookable_id' => $artist->id,
-            'bookable_type' => StudioArtist::class,
+            'client_id' => $client->client->id,
+            'status' => BookingRequest::STATUS_AWAITING_DEPOSIT,
+            'total_deposit_amount' => 90,
         ]);
 
-        // Tenter avec un autre client
-        $response = $this->actingAs($client2->user)
-            ->postJson("/api/bookings/{$booking->id}/payment/deposit", []);
+        // Mock Stripe API - montant différent
+        Http::fake([
+            'api.stripe.com/*' => Http::response([
+                'id' => 'pi_test_123',
+                'amount' => 5000, // 50€ au lieu de 90€
+                'status' => 'succeeded',
+            ]),
+        ]);
 
-        $response->assertStatus(403)
-            ->assertJson(['message' => 'Unauthorized']);
+        $response = $this->actingAs($client, 'sanctum')
+            ->postJson("/api/booking-requests/{$booking->id}/confirm-deposit", [
+                'payment_intent_id' => 'pi_test_123',
+            ]);
+
+        $response->assertStatus(422);
+        $response->assertJson([
+            'error' => 'Le montant payé ne correspond pas à l\'acompte requis',
+        ]);
     }
 
     /** @test */
-    public function it_calculates_deposit_amount_correctly()
+    public function webhook_handles_successful_payment()
     {
-        Config::set('services.stripe.default_deposit_percentage', 25);
-
-        $artist = StudioArtist::factory()->create();
-        $client = Client::factory()->create();
         $booking = BookingRequest::factory()->create([
-            'client_id' => $client->id,
-            'bookable_id' => $artist->id,
-            'bookable_type' => StudioArtist::class,
-            'estimated_price' => 300.00,
+            'status' => BookingRequest::STATUS_AWAITING_DEPOSIT,
         ]);
 
-        $response = $this->actingAs($client->user)
-            ->postJson("/api/bookings/{$booking->id}/payment/deposit");
+        $payload = [
+            'type' => 'payment_intent.succeeded',
+            'data' => [
+                'object' => [
+                    'id' => 'pi_test_123',
+                    'metadata' => [
+                        'booking_request_id' => $booking->id,
+                    ],
+                ],
+            ],
+        ];
 
-        // 25% de 300€ = 75€
-        $response->assertJsonFragment(['amount' => 75.00]);
+        // Mock signature Stripe
+        $signature = 'valid_signature';
+
+        $response = $this->postJson('/api/stripe/webhook', $payload, [
+            'Stripe-Signature' => $signature,
+        ]);
+
+        $response->assertOk();
+        
+        $booking->refresh();
+        expect($booking->status)->toBe(BookingRequest::STATUS_DEPOSIT_PAID);
+    }
+
+    /** @test */
+    public function webhook_rejects_invalid_signature()
+    {
+        $payload = [
+            'type' => 'payment_intent.succeeded',
+        ];
+
+        $response = $this->postJson('/api/stripe/webhook', $payload, [
+            'Stripe-Signature' => 'invalid_signature',
+        ]);
+
+        $response->assertStatus(403);
+    }
+
+    /** @test */
+    public function prevents_duplicate_payment_confirmation()
+    {
+        $client = User::factory()->client()->create();
+        $booking = BookingRequest::factory()->create([
+            'client_id' => $client->client->id,
+            'status' => BookingRequest::STATUS_DEPOSIT_PAID, // Déjà payé
+            'stripe_payment_intent_id' => 'pi_already_paid',
+        ]);
+
+        $response = $this->actingAs($client, 'sanctum')
+            ->postJson("/api/booking-requests/{$booking->id}/confirm-deposit", [
+                'payment_intent_id' => 'pi_test_new',
+            ]);
+
+        $response->assertForbidden();
+    }
+
+    /** @test */
+    public function uses_idempotency_key_for_stripe_requests()
+    {
+        $client = User::factory()->client()->create();
+        $booking = BookingRequest::factory()->create([
+            'client_id' => $client->client->id,
+            'status' => BookingRequest::STATUS_AWAITING_DEPOSIT,
+        ]);
+
+        Http::fake([
+            'api.stripe.com/*' => Http::response(['id' => 'pi_test_123']),
+        ]);
+
+        // Première requête
+        $response1 = $this->actingAs($client, 'sanctum')
+            ->postJson("/api/payments/create-intent", [
+                'booking_request_id' => $booking->id,
+            ]);
+
+        // Deuxième requête identique (retry)
+        $response2 = $this->actingAs($client, 'sanctum')
+            ->postJson("/api/payments/create-intent", [
+                'booking_request_id' => $booking->id,
+            ]);
+
+        // Vérifier qu'Idempotency-Key est présent dans headers
+        Http::assertSent(function ($request) {
+            return $request->hasHeader('Idempotency-Key');
+        });
     }
 }

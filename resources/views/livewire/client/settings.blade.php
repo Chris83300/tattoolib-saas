@@ -42,6 +42,10 @@
                                 @if (auth()->user()->getFirstMediaUrl('avatar'))
                                     <img src="{{ auth()->user()->getFirstMediaUrl('avatar') }}" alt="Avatar"
                                         class="w-full h-full object-cover">
+                                @elseif ($testAvatar)
+                                    <!-- Prévisualisation du fichier sélectionné -->
+                                    <img src="{{ $testAvatar->temporaryUrl() }}" alt="Avatar preview"
+                                        class="w-full h-full object-cover">
                                 @else
                                     <svg class="w-10 h-10 text-beige-peau" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd"
@@ -69,9 +73,10 @@
                                             Upload en cours...
                                         </span>
                                         <span wire:loading.remove>
-                                            Uploader l'avatar
+                                            Uploader l'avatar (max 5MB)
                                         </span>
                                     </button>
+
                                 </form>
 
                                 <!-- Suppression -->
@@ -90,10 +95,13 @@
                         <label class="block text-ivoire-text text-sm font-semibold mb-2">
                             Pseudo (affiché publiquement)
                         </label>
-                        <input type="text" wire:model.live="pseudo" placeholder="Choisissez un pseudo" maxlength="30"
+                        <input type="text" wire:model.live="pseudo"
+                            value="{{ auth()->user()->pseudo ?? auth()->user()->first_name . ' ' . auth()->user()->last_name }}"
+                            placeholder="Choisissez un pseudo" maxlength="30"
                             class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:outline-none">
                         <p class="text-ivoire-text/50 text-xs mt-1">
-                            {{ 30 - strlen($this->pseudo) }} caractères restants
+                            {{ 30 - strlen($this->pseudo ?? (auth()->user()->pseudo ?? auth()->user()->first_name . ' ' . auth()->user()->last_name)) }}
+                            caractères restants
                         </p>
                     </div>
                 </div>
@@ -129,7 +137,9 @@
                         <label class="block text-ivoire-text text-sm font-semibold mb-2">
                             Nom complet
                         </label>
-                        <input type="text" value="{{ auth()->user()->name }}" disabled
+                        <input type="text"
+                            value="{{ auth()->user()->first_name ?? '' }} {{ auth()->user()->last_name ?? '' }}"
+                            disabled
                             class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 opacity-60">
                     </div>
 
@@ -206,7 +216,7 @@
                 </h2>
 
                 <div class="space-y-3">
-                    <button
+                    <button wire:click="confirmDeleteAccount" type="button"
                         class="w-full text-left px-4 py-3 bg-noir-profond border border-rouge-alerte/30 rounded-lg hover:border-rouge-alerte transition-colors">
                         <div class="flex items-center justify-between">
                             <span class="text-rouge-alerte">Supprimer mon compte</span>
@@ -259,11 +269,67 @@
             }, 3000);
         });
 
-        Livewire.on('avatar-removed', (message) => {
-            // Afficher une notification de succès
+        Livewire.on('show-confirm-dialog', (data) => {
+            // Créer et afficher la modale de confirmation
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4';
+            modal.innerHTML = `
+                <div class="bg-noir-profond rounded-xl p-6 max-w-md mx-auto border border-rouge-alerte/30">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 rounded-full bg-rouge-alerte/20 flex items-center justify-center">
+                            <svg class="w-6 h-6 text-rouge-alerte" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-ivoire-text mb-2">${data.title}</h3>
+                            <p class="text-ivoire-text/80 mb-4">${data.message}</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-3">
+                        <button onclick="window.livewire.find('confirm-delete').call()"
+                            class="px-4 py-2 bg-rouge-alerte text-white rounded-lg hover:bg-rouge-alerte/80 transition-colors">
+                            ${data.confirmText}
+                        </button>
+                        <button onclick="window.livewire.find('cancel-delete').call()"
+                            class="px-4 py-2 bg-gris-fonde text-ivoire-text rounded-lg hover:bg-gris-fonde/80 transition-colors">
+                            ${data.cancelText}
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // Fermer la modale au clic en dehors
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        });
+
+        Livewire.on('hide-confirm-dialog', () => {
+            // Cacher la modale
+            const modal = document.querySelector('.fixed.inset-0');
+            if (modal) {
+                modal.remove();
+            }
+        });
+
+        Livewire.on('account-deleted', (message) => {
+            // Cacher la modale et rediriger
+            const modal = document.querySelector('.fixed.inset-0');
+            if (modal) {
+                modal.remove();
+            }
+            window.location.href = '/';
+        });
+
+        Livewire.on('account-delete-error', (message) => {
+            // Afficher une notification d'erreur
             const notification = document.createElement('div');
             notification.className =
-                'fixed top-4 right-4 p-4 bg-vert-succes/20 border border-vert-succes/30 rounded-lg text-vert-succes z-50';
+                'fixed top-4 right-4 p-4 bg-rouge-alerte/20 border border-rouge-alerte/30 rounded-lg text-rouge-alerte z-50';
             notification.innerHTML = `<p>${message}</p>`;
             document.body.appendChild(notification);
 

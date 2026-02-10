@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\BookingRequestStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -38,6 +39,18 @@ class BookingRequest extends Model implements HasMedia
         'total_price',
         'deposit_paid_at',
 
+        // === 🎯 CHAMPS ACCEPTANCE TATTOOER ===
+        'price_estimate_min',
+        'price_estimate_max',
+        'deposit_amount',
+        'deposit_deadline_hours',
+        'included_designs',
+        'modifications_per_design',
+        'proposed_dates',
+        'confirmed_date',
+        'confirmed_period',
+        'tattooer_acceptance_message',
+
         // Délais
         'client_payment_deadline_days',
         'tattooer_design_deadline_days',
@@ -54,6 +67,17 @@ class BookingRequest extends Model implements HasMedia
         // Versions design
         'included_design_versions',
         'design_versions_used',
+
+        // === 🎯 COMPTEURS SUIVI ===
+        'designs_sent_count',
+        'current_design_modifications_count',
+        'design_modifications_tracker',
+
+        // === 💰 GESTION SURPLUS ===
+        'overage_decision',
+        'surcharge_amount',
+        'surcharge_paid_at',
+        'overage_reason',
 
         // Stripe
         'stripe_payment_intent_id',
@@ -110,6 +134,11 @@ class BookingRequest extends Model implements HasMedia
         'dispute_resolved_at',
         'dispute_resolution',
         'dispute_refund_amount',
+
+        // === 📅 SÉLECTION DATES CLIENT ===
+        'client_selected_dates',
+        'date_selection_deadline',
+        'client_dates_selected_at',
     ];
 
     protected $casts = [
@@ -127,31 +156,135 @@ class BookingRequest extends Model implements HasMedia
         'tattooer_missed_deadline' => 'boolean',
         'client_missed_deadline' => 'boolean',
 
-        // === 🎯 MODAL VALIDATION TATTOOER ===
-        'price_range_min' => 'decimal:2',
-        'price_range_max' => 'decimal:2',
+        // === 🎯 CHAMPS ACCEPTANCE TATTOOER ===
+        'price_estimate_min' => 'decimal:2',
+        'price_estimate_max' => 'decimal:2',
+        'deposit_amount' => 'decimal:2',
+        'deposit_deadline_hours' => 'integer',
+        'included_designs' => 'integer',
+        'modifications_per_design' => 'integer',
         'proposed_dates' => 'array',
-
-        // === 💬 CHAT TEMPORAIRE ===
-        'chat_closes_at' => 'datetime',
-
-        // === 💰 PRIX FINAL ===
+        'confirmed_date' => 'date',
         'confirmed_final_price' => 'decimal:2',
         'final_price_confirmed' => 'boolean',
         'final_price_confirmed_at' => 'datetime',
 
-        // === ❌ ANNULATION ===
+        // === 🎯 COMPTEURS SUIVI ===
+        'designs_sent_count' => 'integer',
+        'current_design_modifications_count' => 'integer',
+        'design_modifications_tracker' => 'array',
+
+        // === 💰 GESTION SURPLUS ===
+        'overage_decision' => 'string',
+        'surcharge_amount' => 'decimal:2',
+        'surcharge_paid_at' => 'datetime',
+        'overage_reason' => 'string',
+
+        // === 📅 SÉLECTION DATES CLIENT ===
+        'client_selected_dates' => 'array',
+        'date_selection_deadline' => 'datetime',
+        'client_dates_selected_at' => 'datetime',
+
+        // === 🎯 AUTRES CHAMPS ===
+        'price_range_min' => 'decimal:2',
+        'price_range_max' => 'decimal:2',
+        'deposit_covers_description' => 'boolean',
+        'chat_closes_at' => 'datetime',
         'cancelled_at' => 'datetime',
         'refund_amount' => 'decimal:2',
-
-        // === ⚖️ CONTESTATION ===
         'dispute_opened_at' => 'datetime',
         'dispute_resolved_at' => 'datetime',
         'dispute_refund_amount' => 'decimal:2',
+        'deposit_paid_at' => 'datetime',
+        'expired_at' => 'datetime',
+        'accepted_at' => 'datetime',
+
+        // === 🎯 CAST VERS ENUM ===
+        'status' => BookingRequestStatus::class,
     ];
 
-    // ===== CONSTANTES DE STATUT =====
+    // ===== MÉTHODES STATUT (UTILISE L'ENUM) =====
 
+    /**
+     * Transition vers un nouveau statut avec validation
+     */
+    public function transitionTo(BookingRequestStatus $status): bool
+    {
+        if (!$this->status->canTransitionTo($status)) {
+            return false;
+        }
+
+        $this->status = $status;
+        return $this->save();
+    }
+
+    /**
+     * Obtenir le statut actuel en tant qu'enum
+     */
+    public function getStatusEnum(): BookingRequestStatus
+    {
+        return $this->status;
+    }
+
+    /**
+     * Vérifier si le statut actuel peut transitionner vers un autre
+     */
+    public function canTransitionTo(BookingRequestStatus $status): bool
+    {
+        return $this->status->canTransitionTo($status);
+    }
+
+    /**
+     * Obtenir les transitions possibles depuis le statut actuel
+     */
+    public function getPossibleTransitions(): array
+    {
+        return $this->status->getPossibleTransitions();
+    }
+
+    /**
+     * Vérifier si le statut est terminal
+     */
+    public function isStatusTerminal(): bool
+    {
+        return $this->status->isTerminal();
+    }
+
+    /**
+     * Vérifier si le statut est actif
+     */
+    public function isStatusActive(): bool
+    {
+        return $this->status->isActive();
+    }
+
+    /**
+     * Vérifier si le paiement d'acompte est permis
+     */
+    public function allowsDepositPayment(): bool
+    {
+        return $this->status->allowsDepositPayment();
+    }
+
+    /**
+     * Vérifier si l'envoi de designs est permis
+     */
+    public function allowsDesignSending(): bool
+    {
+        return $this->status->allowsDesignSending();
+    }
+
+    /**
+     * Vérifier si la confirmation de date est permise
+     */
+    public function allowsDateConfirmation(): bool
+    {
+        return $this->status->allowsDateConfirmation();
+    }
+
+    // ===== MÉTHODES RÉTROCOMPATIBILITÉ (CONSTANTES) =====
+
+    // Garder pour rétrocompatibilité mais déprécié
     const STATUS_PENDING = 'pending';
     const STATUS_ACCEPTED = 'accepted';
     const STATUS_AWAITING_DEPOSIT = 'awaiting_deposit';
@@ -161,6 +294,240 @@ class BookingRequest extends Model implements HasMedia
     const STATUS_REJECTED = 'rejected';
     const STATUS_EXPIRED = 'expired';
     const STATUS_CANCELLED = 'cancelled';
+
+    // ===========================================
+    // MÉTHODES GESTION DATES
+    // ===========================================
+
+    /**
+     * Confirmer une date de rendez-vous
+     */
+    public function confirmDate(string $date, string $period, ?string $time = null, ?int $durationMinutes = null): void
+    {
+        $action = new \App\Actions\ConfirmAppointmentDate();
+        $action->execute($this, $date, $period, $time, $durationMinutes);
+    }
+
+    /**
+     * Demander une date alternative
+     */
+    public function requestAlternativeDate(string $message): void
+    {
+        $action = new \App\Actions\RequestAlternativeDate();
+        $action->execute($this, $message);
+    }
+
+    /**
+     * Proposer de nouvelles dates
+     */
+    public function proposeNewDates(array $newDates): void
+    {
+        $action = new \App\Actions\ConfirmAppointmentDate();
+        $action->proposeNewDates($this, $newDates);
+    }
+
+    /**
+     * Vérifier si la date est dans les dates proposées
+     */
+    public function isProposedDate(string $date, string $period): bool
+    {
+        $action = new \App\Actions\ConfirmAppointmentDate();
+        return $action->isProposedDateValid($this, $date, $period);
+    }
+
+    /**
+     * Obtenir les dates proposées formatées
+     */
+    public function getFormattedProposedDates(): array
+    {
+        $action = new \App\Actions\ConfirmAppointmentDate();
+        return $action->getFormattedProposedDates($this);
+    }
+
+    /**
+     * Obtenir le statut de gestion des dates
+     */
+    public function getDateManagementStatus(): array
+    {
+        $action = new \App\Actions\RequestAlternativeDate();
+        return $action->getDateManagementStatus($this);
+    }
+
+    /**
+     * Vérifier si le client peut demander plus de dates
+     */
+    public function canRequestMoreDates(): bool
+    {
+        $action = new \App\Actions\RequestAlternativeDate();
+        return $action->canRequestMoreDates($this);
+    }
+
+    /**
+     * Obtenir le titre formaté pour le calendrier
+     */
+    public function getCalendarTitle(): string
+    {
+        $clientName = $this->client ? $this->client->full_name : 'Client';
+        $size = $this->tattoo_size ?? 'Tattoo';
+
+        return "Tattoo - {$clientName} - {$size}";
+    }
+
+    /**
+     * Obtenir les données pour le calendrier FullCalendar
+     */
+    public function getCalendarEvent(): array
+    {
+        if (!$this->appointment_datetime) {
+            return [];
+        }
+
+        return [
+            'id' => $this->id,
+            'title' => $this->getCalendarTitle(),
+            'start' => $this->appointment_datetime,
+            'end' => $this->appointment_datetime->addMinutes($this->appointment_duration_minutes ?? 120),
+            'extendedProps' => [
+                'booking_request_id' => $this->id,
+                'client_id' => $this->client_id,
+                'client_name' => $this->client ? $this->client->full_name : null,
+                'tattoo_size' => $this->tattoo_size,
+                'body_zone' => $this->body_zone,
+                'status' => $this->status->value,
+                'duration' => $this->appointment_duration_minutes ?? 120,
+                'deposit_paid' => $this->deposit_paid_at ? true : false,
+            ],
+            'backgroundColor' => $this->status->color(),
+            'borderColor' => $this->status->color(),
+        ];
+    }
+
+    /**
+     * Vérifier si le rendez-vous est dans le futur
+     */
+    public function isAppointmentInFuture(): bool
+    {
+        return $this->appointment_datetime && Carbon::parse($this->appointment_datetime)->isFuture();
+    }
+
+    /**
+     * Vérifier si le rendez-vous est aujourd'hui
+     */
+    public function isAppointmentToday(): bool
+    {
+        return $this->appointment_datetime && Carbon::parse($this->appointment_datetime)->isToday();
+    }
+
+    /**
+     * Obtenir le temps restant avant le rendez-vous
+     */
+    public function getTimeUntilAppointment(): ?string
+    {
+        if (!$this->appointment_datetime) {
+            return null;
+        }
+
+        $appointment = Carbon::parse($this->appointment_datetime);
+        $now = Carbon::now();
+
+        if ($appointment->isPast()) {
+            return 'Terminé';
+        }
+
+        if ($appointment->isToday()) {
+            $hours = $appointment->diffInHours($now);
+            if ($hours < 1) {
+                $minutes = $appointment->diffInMinutes($now);
+                return "Dans {$minutes} minute(s)";
+            }
+            return "Dans {$hours} heure(s)";
+        }
+
+        $days = $appointment->diffInDays($now);
+        if ($days === 1) {
+            return 'Demain';
+        }
+
+        return "Dans {$days} jours";
+    }
+
+    // ===========================================
+    // RELATIONS
+    // ===========================================
+
+    /**
+     * Relation avec les transactions comptables
+     */
+    public function accountingTransactions()
+    {
+        return $this->hasMany(AccountingTransaction::class);
+    }
+
+    // ===========================================
+    // MÉTHODES GESTION SURPLUS
+    // ===========================================
+
+    /**
+     * Vérifier si une décision de surplus est nécessaire
+     */
+    public function needsOverageDecision(): bool
+    {
+        return $this->designs_sent_count >= $this->included_designs
+               && !$this->overage_decision;
+    }
+
+    /**
+     * Obtenir le nombre de designs en surplus
+     */
+    public function getOverageDesignsCount(): int
+    {
+        return max(0, $this->designs_sent_count - $this->included_designs);
+    }
+
+    /**
+     * Vérifier si le surplus a été payé
+     */
+    public function isOveragePaid(): bool
+    {
+        return $this->overage_decision === 'surcharge' && $this->surcharge_paid_at !== null;
+    }
+
+    /**
+     * Peut continuer avec des designs supplémentaires
+     */
+    public function canContinueWithOverage(): bool
+    {
+        return in_array($this->overage_decision, ['free']) ||
+               ($this->overage_decision === 'surcharge' && $this->isOveragePaid());
+    }
+
+    /**
+     * Obtenir le statut des designs
+     */
+    public function getDesignStatus(): array
+    {
+        return [
+            'sent' => $this->designs_sent_count,
+            'included' => $this->included_designs,
+            'remaining' => max(0, $this->included_designs - $this->designs_sent_count),
+            'overage' => $this->getOverageDesignsCount(),
+            'needs_decision' => $this->needsOverageDecision(),
+            'can_continue' => $this->canContinueWithOverage(),
+        ];
+    }
+
+    /**
+     * Obtenir le statut des modifications
+     */
+    public function getModificationStatus(): array
+    {
+        return [
+            'used' => $this->current_design_modifications_count,
+            'max' => $this->modifications_per_design,
+            'remaining' => max(0, $this->modifications_per_design - $this->current_design_modifications_count),
+            'is_limit_reached' => $this->current_design_modifications_count >= $this->modifications_per_design,
+        ];
+    }
 
     // ===== STATUTS CHAT =====
     const CHAT_STATUS_CLOSED = 'closed';
@@ -218,6 +585,11 @@ class BookingRequest extends Model implements HasMedia
     public function messages(): HasMany
     {
         return $this->hasMany(Message::class);
+    }
+
+    public function bookingTransactions(): HasMany
+    {
+        return $this->hasMany(BookingTransaction::class);
     }
 
     /**
@@ -280,22 +652,67 @@ class BookingRequest extends Model implements HasMedia
 
     public function scopePending($query)
     {
-        return $query->where('status', self::STATUS_PENDING);
+        return $query->where('status', BookingRequestStatus::PENDING);
     }
 
     public function scopeAccepted($query)
     {
-        return $query->where('status', self::STATUS_ACCEPTED);
+        return $query->where('status', BookingRequestStatus::ACCEPTED);
     }
 
     public function scopeAwaitingDeposit($query)
     {
-        return $query->where('status', self::STATUS_AWAITING_DEPOSIT);
+        return $query->where('status', BookingRequestStatus::DEPOSIT_REQUESTED);
     }
 
     public function scopeDepositPaid($query)
     {
-        return $query->where('status', self::STATUS_DEPOSIT_PAID);
+        return $query->where('status', BookingRequestStatus::DEPOSIT_PAID);
+    }
+
+    public function scopeDateConfirmed($query)
+    {
+        return $query->where('status', BookingRequestStatus::DATE_CONFIRMED);
+    }
+
+    public function scopeCompleted($query)
+    {
+        return $query->where('status', BookingRequestStatus::COMPLETED);
+    }
+
+    public function scopeCancelled($query)
+    {
+        return $query->where('status', BookingRequestStatus::CANCELLED);
+    }
+
+    public function scopeExpired($query)
+    {
+        return $query->where('status', BookingRequestStatus::EXPIRED);
+    }
+
+    public function scopeNoShow($query)
+    {
+        return $query->where('status', BookingRequestStatus::NO_SHOW);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->whereIn('status', [
+            BookingRequestStatus::ACCEPTED,
+            BookingRequestStatus::DEPOSIT_REQUESTED,
+            BookingRequestStatus::DEPOSIT_PAID,
+            BookingRequestStatus::DATE_CONFIRMED
+        ]);
+    }
+
+    public function scopeTerminal($query)
+    {
+        return $query->whereIn('status', [
+            BookingRequestStatus::COMPLETED,
+            BookingRequestStatus::CANCELLED,
+            BookingRequestStatus::EXPIRED,
+            BookingRequestStatus::NO_SHOW
+        ]);
     }
 
     public function scopeForTattooer($query, int $tattooerId)
@@ -329,9 +746,7 @@ class BookingRequest extends Model implements HasMedia
      */
     public function accept(): void
     {
-        $this->update([
-            'status' => self::STATUS_ACCEPTED,
-        ]);
+        $this->transitionTo(BookingRequestStatus::ACCEPTED);
 
         // Créer la conversation
         $this->createConversation();
@@ -344,9 +759,7 @@ class BookingRequest extends Model implements HasMedia
      */
     public function reject(): void
     {
-        $this->update([
-            'status' => self::STATUS_REJECTED,
-        ]);
+        $this->transitionTo(BookingRequestStatus::CANCELLED);
 
         // TODO: Event BookingRequestRejected
     }
@@ -357,11 +770,12 @@ class BookingRequest extends Model implements HasMedia
     public function requestDeposit(float $amount, int $deadlineDays): void
     {
         $this->update([
-            'status' => self::STATUS_AWAITING_DEPOSIT,
             'total_deposit_amount' => $amount,
             'client_payment_deadline_days' => $deadlineDays,
             'client_payment_deadline' => now()->addDays($deadlineDays),
         ]);
+
+        $this->transitionTo(BookingRequestStatus::DEPOSIT_REQUESTED);
 
         // TODO: Event DepositRequested
     }
@@ -374,11 +788,12 @@ class BookingRequest extends Model implements HasMedia
         $designDeadline = $this->bookable->default_tattooer_design_deadline_days ?? 7;
 
         $this->update([
-            'status' => self::STATUS_DEPOSIT_PAID,
             'stripe_payment_intent_id' => $paymentIntentId,
             'tattooer_design_deadline_days' => $designDeadline,
             'tattooer_design_deadline' => now()->addDays($designDeadline),
         ]);
+
+        $this->transitionTo(BookingRequestStatus::DEPOSIT_PAID);
 
         // TODO: Event DepositPaid
     }
@@ -389,10 +804,11 @@ class BookingRequest extends Model implements HasMedia
     public function sendDesign(): void
     {
         $this->update([
-            'status' => self::STATUS_DESIGN_SENT,
             'design_sent_at' => now(),
             'design_versions_used' => $this->design_versions_used + 1,
         ]);
+
+        $this->transitionTo(BookingRequestStatus::DATE_CONFIRMED);
 
         // TODO: Event DesignSent
     }
@@ -403,10 +819,11 @@ class BookingRequest extends Model implements HasMedia
     public function confirm(\DateTime $appointmentDate, int $durationMinutes): void
     {
         $this->update([
-            'status' => self::STATUS_CONFIRMED,
             'appointment_datetime' => $appointmentDate,
             'appointment_duration_minutes' => $durationMinutes,
         ]);
+
+        $this->transitionTo(BookingRequestStatus::DATE_CONFIRMED);
 
         // Créer l'appointment
         $this->createAppointment();
@@ -481,35 +898,6 @@ class BookingRequest extends Model implements HasMedia
         if ($this->deposit_paid_at) {
             return true; // Le chat reste ouvert après paiement acompte
         }
-
-        // Vérifier la conversation associée
-        $conversation = $this->conversation;
-        if (!$conversation) {
-            return false;
-        }
-
-        // Si la conversation est expirée, le chat est fermé
-        if ($conversation->isExpired()) {
-            return false;
-        }
-
-        // Si la conversation est en phase deposit_pending et expirée
-        if ($conversation->isDepositPending() && $conversation->shouldExpire()) {
-            return false;
-        }
-
-        // Si pas d'acompte payé, vérifier la deadline de paiement
-        if ($this->client_payment_deadline) {
-            // Utiliser la deadline de la conversation si disponible
-            if ($conversation->deposit_deadline_at) {
-                return $conversation->deposit_deadline_at->greaterThan(now());
-            }
-            // Sinon utiliser la deadline du booking avec 24h de marge
-            return $this->client_payment_deadline->greaterThan(now()->subHours(24));
-        }
-
-        // Si pas de deadline, considérer comme ouvert
-        return true;
     }
 
     /**
@@ -530,12 +918,13 @@ class BookingRequest extends Model implements HasMedia
     public function cancel(string $cancelledBy, string $reason, float $refundAmount = 0): void
     {
         $this->update([
-            'status' => self::STATUS_CANCELLED,
             'cancelled_by' => $cancelledBy,
             'cancellation_reason' => $reason,
             'cancelled_at' => now(),
             'refund_amount' => $refundAmount,
         ]);
+
+        $this->transitionTo(BookingRequestStatus::CANCELLED);
 
         // Fermer le chat si ouvert
         if ($this->isChatOpen()) {
@@ -601,6 +990,109 @@ class BookingRequest extends Model implements HasMedia
     }
 
     /**
+     * Obtenir le pourcentage de remboursement selon les règles
+     */
+    public function getRefundPercentage(): int
+    {
+        return match(true) {
+            $this->designs_sent_count === 0 => 100,
+            $this->designs_sent_count === 1 => 80,
+            $this->designs_sent_count === 2 => 50,
+            default => 0, // 3+ dessins = pas de remboursement
+        };
+    }
+
+    // ═══════════════════════════════════════
+    // DESIGN TRACKING HELPERS
+    // ═══════════════════════════════════════
+
+    /**
+     * Dessins complets restants dans le forfait.
+     */
+    public function remainingDesigns(): int
+    {
+        return max(0, (int) $this->included_design_versions - (int) $this->designs_sent_count);
+    }
+
+    /**
+     * Modifications restantes pour le dessin en cours (le dernier envoyé).
+     */
+    public function remainingModificationsForCurrentDesign(): int
+    {
+        if ($this->designs_sent_count === 0) {
+            return 0;
+        }
+
+        $tracker = $this->design_modifications_tracker ?? [];
+        $currentDesignKey = (string) $this->designs_sent_count;
+        $modifsUsed = $tracker[$currentDesignKey] ?? 0;
+
+        return max(0, (int) $this->modifications_per_design - (int) $modifsUsed);
+    }
+
+    /**
+     * Le tattooer peut-il envoyer un nouveau dessin dans le forfait ?
+     */
+    public function canSendNewDesign(): bool
+    {
+        return $this->remainingDesigns() > 0;
+    }
+
+    /**
+     * Le tattooer peut-il envoyer une modification du dessin actuel dans le forfait ?
+     */
+    public function canSendModification(): bool
+    {
+        return $this->designs_sent_count > 0
+            && $this->remainingModificationsForCurrentDesign() > 0;
+    }
+
+    /**
+     * Enregistrer l'envoi d'un nouveau dessin complet.
+     */
+    public function recordNewDesign(): void
+    {
+        $this->increment('designs_sent_count');
+        $this->refresh(); // Pour avoir la valeur mise à jour
+
+        $tracker = $this->design_modifications_tracker ?? [];
+        $tracker[(string) $this->designs_sent_count] = 0;
+        $this->update(['design_modifications_tracker' => $tracker]);
+    }
+
+    /**
+     * Enregistrer l'envoi d'une modification du dessin actuel.
+     */
+    public function recordModification(): void
+    {
+        $tracker = $this->design_modifications_tracker ?? [];
+        $currentDesignKey = (string) $this->designs_sent_count;
+        $tracker[$currentDesignKey] = ($tracker[$currentDesignKey] ?? 0) + 1;
+        $this->update(['design_modifications_tracker' => $tracker]);
+    }
+
+    /**
+     * Résumé complet du suivi dessins pour affichage.
+     */
+    public function designTrackingSummary(): array
+    {
+        $tracker = $this->design_modifications_tracker ?? [];
+        $currentKey = (string) $this->designs_sent_count;
+
+        return [
+            'designs_included'              => (int) $this->included_design_versions,
+            'designs_sent'                  => (int) $this->designs_sent_count,
+            'designs_remaining'             => $this->remainingDesigns(),
+            'current_design_number'         => (int) $this->designs_sent_count,
+            'modifications_per_design'      => (int) $this->modifications_per_design,
+            'modifications_used_current'    => (int) ($tracker[$currentKey] ?? 0),
+            'modifications_remaining_current'=> $this->remainingModificationsForCurrentDesign(),
+            'can_send_new_design'           => $this->canSendNewDesign(),
+            'can_send_modification'         => $this->canSendModification(),
+        ];
+    }
+
+    /**
      * Obtenir la fourchette de prix formatée
      */
     public function getPriceRange(): string
@@ -655,7 +1147,7 @@ class BookingRequest extends Model implements HasMedia
      */
     public function isPaymentOverdue(): bool
     {
-        return $this->status === self::STATUS_AWAITING_DEPOSIT
+        return $this->status === BookingRequestStatus::DEPOSIT_REQUESTED
             && $this->client_payment_deadline
             && $this->client_payment_deadline->isPast();
     }
@@ -665,7 +1157,7 @@ class BookingRequest extends Model implements HasMedia
      */
     public function isDesignOverdue(): bool
     {
-        return $this->status === self::STATUS_DEPOSIT_PAID
+        return $this->status === BookingRequestStatus::DEPOSIT_PAID
             && $this->tattooer_design_deadline
             && $this->tattooer_design_deadline->isPast()
             && !$this->design_sent_at;

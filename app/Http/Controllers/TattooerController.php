@@ -4,19 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Tattooer;
-use App\Models\Project;
-use App\Models\Client;
-use App\Models\Message;
 use App\Models\BookingRequest;
 use App\Models\CalendarEvent;
-use App\Models\TattooHistory;
-use App\Models\Conversation;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
+use App\Enums\BookingRequestStatus;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
-use Carbon\Carbon;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class TattooerController extends Controller
 {
@@ -26,103 +18,19 @@ class TattooerController extends Controller
     public function profile()
     {
         $tattooer = auth()->user()->tattooer;
+        $cacheService = app(\App\Services\CacheService::class);
 
-        // Charger les relations nécessaires
-        $tattooer->load(['media', 'user']);
+        // Charger données depuis cache
+        $portfolio = $cacheService->getPortfolio($tattooer);
+        $workingHours = $cacheService->getWorkingHours($tattooer);
+        $stats = $cacheService->getDashboardStats($tattooer);
 
-        // Stats similaires au dashboard mais orientées profil
-        $stats = [
-            'completed_projects' => BookingRequest::where('bookable_id', $tattooer->id)
-                ->where('bookable_type', 'App\Models\Tattooer')
-                ->where('status', 'confirmed')
-                ->count(),
-
-            'active_projects' => BookingRequest::where('bookable_id', $tattooer->id)
-                ->where('bookable_type', 'App\Models\Tattooer')
-                ->whereIn('status', ['pending', 'accepted', 'awaiting_deposit', 'deposit_paid', 'design_sent'])
-                ->count(),
-
-            'total_clients' => BookingRequest::where('bookable_id', $tattooer->id)
-                ->where('bookable_type', 'App\Models\Tattooer')
-                ->distinct('client_id')
-                ->count('client_id'),
-
-            'portfolio_count' => $tattooer->getMedia('portfolio')->count(),
-        ];
-
-        // Portfolio récent
-        $portfolio = $tattooer->getMedia('portfolio')
-            ->sortByDesc('created_at')
-            ->take(12);
-
-        return view('tattooer.profile', compact('tattooer', 'stats', 'portfolio'));
-    }
-
-    /**
-     * Dashboard principal (Vue d'ensemble)
-     */
-    public function dashboard()
-    {
-        $tattooer = auth()->user()->tattooer;
-
-        // Stats KPI
-        $stats = [
-            'pending_requests' => BookingRequest::where('bookable_id', $tattooer->id)
-                ->where('bookable_type', 'App\Models\Tattooer')
-                ->where('status', 'pending')
-                ->count(),
-
-            'upcoming_appointments' => BookingRequest::where('bookable_id', $tattooer->id)
-                ->where('bookable_type', 'App\Models\Tattooer')
-                ->where('status', 'accepted')
-                ->whereNotNull('appointment_datetime')
-                ->where('appointment_datetime', '>=', now())
-                ->count(),
-
-            'total_clients' => BookingRequest::where('bookable_id', $tattooer->id)
-                ->where('bookable_type', 'App\Models\Tattooer')
-                ->distinct('client_id')
-                ->count('client_id'),
-
-            'monthly_revenue' => TattooHistory::where('bookable_id', $tattooer->id)
-                ->where('bookable_type', 'App\Models\Tattooer')
-                ->whereMonth('tattoo_date', now()->month)
-                ->sum('total_paid'),
-
-            'unread_messages' => $this->getUnreadMessagesCount($tattooer),
-
-            'appointments_this_week' => BookingRequest::where('bookable_id', $tattooer->id)
-                ->where('bookable_type', 'App\Models\Tattooer')
-                ->whereBetween('appointment_datetime', [now()->startOfWeek(), now()->endOfWeek()])
-                ->count(),
-        ];
-
-        // Activité récente (7 derniers jours)
-        $recentActivity = [
-            'new_requests' => BookingRequest::where('bookable_id', $tattooer->id)
-                ->where('bookable_type', 'App\Models\Tattooer')
-                ->where('created_at', '>=', now()->subDays(7))
-                ->count(),
-
-            'completed_appointments' => BookingRequest::where('bookable_id', $tattooer->id)
-                ->where('bookable_type', 'App\Models\Tattooer')
-                ->where('status', 'completed')
-                ->where('updated_at', '>=', now()->subDays(7))
-                ->count(),
-        ];
-
-        // Prochains RDV (3 prochains)
-        $upcomingAppointments = BookingRequest::where('bookable_id', $tattooer->id)
-            ->where('bookable_type', 'App\Models\Tattooer')
-            ->where('status', 'accepted')
-            ->whereNotNull('appointment_datetime')
-            ->where('appointment_datetime', '>=', now())
-            ->with('client')
-            ->orderBy('appointment_datetime')
-            ->take(3)
-            ->get();
-
-        return view('tattooer.dashboard', compact('tattooer', 'stats', 'recentActivity', 'upcomingAppointments'));
+        return view('tattooer.profile', compact(
+            'tattooer',
+            'portfolio',
+            'workingHours',
+            'stats'
+        ));
     }
 
     /**
@@ -131,32 +39,39 @@ class TattooerController extends Controller
     public function requests(Request $request)
     {
         $tattooer = auth()->user()->tattooer;
-        $filter = $request->query('status', 'pending'); // par défaut "pending"
+        $filter = $request->query('status', 'all'); // par défaut "all" pour tout afficher
 
-        $query = BookingRequest::where('bookable_type', 'App\\Models\\Tattooer')
+        // Service pour stats (1 requête au lieu de 5)
+        $statsService = app(\App\Services\TattooerStatsService::class);
+        $counts = $statsService->getRequestsStats($tattooer);
+
+        // UNE SEULE requête avec eager loading optimisé
+        $query = BookingRequest::where('bookable_type', 'App\Models\Tattooer')
             ->where('bookable_id', $tattooer->id)
-            ->with(['client.user.media', 'media']);
+            ->with(['client.user', 'conversation' => function($query) {
+                $query->withCount(['messages as unread_count' => function($q) {
+                    $q->where('sender_type', 'client')
+                          ->whereNull('read_by_tattooer_at');
+                }]);
+            }]);
 
         // Filtrer par statut selon l'onglet
         $query = match($filter) {
-            'pending'   => $query->where('status', 'pending'),
-            'accepted'  => $query->whereIn('status', ['accepted', 'awaiting_deposit', 'deposit_paid', 'design_sent']),
-            'confirmed' => $query->where('status', 'confirmed'),
-            'completed' => $query->where('status', 'completed'),
-            'cancelled' => $query->whereIn('status', ['cancelled', 'rejected', 'expired']),
+            'all'       => $query, // toutes les demandes
+            'pending'   => $query->where('status', BookingRequestStatus::PENDING->value),
+            'accepted'  => $query->whereIn('status', [
+                BookingRequestStatus::ACCEPTED->value,
+                BookingRequestStatus::DEPOSIT_REQUESTED->value,
+                BookingRequestStatus::DEPOSIT_PAID->value,
+            ]),
+            'confirmed' => $query->where('status', BookingRequestStatus::DATE_CONFIRMED->value),
+            'completed' => $query->where('status', BookingRequestStatus::COMPLETED->value),
+            'rejected'  => $query->where('status', BookingRequestStatus::CANCELLED->value), // utiliser CANCELLED pour rejected
+            'cancelled' => $query->where('status', BookingRequestStatus::CANCELLED->value),
             default     => $query,
         };
 
         $requests = $query->orderBy('created_at', 'desc')->get();
-
-        // Compteurs pour les badges onglets
-        $counts = [
-            'pending'   => BookingRequest::where('bookable_type', 'App\\Models\\Tattooer')->where('bookable_id', $tattooer->id)->where('status', 'pending')->count(),
-            'accepted'  => BookingRequest::where('bookable_type', 'App\\Models\\Tattooer')->where('bookable_id', $tattooer->id)->whereIn('status', ['accepted', 'awaiting_deposit', 'deposit_paid', 'design_sent'])->count(),
-            'confirmed' => BookingRequest::where('bookable_type', 'App\\Models\\Tattooer')->where('bookable_id', $tattooer->id)->where('status', 'confirmed')->count(),
-            'completed' => BookingRequest::where('bookable_type', 'App\\Models\\Tattooer')->where('bookable_id', $tattooer->id)->where('status', 'completed')->count(),
-            'cancelled' => BookingRequest::where('bookable_type', 'App\\Models\\Tattooer')->where('bookable_id', $tattooer->id)->whereIn('status', ['cancelled', 'rejected', 'expired'])->count(),
-        ];
 
         return view('tattooer.requests', compact('requests', 'filter', 'counts'));
     }
@@ -185,564 +100,129 @@ class TattooerController extends Controller
     }
 
     /**
-     * Accepter une demande de réservation avec modal complet
-     */
-    public function acceptRequest(Request $request, BookingRequest $bookingRequest)
-    {
-        $tattooer = auth()->user()->tattooer;
-
-        // Vérifier propriété
-        if ($bookingRequest->bookable_id !== $tattooer->id ||
-            $bookingRequest->bookable_type !== 'App\\Models\\Tattooer') {
-            abort(403);
-        }
-
-        // Validation
-        $validated = $request->validate([
-            'price_range_min' => 'required|numeric|min:0',
-            'price_range_max' => 'required|numeric|gt:price_range_min',
-            'proposed_dates' => 'required|array|min:1|max:3',
-            'proposed_dates.*' => 'required|date|after:today',
-            'included_design_versions' => 'required|integer|min:1|max:3',
-            'modifications_per_version' => 'required|integer|min:0|max:5',
-            'design_modification_rules' => 'nullable|string',
-            'total_deposit_amount' => 'required|numeric|min:0',
-            'client_payment_deadline_days' => 'required|integer|min:1|max:30',
-            'deposit_covers_description' => 'nullable|string',
-            'tattooer_notes' => 'nullable|string|max:1000',
-        ]);
-
-        // Mettre à jour la demande de réservation
-        $bookingRequest->update([
-            // Statut et dates
-            'status' => BookingRequest::STATUS_AWAITING_DEPOSIT, // Statut correct
-            'accepted_at' => now(),
-
-            // Fourchette de prix
-            'price_range_min' => $validated['price_range_min'],
-            'price_range_max' => $validated['price_range_max'],
-            // estimated_total_price sera calculé après versement de l'acompte
-            'proposed_dates' => $validated['proposed_dates'],
-
-            // Phase création
-            'included_design_versions' => $validated['included_design_versions'],
-            'modifications_per_version' => $validated['modifications_per_version'],
-            'design_modification_rules' => $validated['design_modification_rules'],
-
-            // Acompte
-            'total_deposit_amount' => $validated['total_deposit_amount'],
-            'client_payment_deadline_days' => (int) $validated['client_payment_deadline_days'],
-            'client_payment_deadline' => now()->addDays((int) $validated['client_payment_deadline_days']),
-            'deposit_covers_description' => $validated['deposit_covers_description'],
-
-            // Message
-            'tattooer_notes' => $validated['tattooer_notes'],
-
-            // Chat avec logique de délai
-            'chat_status' => BookingRequest::CHAT_STATUS_OPEN,
-            'chat_closes_at' => now()->addDays((int) $validated['client_payment_deadline_days']), // Fermeture après délai acompte
-        ]);
-
-        // Créer ou mettre à jour conversation
-        $conversation = $bookingRequest->conversation;
-        if (!$conversation) {
-            $conversation = Conversation::create([
-                'booking_request_id' => $bookingRequest->id,
-                'expiry_type' => 'deposit_pending',
-                'deposit_deadline_at' => $bookingRequest->client_payment_deadline,
-                'status' => 'active',
-            ]);
-
-            // Ajouter participants
-            $conversation->participants()->attach([
-                $bookingRequest->client->user_id => ['role' => 'client'],
-                $tattooer->user_id => ['role' => 'tattooer'],
-            ]);
-        }
-
-        return redirect()->route('tattooer.requests')
-            ->with('success', 'Demande acceptée ! Le client a été notifié.');
-    }
-
-    /**
-     * Refuser une demande de réservation
-     */
-    public function requestReject(BookingRequest $bookingRequest)
-    {
-        $tattooer = auth()->user()->tattooer;
-
-        // Vérifier que la demande appartient au tattooer
-        if ($bookingRequest->bookable_id !== $tattooer->id ||
-            $bookingRequest->bookable_type !== 'App\\Models\\Tattooer') {
-            abort(403);
-        }
-
-        // Vérifier que la demande est en attente
-        if ($bookingRequest->status !== 'pending') {
-            return back()->with('error', 'Cette demande ne peut plus être refusée.');
-        }
-
-        // Mettre à jour le statut
-        $bookingRequest->update([
-            'status' => 'rejected',
-        ]);
-
-        return redirect()->route('tattooer.requests')
-            ->with('success', 'Demande refusée.');
-    }
-
-    /**
-     * Calendrier
-     */
-    public function calendar()
-    {
-        $tattooer = auth()->user()->tattooer;
-
-        // Événements pour FullCalendar
-        $events = [];
-
-        // Rendez-vous depuis les booking requests
-        $appointments = BookingRequest::where('bookable_id', $tattooer->id)
-            ->where('bookable_type', 'App\Models\Tattooer')
-            ->whereNotNull('appointment_datetime')
-            ->where('status', 'accepted')
-            ->with('client')
-            ->get();
-
-        foreach ($appointments as $appointment) {
-            $events[] = [
-                'id' => 'appointment_' . $appointment->id,
-                'title' => 'RDV - ' . $appointment->client->first_name . ' ' . $appointment->client->last_name,
-                'start' => $appointment->appointment_datetime,
-                'end' => $appointment->appointment_end ?? $appointment->appointment_datetime->addHours(2),
-                'backgroundColor' => '#06D6A0',
-                'borderColor' => '#06D6A0',
-                'editable' => false,
-                'extendedProps' => [
-                    'type' => 'appointment',
-                    'client_id' => $appointment->client_id
-                ]
-            ];
-        }
-
-        // Événements personnalisés (pause, vacances, etc.)
-        $customEvents = CalendarEvent::where('bookable_id', $tattooer->id)
-            ->where('bookable_type', Tattooer::class)
-            ->get();
-
-        foreach ($customEvents as $event) {
-            $events[] = [
-                'id' => (string) $event->id,
-                'title' => $event->notes ?: (CalendarEvent::TYPES[$event->type] ?? 'Événement'),
-                'start' => $event->start_datetime->toIso8601String(),
-                'end' => $event->end_datetime->toIso8601String(),
-                'backgroundColor' => $event->color ?: (CalendarEvent::COLORS[$event->type] ?? '#D4B59E'),
-                'borderColor' => $event->color ?: (CalendarEvent::COLORS[$event->type] ?? '#D4B59E'),
-                'textColor' => '#0A0A0A',
-                'editable' => true,
-                'extendedProps' => [
-                    'type' => $event->type,
-                ]
-            ];
-        }
-
-        return view('tattooer.calendar', compact('tattooer', 'events'));
-    }
-
-    /**
-     * Messages
-     */
-    public function messages()
-    {
-        $tattooer = auth()->user()->tattooer;
-
-        // Conversations directes depuis les booking_requests
-        $conversations = BookingRequest::where('bookable_id', $tattooer->id)
-            ->where('bookable_type', 'App\Models\Tattooer')
-            ->whereHas('messages')
-            ->with(['client', 'messages' => fn($q) => $q->latest()->limit(1)])
-            ->withCount(['messages as unread_count' => function($q) {
-                $q->where('sender_type', 'client')
-                  ->whereDoesntHave('conversation.participants', function($subQ) {
-                      $subQ->where('user_id', auth()->id())
-                            ->whereNotNull('last_read_at');
-                  });
-            }])
-            ->orderByDesc('updated_at')
-            ->get();
-
-        return view('tattooer.messages', compact('conversations'));
-    }
-
-    /**
-     * Conversation détaillée
-     */
-    public function messageShow(BookingRequest $bookingRequest)
-    {
-        // Vérifier que la demande appartient bien au tattooer
-        abort_unless($bookingRequest->bookable_id == auth()->user()->tattooer->id &&
-                    $bookingRequest->bookable_type == 'App\Models\Tattooer', 403);
-
-        $messages = $bookingRequest->messages()
-            ->with('sender', 'media')
-            ->orderBy('created_at')
-            ->get();
-
-        // Marquer les messages du client comme lus
-        if ($bookingRequest->conversation) {
-            $tattooerUser = auth()->user();
-
-            // Vérifier si le tattooer est participant
-            $participant = $bookingRequest->conversation->participants()
-                ->where('user_id', $tattooerUser->id)
-                ->first();
-
-            if ($participant) {
-                // Mettre à jour last_read_at
-                $participant->pivot->update(['last_read_at' => now()]);
-            }
-        }
-
-        return view('tattooer.message-show', compact('bookingRequest', 'messages'));
-    }
-
-    /**
-     * Envoyer un message au client
-     */
-    public function messageSend(Request $request, BookingRequest $bookingRequest)
-    {
-        // Vérifier que la demande appartient bien au tattooer
-        abort_unless($bookingRequest->bookable_id == auth()->user()->tattooer->id &&
-                    $bookingRequest->bookable_type == 'App\Models\Tattooer', 403);
-
-        // Vérifier que le chat est ouvert
-        if (!$bookingRequest->isChatOpen()) {
-            return back()->with('error', 'Le chat est fermé');
-        }
-
-        $validated = $request->validate([
-            'content' => 'nullable|string|max:2000',
-            'attachments.*' => 'nullable|file|mimes:jpeg,jpg,png,webp,pdf|max:10240',
-        ]);
-
-        // Conserver le contenu même si vide quand il y a des pièces jointes
-        $content = $validated['content'] ?? '';
-
-        // Si le contenu est vide mais il y a des pièces jointes, ajouter un message par défaut
-        if (empty($content) && $request->hasFile('attachments')) {
-            $content = 'Dessin envoyé';
-        }
-
-        // Autoriser les pièces jointes pour les tattooers (envoi de dessins)
-        // Seuls les clients sont bloqués si l'acompte n'est pas payé
-        // if ($request->hasFile('attachments') && !$bookingRequest->deposit_paid_at) {
-        //     return back()->with('error', 'Les pièces jointes ne sont autorisées qu\'après paiement de l\'acompte');
-        // }
-
-        // Vérifier qu'il y a du contenu ou des pièces jointes
-        if (empty($validated['content']) && !$request->hasFile('attachments')) {
-            return back()->with('error', 'Veuillez entrer un message ou joindre un fichier');
-        }
-
-        // Récupérer ou créer la conversation
-        $conversation = $bookingRequest->conversation;
-        if (!$conversation) {
-            $conversation = Conversation::create([
-                'booking_request_id' => $bookingRequest->id,
-                'expiry_type' => 'deposit_pending',
-                'deposit_deadline_at' => $bookingRequest->client_payment_deadline,
-                'status' => 'active',
-            ]);
-        }
-
-        // Créer le message
-        $message = $conversation->messages()->create([
-            'conversation_id' => $conversation->id,
-            'booking_request_id' => $bookingRequest->id,
-            'sender_id' => auth()->id(),
-            'sender_type' => 'tattooer',
-            'content' => $content,
-        ]);
-
-        // Upload pièces jointes
-        if ($request->hasFile('attachments')) {
-            foreach ($request->file('attachments') as $file) {
-                $message->addMedia($file)->toMediaCollection('attachments');
-            }
-        }
-
-        // Mettre à jour la conversation
-        $conversation->update([
-            'last_message_id' => $message->id,
-            'last_message_at' => now(),
-        ]);
-
-        // TODO: Notification au client
-        // $bookingRequest->client->user->notify(new NewMessageNotification($message));
-
-        return back()->with('success', 'Message envoyé');
-    }
-
-    /**
-     * Clients (liste + recherche)
-     */
-    public function clients(Request $request)
-    {
-        $tattooer = auth()->user()->tattooer;
-
-        // Récupérer tous les clients uniques via les booking requests
-        $clientsQuery = BookingRequest::where('bookable_id', $tattooer->id)
-            ->where('bookable_type', 'App\Models\Tattooer')
-            ->with('client')
-            ->distinct('client_id')
-            ->select('client_id');
-
-        // Recherche par nom
-        if ($request->search) {
-            $clientsQuery->whereHas('client', function($q) use ($request) {
-                $q->where('first_name', 'like', '%' . $request->search . '%')
-                  ->orWhere('last_name', 'like', '%' . $request->search . '%');
-            });
-        }
-
-        $clientIds = $clientsQuery->pluck('client_id');
-
-        $clients = Client::whereIn('id', $clientIds)
-            ->withCount(['tattooHistory as tattoos_count'])
-            ->with(['tattooHistory' => fn($q) => $q->latest()->first()])
-            ->orderBy('first_name')
-            ->paginate(20);
-
-        return view('tattooer.clients', compact('clients'));
-    }
-
-    public function clientShow(Client $client)
-    {
-        // Vérifier que ce client appartient bien au tattooer
-        $hasAccess = BookingRequest::where('bookable_id', auth()->user()->tattooer->id)
-            ->where('bookable_type', 'App\Models\Tattooer')
-            ->where('client_id', $client->id)
-            ->exists();
-
-        abort_unless($hasAccess, 403);
-
-        $history = TattooHistory::where('client_id', $client->id)
-            ->orderByDesc('tattoo_date')
-            ->get();
-
-        return view('tattooer.client-show', compact('client', 'history'));
-    }
-
-    /**
-     * Voir les demandes d'un client spécifique
-     */
-    public function clientRequests(int $clientId)
-    {
-        $tattooer = auth()->user()->tattooer;
-        $client = \App\Models\Client::findOrFail($clientId);
-
-        // Vérifier que le client appartient bien à ce tattooer
-        $hasAnyRequest = \App\Models\BookingRequest::where('client_id', $clientId)
-            ->where('bookable_type', 'App\\Models\\Tattooer')
-            ->where('bookable_id', $tattooer->id)
-            ->exists();
-
-        if (!$hasAnyRequest) {
-            abort(403, 'Ce client n\'a pas de demandes avec vous.');
-        }
-
-        $requests = \App\Models\BookingRequest::where('client_id', $clientId)
-            ->where('bookable_type', 'App\\Models\\Tattooer')
-            ->where('bookable_id', $tattooer->id)
-            ->with(['conversation'])
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return view('tattooer.client-requests', compact('client', 'requests'));
-    }
-
-    /**
-     * Mettre à jour les horaires de travail
-     */
-    public function updateHours(Request $request)
-    {
-        $tattooer = auth()->user()->tattooer;
-
-        // Récupérer et parser les horaires
-        $workingHours = [];
-        foreach ($request->get('working_hours', []) as $index => $dayJson) {
-            $day = json_decode($dayJson, true);
-            if ($day) {
-                $workingHours[] = $day;
-            }
-        }
-
-        $tattooer->update(['working_hours' => $workingHours]);
-
-        return redirect()->back()->with('success', 'Horaires mis à jour !');
-    }
-
-    /**
-     * Portfolio (gestion images)
-     */
-    public function portfolio()
-    {
-        $tattooer = auth()->user()->tattooer;
-
-        // Images par collection
-        $tattoos = $tattooer->getMedia('portfolio');
-        $drawings = $tattooer->getMedia('drawings');
-        $beforeAfter = $tattooer->getMedia('before_after');
-
-        return view('tattooer.portfolio', compact('tattoos', 'drawings', 'beforeAfter'));
-    }
-
-    /**
-     * Paramètres profil
+     * Page des paramètres du tattooer
      */
     public function settings()
     {
         $tattooer = auth()->user()->tattooer;
 
-        // Charger la relation workingHours pour la vue
-        $tattooer->load('workingHours');
+        // Charger les relations nécessaires
+        $tattooer->load(['media', 'user']);
 
         return view('tattooer.settings', compact('tattooer'));
     }
 
     /**
-     * Stripe Connect
-     */
-    public function payments()
-    {
-        $tattooer = auth()->user()->tattooer;
-
-        // Transactions récentes
-        $payments = TattooHistory::where('bookable_id', $tattooer->id)
-            ->where('bookable_type', 'App\Models\Tattooer')
-            ->with('client')
-            ->orderByDesc('tattoo_date')
-            ->paginate(20);
-
-        // Stats paiements
-        $paymentStats = [
-            'total_earned' => TattooHistory::where('bookable_id', $tattooer->id)
-                ->where('bookable_type', 'App\Models\Tattooer')
-                ->sum('total_paid'),
-            'this_month' => TattooHistory::where('bookable_id', $tattooer->id)
-                ->where('bookable_type', 'App\Models\Tattooer')
-                ->whereMonth('tattoo_date', now()->month)
-                ->sum('total_paid'),
-            'pending_deposits' => BookingRequest::where('bookable_id', $tattooer->id)
-                ->where('bookable_type', 'App\Models\Tattooer')
-                ->whereNotNull('total_deposit_amount')
-                ->whereNull('deposit_paid_at')
-                ->sum('total_deposit_amount'),
-        ];
-
-        return view('tattooer.payments', compact('payments', 'paymentStats', 'tattooer'));
-    }
-
-    /**
-     * Upgrade vers PRO
-     */
-    public function upgrade()
-    {
-        $tattooer = auth()->user()->tattooer;
-
-        if ($tattooer->subscription_plan === 'pro') {
-            return redirect()->route('tattooer.dashboard')
-                ->with('info', 'Vous êtes déjà abonné au plan PRO.');
-        }
-
-        return view('tattooer.upgrade');
-    }
-
-    /**
-     * Conformité et badges
-     */
-    public function compliance()
-    {
-        $tattooer = auth()->user()->tattooer;
-        $tattooer->load(['media', 'user']);
-
-        return view('tattooer.compliance', compact('tattooer'));
-    }
-
-    /**
-     * Paramètres - Mise à jour
+     * Mettre à jour les paramètres du tattooer
      */
     public function settingsUpdate(Request $request)
     {
         $tattooer = auth()->user()->tattooer;
 
-        // Valider les données
+        // Valider les données du formulaire
         $validated = $request->validate([
-            'pseudo' => 'nullable|string|max:255',
-            'email' => 'required|email|unique:users,email,' . auth()->id(),
+            // Médias (fichiers)
+            'avatar' => 'nullable|image|mimes:jpeg,jpg,png,gif,webp|max:2048',
+            'banner' => 'nullable|image|mimes:jpeg,jpg,png,gif,webp|max:4096',
+
+            // Informations personnelles (user)
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'pseudo' => 'nullable|string|max:255|unique:users,pseudo,' . $tattooer->user_id,
+            'email' => 'required|email|unique:users,email,' . $tattooer->user_id,
             'phone' => 'nullable|string|max:20',
+
+            // Informations professionnelles (tattooer)
             'studio_name' => 'nullable|string|max:255',
-            'address' => 'nullable|string|max:255',
+            'address' => 'nullable|string|max:500',
             'city' => 'nullable|string|max:255',
             'postal_code' => 'nullable|string|max:10',
-            'bio' => 'nullable|string|max:1000',
-            'description' => 'nullable|string|max:1000',
+            'country' => 'nullable|string|max:255',
+
+            // Description et styles
+            'bio' => 'nullable|string|max:2000',
             'styles' => 'nullable|array',
-            'styles.*' => 'string|max:50',
+            'styles.*' => 'string|max:100',
             'years_of_experience' => 'nullable|integer|min:0|max:50',
-            'minimum_price' => 'nullable|numeric|min:0|max:1000',
+            'minimum_price' => 'nullable|numeric|min:0|max:10000',
+
+            // Délai d'attente
             'wait_time_weeks_min' => 'nullable|integer|min:0|max:52',
             'wait_time_weeks_max' => 'nullable|integer|min:0|max:52',
-            'minimum_deposit' => 'nullable|numeric|min:0|max:10000',
-            'default_deposit_rate' => 'nullable|numeric|min:0|max:100',
-            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-            'banner' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+
+            // Réseaux sociaux
+            'instagram' => 'nullable|string|max:255',
+            'facebook' => 'nullable|string|max:255',
+            'website' => 'nullable|url|max:255',
+
+            // Paramètres de disponibilité
+            'is_available' => 'boolean',
+            'accepts_new_clients' => 'boolean',
+
+            // Préférences de notification
+            'email_notifications' => 'boolean',
+            'sms_notifications' => 'boolean',
         ]);
 
-        // Mettre à jour le user
-        $updateData = [];
-        if (isset($validated['pseudo'])) {
-            $updateData['name'] = $validated['pseudo'];
-        }
-        if (isset($validated['email'])) {
-            $updateData['email'] = $validated['email'];
-        }
-
-        if (!empty($updateData)) {
-            auth()->user()->update($updateData);
-        }
+        // Mettre à jour l'utilisateur
+        $tattooer->user->update([
+            'first_name' => $validated['first_name'] ?? $tattooer->user->first_name,
+            'last_name' => $validated['last_name'] ?? $tattooer->user->last_name,
+            'pseudo' => $validated['pseudo'] ?? $tattooer->user->pseudo,
+            'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? $tattooer->user->phone,
+        ]);
 
         // Mettre à jour le tattooer
         $tattooer->update([
+            'first_name' => $validated['first_name'] ?? $tattooer->user->first_name,
+            'last_name' => $validated['last_name'] ?? $tattooer->user->last_name,
             'studio_name' => $validated['studio_name'] ?? null,
             'address' => $validated['address'] ?? null,
             'city' => $validated['city'] ?? null,
             'postal_code' => $validated['postal_code'] ?? null,
-            'bio' => $validated['bio'] ?? $validated['description'] ?? null,
-            'description' => $validated['description'] ?? $validated['bio'] ?? null,
-            'styles' => isset($validated['styles']) ? json_encode($validated['styles']) : null,
+            'country' => $validated['country'] ?? null,
+            'bio' => $validated['bio'] ?? null,
+            'styles' => $validated['styles'] ?? [],
             'years_of_experience' => $validated['years_of_experience'] ?? null,
             'minimum_price' => $validated['minimum_price'] ?? null,
             'wait_time_weeks_min' => $validated['wait_time_weeks_min'] ?? null,
             'wait_time_weeks_max' => $validated['wait_time_weeks_max'] ?? null,
-            'minimum_deposit' => $validated['minimum_deposit'] ?? 0,
-            'default_deposit_rate' => $validated['default_deposit_rate'] ?? 20,
+            'instagram' => $validated['instagram'] ?? null,
+            'facebook' => $validated['facebook'] ?? null,
+            'website' => $validated['website'] ?? null,
+            'is_available' => $validated['is_available'] ?? false,
+            'accepts_new_clients' => $validated['accepts_new_clients'] ?? false,
+            'email_notifications' => $validated['email_notifications'] ?? true,
+            'sms_notifications' => $validated['sms_notifications'] ?? false,
         ]);
 
-        // Gérer l'upload de l'avatar
+        // Gérer l'upload de l'avatar si présent
         if ($request->hasFile('avatar')) {
+            // Supprimer l'ancien avatar s'il existe
+            if ($tattooer->user->hasMedia('avatar')) {
+                $tattooer->user->clearMediaCollection('avatar');
+            }
+
             $avatar = $request->file('avatar');
-            $tattooer->addMedia($avatar)->toMediaCollection('avatar');
+            $tattooer->user->addMedia($avatar)
+                ->toMediaCollection('avatar');
         }
 
-        // Gérer l'upload de la bannière
+        // Gérer l'upload de la bannière si présente
         if ($request->hasFile('banner')) {
+            // Supprimer l'ancienne bannière si elle existe
+            if ($tattooer->hasMedia('banner')) {
+                $tattooer->clearMediaCollection('banner');
+            }
+
             $banner = $request->file('banner');
-            $tattooer->addMedia($banner)->toMediaCollection('banner');
+            $tattooer->addMedia($banner)
+                ->toMediaCollection('banner');
         }
 
         return redirect()->route('tattooer.settings')
-            ->with('success', 'Vos paramètres ont été mis à jour avec succès.');
+            ->with('success', 'Vos paramètres ont été mis à jour avec succès !');
     }
 
     /**
@@ -752,8 +232,8 @@ class TattooerController extends Controller
     {
         $tattooer = auth()->user()->tattooer;
 
-        if ($tattooer->hasMedia('avatar')) {
-            $tattooer->clearMediaCollection('avatar');
+        if ($tattooer->user->hasMedia('avatar')) {
+            $tattooer->user->clearMediaCollection('avatar');
         }
 
         return response()->json(['success' => true]);
@@ -774,547 +254,988 @@ class TattooerController extends Controller
     }
 
     /**
-     * Paramètres - Mise à jour horaires
+     * Tableau de bord du tattooer
      */
-    public function settingsUpdateSchedule(Request $request)
+    public function dashboard()
     {
         $tattooer = auth()->user()->tattooer;
 
-        $scheduleData = $request->get('schedule', []);
+        // Charger les relations nécessaires
+        $tattooer->load(['media', 'user']);
 
-        foreach ($scheduleData as $dayName => $dayData) {
-            $dayOfWeek = $this->getDayOfWeek($dayName);
-            $isOpen = isset($dayData['open']) ? true : false;
+        // Service pour stats (1-2 requêtes au lieu de 5+)
+        $statsService = app(\App\Services\TattooerStatsService::class);
+        $stats = $statsService->getDashboardStats($tattooer);
 
-            // Supprimer l'ancien enregistrement s'il existe
-            $tattooer->workingHours()->where('day_of_week', $dayOfWeek)->delete();
+        // Demandes récentes
+        $recentRequests = BookingRequest::where('bookable_id', $tattooer->id)
+            ->where('bookable_type', 'App\Models\Tattooer')
+            ->with(['client.user'])
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
 
-            // Créer le nouvel enregistrement si ouvert
-            if ($isOpen && isset($dayData['start']) && isset($dayData['end'])) {
-                $tattooer->workingHours()->create([
-                    'day_of_week' => $dayOfWeek,
-                    'is_open' => true,
-                    'start_time' => $dayData['start'],
-                    'end_time' => $dayData['end'],
-                ]);
-            }
-        }
+        // Rendez-vous à venir (pour l'instant, utilise les demandes confirmées)
+        $upcomingAppointments = BookingRequest::where('bookable_id', $tattooer->id)
+            ->where('bookable_type', 'App\Models\Tattooer')
+            ->where('status', 'confirmed')
+            ->with(['client.user'])
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
 
-        return redirect()->route('tattooer.settings')->with('success', 'Horaires mis à jour avec succès !');
-    }
+        // Activité récente
+        $recentActivity = [
+            'new_requests' => BookingRequest::where('bookable_id', $tattooer->id)
+                ->where('bookable_type', 'App\Models\Tattooer')
+                ->where('created_at', '>=', now()->subDays(7))
+                ->count(),
 
-    private function getDayOfWeek($dayName)
-    {
-        $days = [
-            'lundi' => 1,
-            'mardi' => 2,
-            'mercredi' => 3,
-            'jeudi' => 4,
-            'vendredi' => 5,
-            'samedi' => 6,
-            'dimanche' => 0,
+            'completed_appointments' => BookingRequest::where('bookable_id', $tattooer->id)
+                ->where('bookable_type', 'App\Models\Tattooer')
+                ->where('status', 'completed')
+                ->where('updated_at', '>=', now()->subDays(7))
+                ->count(),
         ];
 
-        return $days[strtolower($dayName)] ?? 1;
+        return view('tattooer.dashboard', compact('tattooer', 'stats', 'recentRequests', 'upcomingAppointments', 'recentActivity'));
     }
 
     /**
-     * Paramètres - Mise à jour profil
+     * Calendrier du tattooer
      */
-    public function settingsUpdateProfile(Request $request)
+    public function calendar()
     {
         $tattooer = auth()->user()->tattooer;
+        $tattooer->load(['media', 'user']);
 
-        // Valider les données
-        $validated = $request->validate([
-            'pseudo' => 'nullable|string|max:255',
-            'email' => 'required|email|unique:users,email,' . auth()->id(),
-            'phone' => 'nullable|string|max:20',
-            'studio_name' => 'nullable|string|max:255',
-            'address' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:255',
-            'postal_code' => 'nullable|string|max:10',
-            'bio' => 'nullable|string|max:1000',
-            'description' => 'nullable|string|max:1000',
-            'styles' => 'nullable|array',
-            'styles.*' => 'string|max:50',
-            'years_of_experience' => 'nullable|integer|min:0|max:50',
-            'minimum_price' => 'nullable|numeric|min:0|max:1000',
-            'wait_time_weeks_min' => 'nullable|integer|min:0|max:52',
-            'wait_time_weeks_max' => 'nullable|integer|min:0|max:52',
-            'minimum_deposit' => 'nullable|numeric|min:0|max:10000',
-            'default_deposit_rate' => 'nullable|numeric|min:0|max:100',
-            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-            'banner' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-        ]);
+        // ═══════════════════════════════════════════════
+        // 1. CalendarEvents (breaks, vacances, fermetures, RDV manuels)
+        // ═══════════════════════════════════════════════
+        $calendarEvents = CalendarEvent::where('bookable_type', $tattooer->getMorphClass())
+            ->where('bookable_id', $tattooer->id)
+            ->get()
+            ->map(fn($event) => $event->toFullCalendarEvent())
+            ->toArray();
 
-        // Mettre à jour le user
-        $updateData = [];
-        if (isset($validated['pseudo'])) {
-            $updateData['name'] = $validated['pseudo'];
-        }
-        if (isset($validated['email'])) {
-            $updateData['email'] = $validated['email'];
-        }
+        // ═══════════════════════════════════════════════
+        // 2. Appointments bookés via la plateforme
+        // ═══════════════════════════════════════════════
+        $appointments = \App\Models\Appointment::where('bookable_type', $tattooer->getMorphClass())
+            ->where('bookable_id', $tattooer->id)
+            ->whereNotIn('status', ['cancelled'])
+            ->with(['bookingRequest.client.user'])
+            ->get()
+            ->filter(fn($apt) => !CalendarEvent::where('appointment_id', $apt->id)->exists()) // Éviter doublons
+            ->map(function ($apt) {
+                $clientName = $apt->bookingRequest?->client?->user?->pseudo
+                    ?? $apt->bookingRequest?->client?->user?->name
+                    ?? 'Client';
+                return [
+                    'id' => 'apt_' . $apt->id,
+                    'title' => 'Tattoo → ' . $clientName,
+                    'start' => $apt->start_datetime->toIso8601String(),
+                    'end' => $apt->end_datetime->toIso8601String(),
+                    'backgroundColor' => '#06D6A0',
+                    'borderColor' => '#06D6A0',
+                    'textColor' => '#FFFFFF',
+                    'extendedProps' => [
+                        'type' => 'appointment',
+                        'appointment_id' => $apt->id,
+                        'booking_request_id' => $apt->booking_request_id,
+                        'client_name' => $clientName,
+                        'notes' => '',
+                    ],
+                ];
+            })
+            ->values()
+            ->toArray();
 
-        auth()->user()->update($updateData);
+        // ═══════════════════════════════════════════════
+        // 3. BookingRequests confirmées sans Appointment (compatibilité)
+        // ═══════════════════════════════════════════════
+        $bookingEvents = BookingRequest::where('bookable_id', $tattooer->id)
+            ->where('bookable_type', $tattooer->getMorphClass())
+            ->where('status', BookingRequestStatus::DATE_CONFIRMED->value)
+            ->whereDoesntHave('appointment')
+            ->with(['client.user'])
+            ->get()
+            ->map(function ($booking) {
+                $clientName = $booking->client?->user?->pseudo ?? $booking->client?->user?->name ?? 'Client';
+                $startDate = $booking->confirmed_date
+                    ? \Carbon\Carbon::parse($booking->confirmed_date)
+                    : $booking->created_at;
+                return [
+                    'id' => 'booking_' . $booking->id,
+                    'title' => 'RDV - ' . $clientName,
+                    'start' => $startDate->format('Y-m-d\TH:i:s'),
+                    'end' => $startDate->copy()->addHours(2)->format('Y-m-d\TH:i:s'),
+                    'backgroundColor' => '#D4B59E',
+                    'borderColor' => '#D4B59E',
+                    'textColor' => '#0A0A0A',
+                    'extendedProps' => [
+                        'type' => 'appointment',
+                        'booking_id' => $booking->id,
+                        'client_name' => $clientName,
+                    ],
+                ];
+            })
+            ->toArray();
 
-        // Mettre à jour le tattooer
-        $tattooerUpdateData = [];
-        if (isset($validated['phone'])) {
-            $tattooerUpdateData['phone'] = $validated['phone'];
-        }
-        if (isset($validated['studio_name'])) {
-            $tattooerUpdateData['studio_name'] = $validated['studio_name'];
-        }
-        if (isset($validated['address'])) {
-            $tattooerUpdateData['address'] = $validated['address'];
-        }
-        if (isset($validated['city'])) {
-            $tattooerUpdateData['city'] = $validated['city'];
-        }
-        if (isset($validated['postal_code'])) {
-            $tattooerUpdateData['postal_code'] = $validated['postal_code'];
-        }
-        if (isset($validated['bio'])) {
-            $tattooerUpdateData['bio'] = $validated['bio'];
-        }
-        if (isset($validated['description'])) {
-            $tattooerUpdateData['description'] = $validated['description'];
-        }
-        if (isset($validated['styles'])) {
-            $tattooerUpdateData['styles'] = $validated['styles'];
-        }
-        if (isset($validated['years_of_experience'])) {
-            $tattooerUpdateData['years_of_experience'] = $validated['years_of_experience'];
-        }
-        if (isset($validated['minimum_price'])) {
-            $tattooerUpdateData['minimum_price'] = $validated['minimum_price'];
-        }
-        if (isset($validated['wait_time_weeks_min'])) {
-            $tattooerUpdateData['wait_time_weeks_min'] = $validated['wait_time_weeks_min'];
-        }
-        if (isset($validated['wait_time_weeks_max'])) {
-            $tattooerUpdateData['wait_time_weeks_max'] = $validated['wait_time_weeks_max'];
-        }
-        if (isset($validated['minimum_deposit'])) {
-            $tattooerUpdateData['minimum_deposit'] = $validated['minimum_deposit'];
-        }
-        if (isset($validated['default_deposit_rate'])) {
-            $tattooerUpdateData['default_deposit_rate'] = $validated['default_deposit_rate'];
-        }
+        // Fusionner tous les events
+        $events = array_merge($calendarEvents, $appointments, $bookingEvents);
 
-        $tattooer->update($tattooerUpdateData);
-
-        // Gérer les médias
-        if ($request->hasFile('avatar')) {
-            $tattooer->addMediaFromRequest('avatar')->toMediaCollection('avatar');
-        }
-        if ($request->hasFile('banner')) {
-            if ($tattooer->hasMedia('banner')) {
-                $tattooer->clearMediaCollection('banner');
-            }
-            $tattooer->addMediaFromRequest('banner')->toMediaCollection('banner');
-        }
-
-        return redirect()->back()->with('success', 'Profil mis à jour avec succès !');
+        return view('tattooer.calendar', compact('tattooer', 'events'));
     }
 
     /**
-     * Paramètres - Mise à jour mot de passe
-     */
-    public function settingsUpdatePassword(Request $request)
-    {
-        $user = auth()->user();
-
-        // Valider les données
-        $validated = $request->validate([
-            'current_password' => 'required|string',
-            'password' => 'required|string|confirmed|min:8',
-        ]);
-
-        // Vérifier le mot de passe actuel
-        if (!Hash::check($validated['current_password'], $user->password)) {
-            return back()
-                ->withErrors(['current_password' => 'Le mot de passe actuel est incorrect.'])
-                ->withInput();
-        }
-
-        // Mettre à jour le mot de passe
-        $user->update([
-            'password' => Hash::make($validated['password']),
-        ]);
-
-        return redirect()->route('tattooer.settings')
-            ->with('success', 'Votre mot de passe a été mis à jour avec succès.');
-    }
-
-    /**
-     * Calendrier - Sauvegarder un événement
+     * Store un nouvel événement calendrier
      */
     public function calendarStore(Request $request)
     {
-        $tattooer = auth()->user()->tattooer;
-
         $validated = $request->validate([
+            'type' => 'required|in:appointment,break,vacation,closure',
             'title' => 'required|string|max:255',
             'start_datetime' => 'required|date',
             'end_datetime' => 'required|date|after:start_datetime',
-            'type' => 'required|in:appointment,break,vacation,closure',
-            'notes' => 'nullable|string',
         ]);
 
-        $notes = $validated['notes'] ?? null;
-        if (!$notes) {
-            $notes = $validated['title'];
-        }
-
-        CalendarEvent::create([
-            'bookable_id' => $tattooer->id,
-            'bookable_type' => 'App\\Models\\Tattooer',
-            'type' => $validated['type'],
-            'start_datetime' => Carbon::parse($validated['start_datetime']),
-            'end_datetime' => Carbon::parse($validated['end_datetime']),
-            'notes' => $notes,
-            'color' => CalendarEvent::COLORS[$validated['type']] ?? '#D4B59E',
-        ]);
-
-        return redirect()->route('tattooer.calendar')
-            ->with('success', 'Événement créé avec succès');
-    }
-
-    /**
-     * Calendrier - Mettre à jour un événement
-     */
-    public function calendarUpdate(Request $request, $event)
-    {
         $tattooer = auth()->user()->tattooer;
 
-        // On n'autorise la mise à jour que pour les événements custom (id numérique)
-        if (!ctype_digit((string) $event)) {
-            return response()->json(['success' => false], 422);
-        }
-
-        $validated = $request->validate([
-            'start_datetime' => 'required|date',
-            'end_datetime' => 'required|date|after:start_datetime',
-        ]);
-
-        $calendarEvent = CalendarEvent::where('id', (int) $event)
-            ->where('bookable_id', $tattooer->id)
-            ->where('bookable_type', 'App\\Models\\Tattooer')
-            ->firstOrFail();
-
-        $calendarEvent->update([
-            'start_datetime' => Carbon::parse($validated['start_datetime']),
-            'end_datetime' => Carbon::parse($validated['end_datetime']),
-        ]);
-
-        return response()->json(['success' => true]);
-    }
-
-    /**
-     * Calendrier - Supprimer un événement
-     */
-    public function calendarDestroy($event)
-    {
-        $tattooer = auth()->user()->tattooer;
-
-        if (!$tattooer) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Profil tattooer non trouvé',
-            ], 403);
-        }
-
-        // Autoriser la suppression de tous les événements (RDV inclus)
-        $calendarEvent = CalendarEvent::where('id', (int) $event)
-            ->where('bookable_id', $tattooer->id)
-            ->where('bookable_type', Tattooer::class)
-            ->first();
-
-        if (!$calendarEvent) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Événement non trouvé',
-            ], 404);
-        }
-
-        if (method_exists($calendarEvent, 'canBeDeleted') && !$calendarEvent->canBeDeleted()) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Cet événement ne peut pas être supprimé',
-            ], 403);
-        }
+        // Couleur selon le type
+        $color = match($validated['type']) {
+            'appointment' => '#06D6A0',
+            'break' => '#F77F00',
+            'vacation' => '#E63946',
+            'closure' => '#2E3440',
+            default => '#D4B59E',
+        };
 
         try {
-            $calendarEvent->delete();
+            $event = CalendarEvent::create([
+                'bookable_type' => $tattooer->getMorphClass(),
+                'bookable_id' => $tattooer->id,
+                'title' => $validated['title'],
+                'type' => $validated['type'],
+                'start_datetime' => $validated['start_datetime'],
+                'end_datetime' => $validated['end_datetime'],
+                'color' => $color,
+            ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Événement supprimé avec succès',
+                'message' => 'Événement créé avec succès',
+                'event' => $event->toFullCalendarEvent(),
             ]);
         } catch (\Exception $e) {
-            \Log::error('Erreur suppression calendrier', [
-                'event_id' => $calendarEvent->id,
+            \Log::error('Erreur création CalendarEvent', [
                 'error' => $e->getMessage(),
+                'data' => $validated,
             ]);
 
             return response()->json([
                 'success' => false,
-                'error' => 'Erreur lors de la suppression : ' . $e->getMessage(),
+                'error' => 'Erreur serveur : ' . $e->getMessage(),
             ], 500);
         }
     }
 
     /**
-     * Portfolio - Upload images
+     * Update un événement calendrier (drag & drop)
+     */
+    public function calendarUpdate(Request $request, $event)
+    {
+        $validated = $request->validate([
+            'start_datetime' => 'required|date',
+            'end_datetime' => 'nullable|date|after:start_datetime',
+        ]);
+
+        $tattooer = auth()->user()->tattooer;
+        $calendarEvent = CalendarEvent::where('id', $event)
+            ->where('bookable_type', $tattooer->getMorphClass())
+            ->where('bookable_id', $tattooer->id)
+            ->first();
+
+        if (!$calendarEvent) {
+            return response()->json(['success' => false, 'error' => 'Événement non trouvé'], 404);
+        }
+
+        $calendarEvent->update([
+            'start_datetime' => $validated['start_datetime'],
+            'end_datetime' => $validated['end_datetime'] ?? $calendarEvent->end_datetime,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Événement mis à jour',
+        ]);
+    }
+
+    /**
+     * Delete un événement calendrier
+     */
+    public function calendarDestroy($event)
+    {
+        $tattooer = auth()->user()->tattooer;
+        $calendarEvent = CalendarEvent::where('id', $event)
+            ->where('bookable_type', $tattooer->getMorphClass())
+            ->where('bookable_id', $tattooer->id)
+            ->first();
+
+        if (!$calendarEvent) {
+            return response()->json(['success' => false, 'error' => 'Événement non trouvé'], 404);
+        }
+
+        if (!$calendarEvent->canBeDeleted()) {
+            return response()->json(['success' => false, 'error' => 'Cet événement ne peut pas être supprimé'], 422);
+        }
+
+        $calendarEvent->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Événement supprimé',
+        ]);
+    }
+
+    /**
+     * Get events for calendar (API)
+     */
+    public function calendarEvents(Request $request)
+    {
+        $tattooer = auth()->user()->tattooer;
+
+        // Récupérer les rendez-vous confirmés comme événements
+        $appointments = Appointment::where('bookable_id', $tattooer->id)
+            ->where('bookable_type', 'App\Models\Tattooer')
+            ->where('status', 'scheduled')
+            ->with(['bookingRequest.client.user'])
+            ->orderBy('start_datetime', 'asc')
+            ->get();
+
+        $appointmentEvents = $appointments->map(function($appointment) {
+            return [
+                'id' => 'appointment_' . $appointment->id,
+                'title' => $appointment->title,
+                'start' => $appointment->start_datetime->format('Y-m-d\TH:i:s'),
+                'end' => $appointment->end_datetime->format('Y-m-d\TH:i:s'),
+                'backgroundColor' => '#D4B59E', // beige-peau
+                'borderColor' => '#B8955A',
+                'textColor' => '#0A0A0A',
+                'extendedProps' => [
+                    'type' => 'appointment',
+                    'appointment_id' => $appointment->id,
+                    'booking_request_id' => $appointment->booking_request_id,
+                    'client_name' => $appointment->bookingRequest->client->user->name ?? $appointment->bookingRequest->client->user->pseudo,
+                    'client_id' => $appointment->bookingRequest->client_id
+                ]
+            ];
+        })->toArray();
+
+        // Récupérer les demandes confirmées comme événements (pour compatibilité)
+        $bookingRequests = BookingRequest::where('bookable_id', $tattooer->id)
+            ->where('bookable_type', 'App\Models\Tattooer')
+            ->where('status', 'date_confirmed')
+            ->whereDoesntHave('appointment') // Éviter les doublons
+            ->with(['client.user'])
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        $bookingEvents = $bookingRequests->map(function($booking) {
+            return [
+                'id' => 'booking_' . $booking->id,
+                'title' => 'RDV - ' . ($booking->client->user->name ?? $booking->client->user->pseudo),
+                'start' => $booking->confirmed_date ? \Carbon\Carbon::parse($booking->confirmed_date)->format('Y-m-d\TH:i:s') : $booking->created_at->format('Y-m-d\TH:i:s'),
+                'end' => $booking->confirmed_date ? \Carbon\Carbon::parse($booking->confirmed_date)->addHours(2)->format('Y-m-d\TH:i:s') : $booking->created_at->addHours(2)->format('Y-m-d\TH:i:s'),
+                'backgroundColor' => '#10b981', // vert-succes
+                'borderColor' => '#059669',
+                'textColor' => '#ffffff',
+                'extendedProps' => [
+                    'type' => 'appointment',
+                    'booking_id' => $booking->id,
+                    'client_name' => $booking->client->user->name ?? $booking->client->user->pseudo,
+                    'client_id' => $booking->client_id
+                ]
+            ];
+        })->toArray();
+
+        $events = array_merge($appointmentEvents, $bookingEvents);
+
+        return response()->json($events);
+    }
+
+    /**
+     * Get event color by type
+     */
+    private function getEventColor(string $type): string
+    {
+        $colors = [
+            'appointment' => '#10b981', // vert-succes
+            'break' => '#f59e0b',       // ambre-warning
+            'vacation' => '#ef4444',    // rouge-alerte
+            'closure' => '#6b7280',     // titane
+        ];
+
+        return $colors[$type] ?? $colors['appointment'];
+    }
+
+    /**
+     * Afficher la conversation avec un client
+     */
+    public function messageShow(BookingRequest $bookingRequest)
+    {
+        $tattooer = auth()->user()->tattooer;
+
+        // Vérifier que la demande appartient bien au tattooer
+        if ($bookingRequest->bookable_id !== $tattooer->id ||
+            $bookingRequest->bookable_type !== 'App\Models\Tattooer') {
+            abort(403, 'Non autorisé');
+        }
+
+        // Créer la conversation si elle n'existe pas
+        if (!$bookingRequest->conversation) {
+            $conversation = \App\Models\Conversation::create([
+                'booking_request_id' => $bookingRequest->id,
+                'client_id' => $bookingRequest->client_id,
+                'tattooer_id' => $tattooer->id,
+                'status' => 'active',
+            ]);
+
+            // Marquer les messages comme lus pour le tattooer
+            $bookingRequest->conversation = $conversation;
+        }
+
+        // Charger la conversation avec les messages
+        $conversation = $bookingRequest->conversation->load(['messages' => function($query) {
+            $query->orderBy('created_at', 'asc');
+        }]);
+
+        // Marquer les messages du client comme lus
+        $conversation->messages()
+            ->where('sender_type', 'client')
+            ->whereNull('read_by_tattooer_at')
+            ->update(['read_by_tattooer_at' => now()]);
+
+        // Récupérer les messages pour la vue
+        $messages = $conversation->messages;
+
+        return view('tattooer.message-show', compact('bookingRequest', 'conversation', 'messages'));
+    }
+
+    /**
+     * Envoyer un message dans la conversation
+     */
+    /**
+ * Envoyer un message dans la conversation (avec gestion des dessins)
+ */
+public function messageSend(Request $request, BookingRequest $bookingRequest)
+{
+    $tattooer = auth()->user()->tattooer;
+
+    if ($bookingRequest->bookable_id !== $tattooer->id ||
+        $bookingRequest->bookable_type !== 'App\Models\Tattooer') {
+        abort(403, 'Non autorisé');
+    }
+
+    $validated = $request->validate([
+        'content' => 'nullable|string|max:2000',
+        'attachments' => 'nullable|array',
+        'attachments.*' => 'file|mimes:jpeg,jpg,png,gif,webp,pdf|max:10240',
+        'design_type' => 'nullable|in:new_design,modification',
+        'coverage_type' => 'nullable|in:included,send_free',
+    ]);
+
+    // Vérifier qu'il y a du contenu ou des pièces jointes
+    if (empty($validated['content']) && !$request->hasFile('attachments')) {
+        return redirect()->back()->with('error', 'Veuillez entrer un message ou ajouter une pièce jointe');
+    }
+
+    // Créer la conversation si elle n'existe pas
+    if (!$bookingRequest->conversation) {
+        $conversation = \App\Models\Conversation::create([
+            'booking_request_id' => $bookingRequest->id,
+            'client_id' => $bookingRequest->client_id,
+            'tattooer_id' => $tattooer->id,
+            'status' => 'active',
+        ]);
+        $bookingRequest->setRelation('conversation', $conversation);
+    }
+
+    // Créer le message
+    $messageContent = $validated['content'] ?? '';
+
+    // Si on envoie un dessin mais pas de texte personnalisé, ajouter un texte par défaut
+    if ($request->hasFile('attachments') && empty($messageContent)) {
+        $designType = $validated['design_type'] ?? null;
+        if ($designType === 'new_design') {
+            $messageContent = '🎨 Nouveau dessin proposé';
+        } elseif ($designType === 'modification') {
+            $messageContent = '✏️ Modification proposée';
+        } else {
+            $messageContent = 'Dessin envoyé';
+        }
+    }
+
+    $message = \App\Models\Message::create([
+        'conversation_id' => $bookingRequest->conversation->id,
+        'sender_type' => 'tattooer',
+        'sender_id' => $tattooer->user_id,
+        'content' => $messageContent,
+        'read_by_client_at' => null,
+        'read_by_tattooer_at' => now(),
+    ]);
+
+    // Gérer les pièces jointes
+    if ($request->hasFile('attachments')) {
+        foreach ($request->file('attachments') as $attachment) {
+            $message->addMedia($attachment)
+                ->withCustomProperties([
+                    'design_type' => $validated['design_type'] ?? null,
+                    'coverage_type' => $validated['coverage_type'] ?? null,
+                    'uploaded_by' => 'tattooer',
+                ])
+                ->toMediaCollection('attachments');
+        }
+    }
+
+    // ═══ GESTION DU COMPTAGE DESSINS ═══
+    $designType = $validated['design_type'] ?? null;
+    $coverageType = $validated['coverage_type'] ?? null;
+
+    if ($designType && $request->hasFile('attachments')) {
+        $bookingRequest->refresh();
+
+        // Mettre à jour les compteurs
+        if ($coverageType === 'included' || $coverageType === 'send_free') {
+            if ($designType === 'new_design') {
+                $bookingRequest->recordNewDesign();
+                $designLabel = "🎨 Dessin complet #{$bookingRequest->designs_sent_count}";
+            } else {
+                $bookingRequest->recordModification();
+                $tracker = $bookingRequest->design_modifications_tracker ?? [];
+                $currentDesign = $bookingRequest->designs_sent_count;
+                $modifCount = $tracker[(string) $currentDesign] ?? 0;
+                $designLabel = "✏️ Modification #{$modifCount} du dessin #{$currentDesign}";
+            }
+        } else {
+            $designLabel = ($designType === 'new_design')
+                ? "🎨 Nouveau dessin (supplément demandé)"
+                : "✏️ Modification (supplément demandé)";
+        }
+
+        // Message système
+        $systemContent = match($coverageType) {
+            'included'  => "{$designLabel} envoyé (inclus dans le forfait).",
+            'send_free' => "⚠️ {$designLabel} envoyé (hors forfait — envoi gracieux).",
+            default     => "{$designLabel} envoyé.",
+        };
+
+        \App\Models\Message::create([
+            'conversation_id' => $bookingRequest->conversation->id,
+            'sender_type'     => 'tattooer',
+            'sender_id'       => $tattooer->user_id,
+            'content'         => $systemContent,
+        ]);
+
+        // Si envoi gratuit hors forfait
+        if ($coverageType === 'send_free') {
+            $bookingRequest->update([
+                'overage_decision' => 'send_free',
+                'overage_reason'   => $designType === 'new_design'
+                    ? 'Dessin complet supplémentaire offert'
+                    : 'Modification supplémentaire offerte',
+            ]);
+        }
+    }
+
+    return redirect()->route('tattooer.message.show', $bookingRequest)
+        ->with('success', 'Message envoyé !');
+}
+
+
+    /**
+     * Liste des conversations/messages
+     */
+    public function messages()
+    {
+        $tattooer = auth()->user()->tattooer;
+
+        // Charger les relations nécessaires
+        $tattooer->load(['media', 'user']);
+
+        // Récupérer les conversations/messages
+        $conversations = BookingRequest::where('bookable_id', $tattooer->id)
+            ->where('bookable_type', 'App\Models\Tattooer')
+            ->has('conversation')
+            ->with(['client.user', 'conversation.messages'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('tattooer.messages', compact('tattooer', 'conversations'));
+    }
+
+    /**
+     * Clients du tattooer
+     */
+    public function clients()
+    {
+        $tattooer = auth()->user()->tattooer;
+
+        // Charger les relations nécessaires
+        $tattooer->load(['media', 'user']);
+
+        // Récupérer les clients uniques
+        $clients = BookingRequest::where('bookable_id', $tattooer->id)
+            ->where('bookable_type', 'App\Models\Tattooer')
+            ->with(['client.user', 'client.media'])
+            ->distinct('client_id')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($request) {
+                return $request->client;
+            })
+            ->unique('id');
+
+        return view('tattooer.clients', compact('tattooer', 'clients'));
+    }
+
+    /**
+     * Portfolio du tattooer
+     */
+    public function portfolio()
+    {
+        $tattooer = auth()->user()->tattooer;
+
+        // Charger les relations nécessaires
+        $tattooer->load(['media', 'user']);
+
+        // Récupérer les images du portfolio
+        $portfolio = $tattooer->getMedia('portfolio')
+            ->sortByDesc('created_at')
+            ->values();
+
+        // Séparer les médias par collection name (plus fiable que custom_properties)
+        $tattoos = $tattooer->getMedia('portfolio')->filter(fn($media) => $media->collection_name === 'portfolio');
+        $drawings = $tattooer->getMedia('drawings');
+        $beforeAfter = $tattooer->getMedia('before_after');
+
+        // Pour les tattoos, filtrer ceux qui n'ont pas de type spécifique
+        $tattoos = $tattoos->filter(fn($media) =>
+            !$media->getCustomProperty('type') ||
+            $media->getCustomProperty('type') === 'tattoo'
+        );
+
+        return view('tattooer.portfolio', compact('tattooer', 'portfolio', 'tattoos', 'drawings', 'beforeAfter'));
+    }
+
+    /**
+     * Upload d'images pour le portfolio
      */
     public function portfolioUpload(Request $request)
     {
-        $tattooer = auth()->user()->tattooer;
+        try {
+            $tattooer = auth()->user()->tattooer;
+            $collection = $request->input('collection', 'portfolio');
 
-        $request->validate([
-            'images' => 'required|array|min:1',
-            'images.*' => 'required|file|mimes:jpeg,png,jpg,gif,webp,heic,heif|max:10240',
-            'collection' => 'required|in:portfolio,drawings,before_after'
-        ], [
-            'images.required' => 'Merci de sélectionner au moins une image.',
-            'images.array' => 'Merci de sélectionner au moins une image.',
-            'images.min' => 'Merci de sélectionner au moins une image.',
-            'images.*.file' => 'Le fichier est invalide.',
-            'images.*.mimes' => 'Format non supporté. Formats acceptés : JPG, PNG, GIF, WEBP, HEIC.',
-            'images.*.max' => 'Image trop lourde (max 10MB).',
-        ]);
-
-        $isPro = (bool) ($tattooer->is_subscribed ?? false) || (($tattooer->current_plan ?? null) === 'pro');
-        if (!$isPro) {
-            $currentCount = $tattooer->getMedia('portfolio')->count()
-                + $tattooer->getMedia('drawings')->count()
-                + $tattooer->getMedia('before_after')->count();
-            $incomingCount = count($request->file('images') ?? []);
-
-            if (($currentCount + $incomingCount) > 20) {
-                $message = 'Plan FREE : maximum 20 images au total sur le portfolio. Passez en PRO pour illimité.';
-                if ($request->expectsJson()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => $message,
-                        'errors' => ['images' => [$message]],
-                    ], 422);
-                }
-
-                return back()->withErrors(['images' => $message]);
-            }
-        }
-
-        $collection = $request->collection;
-
-        foreach ($request->file('images') as $image) {
-            $tattooer->addMedia($image)
-                ->toMediaCollection($collection);
-        }
-
-        if ($request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Images uploadées avec succès',
+            // Validation
+            $request->validate([
+                'images' => 'required|array|max:10', // max 10 images par upload
+                'images.*' => 'image|mimes:jpeg,jpg,png,gif,webp|max:5120', // 5MB max par image
+                'collection' => 'required|in:portfolio,drawings,before_after'
             ]);
-        }
 
-        return redirect()->route('tattooer.portfolio')
-            ->with('success', 'Images uploadées avec succès');
-    }
+            $uploadedCount = 0;
+            $maxImages = 20; // Limite FREE
 
-    /**
-     * Portfolio - Store before/after pair
-     */
-    public function portfolioBeforeAfterStore(Request $request)
-    {
-        $tattooer = auth()->user()->tattooer;
+            // Vérifier le nombre total d'images déjà présentes
+            $currentCount = $tattooer->getMedia($collection)->count();
+            $newImagesCount = count($request->file('images'));
 
-        $request->validate([
-            'before' => 'required|array|min:1',
-            'before.*' => 'required|file|mimes:jpeg,png,jpg,gif,webp,heic,heif|max:10240',
-            'after' => 'required|array|min:1',
-            'after.*' => 'required|file|mimes:jpeg,png,jpg,gif,webp,heic,heif|max:10240',
-        ], [
-            'before.required' => 'Merci de sélectionner au moins une photo AVANT.',
-            'before.array' => 'Merci de sélectionner au moins une photo AVANT.',
-            'before.min' => 'Merci de sélectionner au moins une photo AVANT.',
-            'before.*.required' => 'Merci de sélectionner une photo AVANT.',
-            'before.*.file' => 'Le fichier AVANT est invalide.',
-            'before.*.mimes' => 'Format non supporté pour la photo AVANT. Formats acceptés : JPG, PNG, GIF, WEBP, HEIC.',
-            'before.*.max' => 'Photo AVANT trop lourde (max 10MB).',
-            'after.required' => 'Merci de sélectionner au moins une photo APRÈS.',
-            'after.array' => 'Merci de sélectionner au moins une photo APRÈS.',
-            'after.min' => 'Merci de sélectionner au moins une photo APRÈS.',
-            'after.*.required' => 'Merci de sélectionner une photo APRÈS.',
-            'after.*.file' => 'Le fichier APRÈS est invalide.',
-            'after.*.mimes' => 'Format non supporté pour la photo APRÈS. Formats acceptés : JPG, PNG, GIF, WEBP, HEIC.',
-            'after.*.max' => 'Photo APRÈS trop lourde (max 10MB).',
-        ]);
-
-        $beforeFiles = $request->file('before') ?? [];
-        $afterFiles = $request->file('after') ?? [];
-
-        $pairCount = min(count($beforeFiles), count($afterFiles));
-        if ($pairCount < 1) {
-            $message = 'Merci de sélectionner au moins une paire (Avant + Après).';
-            if ($request->expectsJson()) {
+            if ($currentCount + $newImagesCount > $maxImages) {
                 return response()->json([
                     'success' => false,
-                    'message' => $message,
-                    'errors' => ['before' => [$message]],
+                    'message' => "Limite d'images dépassée. Maximum {$maxImages} images autorisées ({$currentCount} déjà présentes)."
                 ], 422);
             }
 
-            return back()->withErrors(['before' => $message]);
-        }
-
-        $isPro = (bool) ($tattooer->is_subscribed ?? false) || (($tattooer->current_plan ?? null) === 'pro');
-        if (!$isPro) {
-            $currentCount = $tattooer->getMedia('portfolio')->count()
-                + $tattooer->getMedia('drawings')->count()
-                + $tattooer->getMedia('before_after')->count();
-            $incomingCount = $pairCount * 2;
-
-            if (($currentCount + $incomingCount) > 20) {
-                $message = 'Plan FREE : maximum 20 images au total sur le portfolio. Passez en PRO pour illimité.';
-                if ($request->expectsJson()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => $message,
-                        'errors' => ['before' => [$message]],
-                    ], 422);
-                }
-
-                return back()->withErrors(['before' => $message]);
+            // Upload des images
+            foreach ($request->file('images') as $image) {
+                $tattooer->addMedia($image)
+                    ->withCustomProperties([
+                        'type' => $collection === 'portfolio' ? 'tattoo' : $collection,
+                        'uploaded_at' => now()->toISOString()
+                    ])
+                    ->toMediaCollection($collection);
+                $uploadedCount++;
             }
-        }
 
-        for ($i = 0; $i < $pairCount; $i++) {
-            $pairId = (string) Str::uuid();
-
-            $tattooer->addMedia($beforeFiles[$i])
-                ->withCustomProperties([
-                    'pair_id' => $pairId,
-                    'role' => 'before',
-                ])
-                ->toMediaCollection('before_after');
-
-            $tattooer->addMedia($afterFiles[$i])
-                ->withCustomProperties([
-                    'pair_id' => $pairId,
-                    'role' => 'after',
-                ])
-                ->toMediaCollection('before_after');
-        }
-
-        if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Photos avant/après ajoutées avec succès',
+                'message' => "{$uploadedCount} image(s) uploadée(s) avec succès !"
             ]);
-        }
 
-        return redirect()->route('tattooer.portfolio')
-            ->with('success', 'Photos avant/après ajoutées avec succès');
+        } catch (\Exception $e) {
+            Log::error('Erreur upload portfolio: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de l\'upload: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
-     * Portfolio - Delete media
+     * Stockage des photos avant/après
+     */
+    public function portfolioBeforeAfterStore(Request $request)
+    {
+        try {
+            $tattooer = auth()->user()->tattooer;
+
+            // Validation
+            $request->validate([
+                'before' => 'required|image|mimes:jpeg,jpg,png,gif,webp|max:5120',
+                'after' => 'required|image|mimes:jpeg,jpg,png,gif,webp|max:5120',
+                'description' => 'nullable|string|max:500'
+            ]);
+
+            // Vérifier la limite d'images
+            $currentCount = $tattooer->getMedia('before_after')->count();
+            $maxImages = 20;
+
+            if ($currentCount + 2 > $maxImages) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Limite d'images dépassée. Maximum {$maxImages} images autorisées."
+                ], 422);
+            }
+
+            // Générer un pair_id pour lier avant/après
+            $pairId = uniqid('pair_') . '_' . time();
+
+            // Upload avant
+            $beforeMedia = $tattooer->addMedia($request->file('before'))
+                ->withCustomProperties([
+                    'type' => 'before',
+                    'pair_id' => $pairId,
+                    'description' => $request->input('description'),
+                    'uploaded_at' => now()->toISOString()
+                ])
+                ->toMediaCollection('before_after');
+
+            // Upload après
+            $afterMedia = $tattooer->addMedia($request->file('after'))
+                ->withCustomProperties([
+                    'type' => 'after',
+                    'pair_id' => $pairId,
+                    'description' => $request->input('description'),
+                    'uploaded_at' => now()->toISOString()
+                ])
+                ->toMediaCollection('before_after');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Photos avant/après uploadées avec succès !'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur upload avant/après: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de l\'upload: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Supprimer un média du portfolio
      */
     public function portfolioDestroy($media)
     {
-        $tattooer = auth()->user()->tattooer;
+        try {
+            $tattooer = auth()->user()->tattooer;
 
-        $mediaModel = Media::query()
-            ->where('id', $media)
-            ->where('model_type', 'App\\Models\\Tattooer')
-            ->where('model_id', $tattooer->id)
-            ->firstOrFail();
+            // Récupérer le média
+            $mediaItem = $tattooer->media()->find($media);
 
-        $mediaModel->delete();
+            if (!$mediaItem) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Image non trouvée'
+                ], 404);
+            }
 
-        if (request()->expectsJson()) {
+            // Vérifier que le média appartient bien au tattooer
+            if ($mediaItem->model_id != $tattooer->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Non autorisé'
+                ], 403);
+            }
+
+            // Supprimer le média
+            $mediaItem->delete();
+
             return response()->json([
                 'success' => true,
-                'message' => 'Image supprimée avec succès',
+                'message' => 'Image supprimée avec succès'
             ]);
-        }
 
-        return redirect()->route('tattooer.portfolio')
-            ->with('success', 'Image supprimée avec succès');
+        } catch (\Exception $e) {
+            Log::error('Erreur suppression média: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la suppression: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
-     * Portfolio - Delete before/after pair
+     * Supprimer une paire avant/après
      */
     public function portfolioBeforeAfterDestroy($beforeId, $afterId)
     {
-        $tattooer = auth()->user()->tattooer;
+        try {
+            $tattooer = auth()->user()->tattooer;
 
-        $before = Media::query()
-            ->where('id', $beforeId)
-            ->where('model_type', 'App\\Models\\Tattooer')
-            ->where('model_id', $tattooer->id)
-            ->where('collection_name', 'before_after')
-            ->firstOrFail();
+            // Récupérer les médias
+            $beforeMedia = $tattooer->media()->find($beforeId);
+            $afterMedia = $tattooer->media()->find($afterId);
 
-        $after = Media::query()
-            ->where('id', $afterId)
-            ->where('model_type', 'App\\Models\\Tattooer')
-            ->where('model_id', $tattooer->id)
-            ->where('collection_name', 'before_after')
-            ->firstOrFail();
+            if (!$beforeMedia || !$afterMedia) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Images non trouvées'
+                ], 404);
+            }
 
-        $before->delete();
-        $after->delete();
+            // Vérifier que les médias appartiennent bien au tattooer
+            if ($beforeMedia->model_id != $tattooer->id || $afterMedia->model_id != $tattooer->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Non autorisé'
+                ], 403);
+            }
 
-        if (request()->expectsJson()) {
+            // Supprimer les deux médias
+            $beforeMedia->delete();
+            $afterMedia->delete();
+
             return response()->json([
                 'success' => true,
-                'message' => 'Photos avant/après supprimées avec succès',
+                'message' => 'Paire avant/après supprimée avec succès'
             ]);
-        }
 
-        return redirect()->route('tattooer.portfolio')
-            ->with('success', 'Photos avant/après supprimées avec succès');
+        } catch (\Exception $e) {
+            Log::error('Erreur suppression avant/après: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la suppression: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
-     * Compter les messages non lus pour un tattooer
+     * Mettre à jour les horaires du tattooer
      */
-    private function getUnreadMessagesCount($tattooer)
+    public function settingsUpdateSchedule(Request $request)
     {
-        // Récupérer toutes les conversations du tattooer
-        $conversationIds = \App\Models\Conversation::whereHas('bookingRequest', function($q) use ($tattooer) {
-            $q->where('bookable_type', 'App\\Models\\Tattooer')
-              ->where('bookable_id', $tattooer->id);
-        })->pluck('id');
+        try {
+            $tattooer = auth()->user()->tattooer;
 
-        // Compter messages non-lus
-        $unreadCount = 0;
+            // Valider les données du formulaire
+            $validated = $request->validate([
+                'working_hours' => 'nullable|array',
+                'working_hours.*.is_open' => 'nullable|string',
+                'working_hours.*.open' => 'nullable|string',
+                'working_hours.*.close' => 'nullable|string',
+                'working_hours.*.break_start' => 'nullable|string',
+                'working_hours.*.break_end' => 'nullable|string',
+            ]);
 
-        foreach ($conversationIds as $conversationId) {
-            $conversation = \App\Models\Conversation::find($conversationId);
+            // Nettoyer les horaires existants
+            $workingHours = [];
 
-            if ($conversation) {
-                $pivot = $conversation->participants()
-                    ->where('user_id', auth()->id())
-                    ->first()
-                    ?->pivot;
-
-                $lastReadAt = $pivot?->last_read_at ?? now()->subYears(10);
-
-                $unreadCount += $conversation->messages()
-                    ->where('sender_id', '!=', auth()->id())
-                    ->where('created_at', '>', $lastReadAt)
-                    ->count();
+            if (isset($validated['working_hours'])) {
+                foreach ($validated['working_hours'] as $day => $dayData) {
+                    // Si le jour est fermé, ne garder que le statut fermé
+                    if (!isset($dayData['is_open']) || $dayData['is_open'] !== '1') {
+                        $workingHours[$day] = [
+                            'open' => null,
+                            'close' => null,
+                            'break_start' => null,
+                            'break_end' => null,
+                        ];
+                    } else {
+                        // Si le jour est ouvert, garder les horaires
+                        $workingHours[$day] = [
+                            'open' => $dayData['open'] ?? null,
+                            'close' => $dayData['close'] ?? null,
+                            'break_start' => $dayData['break_start'] ?? null,
+                            'break_end' => $dayData['break_end'] ?? null,
+                        ];
+                    }
+                }
             }
+
+            // Mettre à jour le tattooer
+            $tattooer->update([
+                'working_hours' => json_encode($workingHours),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Horaires mis à jour avec succès !'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Erreur mise à jour horaires: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la mise à jour des horaires: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Paiements du tattooer
+     */
+    public function payments()
+    {
+        $tattooer = auth()->user()->tattooer;
+
+        // Charger les relations nécessaires
+        $tattooer->load(['media', 'user']);
+
+        // Récupérer les paiements (pour l'instant, utilise les demandes confirmées)
+        $payments = BookingRequest::where('bookable_id', $tattooer->id)
+            ->where('bookable_type', 'App\Models\Tattooer')
+            ->where('status', 'confirmed')
+            ->with(['client.user'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Statistiques des paiements
+        $paymentStats = [
+            'total_earned' => $payments->sum('estimated_total_price'),
+            'this_month' => $payments->where('created_at', '>=', now()->startOfMonth())->sum('estimated_total_price'),
+            'pending_deposits' => 0, // TODO: Calculer les acomptes en attente
+        ];
+
+        $stats = [
+            'total_revenue' => $paymentStats['total_earned'],
+            'total_payments' => $payments->count(),
+            'this_month' => $paymentStats['this_month'],
+        ];
+
+        return view('tattooer.payments', compact('tattooer', 'payments', 'paymentStats', 'stats'));
+    }
+
+    /**
+     * Accepter une demande de réservation
+     */
+    public function acceptRequest(Request $request, BookingRequest $bookingRequest)
+    {
+        // Vérifier que la demande appartient bien au tattooer connecté
+        $tattooer = auth()->user()->tattooer;
+
+        if ($bookingRequest->bookable_id !== $tattooer->id ||
+            $bookingRequest->bookable_type !== 'App\Models\Tattooer') {
+            abort(403, 'Non autorisé');
         }
 
-        return $unreadCount;
+        // Valider les données du formulaire
+        $validated = $request->validate([
+            'price_estimate_min' => 'required|numeric|min:0',
+            'price_estimate_max' => 'required|numeric|min:0',
+            'proposed_dates' => 'nullable|array|max:3',
+            'proposed_dates.*.date' => 'required|date|after:today',
+            'proposed_dates.*.period' => 'nullable|in:morning,afternoon,evening',
+            'included_design_versions' => 'required|integer|min:1',
+            'modifications_per_design' => 'required|integer|min:0',
+            'total_deposit_amount' => 'required|numeric|min:0',
+            'client_payment_deadline_days' => 'required|integer|min:1',
+        ]);
+
+        // Mettre à jour le statut de la demande
+        $bookingRequest->update([
+            'status' => 'accepted',
+            'accepted_at' => now(),
+        ]);
+
+        // Mettre à jour avec les données du formulaire d'acceptation
+        $bookingRequest->update([
+            'price_estimate_min' => $validated['price_estimate_min'],
+            'price_estimate_max' => $validated['price_estimate_max'],
+            'proposed_dates' => $validated['proposed_dates'] ?? [],
+            'included_design_versions' => $validated['included_design_versions'],
+            'modifications_per_design' => $validated['modifications_per_design'],
+            'total_deposit_amount' => $validated['total_deposit_amount'],
+            'client_payment_deadline_days' => $validated['client_payment_deadline_days'],
+            'deposit_deadline' => now()->addDays((int)$validated['client_payment_deadline_days']),
+            'date_selection_deadline' => now()->addHours(48), // 48h pour choisir les dates
+        ]);
+
+        // Créer une conversation si elle n'existe pas
+        if (!$bookingRequest->conversation) {
+            $conversation = \App\Models\Conversation::create([
+                'booking_request_id' => $bookingRequest->id,
+                'client_id' => $bookingRequest->client_id,
+                'tattooer_id' => $tattooer->id,
+                'status' => 'active',
+            ]);
+
+            // Envoyer le message d'acceptation
+            $conversation->messages()->create([
+                'sender_type' => 'tattooer',
+                'sender_id' => $tattooer->id,
+                'content' => "Bonjour ! \n\n" .
+                           "J'accepte votre demande de tattoo avec plaisir !\n\n" .
+                           " Zone : {$bookingRequest->body_zone}\n" .
+                           " Prix : {$validated['price_estimate_min']}€ - {$validated['price_estimate_max']}€\n" .
+                           " Acompte : {$validated['total_deposit_amount']}€\n\n" .
+                           "N'hésitez pas à me contacter si vous avez des questions !",
+                'read_by_client_at' => null,
+                'read_by_tattooer_at' => now(),
+            ]);
+        }
+
+        // Envoyer une notification au client
+        // TODO: Implémenter le système de notifications
+
+        return redirect()->route('tattooer.request.show', $bookingRequest)
+            ->with('success', 'Demande acceptée avec succès !');
     }
-}
+
+    /**
+     * Refuser une demande de réservation
+     */
+    public function requestReject(BookingRequest $bookingRequest)
+    {
+        // Vérifier que la demande appartient bien au tattooer connecté
+        $tattooer = auth()->user()->tattooer;
+
+        if ($bookingRequest->bookable_id !== $tattooer->id ||
+            $bookingRequest->bookable_type !== 'App\Models\Tattooer') {
+            abort(403, 'Non autorisé');
+        }
+
+        // Mettre à jour le statut de la demande
+        $bookingRequest->update([
+            'status' => 'rejected',
+            'rejected_at' => now(),
+            'cancellation_reason' => request('reason', 'Demande refusée par le tattooer'),
+        ]);
+
+        // TODO: Envoyer une notification au client
+        // TODO: Créer une conversation si elle n'existe pas
+
+        return redirect()->route('tattooer.request.show', $bookingRequest)
+            ->with('success', 'Demande refusée avec succès !');
+    }
+
+    }

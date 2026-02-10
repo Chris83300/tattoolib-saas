@@ -151,10 +151,8 @@
                 </div>
 
                 <!-- Bouton de paiement -->
-                <form action="{{ route('deposit.process', $bookingRequest) }}" method="POST" class="text-center">
-                    @csrf
-
-                    <button type="submit"
+                <div class="text-center">
+                    <button id="pay-deposit-btn"
                         class="inline-flex items-center px-8 py-4 bg-beige-peau text-noir-profond rounded-lg font-semibold text-lg hover:bg-beige-peau/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                         <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -181,22 +179,81 @@
                             Traitement immédiat
                         </div>
                     </div>
-                </form>
-            </div>
+                    </form>
+                </div>
 
-            <!-- Informations supplémentaires -->
-            <div class="text-center text-ivoire-text/50 text-sm">
-                <p class="mb-2">
-                    ❓ Des questions ?
-                    <a href="{{ route('client.booking-request.show', $bookingRequest) }}"
-                        class="text-beige-peau hover:text-beige-peau/80">
-                        Contactez l'artiste via le chat
-                    </a>
-                </p>
-                <p>
-                    📧 Pour toute assistance technique : support@tattoolib-saas.com
-                </p>
+                <!-- Informations supplémentaires -->
+                <div class="text-center text-ivoire-text/50 text-sm">
+                    <p class="mb-2">
+                        ❓ Des questions ?
+                        <a href="{{ route('client.booking-request.show', $bookingRequest) }}"
+                            class="text-beige-peau hover:text-beige-peau/80">
+                            Contactez l'artiste via le chat
+                        </a>
+                    </p>
+                    <p>
+                        📧 Pour toute assistance technique : support@tattoolib-saas.com
+                    </p>
+                </div>
             </div>
         </div>
-    </div>
-@endsection
+    @endsection
+
+    @push('scripts')
+        <script src="https://js.stripe.com/v3/"></script>
+        <script>
+            // Vérifier que la clé Stripe est disponible
+            const stripePublishableKey = '{{ $stripeKey }}';
+            console.log('Stripe publishable key:', stripePublishableKey);
+
+            document.addEventListener('DOMContentLoaded', function() {
+                if (!stripePublishableKey) {
+                    console.error('Stripe publishable key is empty');
+                    alert('Configuration Stripe manquante. Veuillez contacter le support.');
+                    return;
+                }
+
+                const payButton = document.getElementById('pay-deposit-btn');
+
+                payButton.addEventListener('click', async function() {
+                    payButton.disabled = true;
+                    payButton.innerHTML = '⏳ Chargement...';
+
+                    try {
+                        const response = await fetch('{{ route('deposit.process', $bookingRequest) }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({})
+                        });
+
+                        const data = await response.json();
+
+                        if (data.sessionId) {
+                            const stripe = Stripe(stripePublishableKey);
+
+                            const {
+                                error
+                            } = await stripe.redirectToCheckout({
+                                sessionId: data.sessionId
+                            });
+
+                            if (error) {
+                                throw error;
+                            }
+                        } else {
+                            throw new Error('Session non créée');
+                        }
+                    } catch (error) {
+                        console.error('Erreur:', error);
+                        payButton.disabled = false;
+                        payButton.innerHTML =
+                            '💳 Payer {{ number_format($bookingRequest->total_deposit_amount, 0) }}€ avec Stripe';
+                        alert('Une erreur est survenue: ' + error.message);
+                    }
+                });
+            });
+        </script>
+    @endpush

@@ -33,7 +33,7 @@
                 <div class="flex justify-between items-start mb-4">
                     <div>
                         <h3 class="text-lg font-bold text-ivoire-text mb-1">
-                            {{ $request->client->name ?? 'Client' }}
+                            {{ $request->client->pseudo ?? ($request->client->first_name . ' ' . $request->client->last_name ?? 'Client') }}
                         </h3>
                         <p class="text-ivoire-text/70 text-sm">
                             Demande du {{ $request->created_at->format('d/m/Y H:i') }}
@@ -69,6 +69,31 @@
                     <div class="mb-4">
                         <p class="text-ivoire-text/70 text-sm mb-1">Notes du client</p>
                         <p class="text-ivoire-text">{{ $request->notes }}</p>
+                    </div>
+                @endif
+
+                {{-- Dates sélectionnées par le client -- Afficher si client_selected_dates existe --}}
+                @if ($request->client_selected_dates && $request->status === \App\Enums\BookingRequestStatus::DEPOSIT_PAID)
+                    <div class="bg-vert-succes/10 border border-vert-succes/30 rounded-xl p-4 mb-4">
+                        <h4 class="text-sm font-bold text-vert-succes mb-2">📅 Le client est disponible :</h4>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach ($request->client_selected_dates as $dateInfo)
+                                <button
+                                    wire:click="openBookingModal('{{ $dateInfo['date'] }}', '{{ $dateInfo['period'] ?? '' }}', {{ $request->id }})"
+                                    class="group flex items-center gap-2 px-4 py-2.5 bg-gris-fonde border border-titane/30 rounded-lg hover:border-beige-peau hover:bg-beige-peau/10 transition-all">
+                                    <span class="text-ivoire-text font-medium">
+                                        {{ \Carbon\Carbon::parse($dateInfo['date'])->translatedFormat('D d M') }}
+                                    </span>
+                                    <span class="text-xs text-titane">
+                                        {{ match ($dateInfo['period'] ?? '') {'morning' => '☀️ Matin','afternoon' => '🌤️ Après-midi',default => '🔄'} }}
+                                    </span>
+                                    <span
+                                        class="text-beige-peau opacity-0 group-hover:opacity-100 transition text-sm font-bold">
+                                        → Booker
+                                    </span>
+                                </button>
+                            @endforeach
+                        </div>
                     </div>
                 @endif
 

@@ -16,8 +16,17 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Routing\Middleware\ThrottleRequests::class,
         ]);
 
+        $middleware->web(prepend: [
+            \App\Http\Middleware\BlockSuspiciousIps::class,
+            \App\Http\Middleware\SecurityHeaders::class,
+        ]);
+
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
+            'secure.file.upload' => \App\Http\Middleware\SecureFileUpload::class,
+            'security.headers' => \App\Http\Middleware\SecurityHeaders::class,
+            'block.suspicious.ips' => \App\Http\Middleware\BlockSuspiciousIps::class,
+            'custom.throttle' => \App\Http\Middleware\CustomThrottle::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -12,9 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('booking_requests', function (Blueprint $table) {
-            $table->text('tattooer_notes')->nullable()
-                ->after('deposit_covers_description')
-                ->comment('Message personnalisé du tattooer au client');
+            if (!Schema::hasColumn('booking_requests', 'tattooer_notes')) {
+                $table->text('tattooer_notes')->nullable()
+                    ->after('description')
+                    ->comment('Message personnalisé du tattooer au client');
+            }
         });
     }
 
@@ -24,7 +26,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('booking_requests', function (Blueprint $table) {
-            $table->dropColumn('tattooer_notes');
+            if (Schema::hasColumn('booking_requests', 'tattooer_notes')) {
+                $table->dropColumn('tattooer_notes');
+            }
         });
     }
 };

@@ -8,6 +8,7 @@ use App\Http\Controllers\MarketplaceController;
 use App\Http\Controllers\TattooerController;
 use App\Http\Controllers\TattooerProfileController;
 use App\Http\Controllers\RegisterController;
+use App\Models\BookingRequest;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\LogoutController;
 
@@ -29,6 +30,10 @@ Route::middleware(['auth'])->prefix('tattooer')->name('tattooer.')->group(functi
     Route::get('/dashboard', [TattooerController::class, 'dashboard'])->name('dashboard');
     Route::get('/requests', [TattooerController::class, 'requests'])->name('requests');
     Route::get('/requests/{bookingRequest}', [TattooerController::class, 'requestShow'])->name('request.show');
+    Route::get('/requests/{bookingRequest}/accept', function (BookingRequest $bookingRequest) {
+        return redirect()->route('tattooer.request.show', $bookingRequest)
+            ->with('info', 'Veuillez utiliser la modale d\'acceptation sur cette page.');
+    })->name('request.accept.get');
     Route::post('/requests/{bookingRequest}/accept', [TattooerController::class, 'acceptRequest'])->name('request.accept');
     Route::post('/requests/{bookingRequest}/reject', [TattooerController::class, 'requestReject'])->name('request-reject');
     Route::get('/calendar', [TattooerController::class, 'calendar'])->name('calendar');
@@ -157,13 +162,10 @@ Route::get('/register/studio', function () {
     return view('auth.register-studio');
 })->name('register.studio');
 
-Route::post('/login', [LoginController::class, 'authenticate'])->name('login.authenticate');
-Route::post('/logout', function () {
-    auth()->logout();
-    request()->session()->invalidate();
-    request()->session()->regenerateToken();
-    return redirect('/');
-})->name('logout');
+Route::post('/login', [LoginController::class, 'authenticate'])
+    ->middleware('throttle:login')
+    ->name('login.authenticate');
+Route::post('/logout', [App\Http\Controllers\Auth\LogoutController::class, 'logout'])->name('logout');
 
 // Routes POST d'inscription (accessibles par tout le monde)
 Route::post('/register/client', function (Illuminate\Http\Request $request) {
@@ -187,6 +189,8 @@ Route::middleware(['auth'])->prefix('client')->name('client.')->group(function (
     Route::get('/dashboard', [App\Http\Controllers\ClientController::class, 'dashboard'])->name('dashboard');
     Route::get('/booking-requests', [App\Http\Controllers\ClientController::class, 'bookingRequests'])->name('booking-requests');
     Route::get('/booking-requests/{bookingRequest}', [App\Http\Controllers\ClientController::class, 'bookingRequestShow'])->name('booking-request.show');
+    Route::post('/booking-requests/{bookingRequest}/select-date', [App\Http\Controllers\ClientController::class, 'selectProposedDate'])->name('booking-request.select-date');
+    Route::post('/booking-requests/{bookingRequest}/request-alternatives', [App\Http\Controllers\ClientController::class, 'requestAlternativeDates'])->name('booking-request.request-alternatives');
     Route::get('/chat/{conversation}', [App\Http\Controllers\ClientController::class, 'chat'])->name('chat');
     Route::post('/message/{conversation}/send', [App\Http\Controllers\ClientController::class, 'sendMessage'])->name('message.send');
 
@@ -292,6 +296,11 @@ Route::get('/client/profile', [App\Http\Controllers\Client\ProfileController::cl
     ->middleware(['auth'])
     ->name('client.profile');
 
+// Route suppression compte tattooer
+Route::delete('/tattooer/delete-account', [App\Http\Controllers\Tattooer\AccountController::class, 'delete'])
+    ->middleware(['auth'])
+    ->name('tattooer.delete-account');
+
 // Routes booking-requests client
 Route::middleware(['auth'])->prefix('client')->name('client.')->group(function () {
     Route::get('/booking-requests', [ClientController::class, 'bookingRequests'])->name('booking-requests');
@@ -300,6 +309,10 @@ Route::middleware(['auth'])->prefix('client')->name('client.')->group(function (
     Route::post('/booking-requests/{bookingRequest}/cancel', [ClientController::class, 'bookingRequestCancel'])->name('booking-request.cancel');
     Route::delete('/booking-request/{bookingRequest}/delete', [ClientController::class, 'bookingRequestDelete'])->name('booking-request.delete');
 });
+
+// Routes webhook Stripe (sans CSRF)
+Route::post('/webhooks/stripe', [App\Http\Controllers\StripeWebhookController::class, 'handleWebhook'])
+    ->name('webhooks.stripe');
 
 // Routes paiement acompte
 Route::middleware(['auth'])->prefix('deposit')->name('deposit.')->group(function () {
@@ -335,9 +348,24 @@ Route::middleware(['auth'])->prefix('conversation/{conversation}/chat')->name('c
     Route::get('/', [App\Http\Controllers\ClientController::class, 'chat'])->name('show');
 });
 
+// Routes auth
+Route::prefix('auth')->name('auth.')->group(function () {
+    Route::get('/login', function () {
+        return view('auth.login');
+    })->name('login');
+
+    Route::get('/forgot-password', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'showForgotForm'])->name('password.request');
+    Route::post('/forgot-password', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'sendResetLink'])->name('password.email');
+    Route::get('/reset-password/{token}', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'showResetForm'])->name('password.reset');
+    Route::post('/reset-password', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'resetPassword'])->name('password.update');
+});
+
 // Routes demande acompte
 Route::middleware(['auth'])->prefix('booking-request/{bookingRequest}/deposit')->name('booking-request.deposit.')->group(function () {
     Route::get('/request', App\Livewire\RequestDeposit::class)->name('request');
 });
+
+// Webhooks Stripe (sans middleware CSRF)
+Route::post('/webhooks/stripe', [App\Http\Controllers\StripeWebhookController::class, 'handleWebhook'])->name('webhooks.stripe');
 
 require __DIR__.'/settings.php';

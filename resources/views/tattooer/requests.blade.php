@@ -4,6 +4,8 @@
 
 @section('content')
     <div class="space-y-6">
+        {{-- Composant Livewire — Modale acceptation --}}
+        <livewire:tattooer.accept-booking-modal />
 
         <!-- Header + Onglets -->
         <div class="bg-gris-fonde rounded-xl p-6">
@@ -95,10 +97,18 @@
                     data-status="{{ $request->status }}">
                     <div class="flex flex-col lg:flex-row gap-6">
                         <!-- Image client -->
-                        <div class="flex-shrink-0">
-                            <img src="{{ $request->client->getFirstMediaUrl('avatar') ?: asset('images/default-avatar.png') }}"
-                                alt="{{ $request->client->user->name }}"
-                                class="w-20 h-20 rounded-full border-2 border-beige-peau/20">
+                        <div class="w-24 h-24 rounded-full overflow-hidden border-2 border-cuivre/60 bg-beige-peau/10">
+                            @if ($request->client->user && $request->client->user->hasMedia('avatar'))
+                                <img src="{{ $request->client->user->getFirstMediaUrl('avatar') }}"
+                                    alt="Avatar de {{ $request->client->first_name }}" class="w-full h-full object-cover">
+                            @else
+                                <div class="w-full h-full flex items-center justify-center text-ivoire-text/40">
+                                    <svg class="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                            @endif
                         </div>
 
                         <!-- Infos demande -->
@@ -116,21 +126,21 @@
                                 <!-- Badge statut -->
                                 <span
                                     class="px-3 py-1 rounded-full text-xs font-semibold inline-block
-                            {{ match ($request->status) {
+                            {{ match ($request->status->value) {
                                 'pending' => 'bg-ambre-warning/20 text-ambre-warning',
                                 'accepted' => 'bg-beige-peau/20 text-beige-peau',
                                 'rejected' => 'bg-rouge-alerte/20 text-rouge-alerte',
                                 'completed' => 'bg-vert-succes/20 text-vert-succes',
-                                'cancelled' => 'bg-gris-fonde/50 text-ivoire-text/50',
+                                'cancelled' => 'bg-titane/20 text-ivoire-text',
                                 default => 'bg-titane/20 text-ivoire-text/60',
                             } }}">
-                                    {{ match ($request->status) {
+                                    {{ match ($request->status->value) {
                                         'pending' => '⏳ En attente',
                                         'accepted' => '✓ Acceptée',
                                         'rejected' => '✕ Refusée',
                                         'completed' => '✅ Terminée',
                                         'cancelled' => '❌ Annulée',
-                                        default => $request->status,
+                                        default => $request->status->value,
                                     } }}
                                 </span>
                             </div>
@@ -179,16 +189,12 @@
                                     Voir détails
                                 </a>
 
-                                @if ($request->status === 'pending')
-                                    <form action="{{ route('tattooer.request.accept', $request) }}" method="POST"
-                                        class="inline">
-                                        @csrf
-                                        <button type="submit"
-                                            class="px-4 py-2 bg-vert-succes text-noir-profond rounded-lg font-semibold hover:bg-vert-succes/90 transition-colors"
-                                            onclick="return confirm('Accepter cette demande ?')">
-                                            ✓ Accepter
-                                        </button>
-                                    </form>
+                                @if ($request->status->value === 'pending')
+                                    <button type="button"
+                                        onclick="Livewire.dispatch('open-accept-modal', { bookingRequestId: {{ $request->id }} })"
+                                        class="px-4 py-2 bg-vert-succes text-noir-profond rounded-lg font-semibold hover:bg-vert-succes/90 transition-colors">
+                                        ✓ Accepter
+                                    </button>
 
                                     <form action="{{ route('tattooer.request-reject', $request) }}" method="POST"
                                         class="inline">

@@ -8,7 +8,7 @@
             <div class="flex items-center gap-4 flex-1">
                 <!-- Avatar Spatie -->
                 <div class="w-20 h-20 rounded-full overflow-hidden flex-shrink-0 bg-beige-peau/10">
-                    <img src="{{ $tattooer->getFirstMediaUrl('avatar', 'thumb') ?: $user->avatar_url }}"
+                    <img src="{{ auth()->user()->getFirstMediaUrl('avatar', 'thumb') ?: $user->avatar_url }}"
                         alt="{{ $user->displayName() }}" class="w-full h-full object-cover">
                 </div>
 

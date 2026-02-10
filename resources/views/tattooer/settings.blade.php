@@ -74,7 +74,7 @@
                         <label class="block font-semibold text-ivoire-text mb-3">Photo de profil</label>
                         <div class="flex flex-col sm:flex-row sm:items-center gap-4">
                             <img id="avatar-preview"
-                                src="{{ $tattooer->getFirstMediaUrl('avatar') ?: asset('images/default-tattooer-avatar.png') }}"
+                                src="{{ auth()->user()->getFirstMediaUrl('avatar') ?: asset('images/default-tattooer-avatar.png') }}"
                                 alt="Avatar" class="w-24 h-24 rounded-full object-cover">
 
                             <div class="flex flex-col gap-2">
@@ -84,7 +84,7 @@
                                     <input type="file" name="avatar" accept="image/*" class="hidden"
                                         onchange="previewAvatar(this)">
                                 </label>
-                                @if ($tattooer->hasMedia('avatar'))
+                                @if (auth()->user()->hasMedia('avatar'))
                                     <button type="button" onclick="deleteAvatar()"
                                         class="min-h-11 px-4 py-3 md:py-2 bg-rouge-alerte/20 text-rouge-alerte rounded-lg font-semibold hover:bg-rouge-alerte/30 transition-colors text-sm md:text-base active:scale-95">
                                         Supprimer
@@ -157,8 +157,20 @@
                     <!-- Infos de base -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
+                            <label class="block font-semibold text-ivoire-text mb-2">Prénom *</label>
+                            <input type="text" name="first_name" value="{{ auth()->user()->first_name ?? '' }}" required
+                                class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
+                        </div>
+
+                        <div>
+                            <label class="block font-semibold text-ivoire-text mb-2">Nom *</label>
+                            <input type="text" name="last_name" value="{{ auth()->user()->last_name ?? '' }}" required
+                                class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
+                        </div>
+
+                        <div>
                             <label class="block font-semibold text-ivoire-text mb-2">Pseudo</label>
-                            <input type="text" name="pseudo" value="{{ auth()->user()->name ?? '' }}"
+                            <input type="text" name="pseudo" value="{{ auth()->user()->pseudo ?? '' }}"
                                 class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
                             <p class="text-xs text-ivoire-text/60 mt-1">Affiché sur votre profil public</p>
                         </div>
@@ -294,6 +306,46 @@
                         </div>
                     </div>
 
+                    <!-- Réseaux sociaux -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-ivoire-text mb-4">📱 Réseaux sociaux</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block font-semibold text-ivoire-text mb-2">
+                                    📷 Instagram
+                                </label>
+                                <div class="relative">
+                                    <span
+                                        class="absolute left-3 top-1/2 transform -translate-y-1/2 text-ivoire-text/60">@</span>
+                                    <input type="text" name="instagram" value="{{ $tattooer->instagram ?? '' }}"
+                                        placeholder="votre_pseudo"
+                                        class="w-full pl-8 pr-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
+                                </div>
+                                <p class="text-xs text-ivoire-text/60 mt-1">Votre pseudo Instagram (sans @)</p>
+                            </div>
+
+                            <div>
+                                <label class="block font-semibold text-ivoire-text mb-2">
+                                    📘 Facebook
+                                </label>
+                                <input type="text" name="facebook" value="{{ $tattooer->facebook ?? '' }}"
+                                    placeholder="https://facebook.com/votre-page"
+                                    class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
+                                <p class="text-xs text-ivoire-text/60 mt-1">URL de votre page Facebook</p>
+                            </div>
+
+                            <div class="md:col-span-2">
+                                <label class="block font-semibold text-ivoire-text mb-2">
+                                    🌐 Site web
+                                </label>
+                                <input type="url" name="website" value="{{ $tattooer->website ?? '' }}"
+                                    placeholder="https://votre-site.com"
+                                    class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
+                                <p class="text-xs text-ivoire-text/60 mt-1">URL de votre site web ou portfolio</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Bouton sauvegarder -->
                     <div class="flex justify-end">
                         <button type="submit"
@@ -315,18 +367,22 @@
 
                     @php
                         $days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
-                        $workingHoursByDay = $tattooer->workingHours
-                            ? $tattooer->workingHours->keyBy('day_of_week')
-                            : collect();
-                        $schedule = [
-                            'lundi' => $workingHoursByDay->get(1),
-                            'mardi' => $workingHoursByDay->get(2),
-                            'mercredi' => $workingHoursByDay->get(3),
-                            'jeudi' => $workingHoursByDay->get(4),
-                            'vendredi' => $workingHoursByDay->get(5),
-                            'samedi' => $workingHoursByDay->get(6),
-                            'dimanche' => $workingHoursByDay->get(0),
-                        ];
+
+                        // Lire les horaires depuis le champ JSON working_hours du tattooer
+                        $workingHoursData = $tattooer->working_hours ? json_decode($tattooer->working_hours, true) : [];
+
+                        $schedule = [];
+                        foreach ($days as $day) {
+                            $dayKey = strtolower($day);
+                            $dayData = $workingHoursData[$dayKey] ?? null;
+                            $schedule[$dayKey] = [
+                                'open' => $dayData['open'] ?? null,
+                                'close' => $dayData['close'] ?? null,
+                                'break_start' => $dayData['break_start'] ?? null,
+                                'break_end' => $dayData['break_end'] ?? null,
+                                'is_open' => !empty($dayData['open']) && !empty($dayData['close']),
+                            ];
+                        }
                     @endphp
 
                     <div class="space-y-3">
@@ -340,9 +396,8 @@
                                     </div>
 
                                     <label class="flex items-center gap-2 flex-shrink-0">
-                                        <input type="checkbox" name="schedule[{{ strtolower($day) }}][open]"
-                                            value="1"
-                                            {{ $schedule[strtolower($day)]->is_open ?? false ? 'checked' : '' }}
+                                        <input type="checkbox" name="working_hours[{{ strtolower($day) }}][is_open]"
+                                            value="1" {{ $schedule[strtolower($day)]['is_open'] ? 'checked' : '' }}
                                             onchange="toggleDayInputs(this, '{{ strtolower($day) }}')" class="w-4 h-4">
                                         <span
                                             class="text-ivoire-text/70 text-xs sm:text-sm whitespace-nowrap">Ouvert</span>
@@ -351,14 +406,29 @@
 
                                 <!-- Inputs horaires -->
                                 <div id="{{ strtolower($day) }}-inputs"
-                                    class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 {{ !($schedule[strtolower($day)]->is_open ?? false) ? 'hidden' : '' }}">
-                                    <div class="flex items-center gap-2 flex-1">
-                                        <input type="time" name="schedule[{{ strtolower($day) }}][start]"
-                                            value="{{ $schedule[strtolower($day)]->start_time ?? '09:00' }}"
+                                    class="flex flex-col gap-3 {{ !$schedule[strtolower($day)]['is_open'] ? 'hidden' : '' }}">
+                                    <span class="text-ivoire-text/70 text-sm">Horaires d'ouverture</span>
+                                    <div class="flex items-center gap-2">
+                                        <input type="time" name="working_hours[{{ strtolower($day) }}][open]"
+                                            value="{{ $schedule[strtolower($day)]['open'] ?? '09:00' }}"
                                             class="flex-1 px-3 py-2 bg-gris-fonde border border-titane/30 rounded text-ivoire-text text-sm">
                                         <span class="text-ivoire-text/60 text-sm whitespace-nowrap">à</span>
-                                        <input type="time" name="schedule[{{ strtolower($day) }}][end]"
-                                            value="{{ $schedule[strtolower($day)]->end_time ?? '18:00' }}"
+                                        <input type="time" name="working_hours[{{ strtolower($day) }}][close]"
+                                            value="{{ $schedule[strtolower($day)]['close'] ?? '18:00' }}"
+                                            class="flex-1 px-3 py-2 bg-gris-fonde border border-titane/30 rounded text-ivoire-text text-sm">
+                                    </div>
+
+                                    <!-- Pause déjeuner -->
+                                    <span class="text-ivoire-text/70 text-sm">Pause déjeuner</span>
+                                    <div class="flex items-center gap-2">
+                                        <input type="time" name="working_hours[{{ strtolower($day) }}][break_start]"
+                                            value="{{ $schedule[strtolower($day)]['break_start'] ?? '' }}"
+                                            placeholder="Pause"
+                                            class="flex-1 px-3 py-2 bg-gris-fonde border border-titane/30 rounded text-ivoire-text text-sm">
+                                        <span class="text-ivoire-text/60 text-sm whitespace-nowrap">à</span>
+                                        <input type="time" name="working_hours[{{ strtolower($day) }}][break_end]"
+                                            value="{{ $schedule[strtolower($day)]['break_end'] ?? '' }}"
+                                            placeholder="Fin pause"
                                             class="flex-1 px-3 py-2 bg-gris-fonde border border-titane/30 rounded text-ivoire-text text-sm">
                                     </div>
                                 </div>
@@ -504,6 +574,40 @@
             </div>
         </div>
 
+        <!-- TAB: Suppression du compte -->
+        <div id="tab-delete-account" class="tab-content hidden">
+            <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
+                <h3 class="text-xl font-bold text-ivoire-text mb-4">⚠️ Supprimer mon compte</h3>
+
+                <div class="bg-rouge-alerte/10 border border-rouge-alerte/30 rounded-lg p-4 mb-4">
+                    <h4 class="font-semibold text-rouge-alerte mb-2">🚨 ATTENTION - Action irréversible</h4>
+                    <ul class="text-sm text-rouge-alerte space-y-1">
+                        <li>• Cette action est <span class="font-bold">définitive et irréversible</span></li>
+                        <li>• Toutes vos données seront <span class="font-bold">permanemment supprimées</span></li>
+                        <li>• Profil, photos, portfolio, avis</li>
+                        <li>• Historique des rendez-vous et clients</li>
+                        <li>• Données de traçabilité et conformité</li>
+                        <li>• Messages et conversations</li>
+                    </ul>
+
+                    <div class="mt-3 p-3 bg-noir-profond rounded border border-titane/20">
+                        <p class="text-xs text-ivoire-text/80">
+                            💡 <strong>Conseil avant suppression :</strong><br>
+                            Exportez vos données clients, sauvegardez vos portfolios et archives importantes.
+                            Une fois supprimé, aucun récupération ne sera possible.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <button onclick="confirmDeleteAccount()"
+                        class="w-full sm:w-auto min-h-11 px-6 py-3 bg-rouge-alerte text-white rounded-lg font-semibold hover:bg-rouge-alerte/90 transition-colors text-sm sm:text-base active:scale-95">
+                        🗑️ Supprimer définitivement mon compte
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     @push('scripts')
@@ -641,6 +745,135 @@
                             alert('Erreur lors de la suppression de l\'avatar');
                         });
                 }
+            }
+
+            function confirmDeleteAccount() {
+                const confirmation = confirm('⚠️ Êtes-vous absolument certain ?\n\n' +
+                    'TOUTES vos données seront définitivement supprimées :\n' +
+                    '• Profil et photos\n' +
+                    '• Portfolio et œuvres\n' +
+                    '• Clients et historique\n' +
+                    '• Messages et conversations\n' +
+                    '• Données de traçabilité\n\n' +
+                    'Cette action est IRRÉVERSIBLE !\n\n' +
+                    'Tapez "SUPPRIMER" pour confirmer :');
+
+                if (confirmation) {
+                    const userInput = prompt('Pour confirmer, tapez exactement : SUPPRIMER');
+
+                    if (userInput === 'SUPPRIMER') {
+                        // Rediriger vers la route de suppression
+                        window.location.href = '{{ route('tattooer.delete-account') }}';
+                    } else {
+                        alert('❌ Texte de confirmation incorrect. Suppression annulée.');
+                    }
+                }
+            }
+
+            // Gérer la soumission du formulaire horaires en AJAX
+            document.addEventListener('DOMContentLoaded', function() {
+                // Debug: voir tous les formulaires sur la page
+                const allForms = document.querySelectorAll('form');
+                console.log('Tous les formulaires trouvés:', allForms);
+                allForms.forEach((form, index) => {
+                    console.log(`Formulaire ${index}:`, form.action, form.method);
+                });
+
+                // Essayer plusieurs sélecteurs pour trouver le formulaire
+                const scheduleForm = document.querySelector('form[action="/tattooer/settings/schedule"]') ||
+                    document.querySelector('form[action*="settings.update-schedule"]') ||
+                    document.querySelector('form[action*="schedule"]');
+
+                console.log('Formulaire horaires trouvé:', scheduleForm);
+
+                // Si toujours pas trouvé, essayer avec un identifiant
+                if (!scheduleForm) {
+                    console.log('Ajout d\'un ID au formulaire horaires...');
+                    const scheduleTab = document.getElementById('tab-schedule');
+                    if (scheduleTab) {
+                        const formInTab = scheduleTab.querySelector('form');
+                        console.log('Formulaire dans tab-schedule:', formInTab);
+                        if (formInTab) {
+                            formInTab.id = 'schedule-form';
+                            console.log('ID ajouté au formulaire');
+                        }
+                    }
+                }
+
+                if (scheduleForm) {
+                    console.log('Formulaire trouvé, ajout de l\'event listener...');
+                    scheduleForm.addEventListener('submit', function(e) {
+                        console.log('Event submit déclenché !');
+                        e.preventDefault();
+                        console.log('Soumission du formulaire horaires interceptée');
+
+                        const formData = new FormData(scheduleForm);
+                        const submitButton = scheduleForm.querySelector('button[type="submit"]');
+                        const originalText = submitButton.textContent;
+
+                        console.log('Données du formulaire:', Array.from(formData.entries()));
+
+                        // Désactiver le bouton et montrer le chargement
+                        submitButton.disabled = true;
+                        submitButton.textContent = 'Enregistrement...';
+
+                        fetch(scheduleForm.action, {
+                                method: 'POST',
+                                body: formData,
+                                headers: {
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                    'Accept': 'application/json'
+                                }
+                            })
+                            .then(response => {
+                                console.log('Réponse du serveur:', response);
+                                return response.json();
+                            })
+                            .then(data => {
+                                console.log('Données JSON reçues:', data);
+                                if (data.success) {
+                                    // Afficher le message de succès
+                                    showNotification(data.message, 'success');
+                                    // Recharger la page après un court délai
+                                    setTimeout(() => {
+                                        console.log('Rechargement de la page...');
+                                        window.location.reload();
+                                    }, 1500);
+                                } else {
+                                    showNotification(data.message, 'error');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Erreur AJAX:', error);
+                                showNotification('Erreur lors de la mise à jour des horaires', 'error');
+                            })
+                            .finally(() => {
+                                // Réactiver le bouton
+                                submitButton.disabled = false;
+                                submitButton.textContent = originalText;
+                            });
+                    });
+                    console.log('Event listener ajouté avec succès');
+                } else {
+                    console.error('Formulaire horaires non trouvé');
+                }
+            });
+
+            function showNotification(message, type = 'info') {
+                // Créer une notification temporaire
+                const notification = document.createElement('div');
+                notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white font-semibold z-50 ${
+                    type === 'success' ? 'bg-green-500' :
+                    type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+                }`;
+                notification.textContent = message;
+
+                document.body.appendChild(notification);
+
+                // Supprimer après 3 secondes
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
             }
         </script>
     @endpush

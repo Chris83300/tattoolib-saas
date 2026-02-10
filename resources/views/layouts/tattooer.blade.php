@@ -10,6 +10,10 @@
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
+    <!-- FullCalendar -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/locales/fr.global.min.js'></script>
+
     <!-- CSRF Token for AJAX -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
@@ -182,7 +186,7 @@
             <!-- User info -->
             <div class="p-4 border-t border-titane/20">
                 <div class="flex items-center gap-3 p-3 rounded-lg bg-noir-profond">
-                    <img src="{{ auth()->user()->tattooer->getFirstMediaUrl('avatar') ?: asset('images/default-avatar.png') }}"
+                    <img src="{{ auth()->user()->getFirstMediaUrl('avatar') ?: asset('images/default-avatar.png') }}"
                         alt="Avatar" class="w-10 h-10 rounded-full">
                     <div class="flex-1 min-w-0">
                         <p class="text-ivoire-text font-semibold truncate">{{ auth()->user()->name }}</p>
@@ -227,7 +231,7 @@
                         </button>
 
                         <!-- Avatar -->
-                        <img src="{{ auth()->user()->tattooer->getFirstMediaUrl('avatar') ?: asset('images/default-avatar.png') }}"
+                        <img src="{{ auth()->user()->getFirstMediaUrl('avatar') ?: asset('images/default-avatar.png') }}"
                             alt="Avatar" class="w-8 h-8 rounded-full">
                     </div>
                 </div>

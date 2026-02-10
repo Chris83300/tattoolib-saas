@@ -50,7 +50,7 @@
                                                 class="<?php echo e($expiryInfo['days_remaining'] <= 2 ? 'text-rouge-alerte font-semibold' : 'text-jaune-alerte'); ?>">
                                                 <?php echo e($expiryInfo['time_remaining']); ?> restant(es)
                                             </span>
-                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->status === 'awaiting_deposit'): ?>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->status === 'awaiting_deposit' && !$bookingRequest->deposit_paid_at): ?>
                                                 <a href="<?php echo e(route('deposit.payment', $bookingRequest->id)); ?>"
                                                     class="inline-flex items-center px-3 py-1 bg-beige-peau text-noir-profond rounded text-sm font-medium hover:bg-beige-peau/90 transition-colors">
                                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor"
@@ -77,7 +77,7 @@
                     </div>
                 <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!$expiryInfo && $bookingRequest->status === 'awaiting_deposit'): ?>
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!$expiryInfo && $bookingRequest->status === 'awaiting_deposit' && !$bookingRequest->deposit_paid_at): ?>
                     <div class="mb-4 p-4 bg-jaune-alerte/10 border border-jaune-alerte/30 rounded-lg">
                         <div class="flex items-start">
                             <svg class="w-5 h-5 mt-0.5 mr-3 text-jaune-alerte" fill="none" stroke="currentColor"
@@ -130,23 +130,24 @@
                                 </svg>
                             </div>
                             <h3 class="text-lg font-semibold text-ivoire-text mb-2">
-                                <?php echo e($chatOpen ? 'Aucun message' : 'Chat fermé'); ?>
-
+                                <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('sendMessage', $conversation)): ?>
+                                    Aucun message
+                                <?php else: ?>
+                                    Chat fermé
+                                <?php endif; ?>
                             </h3>
                             <p class="text-ivoire-text/70">
-                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!$chatOpen): ?>
-                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->status === 'pending'): ?>
-                                        Le chat sera disponible après acceptation du projet
-                                    <?php elseif($bookingRequest->deposit_paid_at): ?>
-                                        Le chat est fermé (acompte payé)
-                                    <?php elseif($bookingRequest->client_payment_deadline && $bookingRequest->client_payment_deadline->lt(now()->subHours(24))): ?>
-                                        Le délai de paiement est expiré. Contactez l'artiste pour plus d'informations.
-                                    <?php else: ?>
-                                        Le chat est temporairement indisponible
-                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                                <?php else: ?>
+                                <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('sendMessage', $conversation)): ?>
                                     Commencez la conversation avec l'artiste
-                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                <?php else: ?>
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->status === \App\Enums\BookingRequestStatus::PENDING): ?>
+                                        Le chat sera disponible après acceptation du projet
+                                    <?php elseif($bookingRequest->status === \App\Enums\BookingRequestStatus::DEPOSIT_PAID): ?>
+                                        Le chat est actif (acompte payé)
+                                    <?php else: ?>
+                                        Le chat est fermé
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                <?php endif; ?>
                             </p>
                         </div>
                     <?php else: ?>
@@ -189,45 +190,69 @@
 
                 <!-- Zone de saisie -->
                 <div class="border-t border-titane/30 p-4">
-                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($chatOpen): ?>
+                    <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('sendMessage', $conversation)): ?>
                         <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!$bookingRequest->deposit_paid_at): ?>
-                            <div class="bg-jaune-alerte/10 border border-jaune-alerte/30 rounded-lg p-3 mb-4">
-                                <p class="text-jaune-alerte text-sm">
-                                    <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    Les pièces jointes sont désactivées jusqu'au paiement de l'acompte
-                                </p>
-                            </div>
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->deposit_deadline): ?>
+                                <?php
+                                    $deadline = is_string($bookingRequest->deposit_deadline)
+                                        ? \Carbon\Carbon::parse($bookingRequest->deposit_deadline)
+                                        : $bookingRequest->deposit_deadline;
+                                    $daysRemaining = (int) ceil(now()->diffInHours($deadline) / 24);
+                                ?>
+                                <div class="bg-jaune-alerte/10 border border-jaune-alerte/30 rounded-lg p-3 mb-4">
+                                    <p class="text-jaune-alerte text-sm">
+                                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Les pièces jointes sont désactivées jusqu'au paiement de l'acompte
+                                        <span class="block mt-1">
+                                            Délai :
+                                            <?php echo e($daysRemaining > 0 ? $daysRemaining . ' jour(s) restant(s)' : 'Dernier jour'); ?>
+
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($daysRemaining <= 1): ?>
+                                                <span class="text-rouge-alerte font-semibold"> - Urgent !</span>
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        </span>
+                                    </p>
+                                </div>
+                            <?php elseif($conversation && $conversation->deposit_deadline_at): ?>
+                                <?php
+                                    $deadline = is_string($conversation->deposit_deadline_at)
+                                        ? \Carbon\Carbon::parse($conversation->deposit_deadline_at)
+                                        : $conversation->deposit_deadline_at;
+                                    $daysRemaining = (int) ceil(now()->diffInHours($deadline) / 24);
+                                ?>
+                                <div class="bg-jaune-alerte/10 border border-jaune-alerte/30 rounded-lg p-3 mb-4">
+                                    <p class="text-jaune-alerte text-sm">
+                                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Les pièces jointes sont désactivées jusqu'au paiement de l'acompte
+                                        <span class="block mt-1">
+                                            Délai :
+                                            <?php echo e($daysRemaining > 0 ? $daysRemaining . ' jour(s) restant(s)' : 'Dernier jour'); ?>
+
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($daysRemaining <= 1): ?>
+                                                <span class="text-rouge-alerte font-semibold"> - Urgent !</span>
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        </span>
+                                    </p>
+                                </div>
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                         <form action="<?php echo e(route('client.message.send', $conversation)); ?>" method="POST"
-                            enctype="multipart/form-data" class="space-y-3" x-data="{
-                                message: '',
-                                attachments: [],
-                                resizeTextarea() {
-                                    const textarea = this.$refs.messageInput;
-                                    textarea.style.height = 'auto';
-                                    textarea.style.height = textarea.scrollHeight + 'px';
-                                },
-                                handleFileSelect(event) {
-                                    const files = event.target.files;
-                                    this.attachments = Array.from(files);
-                                },
-                                removeFile(index) {
-                                    this.attachments.splice(index, 1);
-                                }
-                            }"
-                            @submit="message = ''">
+                            enctype="multipart/form-data" class="space-y-3">
                             <?php echo csrf_field(); ?>
 
                             <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->deposit_paid_at): ?>
                                 <div class="flex gap-2">
                                     <input type="file" name="attachments[]" id="attachments" multiple
-                                        accept="image/*,application/pdf" class="hidden"
-                                        @change="handleFileSelect($event)">
+                                        accept="image/*,application/pdf" class="hidden" @change="handleFileSelect($event)">
 
                                     <button type="button" onclick="document.getElementById('attachments').click()"
                                         class="px-4 py-3 bg-noir-profond text-ivoire-text rounded-lg hover:bg-noir-profond/80 transition-colors">
@@ -238,11 +263,9 @@
                                         </svg>
                                     </button>
 
-                                    <textarea x-ref="messageInput" x-model="message" @input="resizeTextarea()" name="content" rows="1"
-                                        placeholder="Votre message..."
-                                        class="flex-1 px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-ivoire-text/50 focus:border-beige-peau focus:ring-1 focus:ring-beige-peau resize-none overflow-hidden"
-                                        style="min-height: 3rem; max-height: 10rem;"
-                                        onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); this.form.submit(); }"></textarea>
+                                    <textarea name="content" rows="3" placeholder="Votre message..."
+                                        class="flex-1 px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-ivoire-text/50 focus:border-beige-peau focus:ring-1 focus:ring-beige-peau resize-none text-sm"
+                                        required></textarea>
 
                                     <button type="submit"
                                         class="px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
@@ -251,11 +274,9 @@
                                 </div>
                             <?php else: ?>
                                 <div class="flex gap-2">
-                                    <textarea x-ref="messageInput" x-model="message" @input="resizeTextarea()" name="content" rows="1"
-                                        placeholder="Votre message..."
-                                        class="flex-1 px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-ivoire-text/50 focus:border-beige-peau focus:ring-1 focus:ring-beige-peau resize-none overflow-hidden"
-                                        style="min-height: 3rem; max-height: 10rem;"
-                                        onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); this.form.submit(); }"></textarea>
+                                    <textarea name="content" rows="3" placeholder="Votre message..."
+                                        class="flex-1 px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-ivoire-text/50 focus:border-beige-peau focus:ring-1 focus:ring-beige-peau resize-none text-sm"
+                                        required></textarea>
 
                                     <button type="submit"
                                         class="px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
@@ -265,45 +286,231 @@
                             <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                             <!-- Prévisualisation des fichiers -->
-                            <div x-show="attachments.length > 0" class="mt-2 flex gap-2 flex-wrap">
-                                <template x-for="(file, index) in attachments" :key="index">
-                                    <div class="relative inline-block">
-                                        <img :src="URL.createObjectURL(file)" :alt="file.name"
-                                            class="w-20 h-20 rounded-lg object-cover">
-                                        <button type="button" @click="removeFile(index)"
-                                            class="absolute -top-2 -right-2 bg-rouge-alerte text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-rouge-alerte/80">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M6 18L18 6M6 6l12 12"></path>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </template>
+                            <div id="filePreview" class="hidden mt-3 bg-titane/20 rounded-lg p-3 border border-titane/30">
+                                <h4 class="text-sm font-semibold text-ivoire-text mb-2">Fichiers à envoyer :</h4>
+                                <div id="previewContainer" class="space-y-2"></div>
                             </div>
+
+                            <!-- Suivi des dessins (vue client — lecture seule) -->
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->deposit_paid_at): ?>
+                                <?php $summary = $bookingRequest->designTrackingSummary(); ?>
+                                <div class="mt-4 bg-titane/20 rounded-xl p-4 border border-titane/30">
+                                    <h3 class="text-lg font-semibold text-ivoire-text mb-3 flex items-center">
+                                        <svg class="w-5 h-5 mr-2 text-beige-peau" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                            </path>
+                                        </svg>
+                                        Suivi des dessins
+                                    </h3>
+
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <!-- Dessins reçus -->
+                                        <div class="bg-noir-profond/30 rounded-lg p-3">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <span class="text-ivoire-text/70 text-sm">Dessins reçus</span>
+                                                <span class="text-beige-peau font-bold"><?php echo e($summary['designs_sent']); ?></span>
+                                            </div>
+                                            <div class="w-full bg-titane/30 rounded-full h-2">
+                                                <div class="bg-beige-peau h-2 rounded-full transition-all"
+                                                    style="width: <?php echo e($summary['designs_included'] > 0 ? min(100, ($summary['designs_sent'] / $summary['designs_included']) * 100) : 0); ?>%">
+                                                </div>
+                                            </div>
+                                            <p class="text-ivoire-text/50 text-xs mt-1">
+                                                <?php echo e($summary['designs_included']); ?> inclus —
+                                                <?php echo e($summary['designs_remaining']); ?> restant(s)
+                                            </p>
+                                        </div>
+
+                                        <!-- Modifications du dessin en cours -->
+                                        <div class="bg-noir-profond/30 rounded-lg p-3">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <span class="text-ivoire-text/70 text-sm">
+                                                    Modifications
+                                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($summary['designs_sent'] > 0): ?>
+                                                        <span class="text-xs">(dessin
+                                                            #<?php echo e($summary['current_design_number']); ?>)</span>
+                                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                                </span>
+                                                <span
+                                                    class="text-vert-succes font-bold"><?php echo e($summary['modifications_used_current']); ?></span>
+                                            </div>
+                                            <div class="w-full bg-titane/30 rounded-full h-2">
+                                                <div class="bg-vert-succes h-2 rounded-full transition-all"
+                                                    style="width: <?php echo e($summary['modifications_per_design'] > 0 ? min(100, ($summary['modifications_used_current'] / $summary['modifications_per_design']) * 100) : 0); ?>%">
+                                                </div>
+                                            </div>
+                                            <p class="text-ivoire-text/50 text-xs mt-1">
+                                                <?php echo e($summary['modifications_per_design']); ?> par dessin —
+                                                <?php echo e($summary['modifications_remaining_current']); ?> restante(s)
+                                            </p>
+                                        </div>
+
+                                        <!-- Forfait -->
+                                        <div class="bg-noir-profond/30 rounded-lg p-3">
+                                            <div class="flex items-center mb-2">
+                                                <svg class="w-4 h-4 mr-2 text-beige-peau" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                </svg>
+                                                <span class="text-ivoire-text/70 text-sm">Forfait</span>
+                                            </div>
+                                            <p class="text-ivoire-text/50 text-xs">
+                                                <?php echo e($summary['designs_included']); ?> dessin(s) complet(s),
+                                                <?php echo e($summary['modifications_per_design']); ?> modif(s) chacun
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    
+                                    <div class="mt-3 pt-3 border-t border-titane/20">
+                                        <p class="text-ivoire-text/50 text-xs mb-2">Raccourcis :</p>
+                                        <div class="flex flex-wrap gap-2">
+                                            <button type="button" onclick="setNewDesignMessage()"
+                                                class="px-3 py-1.5 bg-noir-profond/50 text-ivoire-text/70 rounded-lg text-xs hover:bg-noir-profond/80 hover:text-ivoire-text transition-colors border border-titane/20">
+                                                🎨 Demander un nouveau dessin
+                                            </button>
+                                            <button type="button" onclick="setModificationMessage()"
+                                                class="px-3 py-1.5 bg-noir-profond/50 text-ivoire-text/70 rounded-lg text-xs hover:bg-noir-profond/80 hover:text-ivoire-text transition-colors border border-titane/20">
+                                                ✏️ Demander une modification
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </form>
                     <?php else: ?>
                         <div class="bg-jaune-alerte/10 border border-jaune-alerte/30 rounded-lg p-3">
                             <p class="text-jaune-alerte text-sm">
-                                <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->status === 'pending'): ?>
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->status === \App\Enums\BookingRequestStatus::PENDING): ?>
                                     En attente d'acceptation du projet
-                                <?php elseif($bookingRequest->deposit_paid_at): ?>
-                                    Chat fermé (acompte payé). Utilisez les détails du projet pour plus d'informations.
+                                <?php elseif($bookingRequest->status === \App\Enums\BookingRequestStatus::DEPOSIT_PAID): ?>
+                                    Chat actif (acompte payé)
                                 <?php elseif($bookingRequest->client_payment_deadline && $bookingRequest->client_payment_deadline->lt(now()->subHours(24))): ?>
                                     Le délai de paiement est expiré. Contactez l'artiste pour plus d'informations.
                                 <?php else: ?>
-                                    Le chat est temporairement indisponible
+                                    Le chat est en cours d'activation
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                            </p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Actions (Payer acompte, Annuler) -->
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->status->value === 'accepted' && !$bookingRequest->deposit_paid_at): ?>
+                <div class="mt-6 bg-titane/20 rounded-xl border border-titane/30 p-6 block md:block">
+                    <h3 class="text-lg font-bold text-ivoire-text mb-4">Actions</h3>
+
+                    <!-- Délai de paiement -->
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!$bookingRequest->deposit_paid_at && $bookingRequest->deposit_deadline): ?>
+                        <?php
+                            $deadline = is_string($bookingRequest->deposit_deadline)
+                                ? \Carbon\Carbon::parse($bookingRequest->deposit_deadline)
+                                : $bookingRequest->deposit_deadline;
+                            $daysRemaining = (int) ceil(now()->diffInHours($deadline) / 24);
+                        ?>
+                        <div class="mb-4 p-3 bg-jaune-alerte/10 border border-jaune-alerte/30 rounded-lg">
+                            <p class="text-jaune-alerte text-sm">
+                                <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Délai de paiement : <?php echo e($deadline->format('d/m/Y à H:i')); ?>
+
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($daysRemaining < 0): ?>
+                                    <span class="block mt-1 text-rouge-alerte font-semibold">⚠️ Délai expiré</span>
+                                <?php elseif($daysRemaining <= 1): ?>
+                                    <span class="block mt-1 text-rouge-alerte font-semibold">⚠️ Urgent - Dernier
+                                        jour</span>
+                                <?php else: ?>
+                                    <span class="block mt-1">(<?php echo e($daysRemaining); ?> jour(s) restant(s))</span>
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                            </p>
+                        </div>
+                    <?php elseif(!$bookingRequest->deposit_paid_at && $conversation && $conversation->deposit_deadline_at): ?>
+                        <?php
+                            $deadline = is_string($conversation->deposit_deadline_at)
+                                ? \Carbon\Carbon::parse($conversation->deposit_deadline_at)
+                                : $conversation->deposit_deadline_at;
+                            $daysRemaining = (int) ceil(now()->diffInHours($deadline) / 24);
+                        ?>
+                        <div class="mb-4 p-3 bg-jaune-alerte/10 border border-jaune-alerte/30 rounded-lg">
+                            <p class="text-jaune-alerte text-sm">
+                                <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Délai de paiement : <?php echo e($deadline->format('d/m/Y à H:i')); ?>
+
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($daysRemaining < 0): ?>
+                                    <span class="block mt-1 text-rouge-alerte font-semibold">⚠️ Délai expiré</span>
+                                <?php elseif($daysRemaining <= 1): ?>
+                                    <span class="block mt-1 text-rouge-alerte font-semibold">⚠️ Urgent - Dernier
+                                        jour</span>
+                                <?php else: ?>
+                                    <span class="block mt-1">(<?php echo e($daysRemaining); ?> jour(s) restant(s))</span>
                                 <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </p>
                         </div>
                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
+                    <!-- Actions -->
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!$bookingRequest->deposit_paid_at): ?>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <!-- Bouton payer acompte -->
+                            <a href="<?php echo e(route('deposit.payment', $bookingRequest)); ?>"
+                                class="flex-1 px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors text-center">
+                                💳 Payer l'acompte (<?php echo e($bookingRequest->total_deposit_amount); ?>€)
+                            </a>
+
+                            <!-- Bouton annuler -->
+                            <form action="<?php echo e(route('client.booking-request.cancel', $bookingRequest)); ?>" method="POST"
+                                class="flex-1">
+                                <?php echo csrf_field(); ?>
+                                <?php echo method_field('DELETE'); ?>
+                                <button type="submit"
+                                    onclick="return confirm('Êtes-vous sûr de vouloir annuler cette demande ?')"
+                                    class="w-full px-6 py-3 bg-rouge-alerte text-white rounded-lg font-semibold hover:bg-rouge-alerte/90 transition-colors">
+                                    ❌ Annuler la demande
+                                </button>
+                            </form>
+                        </div>
+                    <?php else: ?>
+                        <!-- Acompte payé - afficher confirmation -->
+                        <div class="mb-4 p-4 bg-vert-succes/10 border border-vert-succes/30 rounded-lg">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-vert-succes" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <div>
+                                    <h3 class="font-semibold text-vert-succes">✅ Acompte payé</h3>
+                                    <p class="text-vert-succes text-sm">
+                                        Votre acompte de <?php echo e(number_format($bookingRequest->total_deposit_amount, 2)); ?>€ a
+                                        bien été reçu.
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->appointment_datetime): ?>
+                                            Votre rendez-vous est confirmé pour le
+                                            <?php echo e($bookingRequest->appointment_datetime->format('d/m/Y à H:i')); ?>.
+                                        <?php else: ?>
+                                            Le tatoueur vous contactera pour fixer la date du rendez-vous.
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
-            </div>
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
             <!-- Informations projet et artiste (accordéons mobile uniquement) -->
             <div class="md:hidden mt-6 space-y-4">
@@ -380,7 +587,7 @@
                                         'in_progress' => '🎨 En cours',
                                         'completed' => '✅ Terminé',
                                         'cancelled' => '❌ Annulée',
-                                        default => ucfirst($bookingRequest->status),
+                                        default => ucfirst($bookingRequest->status->value),
                                     }); ?>
 
                                 </span>
@@ -491,7 +698,7 @@
                                     'in_progress' => '🎨 En cours',
                                     'completed' => '✅ Terminé',
                                     'cancelled' => '❌ Annulée',
-                                    default => ucfirst($bookingRequest->status),
+                                    default => ucfirst($bookingRequest->status->value),
                                 }); ?>
 
                             </span>
@@ -521,7 +728,6 @@
                                 <span class="text-ivoire-text/70">Email:</span>
                                 <span class="text-ivoire-text"><?php echo e($bookingRequest->bookable->user->email); ?></span>
                             </div>
-                            class="w-full h-full object-cover">
                         <?php else: ?>
                             <div class="w-full h-full bg-beige-peau rounded-full flex items-center justify-center">
                                 <svg class="w-6 h-6 text-noir-profond" fill="none" stroke="currentColor"
@@ -544,9 +750,6 @@
             </div>
         </div>
     </div>
-    </div>
-    </div>
-    </div>
 
     <?php $__env->startPush('scripts'); ?>
         <script>
@@ -556,19 +759,113 @@
 
             // Preview fichiers
             document.getElementById('attachments')?.addEventListener('change', function(e) {
-                const preview = document.getElementById('file-preview');
-                if (!preview) return;
+                const preview = document.getElementById('filePreview');
+                const container = document.getElementById('previewContainer');
+                if (!preview || !container) return;
 
-                preview.innerHTML = '';
+                container.innerHTML = '';
+
+                if (e.target.files.length === 0) {
+                    preview.classList.add('hidden');
+                    return;
+                }
+
                 preview.classList.remove('hidden');
 
-                Array.from(e.target.files).forEach(file => {
+                Array.from(e.target.files).forEach((file, index) => {
                     const div = document.createElement('div');
-                    div.className = 'px-3 py-1 bg-noir-profond text-ivoire-text rounded text-sm';
-                    div.textContent = file.name;
-                    preview.appendChild(div);
+                    div.className = 'flex items-center justify-between p-2 bg-noir-profond/50 rounded text-sm';
+
+                    // Prévisualisation image
+                    if (file.type.startsWith('image/')) {
+                        const img = document.createElement('img');
+                        img.src = URL.createObjectURL(file);
+                        img.className = 'w-12 h-12 object-cover rounded mr-3';
+                        div.appendChild(img);
+                    } else {
+                        // Icône pour fichiers non-image
+                        const icon = document.createElement('div');
+                        icon.className = 'w-12 h-12 bg-titane/30 rounded mr-3 flex items-center justify-center';
+                        icon.innerHTML =
+                            '<svg class="w-6 h-6 text-ivoire-text/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>';
+                        div.appendChild(icon);
+                    }
+
+                    const info = document.createElement('div');
+                    info.className = 'flex-1';
+                    info.innerHTML = `
+                        <div class="text-ivoire-text font-medium">${file.name}</div>
+                        <div class="text-ivoire-text/50 text-xs">${(file.size / 1024).toFixed(1)} KB</div>
+                    `;
+                    div.appendChild(info);
+
+                    // Bouton supprimer
+                    const removeBtn = document.createElement('button');
+                    removeBtn.type = 'button';
+                    removeBtn.className = 'text-rouge-alerte hover:text-rouge-alerte/80 ml-2';
+                    removeBtn.innerHTML =
+                        '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+                    removeBtn.onclick = function() {
+                        removeFile(index);
+                    };
+                    div.appendChild(removeBtn);
+
+                    container.appendChild(div);
                 });
             });
+
+            // Fonction pour supprimer un fichier
+            function removeFile(index) {
+                const input = document.getElementById('attachments');
+                const dt = new DataTransfer();
+                const files = Array.from(input.files);
+
+                files.splice(index, 1);
+                files.forEach(file => dt.items.add(file));
+
+                input.files = dt.files;
+
+                // Déclencher l'événement change pour mettre à jour la prévisualisation
+                input.dispatchEvent(new Event('change'));
+            }
+
+            function setModificationMessage() {
+                const textarea = document.querySelector('textarea[name="content"]');
+                if (textarea) {
+                    textarea.value = 'Pourriez-vous apporter les modifications suivantes :';
+                    textarea.focus();
+                }
+            }
+
+            function setNewDesignMessage() {
+                const textarea = document.querySelector('textarea[name="content"]');
+                if (textarea) {
+                    textarea.value = 'Pourriez-vous me proposer un nouveau dessin pour :';
+                    textarea.focus();
+                }
+            }
+
+            function enableDesignMode() {
+                const textarea = document.querySelector('textarea[name="content"]');
+                const fileInput = document.getElementById('attachments');
+                const preview = document.getElementById('filePreview');
+
+                if (textarea && fileInput && preview) {
+                    // Activer le champ fichier et prévisualisation
+                    fileInput.classList.remove('hidden');
+                    preview.classList.remove('hidden');
+
+                    // Pré-remplir le message
+                    textarea.value = 'Voici ma proposition de design :';
+                    textarea.focus();
+
+                    // Scroller vers la zone de message
+                    textarea.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                }
+            }
         </script>
     <?php $__env->stopPush(); ?>
 <?php $__env->stopSection(); ?>

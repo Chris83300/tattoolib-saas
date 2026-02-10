@@ -31,6 +31,7 @@ class Settings extends Component
     public $successMessage = '';
     public $errorMessage = '';
 
+    public $pseudo = '';
     public $artistName = '';
     public $siret = '';
     public $address = '';
@@ -50,6 +51,7 @@ class Settings extends Component
         $tattooer = $user->tattooer;
 
         // Charger les données existantes
+        $this->pseudo = $user->pseudo ?? '';
         $this->name = $user->name;
         $this->email = $user->email;
         $this->phone = $tattooer->phone ?? '';
@@ -101,6 +103,7 @@ class Settings extends Component
                 'wait_time_days' => 'nullable|integer|min:0|max:365',
                 'price_from' => 'nullable|numeric|min:0',
                 'avatar' => 'nullable|image|mimes:jpeg,png,gif|max:2048',
+                'pseudo' => 'nullable|string|max:50|unique:users,pseudo,' . Auth::id(),
             ]);
 
             Log::info('Validation réussie');
@@ -112,6 +115,7 @@ class Settings extends Component
             $user->update([
                 'name' => $this->name,
                 'email' => $this->email,
+                'pseudo' => $this->pseudo,
             ]);
 
             // Mise à jour tattooer

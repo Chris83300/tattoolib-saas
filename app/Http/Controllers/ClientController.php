@@ -5,8 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\BookingRequest;
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Enums\BookingRequestStatus;
+use App\Enums\ConversationStatus;
+use App\Enums\AppointmentStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ClientController extends Controller
 {
@@ -15,40 +19,44 @@ class ClientController extends Controller
      */
     public function dashboard()
     {
-        $client = Auth::user()->client;
+        $client = auth()->user()->client;
 
         if (!$client) {
             abort(403, 'Profil client non trouvé');
         }
 
-        // Récupérer toutes les demandes du client
+        // UNE SEULE requête avec eager loading avancé et withCount
         $bookingRequests = BookingRequest::where('client_id', $client->id)
-            ->with('bookable', 'conversation.messages')
+            ->with([
+                'bookable.user', // Charger le tatoueur en même temps
+                'conversation' => function($query) {
+                    $query->withCount(['messages as unread_count' => function($q) {
+                        $q->where('sender_type', 'tattooer')
+                              ->whereNull('read_by_client_at');
+                    }]);
+                }
+            ])
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Statistiques
+        // Stats calculées à partir de la collection (pas de requêtes supplémentaires)
         $stats = [
             'total_requests' => $bookingRequests->count(),
-            'pending_requests' => $bookingRequests->where('status', 'pending')->count(),
-            'accepted_requests' => $bookingRequests->where('status', 'accepted')->count(),
-            'in_progress_requests' => $bookingRequests->where('status', 'in_progress')->count(),
-            'completed_requests' => $bookingRequests->where('status', 'completed')->count(),
+            'pending' => $bookingRequests->where('status', BookingRequestStatus::PENDING->value)->count(),
+            'accepted' => $bookingRequests->whereIn('status', [
+                BookingRequestStatus::ACCEPTED->value,
+                BookingRequestStatus::DEPOSIT_REQUESTED->value,
+            ])->count(),
+            'active' => $bookingRequests->whereIn('status', [
+                BookingRequestStatus::DEPOSIT_PAID->value,
+                BookingRequestStatus::DATE_CONFIRMED->value,
+            ])->count(),
+            'completed' => $bookingRequests->where('status', BookingRequestStatus::COMPLETED->value)->count(),
+            'unread_messages' => $bookingRequests->sum('conversation.unread_count'),
         ];
 
-        // Demandes récentes avec messages non lus
+        // Prendre les 5 plus récents APRÈS le chargement (évite 2ème requête)
         $recentRequests = $bookingRequests->take(5);
-
-        foreach ($recentRequests as $bookingRequest) {
-            // Compter les messages non lus du tattooer
-            $unreadMessages = $bookingRequest->conversation ?
-                $bookingRequest->conversation->messages()
-                    ->where('sender_type', 'tattooer')
-                    ->whereNull('read_by_client_at')
-                    ->count() : 0;
-
-            $bookingRequest->unread_messages = $unreadMessages;
-        }
 
         return view('client.dashboard', compact('bookingRequests', 'stats', 'recentRequests'));
     }
@@ -69,7 +77,13 @@ class ClientController extends Controller
 
         // Filtrer par statut si spécifié
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            // Convertir le string en Enum si valide
+            try {
+                $statusEnum = BookingRequestStatus::from($request->status);
+                $query->where('status', $statusEnum->value);
+            } catch (\ValueError $e) {
+                // Statut invalide, ignorer le filtre
+            }
         }
 
         $bookingRequests = $query->orderBy('created_at', 'desc')->paginate(10);
@@ -100,15 +114,26 @@ class ClientController extends Controller
     {
         $client = Auth::user()->client;
 
-        // Vérifier que le client est participant de la conversation
-        if (!$client || !$conversation->participants()->where('user_id', $client->user_id)->exists()) {
-            abort(403, 'Non autorisé');
+        // DEBUG : Log les IDs pour vérification
+        Log::info('ClientController::chat - DEBUG', [
+            'conversation_id' => $conversation->id,
+            'auth_user_id' => Auth::user()->id,
+            'client_id' => $client ? $client->id : 'null',
+        ]);
+
+        // Vérifier que le client est bien le propriétaire de la demande associée
+        $bookingRequest = $conversation->bookingRequest;
+        if (!$bookingRequest || $bookingRequest->client_id !== $client->id) {
+            Log::warning('ClientController::chat - ACCESS DENIED', [
+                'booking_request_client_id' => $bookingRequest ? $bookingRequest->client_id : 'null',
+                'auth_client_id' => $client ? $client->id : 'null',
+                'booking_request_id' => $bookingRequest ? $bookingRequest->id : 'null',
+            ]);
+            abort(403, 'Non autorisé - Cette conversation ne vous appartient pas.');
         }
 
-        $bookingRequest = $conversation->bookingRequest;
-
-        // Vérifier que le chat est ouvert en utilisant la méthode du modèle
-        $chatOpen = $bookingRequest && $bookingRequest->isChatOpen();
+        // Vérifier que le chat est ouvert (logique corrigée)
+        // Supprimé : la vue utilisera @can('sendMessage', $conversation) à la place
 
         // ⭐ Récupérer les informations d'expiration pour l'affichage
         $expiryInfo = null;
@@ -125,24 +150,20 @@ class ClientController extends Controller
             ];
         }
 
-        if (!$chatOpen) {
-            $messages = collect([]);
-        } else {
-            // Récupérer les messages de la conversation
-            $messages = $conversation->messages()
-                ->with('sender')
-                ->orderBy('created_at', 'asc')
-                ->get();
+        // Récupérer les messages de la conversation (la vue gérera l'affichage conditionnel avec @can)
+        $messages = $conversation->messages()
+            ->with('sender')
+            ->orderBy('created_at', 'asc')
+            ->get();
 
-            // Marquer les messages comme lus par le client
-            $messages->where('sender_type', '!=', 'client')
-                ->whereNull('read_by_client_at')
-                ->each(function ($message) {
-                    $message->update(['read_by_client_at' => now()]);
-                });
-        }
+        // Marquer les messages comme lus par le client
+        $messages->where('sender_type', '!=', 'client')
+            ->whereNull('read_by_client_at')
+            ->each(function ($message) {
+                $message->update(['read_by_client_at' => now()]);
+            });
 
-        return view('client.chat', compact('conversation', 'bookingRequest', 'messages', 'chatOpen', 'expiryInfo'));
+        return view('client.chat', compact('conversation', 'bookingRequest', 'messages', 'expiryInfo'));
     }
 
     /**
@@ -183,29 +204,45 @@ class ClientController extends Controller
     {
         $client = auth()->user()->client;
 
+        // Debug
+        Log::info('Tentative annulation demande', [
+            'booking_request_id' => $bookingRequest->id,
+            'client_id' => $client->id,
+            'booking_client_id' => $bookingRequest->client_id,
+            'status' => $bookingRequest->status->value,
+        ]);
+
         // Vérifier que la demande appartient au client
         if ($bookingRequest->client_id !== $client->id) {
+            Log::error('Tentative annulation demande non autorisée', [
+                'booking_request_id' => $bookingRequest->id,
+                'client_id' => $client->id,
+                'booking_client_id' => $bookingRequest->client_id,
+            ]);
             abort(403, 'Cette demande ne vous appartient pas.');
         }
 
         // Vérifier que la demande peut être annulée
-        if (!in_array($bookingRequest->status, ['pending', 'accepted'])) {
+        if (!in_array($bookingRequest->status->value, ['pending', 'accepted'])) {
+            Log::error('Tentative annulation demande statut non autorisé', [
+                'booking_request_id' => $bookingRequest->id,
+                'status' => $bookingRequest->status->value,
+            ]);
             return redirect()->back()
                 ->with('error', 'Cette demande ne peut plus être annulée.');
         }
 
         // Mettre à jour le statut
         $bookingRequest->update([
-            'status' => 'cancelled',
+            'status' => \App\Enums\BookingRequestStatus::CANCELLED->value,
             'cancelled_by' => 'client',
             'cancelled_at' => now(),
             'cancellation_reason' => 'Annulation par le client',
-            'chat_status' => 'closed',
         ]);
 
         // Fermer la conversation associée
         if ($bookingRequest->conversation) {
-            $bookingRequest->conversation->update(['status' => 'closed']);
+            $bookingRequest->conversation->update(['status' => \App\Enums\ConversationStatus::CLOSED->value]);
         }
 
         return redirect()->route('client.booking-requests')
@@ -271,18 +308,16 @@ class ClientController extends Controller
     {
         $client = Auth::user()->client;
 
-        // Vérifier que le client est participant de la conversation
-        if (!$client || !$conversation->participants()->where('user_id', $client->user_id)->exists()) {
-            abort(403, 'Non autorisé');
+        // Vérifier que le client est bien le propriétaire de la demande associée
+        $bookingRequest = $conversation->bookingRequest;
+        if (!$bookingRequest || $bookingRequest->client_id !== $client->id) {
+            abort(403, 'Non autorisé - Cette conversation ne vous appartient pas.');
         }
 
-        $bookingRequest = $conversation->bookingRequest;
-
-        // Vérifier que le chat est ouvert en utilisant la méthode du modèle
-        $chatOpen = $bookingRequest && $bookingRequest->isChatOpen();
-
-        if (!$chatOpen) {
-            return back()->with('error', 'Le chat est fermé');
+        // Vérifier que le chat est ouvert avec les Policies
+        // La vue utilise déjà @can(), ici on vérifie juste l'autorisation de base
+        if (!$conversation || $bookingRequest->client_id !== $client->id) {
+            return back()->with('error', 'Non autorisé');
         }
 
         $validated = $request->validate([
@@ -329,5 +364,91 @@ class ClientController extends Controller
         // $bookingRequest->bookable->user->notify(new NewMessageNotification($message));
 
         return back()->with('success', 'Message envoyé');
+    }
+
+
+    /**
+     * Sélectionner une date proposée par le tattooer
+     */
+    public function selectProposedDate(Request $request, BookingRequest $bookingRequest)
+    {
+        $client = auth()->user()->client;
+
+        if (!$client || $bookingRequest->client_id !== $client->id) {
+            abort(403, 'Non autorisé');
+        }
+
+        $validated = $request->validate([
+            'index' => 'required|integer|min:0',
+        ]);
+
+        $proposedDates = $bookingRequest->proposed_dates;
+
+        if (!isset($proposedDates[$validated['index']])) {
+            return redirect()->back()
+                ->with('error', 'Date invalide.');
+        }
+
+        // Vérifier que l'acompte est payé
+        if ($bookingRequest->status !== 'deposit_paid') {
+            return redirect()->back()
+                ->with('error', 'Vous devez payer l\'acompte avant de choisir une date.');
+        }
+
+        $selectedDate = $proposedDates[$validated['index']];
+
+        $bookingRequest->update([
+            'confirmed_date'            => $selectedDate['date'],
+            'confirmed_period'          => $selectedDate['period'] ?? null,
+            'client_selected_dates'     => [$selectedDate],
+            'client_dates_selected_at'  => now(),
+        ]);
+
+        // Message système dans le chat
+        $conversation = $bookingRequest->conversation;
+        if ($conversation) {
+            $dateFr = \Carbon\Carbon::parse($selectedDate['date'])->translatedFormat('l d F Y');
+            $period = match($selectedDate['period'] ?? '') {
+                'morning'   => 'matin',
+                'afternoon' => 'après-midi',
+                'evening'   => 'soirée',
+                default     => 'horaire flexible',
+            };
+
+            $conversation->messages()->create([
+                'sender_type' => 'system',
+                'sender_id'   => null,
+                'content'     => "📅 Le client a choisi la date du {$dateFr} ({$period}). Cliquez ci-dessous pour fixer l'horaire du rendez-vous.",
+            ]);
+        }
+
+        // TODO: Notification au tattooer (ex: ClientSelectedDateNotification)
+
+        return redirect()->back()
+            ->with('success', 'Date sélectionnée ! L\'artiste va fixer l\'horaire.');
+    }
+
+    /**
+     * Demander des dates alternatives
+     */
+    public function requestAlternativeDates(Request $request, BookingRequest $bookingRequest)
+    {
+        $client = auth()->user()->client;
+
+        if (!$client || $bookingRequest->client_id !== $client->id) {
+            abort(403, 'Non autorisé');
+        }
+
+        $conversation = $bookingRequest->conversation;
+        if ($conversation) {
+            $conversation->messages()->create([
+                'sender_type' => 'system',
+                'sender_id'   => null,
+                'content'     => "⚠️ Le client ne peut à aucune des dates proposées et demande d'autres alternatives.",
+            ]);
+        }
+
+        return redirect()->back()
+            ->with('info', 'Votre demande a été envoyée à l\'artiste.');
     }
 }

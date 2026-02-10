@@ -13,14 +13,14 @@
                 <div class="flex items-center gap-4 flex-1">
                     <!-- Avatar Spatie -->
                     <div class="w-20 h-20 rounded-full overflow-hidden flex-shrink-0 bg-beige-peau/10">
-                        <img src="{{ $tattooer->getFirstMediaUrl('avatar', 'thumb') ?: asset('images/default-tattooer-avatar.png') }}"
+                        <img src="{{ auth()->user()->getFirstMediaUrl('avatar', 'thumb') ?: asset('images/default-tattooer-avatar.png') }}"
                             alt="{{ $tattooer->user->name }}" class="w-full h-full object-cover">
                     </div>
 
                     <div>
                         <!-- Pseudo affiché publiquement -->
                         <h1 class="text-3xl font-Satoshi font-bold text-ivoire-text mb-1">
-                            {{ $tattooer->user->name }}
+                            {{ $tattooer->user->pseudo ?? $tattooer->user->first_name . ' ' . $tattooer->user->last_name }}
                         </h1>
 
                         <p class="text-ivoire-text/70 mb-2">
@@ -42,7 +42,7 @@
 
                             @if ($tattooer->user->status === 'pending_verification')
                                 <span
-                                    class="bg-ambre-warning/20 text-ambre-warning px-3 py-1 rounded-full text-xs font-semibold">
+                                    class="bg-orange-attention/20 text-orange-attention px-3 py-1 rounded-full text-xs font-semibold">
                                     ⏳ En attente validation
                                 </span>
                             @endif
@@ -90,11 +90,11 @@
                         </a>
                     </div>
 
-                    @if ($portfolio->isNotEmpty())
+                    @if (!empty($portfolio))
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                             @foreach ($portfolio as $media)
                                 <div class="aspect-square rounded-lg overflow-hidden bg-noir-profond">
-                                    <img src="{{ $media->getUrl() }}" alt="Portfolio"
+                                    <img src="{{ $media['url'] }}" alt="Portfolio"
                                         class="w-full h-full object-cover hover:scale-110 transition-transform duration-300">
                                 </div>
                             @endforeach
@@ -119,7 +119,8 @@
                     <div class="space-y-3">
                         <div class="flex justify-between py-2 border-b border-titane/20">
                             <span class="text-ivoire-text/50">Nom réel</span>
-                            <span class="text-ivoire-text">{{ $tattooer->user->name }}</span>
+                            <span
+                                class="text-ivoire-text">{{ $tattooer->user->first_name . ' ' . $tattooer->user->last_name }}</span>
                         </div>
                         <div class="flex justify-between py-2 border-b border-titane/20">
                             <span class="text-ivoire-text/50">SIRET</span>

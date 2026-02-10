@@ -66,8 +66,12 @@ class MessageController extends Controller
         // Gérer la pièce jointe si présente
         if ($request->hasFile('attachment')) {
             $file = $request->file('attachment');
-            $attachmentType = $this->determineAttachmentType($file);
 
+            // Validation déjà faite par SecureFileUpload middleware
+            // Scan antivirus
+            app(\App\Services\AntivirusService::class)->scan($file);
+
+            $attachmentType = $this->determineAttachmentType($file);
             $message->update(['attachment_type' => $attachmentType]);
             $message->addAttachment($file, $attachmentType);
         }
@@ -155,8 +159,14 @@ class MessageController extends Controller
         }
 
         $media = $message->getFirstMedia('attachments');
+        abort_if(!$media, 404);
 
-        return response()->download($media->getPath(), $media->file_name);
+        // URL signée temporaire (expire 1h)
+        return response()->download(
+            $media->getPath(),
+            $media->file_name,
+            ['Content-Type' => $media->mime_type]
+        );
     }
 
     /**

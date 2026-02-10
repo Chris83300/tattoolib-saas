@@ -74,7 +74,7 @@
                         <label class="block font-semibold text-ivoire-text mb-3">Photo de profil</label>
                         <div class="flex flex-col sm:flex-row sm:items-center gap-4">
                             <img id="avatar-preview"
-                                src="{{ $tattooer->getFirstMediaUrl('avatar') ?: asset('images/default-tattooer-avatar.png') }}"
+                                src="{{ auth()->user()->getFirstMediaUrl('avatar') ?: asset('images/default-tattooer-avatar.png') }}"
                                 alt="Avatar" class="w-24 h-24 rounded-full object-cover">
 
                             <div class="flex flex-col gap-2">
@@ -84,7 +84,7 @@
                                     <input type="file" name="avatar" accept="image/*" class="hidden"
                                         onchange="previewAvatar(this)">
                                 </label>
-                                @if ($tattooer->hasMedia('avatar'))
+                                @if (auth()->user()->hasMedia('avatar'))
                                     <button type="button" onclick="deleteAvatar()"
                                         class="min-h-11 px-4 py-3 md:py-2 bg-rouge-alerte/20 text-rouge-alerte rounded-lg font-semibold hover:bg-rouge-alerte/30 transition-colors text-sm md:text-base active:scale-95">
                                         Supprimer

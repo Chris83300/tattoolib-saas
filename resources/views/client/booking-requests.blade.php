@@ -93,7 +93,7 @@
                 <div class="space-y-4">
                     @foreach ($bookingRequests as $bookingRequest)
                         <div
-                            class="bg-gris-fonde rounded-xl p-6 border border-titane/30 {{ $bookingRequest->status === 'deposit_paid' ? 'ring-2 ring-vert-succes/50' : '' }} {{ $bookingRequest->status === 'rejected' ? 'ring-2 ring-rouge-alerte/50' : '' }}">
+                            class="bg-gris-fonde rounded-xl p-6 border border-titane/30 {{ $bookingRequest->status === \App\Enums\BookingRequestStatus::DEPOSIT_PAID ? 'ring-2 ring-vert-succes/50' : '' }} {{ $bookingRequest->status === \App\Enums\BookingRequestStatus::CANCELLED ? 'ring-2 ring-rouge-alerte/50' : '' }}">
                             <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                                 <!-- Informations principales -->
                                 <div class="flex-1">
@@ -103,7 +103,7 @@
                                                 {{ $bookingRequest->tattoo_description }}
                                             </h3>
                                             <div class="flex items-center gap-3 mb-3">
-                                                @if ($bookingRequest->status === 'deposit_paid')
+                                                @if ($bookingRequest->status === \App\Enums\BookingRequestStatus::DEPOSIT_PAID)
                                                     <!-- Statut deposit_paid - design spécial -->
                                                     <div
                                                         class="inline-flex items-center px-4 py-2 bg-vert-succes/20 border border-vert-succes/30 rounded-full">
@@ -115,7 +115,7 @@
                                                         </svg>
                                                         <span class="text-vert-succes font-medium">💰 Acompte payé</span>
                                                     </div>
-                                                @elseif ($bookingRequest->status === 'rejected')
+                                                @elseif ($bookingRequest->status === \App\Enums\BookingRequestStatus::CANCELLED)
                                                     <!-- Statut rejected - design spécial -->
                                                     <div
                                                         class="inline-flex items-center px-4 py-2 bg-rouge-alerte/20 border border-rouge-alerte/30 rounded-full">
@@ -130,20 +130,17 @@
                                                     <!-- Autres statuts - design existant -->
                                                     <span
                                                         class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-                                                    {{ $bookingRequest->status === 'pending' ? 'bg-ambre-warning/20 text-ambre-warning' : '' }}
-                                                    {{ $bookingRequest->status === 'accepted' || $bookingRequest->status === 'awaiting_deposit' ? 'bg-vert-succes/20 text-vert-succes' : '' }}
-                                                    {{ $bookingRequest->status === 'in_progress' ? 'bg-beige-peau/20 text-beige-peau' : '' }}
-                                                    {{ $bookingRequest->status === 'completed' ? 'bg-vert-succes/20 text-vert-succes' : '' }}
-                                                    {{ $bookingRequest->status === 'cancelled' ? 'bg-rouge-alerte/20 text-rouge-alerte' : '' }}">
-                                                        {{ match ($bookingRequest->status) {
-                                                            'pending' => '⏳ En attente',
-                                                            'accepted' => '✓ Acceptée',
-                                                            'awaiting_deposit' => '✓ Acceptée',
-                                                            'in_progress' => '🎨 En cours',
-                                                            'completed' => '✅ Terminée',
-                                                            'cancelled' => '❌ Annulée',
-                                                            default => $bookingRequest->status,
-                                                        } }}
+                                                        @if ($bookingRequest->status->value === 'pending') bg-jaune-alerte/20 text-jaune-alerte border border-jaune-alerte/30
+                                                        @elseif($bookingRequest->status->value === 'accepted') bg-beige-peau/20 text-beige-peau border border-beige-peau/30
+                                                        @elseif($bookingRequest->status->value === 'deposit_requested') bg-ambre-warning/20 text-ambre-warning border border-ambre-warning/30
+                                                        @elseif($bookingRequest->status->value === 'deposit_paid') bg-vert-succes/20 text-vert-succes border border-vert-succes/30
+                                                        @elseif($bookingRequest->status->value === 'date_confirmed') bg-beige-peau/20 text-beige-peau border border-beige-peau/30
+                                                        @elseif($bookingRequest->status->value === 'completed') bg-vert-succes/20 text-vert-succes border border-vert-succes/30
+                                                        @elseif($bookingRequest->status->value === 'rejected') bg-rouge-alerte/20 text-rouge-alerte border border-rouge-alerte/30
+                                                        @elseif($bookingRequest->status->value === 'cancelled') bg-rouge-alerte/20 text-rouge-alerte border border-rouge-alerte/30
+                                                        @elseif($bookingRequest->status->value === 'expired') bg-rouge-alerte/20 text-rouge-alerte border border-rouge-alerte/30
+                                                        @elseif($bookingRequest->status->value === 'no_show') bg-rouge-alerte/20 text-rouge-alerte border border-rouge-alerte/30 @endif">
+                                                        {{ $bookingRequest->status->label() }}
                                                     </span>
                                                 @endif
 
@@ -156,7 +153,7 @@
                                             </div>
 
                                             <!-- Message informatif selon statut -->
-                                            @if ($bookingRequest->status === 'deposit_paid')
+                                            @if ($bookingRequest->status === \App\Enums\BookingRequestStatus::DEPOSIT_PAID)
                                                 <div
                                                     class="bg-vert-succes/10 border border-vert-succes/20 rounded-lg p-3 mb-3">
                                                     <p class="text-vert-succes text-sm font-medium">
@@ -164,7 +161,7 @@
                                                         permanent pour finaliser votre projet.
                                                     </p>
                                                 </div>
-                                            @elseif ($bookingRequest->status === 'rejected')
+                                            @elseif ($bookingRequest->status === \App\Enums\BookingRequestStatus::CANCELLED)
                                                 <div
                                                     class="bg-rouge-alerte/10 border border-rouge-alerte/20 rounded-lg p-3 mb-3">
                                                     <p class="text-rouge-alerte text-sm font-medium">
@@ -224,12 +221,12 @@
                                     @if ($bookingRequest->bookable)
                                         <div class="flex items-center gap-3 text-sm text-ivoire-text/70 mb-4">
                                             <div class="w-10 h-10 rounded-full overflow-hidden bg-beige-peau/10">
-                                                @if ($bookingRequest->bookable->getFirstMediaUrl('avatar'))
-                                                    <img src="{{ $bookingRequest->bookable->getFirstMediaUrl('avatar') }}"
+                                                @if ($bookingRequest->bookable->user->getFirstMediaUrl('avatar'))
+                                                    <img src="{{ $bookingRequest->bookable->user->getFirstMediaUrl('avatar') }}"
                                                         alt="Avatar de {{ $bookingRequest->bookable->user->name }}"
                                                         class="w-full h-full object-cover">
-                                                @elseif ($bookingRequest->bookable->user->getFirstMediaUrl('avatar'))
-                                                    <img src="{{ $bookingRequest->bookable->user->getFirstMediaUrl('avatar') }}"
+                                                @elseif ($bookingRequest->bookable->getFirstMediaUrl('avatar'))
+                                                    <img src="{{ $bookingRequest->bookable->getFirstMediaUrl('avatar') }}"
                                                         alt="Avatar de {{ $bookingRequest->bookable->user->name }}"
                                                         class="w-full h-full object-cover">
                                                 @else
@@ -292,21 +289,36 @@
                                             </svg>
                                             Supprimer
                                         </button>
-                                    @elseif ($bookingRequest->status === 'accepted' || $bookingRequest->status === 'awaiting_deposit')
+                                    @elseif (
+                                        $bookingRequest->status === \App\Enums\BookingRequestStatus::ACCEPTED ||
+                                            $bookingRequest->status === \App\Enums\BookingRequestStatus::DEPOSIT_REQUESTED)
                                         <!-- Actions existantes -->
-                                        <a href="{{ route('client.chat', $bookingRequest->conversation) }}"
-                                            class="flex items-center justify-center px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
-                                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.009 9.009 0 00-2.617-.656L4 19l1.383-5.344A9.002 9.002 0 016 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                                            </svg>
-                                            Discuter
-                                        </a>
+                                        @if ($bookingRequest->conversation)
+                                            <a href="{{ route('client.chat', $bookingRequest->conversation) }}"
+                                                class="flex items-center justify-center px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
+                                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                                </svg>
+                                                Chat
+                                            </a>
+                                        @else
+                                            <button disabled
+                                                class="flex items-center justify-center px-4 py-2 bg-titane/30 text-ivoire-text/50 rounded-lg font-semibold cursor-not-allowed">
+                                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                                </svg>
+                                                Chat (bientôt disponible)
+                                            </button>
+                                        @endif
                                     @endif
 
                                     @if (
-                                        ($bookingRequest->status === 'awaiting_deposit' || $bookingRequest->deposit_requested_at) &&
+                                        ($bookingRequest->status === \App\Enums\BookingRequestStatus::DEPOSIT_REQUESTED ||
+                                            $bookingRequest->deposit_requested_at) &&
                                             !$bookingRequest->deposit_paid_at)
                                         <a href="{{ route('deposit.payment', $bookingRequest->id) }}"
                                             class="flex items-center justify-center px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">

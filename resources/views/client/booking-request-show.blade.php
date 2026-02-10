@@ -18,7 +18,8 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h1 class="text-3xl font-bold text-ivoire-text">Détails de la demande</h1>
-                        <p class="text-ivoire-text/70 mt-1">Artiste: {{ $bookingRequest->bookable->user->name }}</p>
+                        <p class="text-ivoire-text/70 mt-1">Artiste: {{ $bookingRequest->bookable->user->first_name }}
+                            {{ $bookingRequest->bookable->user->last_name }}</p>
                     </div>
                 </div>
             </div>
@@ -69,21 +70,17 @@
                                 <span class="text-ivoire-text/70 block mb-1">Statut :</span>
                                 <span
                                     class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-                            @if ($bookingRequest->status === 'pending') bg-jaune-alerte/20 text-jaune-alerte
-                            @elseif($bookingRequest->status === 'accepted') bg-vert-succes/20 text-vert-succes
-                            @elseif($bookingRequest->status === 'awaiting_deposit') bg-jaune-alerte/20 text-jaune-alerte
-                            @elseif($bookingRequest->status === 'in_progress') bg-beige-peau/20 text-beige-peau
-                            @elseif($bookingRequest->status === 'completed') bg-vert-succes/20 text-vert-succes
-                            @elseif($bookingRequest->status === 'cancelled') bg-rouge-alerte/20 text-rouge-alerte @endif">
-                                    {{ match ($bookingRequest->status) {
-                                        'pending' => '⏳ En attente',
-                                        'accepted' => '✓ Acceptée',
-                                        'awaiting_deposit' => '💰 Acompte en attente',
-                                        'in_progress' => '🎨 En cours',
-                                        'completed' => '✅ Terminée',
-                                        'cancelled' => '❌ Annulée',
-                                        default => ucfirst($bookingRequest->status),
-                                    } }}
+                                    @if ($bookingRequest->status->value === 'pending') bg-jaune-alerte/20 text-jaune-alerte border border-jaune-alerte/30
+                                    @elseif($bookingRequest->status->value === 'accepted') bg-beige-peau/20 text-beige-peau border border-beige-peau/30
+                                    @elseif($bookingRequest->status->value === 'deposit_requested') bg-ambre-warning/20 text-ambre-warning border border-ambre-warning/30
+                                    @elseif($bookingRequest->status->value === 'deposit_paid') bg-vert-succes/20 text-vert-succes border border-vert-succes/30
+                                    @elseif($bookingRequest->status->value === 'date_confirmed') bg-beige-peau/20 text-beige-peau border border-beige-peau/30
+                                    @elseif($bookingRequest->status->value === 'completed') bg-vert-succes/20 text-vert-succes border border-vert-succes/30
+                                    @elseif($bookingRequest->status->value === 'rejected') bg-rouge-alerte/20 text-rouge-alerte border border-rouge-alerte/30
+                                    @elseif($bookingRequest->status->value === 'cancelled') bg-rouge-alerte/20 text-rouge-alerte border border-rouge-alerte/30
+                                    @elseif($bookingRequest->status->value === 'expired') bg-rouge-alerte/20 text-rouge-alerte border border-rouge-alerte/30
+                                    @elseif($bookingRequest->status->value === 'no_show') bg-rouge-alerte/20 text-rouge-alerte border border-rouge-alerte/30 @endif">
+                                    {{ $bookingRequest->status->label() }}
                                 </span>
                             </div>
                         </div>
@@ -106,129 +103,13 @@
                         </div>
                     @endif
 
-                    <!-- PROPOSITION TATTOOER — visible dès que status >= accepted -->
-                    @if (in_array($bookingRequest->status, [
-                            'accepted',
-                            'awaiting_deposit',
-                            'deposit_paid',
-                            'design_sent',
-                            'confirmed',
-                            'completed',
-                        ]))
-                        <div
-                            class="bg-gradient-to-br from-vert-succes/10 to-vert-succes/5 rounded-xl p-6 border border-vert-succes/30">
-                            <h3 class="text-xl font-bold text-ivoire-text mb-4 flex items-center gap-2">
-                                <svg class="w-6 h-6 text-vert-succes" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Proposition du tattooer
-                            </h3>
 
-                            <div class="space-y-4">
-                                <!-- 💰 Fourchette prix -->
-                                @if ($bookingRequest->price_range_min || $bookingRequest->price_range_max)
-                                    <div class="bg-noir-profond/50 rounded-lg p-4">
-                                        <h4 class="font-semibold text-ivoire-text/80 text-sm mb-2">💰 Tarif estimé</h4>
-                                        <p class="text-ivoire-text">
-                                            Entre <span
-                                                class="font-bold text-beige-peau">{{ number_format($bookingRequest->price_range_min, 2, ',', ' ') }}
-                                                €</span>
-                                            et <span
-                                                class="font-bold text-beige-peau">{{ number_format($bookingRequest->price_range_max, 2, ',', ' ') }}
-                                                €</span>
-                                        </p>
-                                        @if ($bookingRequest->estimated_total_price)
-                                            <p class="text-ivoire-text/60 text-sm mt-1">
-                                                Estimation finale : <span
-                                                    class="text-ivoire-text font-semibold">{{ number_format($bookingRequest->estimated_total_price, 2, ',', ' ') }}
-                                                    €</span>
-                                            </p>
-                                        @endif
-                                    </div>
-                                @endif
-
-                                <!-- 📅 Dates proposées -->
-                                @if (
-                                    $bookingRequest->proposed_dates &&
-                                        is_array($bookingRequest->proposed_dates) &&
-                                        count($bookingRequest->proposed_dates) > 0)
-                                    <div class="bg-noir-profond/50 rounded-lg p-4">
-                                        <h4 class="font-semibold text-ivoire-text/80 text-sm mb-2">📅 Dates proposées</h4>
-                                        <div class="flex flex-wrap gap-2">
-                                            @foreach ($bookingRequest->proposed_dates as $date)
-                                                <span
-                                                    class="px-3 py-1 bg-beige-peau/20 text-beige-peau rounded-full text-sm font-medium">
-                                                    {{ \Carbon\Carbon::parse($date)->format('l d/m/Y') }}
-                                                </span>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                @endif
-
-                                <!-- 🎨 Phase création -->
-                                @if ($bookingRequest->included_design_versions)
-                                    <div class="bg-noir-profond/50 rounded-lg p-4">
-                                        <h4 class="font-semibold text-ivoire-text/80 text-sm mb-2">🎨 Phase création</h4>
-                                        <div class="grid grid-cols-2 gap-3 text-sm">
-                                            <div>
-                                                <span class="text-ivoire-text/60">Dessins inclus :</span>
-                                                <span
-                                                    class="text-ivoire-text font-semibold ml-2">{{ $bookingRequest->included_design_versions }}</span>
-                                            </div>
-                                            <div>
-                                                <span class="text-ivoire-text/60">Modifs/dessin :</span>
-                                                <span
-                                                    class="text-ivoire-text font-semibold ml-2">{{ $bookingRequest->modifications_per_version ?? 2 }}</span>
-                                            </div>
-                                            @if ($bookingRequest->design_modification_rules)
-                                                <div>
-                                                    <span class="text-ivoire-text/60">Règles de modification :</span>
-                                                    <p class="text-ivoire-text mt-1">
-                                                        {{ $bookingRequest->design_modification_rules }}</p>
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                @endif
-
-                                <!-- Acompte -->
-                                @if ($bookingRequest->total_deposit_amount)
-                                    <div class="bg-noir-profond/50 rounded-lg p-4">
-                                        <h4 class="font-semibold text-ivoire-text mb-2">Acompte</h4>
-                                        <div class="space-y-2 text-sm">
-                                            <div class="flex justify-between">
-                                                <span class="text-ivoire-text/60">Montant :</span>
-                                                <span
-                                                    class="text-ivoire-text font-semibold">{{ number_format($bookingRequest->total_deposit_amount, 2, ',', ' ') }}€</span>
-                                            </div>
-                                            @if ($bookingRequest->client_payment_deadline)
-                                                <div class="flex justify-between">
-                                                    <span class="text-ivoire-text/60">Date limite :</span>
-                                                    <span class="text-ivoire-text">
-                                                        {{ is_string($bookingRequest->client_payment_deadline)
-                                                            ? \Carbon\Carbon::parse($bookingRequest->client_payment_deadline)->format('d/m/Y')
-                                                            : $bookingRequest->client_payment_deadline->format('d/m/Y') }}
-                                                    </span>
-                                                </div>
-                                            @endif
-                                            @if ($bookingRequest->deposit_covers_description)
-                                                <div>
-                                                    <span class="text-ivoire-text/60">Ce que couvre l'acompte :</span>
-                                                    <p class="text-ivoire-text mt-1">
-                                                        {{ $bookingRequest->deposit_covers_description }}</p>
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-                    @endif
 
                     <!-- SECTION ACTIONS -->
-                    @if (in_array($bookingRequest->status, ['accepted', 'awaiting_deposit']) && !$bookingRequest->deposit_paid_at)
+                    @if (in_array($bookingRequest->status->value, [
+                            \App\Enums\BookingRequestStatus::ACCEPTED->value,
+                            \App\Enums\BookingRequestStatus::DEPOSIT_REQUESTED->value,
+                        ]) && !$bookingRequest->deposit_paid_at)
                         <div class="bg-titane/20 rounded-xl p-6 border border-titane/30">
                             <h3 class="text-lg font-bold text-ivoire-text mb-4">Actions</h3>
                             <div class="space-y-3">
@@ -304,13 +185,9 @@
                         <h3 class="text-lg font-bold text-ivoire-text mb-4">Artiste</h3>
                         <div class="flex items-center gap-3 mb-4">
                             <div class="w-12 h-12 rounded-full overflow-hidden bg-beige-peau/10">
-                                @if ($bookingRequest->bookable->getFirstMediaUrl('avatar'))
-                                    <img src="{{ $bookingRequest->bookable->getFirstMediaUrl('avatar') }}"
-                                        alt="Avatar de {{ $bookingRequest->bookable->user->name }}"
-                                        class="w-full h-full object-cover">
-                                @elseif ($bookingRequest->bookable->user->getFirstMediaUrl('avatar'))
+                                @if ($bookingRequest->bookable->user->getFirstMediaUrl('avatar'))
                                     <img src="{{ $bookingRequest->bookable->user->getFirstMediaUrl('avatar') }}"
-                                        alt="Avatar de {{ $bookingRequest->bookable->user->name }}"
+                                        alt="Avatar de {{ $bookingRequest->bookable->user->first_name }}"
                                         class="w-full h-full object-cover">
                                 @else
                                     <div class="w-full h-full bg-beige-peau rounded-full flex items-center justify-center">
@@ -323,7 +200,8 @@
                                 @endif
                             </div>
                             <div>
-                                <p class="font-semibold text-ivoire-text">{{ $bookingRequest->bookable->user->name }}</p>
+                                <p class="font-semibold text-ivoire-text">{{ $bookingRequest->bookable->user->first_name }}
+                                    {{ $bookingRequest->bookable->user->last_name }}</p>
                                 <p class="text-sm text-ivoire-text/70">
                                     @if ($bookingRequest->bookable_type === 'App\Models\Tattooer')
                                         Tatoueur indépendant
@@ -333,7 +211,250 @@
                                 </p>
                             </div>
                         </div>
+
+                        <!-- Informations supplémentaires -->
+                        @if ($bookingRequest->bookable->studio_name)
+                            <div class="mb-3">
+                                <span class="text-ivoire-text/70 text-sm">Studio :</span>
+                                <p class="text-ivoire-text font-semibold">{{ $bookingRequest->bookable->studio_name }}</p>
+                            </div>
+                        @endif
+
+                        @if ($bookingRequest->bookable->specialties && $bookingRequest->bookable->specialties->isNotEmpty())
+                            <div>
+                                <span class="text-ivoire-text/70 text-sm">Spécialités :</span>
+                                <div class="flex flex-wrap gap-1 mt-1">
+                                    @foreach ($bookingRequest->bookable->specialties->take(3) as $specialty)
+                                        <span class="px-2 py-1 bg-beige-peau/20 text-beige-peau text-xs rounded-full">
+                                            {{ $specialty->name }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                     </div>
+                    <!-- PROPOSITION TATTOOER — visible dès que status >= accepted -->
+                    @if (in_array($bookingRequest->status->value, [
+                            \App\Enums\BookingRequestStatus::ACCEPTED->value,
+                            \App\Enums\BookingRequestStatus::DEPOSIT_REQUESTED->value,
+                            \App\Enums\BookingRequestStatus::DEPOSIT_PAID->value,
+                            \App\Enums\BookingRequestStatus::DATE_CONFIRMED->value,
+                            \App\Enums\BookingRequestStatus::COMPLETED->value,
+                        ]))
+                        <div
+                            class="bg-gradient-to-br from-vert-succes/10 to-vert-succes/5 rounded-xl p-6 border border-vert-succes/30">
+                            <h3 class="text-xl font-bold text-ivoire-text mb-4 flex items-center gap-2">
+                                <svg class="w-6 h-6 text-vert-succes" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Proposition du tattooer
+                            </h3>
+
+                            <div class="space-y-4">
+                                <!-- 💰 Fourchette prix -->
+                                @if ($bookingRequest->price_estimate_min || $bookingRequest->price_estimate_max)
+                                    <div class="bg-noir-profond/50 rounded-lg p-4">
+                                        <h4 class="font-semibold text-ivoire-text/80 text-sm mb-2">💰 Tarif estimé</h4>
+                                        <p class="text-ivoire-text">
+                                            Entre <span
+                                                class="font-bold text-beige-peau">{{ number_format($bookingRequest->price_estimate_min, 2, ',', ' ') }}
+                                                €</span>
+                                            et <span
+                                                class="font-bold text-beige-peau">{{ number_format($bookingRequest->price_estimate_max, 2, ',', ' ') }}
+                                                €</span>
+                                        </p>
+                                        @if ($bookingRequest->estimated_total_price)
+                                            <p class="text-ivoire-text/60 text-sm mt-1">
+                                                Estimation finale : <span
+                                                    class="text-ivoire-text font-semibold">{{ number_format($bookingRequest->estimated_total_price, 2, ',', ' ') }}
+                                                    €</span>
+                                            </p>
+                                        @endif
+                                    </div>
+                                @endif
+
+                                <!-- 📅 Sélection de dates -->
+                                @if ($bookingRequest->status === 'deposit_paid' && $bookingRequest->proposed_dates && !$bookingRequest->confirmed_date)
+
+                                    <div class="bg-gris-fonde rounded-xl p-4 border border-beige-peau/20 mt-4">
+                                        <h4 class="font-semibold text-ivoire-text mb-2">📅 Choisissez votre date de
+                                            rendez-vous</h4>
+                                        <p class="text-sm text-titane mb-4">
+                                            L'artiste vous propose {{ count($bookingRequest->proposed_dates) }} date(s).
+                                            Sélectionnez celle qui vous convient — l'artiste fixera ensuite l'horaire exact.
+                                        </p>
+
+                                        <div class="space-y-2">
+                                            @foreach ($bookingRequest->proposed_dates as $index => $proposal)
+                                                @php
+                                                    $proposalDate = \Carbon\Carbon::parse($proposal['date']);
+                                                    $periodLabel = match ($proposal['period'] ?? '') {
+                                                        'morning' => '☀️ Matin',
+                                                        'afternoon' => '🌤️ Après-midi',
+                                                        'evening' => '🌙 Soirée',
+                                                        default => '🔄 Flexible',
+                                                    };
+                                                    $medal = match ($index) {
+                                                        0 => '🥇',
+                                                        1 => '🥈',
+                                                        2 => '🥉',
+                                                        default => '📅',
+                                                    };
+                                                @endphp
+
+                                                <button type="button"
+                                                    wire:click="selectProposedDate({{ $index }})"
+                                                    wire:confirm="Confirmer la date du {{ $proposalDate->translatedFormat('l d F Y') }} ({{ strip_tags($periodLabel) }}) ?"
+                                                    class="w-full flex items-center justify-between p-4 rounded-lg border border-titane/30
+                                                           hover:border-beige-peau hover:bg-beige-peau/10 cursor-pointer transition-all">
+                                                    <div class="flex items-center gap-3">
+                                                        <span class="text-2xl">{{ $medal }}</span>
+                                                        <div class="text-left">
+                                                            <p class="text-ivoire-text font-medium">
+                                                                {{ $proposalDate->translatedFormat('l d F Y') }}
+                                                            </p>
+                                                            <p class="text-xs text-titane">{{ $periodLabel }}</p>
+                                                        </div>
+                                                    </div>
+                                                    <span class="text-beige-peau font-bold text-sm">Choisir →</span>
+                                                </button>
+                                            @endforeach
+                                        </div>
+
+                                        <button type="button" wire:click="requestAlternativeDates"
+                                            class="text-xs text-titane underline hover:text-ivoire-text mt-3 block">
+                                            Aucune date ne me convient — demander d'autres propositions
+                                        </button>
+                                    </div>
+                                @endif
+
+                                <!-- Date confirmée (en attente de fixation horaire par le tattooer) -->
+                                @if ($bookingRequest->confirmed_date && !$bookingRequest->appointment_datetime)
+                                    <div class="bg-vert-succes/10 border border-vert-succes/30 rounded-xl p-4 mt-4">
+                                        <h4 class="font-semibold text-vert-succes mb-1">✅ Date choisie</h4>
+                                        <p class="text-ivoire-text">
+                                            {{ \Carbon\Carbon::parse($bookingRequest->confirmed_date)->translatedFormat('l d F Y') }}
+                                            @if ($bookingRequest->confirmed_period)
+                                                —
+                                                {{ match ($bookingRequest->confirmed_period) {
+                                                    'morning' => '☀️ Matin',
+                                                    'afternoon' => '🌤️ Après-midi',
+                                                    'evening' => '🌙 Soirée',
+                                                    default => '',
+                                                } }}
+                                            @endif
+                                        </p>
+                                        <p class="text-xs text-titane mt-1">⏳ L'artiste va fixer l'horaire exact. Vous
+                                            serez notifié.</p>
+                                    </div>
+                                @endif
+
+                                <!-- RDV confirmé avec horaire -->
+                                @if ($bookingRequest->appointment_datetime)
+                                    <div class="bg-vert-succes/10 border border-vert-succes/30 rounded-xl p-4 mt-4">
+                                        <h4 class="font-semibold text-vert-succes mb-1">✅ Rendez-vous confirmé</h4>
+                                        <p class="text-ivoire-text">
+                                            {{ \Carbon\Carbon::parse($bookingRequest->appointment_datetime)->translatedFormat('l d F Y') }}
+                                            de {{ $bookingRequest->scheduled_start_time }} à
+                                            {{ $bookingRequest->scheduled_end_time }}
+                                        </p>
+                                    </div>
+                                @endif
+
+                                <!-- Affichage simple si statut différent -->
+                                @if (
+                                    $bookingRequest->status !== 'deposit_paid' &&
+                                        $bookingRequest->proposed_dates &&
+                                        is_array($bookingRequest->proposed_dates) &&
+                                        count($bookingRequest->proposed_dates) > 0)
+                                    <div class="bg-noir-profond/50 rounded-lg p-4">
+                                        <h4 class="font-semibold text-ivoire-text/80 text-sm mb-2">📅 Dates proposées</h4>
+                                        <div class="flex flex-wrap gap-2">
+                                            @foreach ($bookingRequest->proposed_dates as $dateProposed)
+                                                <span
+                                                    class="px-3 py-1 bg-beige-peau/20 text-beige-peau rounded-full text-sm font-medium">
+                                                    {{ \Carbon\Carbon::parse($dateProposed['date'])->format('l d/m/Y') }}
+                                                    @if ($dateProposed['period'])
+                                                        -
+                                                        {{ $dateProposed['period'] === 'morning' ? 'Matin' : 'Après-midi' }}
+                                                    @endif
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+
+                                <!-- 🎨 Phase création -->
+                                @if ($bookingRequest->included_design_versions)
+                                    <div class="bg-noir-profond/50 rounded-lg p-4">
+                                        <h4 class="font-semibold text-ivoire-text/80 text-sm mb-2">🎨 Phase création</h4>
+                                        <div class="grid grid-cols-2 gap-3 text-sm">
+                                            <div>
+                                                <span class="text-ivoire-text/60">Dessins inclus :</span>
+                                                <span
+                                                    class="text-ivoire-text font-semibold ml-2">{{ $bookingRequest->included_design_versions }}</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-ivoire-text/60">Modifs/dessin :</span>
+                                                <span
+                                                    class="text-ivoire-text font-semibold ml-2">{{ $bookingRequest->modifications_per_design ?? 2 }}</span>
+                                @endif
+
+                                <!-- Acompte -->
+                                @if ($bookingRequest->total_deposit_amount)
+                                    <div class="bg-noir-profond/50 rounded-lg p-4">
+                                        <h4 class="font-semibold text-ivoire-text mb-2">Acompte</h4>
+                                        <div class="space-y-2 text-sm">
+                                            <div class="flex justify-between">
+                                                <span class="text-ivoire-text/60">Montant :</span>
+                                                <span
+                                                    class="text-ivoire-text font-semibold">{{ number_format($bookingRequest->total_deposit_amount, 2, ',', ' ') }}€</span>
+                                            </div>
+                                            @if ($bookingRequest->client_payment_deadline)
+                                                <div class="flex justify-between">
+                                                    <span class="text-ivoire-text/60">Date limite :</span>
+                                                    <span class="text-ivoire-text">
+                                                        {{ is_string($bookingRequest->client_payment_deadline)
+                                                            ? \Carbon\Carbon::parse($bookingRequest->client_payment_deadline)->format('d/m/Y')
+                                                            : $bookingRequest->client_payment_deadline->format('d/m/Y') }}
+                                                    </span>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- SECTION ACTIONS - Pour statut ACCEPTED -->
+                    @if ($bookingRequest->status->value === \App\Enums\BookingRequestStatus::ACCEPTED->value)
+                        <div class="bg-titane/20 rounded-xl p-6 border border-titane/30">
+                            <h3 class="text-lg font-bold text-ivoire-text mb-4">Actions</h3>
+                            <div class="space-y-3">
+                                <!-- Chat avec l'artiste -->
+                                @if ($bookingRequest->conversation)
+                                    <a href="{{ route('client.chat', $bookingRequest->conversation) }}"
+                                        class="block w-full px-4 py-3 bg-beige-peau text-noir-profond rounded-xl font-bold text-center hover:bg-beige-peau/90 transition-all">
+                                        💬 Discuter avec l'artiste
+                                    </a>
+                                @endif
+
+                                <!-- Annulation -->
+                                <form action="{{ route('client.booking-request.cancel', $bookingRequest) }}"
+                                    method="POST">
+                                    @csrf
+                                    <button type="submit"
+                                        onclick="return confirm('Annuler cette demande ? Cette action est irréversible.')"
+                                        class="block w-full px-4 py-3 bg-rouge-alerte/20 border border-rouge-alerte/30 text-rouge-alerte rounded-xl font-semibold text-center hover:bg-rouge-alerte/30 transition-all">
+                                        ✕ Annuler la demande
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    @endif
 
                     <!-- Timeline -->
                     <div class="bg-titane/20 rounded-xl p-6 border border-titane/30">

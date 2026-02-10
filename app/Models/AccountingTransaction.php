@@ -12,20 +12,36 @@ class AccountingTransaction extends Model
     use HasFactory;
 
     protected $fillable = [
+        // Relations
+        'booking_request_id',
         'user_id',
-        'studio_id',
-        'reference',
-        'type',
-        'category',
+
+        // Transaction details
+        'type', // 'deposit', 'final_payment', 'refund', 'commission', 'surcharge'
         'amount',
         'currency',
+        'status', // 'pending', 'completed', 'failed', 'refunded'
+        'payment_method', // 'stripe', 'cash', 'bank_transfer', etc.
+
+        // Stripe integration
+        'stripe_payment_intent_id',
+        'stripe_session_id',
+        'stripe_charge_id',
+        'receipt_url',
+
+        // Additional data
+        'metadata',
         'description',
+        'processed_at',
+
+        // Legacy fields (kept for compatibility)
+        'studio_id',
+        'reference',
+        'category',
         'notes',
         'transaction_date',
         'due_date',
         'paid_date',
-        'status',
-        'payment_method',
         'appointment_id',
         'client_id',
         'purchase_order_id',
@@ -43,255 +59,335 @@ class AccountingTransaction extends Model
         'due_date' => 'date',
         'paid_date' => 'date',
         'attachments' => 'array',
+        'metadata' => 'array',
+        'processed_at' => 'datetime',
     ];
+
     protected static function booted()
     {
         static::creating(function ($transaction) {
             // Auto-calcul TVA selon pays tatoueur
-            if (!$transaction->tax_rate) {
-                $transaction->tax_rate = $transaction->tattooer->getTaxRate();
+            if ($transaction->tax_rate === null) {
+                $transaction->tax_rate = 0.20; // TVA France 20%
             }
 
-            if (!$transaction->tax_amount) {
-                $transaction->tax_amount = $transaction->amount * ($transaction->tax_rate / 100);
+            // Auto-calcul montant avec taxe
+            if ($transaction->tax_amount === null) {
+                $transaction->tax_amount = $transaction->amount * $transaction->tax_rate;
+            }
+
+            if ($transaction->amount_with_tax === null) {
+                $transaction->amount_with_tax = $transaction->amount + $transaction->tax_amount;
             }
         });
     }
 
-    // ===== CONSTANTES =====
+    // ===========================================
+    // RELATIONS
+    // ===========================================
 
-    const TYPE_INCOME = 'income';
-    const TYPE_EXPENSE = 'expense';
-    const TYPE_TAX_PAYMENT = 'tax_payment';
-    const TYPE_TRANSFER = 'transfer';
-
-    const TYPES = [
-        self::TYPE_INCOME => 'Revenu',
-        self::TYPE_EXPENSE => 'Dépense',
-        self::TYPE_TAX_PAYMENT => 'Paiement taxes',
-        self::TYPE_TRANSFER => 'Transfert',
-    ];
-
-    const CATEGORY_APPOINTMENT = 'appointment';
-    const CATEGORY_PRODUCT_SALE = 'product_sale';
-    const CATEGORY_EQUIPMENT = 'equipment';
-    const CATEGORY_RENT = 'rent';
-    const CATEGORY_UTILITY = 'utility';
-    const CATEGORY_MARKETING = 'marketing';
-    const CATEGORY_TAX = 'tax';
-    const CATEGORY_OTHER = 'other';
-
-    const CATEGORIES = [
-        self::CATEGORY_APPOINTMENT => 'Rendez-vous',
-        self::CATEGORY_PRODUCT_SALE => 'Vente produits',
-        self::CATEGORY_EQUIPMENT => 'Équipement',
-        self::CATEGORY_RENT => 'Loyer',
-        self::CATEGORY_UTILITY => 'Charges',
-        self::CATEGORY_MARKETING => 'Marketing',
-        self::CATEGORY_TAX => 'Taxes',
-        self::CATEGORY_OTHER => 'Autre',
-    ];
-
-    const STATUS_DRAFT = 'draft';
-    const STATUS_PENDING = 'pending';
-    const STATUS_PAID = 'paid';
-    const STATUS_OVERDUE = 'overdue';
-    const STATUS_CANCELLED = 'cancelled';
-
-    const STATUSES = [
-        self::STATUS_DRAFT => 'Brouillon',
-        self::STATUS_PENDING => 'En attente',
-        self::STATUS_PAID => 'Payé',
-        self::STATUS_OVERDUE => 'En retard',
-        self::STATUS_CANCELLED => 'Annulé',
-    ];
-
-    // ===== RELATIONS =====
-
-    public function tattooer(): BelongsTo
+    /**
+     * Relation avec la booking request
+     */
+    public function bookingRequest(): BelongsTo
     {
-        return $this->belongsTo(Tattooer::class);
+        return $this->belongsTo(BookingRequest::class);
     }
 
-    public function studio(): BelongsTo
+    /**
+     * Relation avec l'utilisateur (payeur)
+     */
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(Studio::class);
+        return $this->belongsTo(User::class);
     }
 
-    public function appointment(): BelongsTo
-    {
-        return $this->belongsTo(Appointment::class);
-    }
-
+    /**
+     * Relation avec le client (legacy)
+     */
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);
     }
 
-    public function purchaseOrder(): BelongsTo
+    /**
+     * Relation avec le studio (legacy)
+     */
+    public function studio(): BelongsTo
     {
-        return $this->belongsTo(PurchaseOrder::class);
+        return $this->belongsTo(Studio::class);
     }
 
-    // ===== SCOPES =====
-
-    public function scopeIncome($query)
+    /**
+     * Relation avec l'appointment (legacy)
+     */
+    public function appointment(): BelongsTo
     {
-        return $query->where('type', self::TYPE_INCOME);
+        return $this->belongsTo(Appointment::class);
     }
 
-    public function scopeExpense($query)
+    // ===========================================
+    // SCOPES
+    // ===========================================
+
+    /**
+     * Transactions de type acompte
+     */
+    public function scopeDeposits($query)
     {
-        return $query->where('type', self::TYPE_EXPENSE);
+        return $query->where('type', 'deposit');
     }
 
-    public function scopeForTattooer($query, int $userId)
+    /**
+     * Transactions de type paiement final
+     */
+    public function scopeFinalPayments($query)
+    {
+        return $query->where('type', 'final_payment');
+    }
+
+    /**
+     * Transactions de type remboursement
+     */
+    public function scopeRefunds($query)
+    {
+        return $query->where('type', 'refund');
+    }
+
+    /**
+     * Transactions complétées
+     */
+    public function scopeCompleted($query)
+    {
+        return $query->where('status', 'completed');
+    }
+
+    /**
+     * Transactions échouées
+     */
+    public function scopeFailed($query)
+    {
+        return $query->where('status', 'failed');
+    }
+
+    /**
+     * Transactions en attente
+     */
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    /**
+     * Transactions Stripe
+     */
+    public function scopeStripe($query)
+    {
+        return $query->where('payment_method', 'stripe');
+    }
+
+    /**
+     * Transactions pour un utilisateur
+     */
+    public function scopeForUser($query, $userId)
     {
         return $query->where('user_id', $userId);
     }
 
-    public function scopeForStudio($query, int $studioId)
-    {
-        return $query->where('studio_id', $studioId);
-    }
-
-    public function scopeBetween($query, $startDate, $endDate)
-    {
-        return $query->whereBetween('transaction_date', [$startDate, $endDate]);
-    }
-
-    public function scopeUnpaid($query)
-    {
-        return $query->whereIn('status', [self::STATUS_DRAFT, self::STATUS_PENDING]);
-    }
-
-    public function scopeOverdue($query)
-    {
-        return $query->where('status', self::STATUS_OVERDUE)
-            ->orWhere(function ($q) {
-                $q->whereIn('status', [self::STATUS_DRAFT, self::STATUS_PENDING])
-                  ->where('due_date', '<', now());
-            });
-    }
-
-    // ===== MÉTHODES MÉTIER =====
+    // ===========================================
+    // MÉTHODES
+    // ===========================================
 
     /**
-     * Vérifie si la transaction est un revenu
+     * Vérifier si la transaction est un acompte
      */
-    public function isIncome(): bool
+    public function isDeposit(): bool
     {
-        return $this->type === self::TYPE_INCOME;
+        return $this->type === 'deposit';
     }
 
     /**
-     * Vérifie si la transaction est une dépense
+     * Vérifier si la transaction est un remboursement
      */
-    public function isExpense(): bool
+    public function isRefund(): bool
     {
-        return $this->type === self::TYPE_EXPENSE;
+        return $this->type === 'refund';
     }
 
     /**
-     * Vérifie si la transaction est payée
+     * Vérifier si la transaction est complétée
      */
-    public function isPaid(): bool
+    public function isCompleted(): bool
     {
-        return $this->status === self::STATUS_PAID;
+        return $this->status === 'completed';
     }
 
     /**
-     * Vérifie si la transaction est en retard
+     * Vérifier si la transaction a échoué
      */
-    public function isOverdue(): bool
+    public function isFailed(): bool
     {
-        return $this->status === self::STATUS_OVERDUE ||
-               ($this->due_date && $this->due_date->isPast() && !$this->isPaid());
+        return $this->status === 'failed';
     }
 
     /**
-     * Marque comme payé
+     * Obtenir le montant total (avec taxe)
      */
-    public function markAsPaid(string $paymentMethod = null): void
+    public function getTotalAmount(): float
+    {
+        return $this->amount_with_tax ?? ($this->amount + ($this->tax_amount ?? 0));
+    }
+
+    /**
+     * Obtenir le label du type de transaction
+     */
+    public function getTypeLabel(): string
+    {
+        return match($this->type) {
+            'deposit' => 'Acompte',
+            'final_payment' => 'Paiement final',
+            'refund' => 'Remboursement',
+            'commission' => 'Commission',
+            'surcharge' => 'Supplément',
+            default => ucfirst($this->type),
+        };
+    }
+
+    /**
+     * Obtenir le label du statut
+     */
+    public function getStatusLabel(): string
+    {
+        return match($this->status) {
+            'pending' => 'En attente',
+            'completed' => 'Complétée',
+            'failed' => 'Échouée',
+            'refunded' => 'Remboursée',
+            default => ucfirst($this->status),
+        };
+    }
+
+    /**
+     * Obtenir la couleur du statut pour l'UI
+     */
+    public function getStatusColor(): string
+    {
+        return match($this->status) {
+            'pending' => 'yellow',
+            'completed' => 'green',
+            'failed' => 'red',
+            'refunded' => 'orange',
+            default => 'gray',
+        };
+    }
+
+    /**
+     * Marquer comme complétée
+     */
+    public function markAsCompleted(): void
     {
         $this->update([
-            'status' => self::STATUS_PAID,
-            'paid_date' => now(),
-            'payment_method' => $paymentMethod,
+            'status' => 'completed',
+            'processed_at' => now(),
         ]);
     }
 
     /**
-     * Génère une référence unique
+     * Marquer comme échouée
      */
-    public static function generateReference(string $type, string $category): string
+    public function markAsFailed(): void
     {
-        $prefix = '';
-
-        if ($type === self::TYPE_INCOME) {
-            $prefix = 'INC';
-        } elseif ($type === self::TYPE_EXPENSE) {
-            $prefix = 'EXP';
-        } elseif ($type === self::TYPE_TAX_PAYMENT) {
-            $prefix = 'TAX';
-        }
-
-        $categoryCode = strtoupper(substr($category, 0, 3));
-        $date = now()->format('Ymd');
-        $sequence = str_pad(mt_rand(1, 999), 3, '0', STR_PAD_LEFT);
-
-        return "{$prefix}-{$categoryCode}-{$date}-{$sequence}";
+        $this->update([
+            'status' => 'failed',
+            'processed_at' => now(),
+        ]);
     }
 
     /**
-     * Crée une transaction depuis un rendez-vous
+     * Marquer comme remboursée
      */
-    public static function createFromAppointment(Appointment $appointment): self
+    public function markAsRefunded(): void
     {
-        return self::create([
-            'user_id' => $appointment->user_id,
-            'client_id' => $appointment->client_id,
-            'appointment_id' => $appointment->id,
-            'reference' => self::generateReference(self::TYPE_INCOME, self::CATEGORY_APPOINTMENT),
-            'type' => self::TYPE_INCOME,
-            'category' => self::CATEGORY_APPOINTMENT,
-            'amount' => $appointment->total_price,
-            'description' => "Tatouage - {$appointment->bookingRequest->tattoo_size} sur {$appointment->bookingRequest->body_zone}",
-            'transaction_date' => $appointment->start_time->toDateString(),
-            'status' => self::STATUS_PAID,
+        $this->update([
+            'status' => 'refunded',
+            'processed_at' => now(),
+        ]);
+    }
+
+    /**
+     * Obtenir l'URL du reçu
+     */
+    public function getReceiptUrl(): ?string
+    {
+        return $this->receipt_url ?? $this->metadata['receipt_url'] ?? null;
+    }
+
+    /**
+     * Vérifier si la transaction a un reçu
+     */
+    public function hasReceipt(): bool
+    {
+        return !empty($this->getReceiptUrl());
+    }
+
+    /**
+     * Obtenir les métadonnées formatées
+     */
+    public function getFormattedMetadata(): array
+    {
+        return $this->metadata ?? [];
+    }
+
+    /**
+     * Ajouter des métadonnées
+     */
+    public function addMetadata(array $data): void
+    {
+        $currentMetadata = $this->metadata ?? [];
+        $newMetadata = array_merge($currentMetadata, $data);
+
+        $this->update(['metadata' => $newMetadata]);
+    }
+
+    /**
+     * Créer une transaction depuis une session Stripe
+     */
+    public static function createFromStripeSession($session, BookingRequest $bookingRequest, string $type = 'deposit'): self
+    {
+        return static::create([
+            'booking_request_id' => $bookingRequest->id,
+            'user_id' => $bookingRequest->client->user_id,
+            'type' => $type,
+            'amount' => $bookingRequest->total_deposit_amount,
+            'currency' => 'eur',
+            'status' => 'completed',
             'payment_method' => 'stripe',
-            'tax_rate' => 20,
-            'tax_amount' => $appointment->total_price * 0.20,
+            'stripe_session_id' => $session->id,
+            'stripe_payment_intent_id' => $session->payment_intent,
+            'description' => "Acompte pour demande #{$bookingRequest->id}",
+            'processed_at' => now(),
         ]);
     }
 
     /**
-     * Calcule le solde (revenus - dépenses)
+     * Créer une transaction de remboursement
      */
-    public static function getBalance(int $tattooerId = null, int $studioId = null, \Carbon\Carbon $startDate = null, \Carbon\Carbon $endDate = null): array
+    public static function createRefund(BookingRequest $bookingRequest, float $amount, string $reason = ''): self
     {
-        $query = self::query();
-
-        if ($tattooerId) {
-            $query->where('user_id', $tattooerId);
-        }
-
-        if ($studioId) {
-            $query->where('studio_id', $studioId);
-        }
-
-        if ($startDate && $endDate) {
-            $query->whereBetween('transaction_date', [$startDate, $endDate]);
-        }
-
-        $income = $query->income()->sum('amount');
-        $expense = $query->expense()->sum('amount');
-
-        return [
-            'total_income' => $income,
-            'total_expense' => $expense,
-            'net_balance' => $income - $expense,
-            'profit_margin' => $income > 0 ? (($income - $expense) / $income) * 100 : 0,
-        ];
+        return static::create([
+            'booking_request_id' => $bookingRequest->id,
+            'user_id' => $bookingRequest->client->user_id,
+            'type' => 'refund',
+            'amount' => -$amount, // Négatif pour les remboursements
+            'currency' => 'eur',
+            'status' => 'completed',
+            'payment_method' => 'stripe',
+            'description' => "Remboursement pour demande #{$bookingRequest->id}",
+            'metadata' => [
+                'refund_reason' => $reason,
+                'original_amount' => $bookingRequest->total_deposit_amount,
+            ],
+            'processed_at' => now(),
+        ]);
     }
 }

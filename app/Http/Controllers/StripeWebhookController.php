@@ -3,126 +3,329 @@
 namespace App\Http\Controllers;
 
 use App\Models\BookingRequest;
+use App\Models\AccountingTransaction;
+use App\Models\Conversation;
+use App\Enums\BookingRequestStatus;
+use App\Enums\ConversationStatus;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Stripe\Webhook;
 use Stripe\Exception\SignatureVerificationException;
+use Stripe\Stripe;
 
 class StripeWebhookController extends Controller
 {
     /**
      * Gérer les webhooks Stripe
      *
-     * POST /api/stripe/webhook
+     * POST /webhooks/stripe
      */
     public function handleWebhook(Request $request)
     {
         $payload = $request->getContent();
         $sigHeader = $request->header('Stripe-Signature');
         $webhookSecret = config('services.stripe.webhook_secret');
-        
+
         try {
             $event = Webhook::constructEvent($payload, $sigHeader, $webhookSecret);
         } catch (SignatureVerificationException $e) {
             Log::error('Webhook Stripe: Signature invalide', ['error' => $e->getMessage()]);
             return response()->json(['error' => 'Invalid signature'], 400);
         }
-        
+
+        // Logger l'événement reçu
+        Log::info('Webhook Stripe reçu', [
+            'type' => $event->type,
+            'id' => $event->id,
+        ]);
+
         // Gérer événements
         switch ($event->type) {
             case 'checkout.session.completed':
                 $this->handleCheckoutCompleted($event->data->object);
                 break;
-                
+
             case 'payment_intent.succeeded':
                 $this->handlePaymentSucceeded($event->data->object);
                 break;
-                
+
             case 'payment_intent.payment_failed':
                 $this->handlePaymentFailed($event->data->object);
                 break;
-                
+
+            case 'charge.refunded':
+                $this->handleChargeRefunded($event->data->object);
+                break;
+
+            case 'invoice.payment_succeeded':
+                $this->handleInvoicePaymentSucceeded($event->data->object);
+                break;
+
+            case 'invoice.payment_failed':
+                $this->handleInvoicePaymentFailed($event->data->object);
+                break;
+
             default:
-                Log::info('Stripe event non géré: ' . $event->type);
+                Log::info('Webhook Stripe: Événement non géré', ['type' => $event->type]);
+                break;
         }
-        
-        return response()->json(['status' => 'success']);
+
+        return response()->json(['status' => 'ok']);
     }
-    
+
     /**
-     * Gérer la complétion d'une session checkout
+     * Gérer la complétion de session checkout
      */
-    protected function handleCheckoutCompleted($session)
+    private function handleCheckoutCompleted($session)
     {
-        $bookingRequestId = $session->metadata->booking_request_id ?? null;
-        
-        if (!$bookingRequestId) {
-            Log::error('Webhook Stripe: booking_request_id manquant');
-            return;
-        }
-        
-        $bookingRequest = BookingRequest::find($bookingRequestId);
-        
-        if (!$bookingRequest) {
-            Log::error('Webhook Stripe: BookingRequest non trouvé', ['id' => $bookingRequestId]);
-            return;
-        }
-        
-        // Vérifier si déjà payé
-        if ($bookingRequest->deposit_paid_at) {
-            Log::info('Acompte déjà marqué comme payé', ['booking_request_id' => $bookingRequestId]);
-            return;
-        }
-        
-        // Marquer acompte payé
-        $bookingRequest->update([
-            'status' => BookingRequest::STATUS_DEPOSIT_PAID,
-            'deposit_paid_at' => now(),
-            'stripe_payment_intent_id' => $session->payment_intent,
+        DB::transaction(function () use ($session) {
+            try {
+                // Récupérer la booking request depuis la session
+                $bookingRequestId = $session->metadata['booking_request_id'] ?? null;
+
+                if (!$bookingRequestId) {
+                    Log::warning('Webhook: booking_request_id manquant dans la session', ['session_id' => $session->id]);
+                    return;
+                }
+
+                $bookingRequest = BookingRequest::find($bookingRequestId);
+
+                if (!$bookingRequest) {
+                    Log::warning('Webhook: BookingRequest non trouvée', ['booking_request_id' => $bookingRequestId]);
+                    return;
+                }
+
+                // Vérifier si le paiement est déjà traité (idempotence)
+                if ($bookingRequest->deposit_paid_at) {
+                    Log::info('Webhook: Paiement déjà traité (idempotent)', ['booking_request_id' => $bookingRequestId]);
+                    return;
+                }
+
+                // Mettre à jour la booking request
+                $bookingRequest->update([
+                    'status' => BookingRequestStatus::DEPOSIT_PAID,
+                    'deposit_paid_at' => now(),
+                    'stripe_payment_intent_id' => $session->payment_intent,
+                ]);
+
+                // Créer la transaction comptable
+                $transaction = AccountingTransaction::createFromStripeSession($session, $bookingRequest, 'deposit');
+
+                // Récupérer l'URL du reçu
+                $this->storeReceiptUrl($transaction, $session->payment_intent);
+
+                // Mettre à jour la conversation
+                $this->updateConversationAfterPayment($bookingRequest);
+
+                // Créer l'appointment si la date est définie
+                if ($bookingRequest->appointment_datetime) {
+                    $this->createAppointmentFromBookingRequest($bookingRequest);
+                }
+
+                // Logger le succès
+                Log::info('Webhook: Paiement d\'acompte traité avec succès', [
+                    'booking_request_id' => $bookingRequestId,
+                    'transaction_id' => $transaction->id,
+                    'amount' => $transaction->amount,
+                ]);
+
+            } catch (\Exception $e) {
+                Log::error('Webhook: Erreur lors du traitement du paiement', [
+                    'error' => $e->getMessage(),
+                    'session_id' => $session->id,
+                    'trace' => $e->getTraceAsString(),
+                ]);
+                throw $e;
+            }
+        });
+    }
+
+    /**
+     * Gérer le succès du paiement intent
+     */
+    private function handlePaymentSucceeded($paymentIntent)
+    {
+        Log::info('Webhook: Payment Intent succeeded', [
+            'payment_intent_id' => $paymentIntent->id,
+            'amount' => $paymentIntent->amount,
         ]);
-        
-        // Prolonger chat jusqu'au RDV (ou +30 jours si pas encore fixé)
-        $chatExpiresAt = $bookingRequest->appointment_datetime 
-            ?? now()->addDays(30);
-        
-        $bookingRequest->update([
-            'chat_closes_at' => $chatExpiresAt,
+
+        // Le traitement principal est fait dans handleCheckoutCompleted
+        // Mais on peut ajouter de la logique supplémentaire ici si nécessaire
+    }
+
+    /**
+     * Gérer l'échec du paiement
+     */
+    private function handlePaymentFailed($paymentIntent)
+    {
+        Log::warning('Webhook: Payment Intent failed', [
+            'payment_intent_id' => $paymentIntent->id,
+            'amount' => $paymentIntent->amount,
+            'last_payment_error' => $paymentIntent->last_payment_error->message ?? 'Unknown error',
         ]);
-        
-        // Mettre à jour conversation
-        if ($bookingRequest->conversation) {
-            $bookingRequest->conversation->update([
-                'expiry_type' => 'permanent',
-                'expires_at' => $chatExpiresAt,
+
+        // Marquer la transaction comme échouée si elle existe
+        $transaction = AccountingTransaction::where('stripe_payment_intent_id', $paymentIntent->id)->first();
+
+        if ($transaction) {
+            $transaction->markAsFailed();
+        }
+    }
+
+    /**
+     * Gérer le remboursement
+     */
+    private function handleChargeRefunded($charge)
+    {
+        Log::info('Webhook: Charge refunded', [
+            'charge_id' => $charge->id,
+            'amount' => $charge->amount,
+            'refunded' => $charge->refunded,
+        ]);
+
+        DB::transaction(function () use ($charge) {
+            // Récupérer la transaction originale
+            $transaction = AccountingTransaction::where('stripe_charge_id', $charge->id)->first();
+
+            if ($transaction) {
+                // Créer une transaction de remboursement
+                $refundTransaction = AccountingTransaction::createRefund(
+                    $transaction->bookingRequest,
+                    abs($charge->amount),
+                    $charge->metadata['reason'] ?? 'Remboursement client'
+                );
+
+                // Mettre à jour la booking request si nécessaire
+                $bookingRequest = $transaction->bookingRequest;
+                if ($bookingRequest) {
+                    $bookingRequest->update([
+                        'refund_amount' => abs($charge->amount),
+                    ]);
+                }
+
+                Log::info('Webhook: Remboursement traité', [
+                    'original_transaction_id' => $transaction->id,
+                    'refund_transaction_id' => $refundTransaction->id,
+                ]);
+            }
+        });
+    }
+
+    /**
+     * Gérer le succès de paiement d'invoice
+     */
+    private function handleInvoicePaymentSucceeded($invoice)
+    {
+        Log::info('Webhook: Invoice payment succeeded', [
+            'invoice_id' => $invoice->id,
+            'amount' => $invoice->amount_paid,
+        ]);
+    }
+
+    /**
+     * Gérer l'échec de paiement d'invoice
+     */
+    private function handleInvoicePaymentFailed($invoice)
+    {
+        Log::warning('Webhook: Invoice payment failed', [
+            'invoice_id' => $invoice->id,
+            'attempt_count' => $invoice->attempt_count,
+        ]);
+    }
+
+    /**
+     * Stocker l'URL du reçu Stripe
+     */
+    private function storeReceiptUrl(AccountingTransaction $transaction, string $paymentIntentId): void
+    {
+        try {
+            $stripe = new Stripe(config('services.stripe.secret_key'));
+            $paymentIntent = $stripe->paymentIntents->retrieve($paymentIntentId);
+
+            if ($paymentIntent->latest_charge) {
+                $charge = $stripe->charges->retrieve($paymentIntent->latest_charge);
+                $receiptUrl = $charge->receipt_url;
+
+                if ($receiptUrl) {
+                    $transaction->addMetadata(['receipt_url' => $receiptUrl]);
+                    $transaction->update(['receipt_url' => $receiptUrl]);
+
+                    Log::info('Webhook: URL du reçu stockée', [
+                        'transaction_id' => $transaction->id,
+                        'receipt_url' => $receiptUrl,
+                    ]);
+                }
+            }
+        } catch (\Exception $e) {
+            Log::warning('Webhook: Impossible de récupérer l\'URL du reçu', [
+                'error' => $e->getMessage(),
+                'payment_intent_id' => $paymentIntentId,
             ]);
         }
-        
-        // TODO: Notification tattooer
-        // Mail::to($bookingRequest->bookable->user)->send(new DepositPaid($bookingRequest));
-        
-        Log::info('Acompte payé avec succès', [
-            'booking_request_id' => $bookingRequestId,
-            'amount' => $session->amount_total / 100,
-            'payment_intent' => $session->payment_intent
+    }
+
+    /**
+     * Mettre à jour la conversation après paiement
+     */
+    private function updateConversationAfterPayment(BookingRequest $bookingRequest): void
+    {
+        $conversation = $bookingRequest->conversation;
+
+        if (!$conversation) {
+            return;
+        }
+
+        // Passer en FULL_ACCESS après paiement de l'acompte
+        $conversation->update([
+            'status' => ConversationStatus::FULL_ACCESS,
+            'deposit_deadline_at' => null, // Plus besoin de deadline
+            'expires_at' => $bookingRequest->appointment_datetime
+                ? $bookingRequest->appointment_datetime->addDays(30) // J+30 post-RDV
+                : now()->addMonths(6), // 6 mois si pas de RDV
+        ]);
+
+        // Envoyer un message système
+        $conversation->messages()->create([
+            'sender_id' => null,
+            'sender_type' => 'system',
+            'content' => "✅ Acompte reçu !\n\nMerci pour votre paiement de {$bookingRequest->total_deposit_amount}€.\n\nVous pouvez maintenant échanger des images avec le tatoueur et discuter des détails de votre tatouage.",
         ]);
     }
-    
+
     /**
-     * Gérer le succès d'un paiement intent
+     * Créer un appointment depuis la booking request
      */
-    protected function handlePaymentSucceeded($paymentIntent)
+    private function createAppointmentFromBookingRequest(BookingRequest $bookingRequest): void
     {
-        Log::info('Payment intent succeeded', ['id' => $paymentIntent->id]);
-    }
-    
-    /**
-     * Gérer l'échec d'un paiement intent
-     */
-    protected function handlePaymentFailed($paymentIntent)
-    {
-        Log::warning('Payment intent failed', [
-            'id' => $paymentIntent->id,
-            'last_payment_error' => $paymentIntent->last_payment_error ?? null
+        // Vérifier si un appointment existe déjà
+        if ($bookingRequest->appointment) {
+            return;
+        }
+
+        // Créer l'appointment
+        $appointment = $bookingRequest->appointment()->create([
+            'client_id' => $bookingRequest->client_id,
+            'bookable_type' => $bookingRequest->bookable_type,
+            'bookable_id' => $bookingRequest->bookable_id,
+            'start_datetime' => $bookingRequest->appointment_datetime,
+            'end_datetime' => $bookingRequest->appointment_datetime->addMinutes($bookingRequest->appointment_duration_minutes ?? 120),
+            'duration_minutes' => $bookingRequest->appointment_duration_minutes ?? 120,
+            'total_price' => $bookingRequest->estimated_total_price,
+            'deposit_amount' => $bookingRequest->total_deposit_amount,
+            'status' => 'confirmed',
+        ]);
+
+        // Mettre à jour la booking request
+        $bookingRequest->update([
+            'appointment_id' => $appointment->id,
+        ]);
+
+        Log::info('Webhook: Appointment créé automatiquement', [
+            'booking_request_id' => $bookingRequest->id,
+            'appointment_id' => $appointment->id,
+            'appointment_datetime' => $appointment->start_datetime,
         ]);
     }
 }

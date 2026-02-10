@@ -2,16 +2,16 @@
 
 namespace App\Filament\Admin\Resources\Tattooers\Schemas;
 
-use Filament\Schemas\Schema;
-use Filament\Schemas\Components\Section;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Toggle;
-use Filament\Forms\Components\Textarea;
+use Filament\Actions\Action;
+use Filament\Forms;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
-use Filament\Actions\Action;
-
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 
 class TattooerForm
 {
@@ -84,7 +84,7 @@ class TattooerForm
                     ->description('Gestion du statut et validation du compte')
                     ->schema([
 
-                        Select::make('user.status')
+                        Select::make('user_status')
                             ->label('Statut du compte')
                             ->required()
                             ->options([
@@ -94,7 +94,12 @@ class TattooerForm
                             ])
                             ->native(false)
                             ->helperText('Statut actuel du tatoueur')
-                            ->reactive(),
+                            ->loadStateFromRelationshipsUsing(function ($component, $record) {
+                                if ($record && $record->user) {
+                                    $component->state($record->user->status ?? 'pending_verification');
+                                }
+                            })
+                            ->dehydrated(false), // Ne PAS inclure dans les données du modèle Tattooer
 
                         Toggle::make('has_compliance_badge')
                             ->label('Badge de conformité')

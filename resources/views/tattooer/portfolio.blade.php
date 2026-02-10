@@ -161,26 +161,27 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
                     @php
                         $pairs = collect();
 
-                        // Paires robustes (nouveau format): groupé par pair_id + role
+                        // Paires robustes (nouveau format): groupé par pair_id + type
                         $withPairId = $beforeAfter
                             ->filter(fn($m) => (string) $m->getCustomProperty('pair_id'))
                             ->groupBy(fn($m) => (string) $m->getCustomProperty('pair_id'));
 
                         foreach ($withPairId as $pairId => $items) {
-                            $before = $items->first(fn($m) => $m->getCustomProperty('role') === 'before');
-                            $after = $items->first(fn($m) => $m->getCustomProperty('role') === 'after');
+                            $before = $items->first(fn($m) => $m->getCustomProperty('type') === 'before');
+                            $after = $items->first(fn($m) => $m->getCustomProperty('type') === 'after');
                             if ($before && $after) {
                                 $pairs->push([$before, $after]);
                             }
                         }
 
                         // Fallback legacy: paires par ordre d'upload (2 par 2)
-$legacy = $beforeAfter
-    ->filter(fn($m) => !(string) $m->getCustomProperty('pair_id'))
-    ->sortBy('id')
+                        $legacy = $beforeAfter
+                            ->filter(fn($m) => !(string) $m->getCustomProperty('pair_id'))
+                            ->sortBy('id')
                             ->values()
                             ->chunk(2)
                             ->map(fn($chunk) => $chunk->values());
@@ -255,7 +256,7 @@ $legacy = $beforeAfter
                         <label class="block text-ivoire-text font-semibold mb-2">Photo Avant</label>
                         <label
                             class="block aspect-square border-2 border-dashed border-titane/30 rounded-lg cursor-pointer hover:border-beige-peau transition-colors">
-                            <input type="file" name="after[]" accept="image/*" multiple class="hidden"
+                            <input type="file" name="after" accept="image/*" class="hidden"
                                 onchange="previewImage(this, 'after-preview')">
                             <div id="after-preview"
                                 class="w-full h-full flex items-center justify-center text-ivoire-text/60">
@@ -267,7 +268,7 @@ $legacy = $beforeAfter
                         <label class="block text-ivoire-text font-semibold mb-2">Photo Après</label>
                         <label
                             class="block aspect-square border-2 border-dashed border-titane/30 rounded-lg cursor-pointer hover:border-beige-peau transition-colors">
-                            <input type="file" name="before[]" accept="image/*" multiple class="hidden"
+                            <input type="file" name="before" accept="image/*" class="hidden"
                                 onchange="previewImage(this, 'before-preview')">
                             <div id="before-preview"
                                 class="w-full h-full flex items-center justify-center text-ivoire-text/60">
@@ -379,9 +380,8 @@ $legacy = $beforeAfter
                         const modalFeedback = document.getElementById('before-after-feedback');
                         const formData = new FormData(beforeAfterForm);
 
-                        const beforeInput = beforeAfterForm.querySelector(
-                            'input[type="file"][name="before[]"]');
-                        const afterInput = beforeAfterForm.querySelector('input[type="file"][name="after[]"]');
+                        const beforeInput = beforeAfterForm.querySelector('input[type="file"][name="before"]');
+                        const afterInput = beforeAfterForm.querySelector('input[type="file"][name="after"]');
 
                         const beforeCount = beforeInput && beforeInput.files ? beforeInput.files.length : 0;
                         const afterCount = afterInput && afterInput.files ? afterInput.files.length : 0;

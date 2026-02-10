@@ -20,24 +20,33 @@
             <form action="{{ route('register.client.submit') }}" method="POST" class="bg-gris-fonde rounded-xl p-6 space-y-4">
                 @csrf
 
-                <!-- Prénom -->
-                <div>
-                    <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                        Prénom *
-                    </label>
-                    <input type="text" name="first_name" required
-                        class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors"
-                        placeholder="Jean">
-                </div>
+                <!-- Affichage des erreurs de validation -->
+                @if ($errors->any())
+                    <div class="bg-rouge-alerte/10 border border-rouge-alerte/30 rounded-lg p-4 mb-4">
+                        <div class="text-rouge-alerte text-sm">
+                            <ul class="list-disc list-inside space-y-1">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                @endif
 
-                <!-- Nom -->
+                <!-- Nom complet -->
                 <div>
                     <label class="block text-ivoire-text text-sm font-semibold mb-2">
                         Nom *
                     </label>
-                    <input type="text" name="last_name" required
-                        class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors"
-                        placeholder="Dupont">
+                    <input type="text" name="last_name" placeholder="Ex: Wick"
+                        class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors">
+                </div>
+                <div>
+                    <label class="block text-ivoire-text text-sm font-semibold mb-2">
+                        Prénom *
+                    </label>
+                    <input type="text" name="first_name" placeholder="Ex: Jhon"
+                        class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors">
                 </div>
 
                 <!-- Pseudo -->
@@ -45,10 +54,23 @@
                     <label class="block text-ivoire-text text-sm font-semibold mb-2">
                         Pseudo <span class="text-ivoire-text/50 font-normal">(affiché publiquement)</span>
                     </label>
-                    <input type="text" name="pseudo" placeholder="Ex: Client123"
+                    <input type="text" name="pseudo" required placeholder="Ex: Client123"
                         class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors">
                     <p class="text-ivoire-text/50 text-xs mt-1">
                         Ce pseudo sera affiché sur votre profil public et dans les messages
+                    </p>
+                </div>
+
+                {{-- Date de naissance --}}
+                <div>
+                    <label class="block text-ivoire-text text-sm font-semibold mb-2">
+                        Date de naissance * <span class="text-ivoire-text/50 font-normal">(Minimum 16 ans)</span>
+                    </label>
+                    <input type="date" name="birth_date" required placeholder="Ex: 10/08/2004"
+                        class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors">
+                    <p class="text-ivoire-text/50 text-xs mt-1">
+                        Votre date de naissance ne sera pas affichée sur votre profil public mais sera utilisée pour
+                        vérifier votre âge.
                     </p>
                 </div>
 
@@ -75,21 +97,28 @@
                 <!-- Password -->
                 <div>
                     <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                        Mot de passe *
+                        Mot de passe * <span class="text-ivoire-text/50 font-normal">(8 caractères minimum, 1 majuscule, 1
+                            chiffre, 1 caractère spécial)</span>
                     </label>
                     <input type="password" name="password" required minlength="8"
                         class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors"
                         placeholder="•••••••••">
+                    @error('password')
+                        <p class="text-rouge-alerte text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <!-- Password confirmation -->
                 <div>
                     <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                        Confirmer mot de passe *
+                        Confirmer mot de passe * <span class="text-ivoire-text/50 font-normal">(8 caractères minimum)</span>
                     </label>
                     <input type="password" name="password_confirmation" required minlength="8"
                         class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors"
-                        placeholder="•••••••••">
+                        placeholder="••••••••">
+                    @error('password_confirmation')
+                        <p class="text-rouge-alerte text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <!-- Submit -->

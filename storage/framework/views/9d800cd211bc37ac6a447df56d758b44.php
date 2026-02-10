@@ -11,14 +11,14 @@
                 <div class="flex items-center gap-4 flex-1">
                     <!-- Avatar Spatie -->
                     <div class="w-20 h-20 rounded-full overflow-hidden flex-shrink-0 bg-beige-peau/10">
-                        <img src="<?php echo e($tattooer->getFirstMediaUrl('avatar', 'thumb') ?: asset('images/default-tattooer-avatar.png')); ?>"
+                        <img src="<?php echo e(auth()->user()->getFirstMediaUrl('avatar', 'thumb') ?: asset('images/default-tattooer-avatar.png')); ?>"
                             alt="<?php echo e($tattooer->user->name); ?>" class="w-full h-full object-cover">
                     </div>
 
                     <div>
                         <!-- Pseudo affiché publiquement -->
                         <h1 class="text-3xl font-Satoshi font-bold text-ivoire-text mb-1">
-                            <?php echo e($tattooer->user->name); ?>
+                            <?php echo e($tattooer->user->pseudo ?? $tattooer->user->first_name . ' ' . $tattooer->user->last_name); ?>
 
                         </h1>
 
@@ -43,7 +43,7 @@
 
                             <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tattooer->user->status === 'pending_verification'): ?>
                                 <span
-                                    class="bg-ambre-warning/20 text-ambre-warning px-3 py-1 rounded-full text-xs font-semibold">
+                                    class="bg-orange-attention/20 text-orange-attention px-3 py-1 rounded-full text-xs font-semibold">
                                     ⏳ En attente validation
                                 </span>
                             <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
@@ -91,11 +91,11 @@
                         </a>
                     </div>
 
-                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($portfolio->isNotEmpty()): ?>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!empty($portfolio)): ?>
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                             <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $portfolio; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $media): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <div class="aspect-square rounded-lg overflow-hidden bg-noir-profond">
-                                    <img src="<?php echo e($media->getUrl()); ?>" alt="Portfolio"
+                                    <img src="<?php echo e($media['url']); ?>" alt="Portfolio"
                                         class="w-full h-full object-cover hover:scale-110 transition-transform duration-300">
                                 </div>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
@@ -120,7 +120,8 @@
                     <div class="space-y-3">
                         <div class="flex justify-between py-2 border-b border-titane/20">
                             <span class="text-ivoire-text/50">Nom réel</span>
-                            <span class="text-ivoire-text"><?php echo e($tattooer->user->name); ?></span>
+                            <span
+                                class="text-ivoire-text"><?php echo e($tattooer->user->first_name . ' ' . $tattooer->user->last_name); ?></span>
                         </div>
                         <div class="flex justify-between py-2 border-b border-titane/20">
                             <span class="text-ivoire-text/50">SIRET</span>

@@ -171,7 +171,8 @@
 
     <!-- Template pour carte d'artiste (uniforme) -->
     <template id="artist-card-template">
-        <div class="bg-noir-profond rounded-xl overflow-hidden hover:ring-2 hover:ring-beige-peau transition-all relative">
+        <div
+            class="bg-noir-profond rounded-xl border border-ivoire-text/20 shadow-lg shadow-electric-blue/30 overflow-hidden hover:ring-2 hover:ring-beige-peau hover:shadow-cuivre/50 transition-all relative">
             <!-- Badges (vérifié, top notes uniquement) -->
             <div class="absolute top-2 left-2 space-y-1 z-10">
                 <!-- Badges seront insérés ici -->
@@ -218,10 +219,48 @@
                     <!-- Styles seront insérés ici -->
                 </div>
 
-                <!-- Stats -->
-                <div class="flex justify-between text-ivoire-text/60 text-xs mb-3">
-                    <span class="artist-appointments"></span>
-                    <span class="artist-experience"></span>
+                <!-- Stats complètes -->
+                <div class="space-y-1 text-ivoire-text/60 text-xs mb-3">
+                    <div class="flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="artist-experience"></span>
+                    </div>
+
+                    <div class="flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                            </path>
+                        </svg>
+                        <span class="artist-price"></span>
+                    </div>
+
+                    <div class="flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="artist-wait-time"></span>
+                    </div>
+
+                    <div class="flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="artist-opening-hours"></span>
+                    </div>
+
+                    <div class="flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="artist-open-days"></span>
+                    </div>
                 </div>
 
                 <!-- CTA Buttons -->
@@ -432,7 +471,8 @@
                     card.querySelector('.artist-rating').textContent = artist.rating;
                     card.querySelector('.artist-reviews').textContent = `(${artist.reviews_count} avis)`;
                     card.querySelector('.artist-location').textContent =
-                        `${artist.city}, ${artist.region_label}`;
+                        (artist.region_label || artist.city) + (artist.postal_code ? ` ${artist.postal_code}` :
+                            '');
 
                     // Styles
                     const stylesContainer = card.querySelector('.artist-styles');
@@ -443,11 +483,89 @@
                         stylesContainer.appendChild(badge);
                     });
 
-                    // Stats
-                    card.querySelector('.artist-appointments').textContent =
-                        `${artist.appointments_count} rendez-vous`;
+                    // Stats complètes
                     card.querySelector('.artist-experience').textContent =
                         `${artist.stats.years_experience} ans d'exp`;
+
+                    // Prix minimum
+                    const priceElement = card.querySelector('.artist-price');
+                    if (artist.minimum_price) {
+                        priceElement.textContent = `À partir de ${artist.minimum_price}€`;
+                    } else {
+                        priceElement.textContent = '';
+                    }
+
+                    // Délai d'attente
+                    const waitTimeElement = card.querySelector('.artist-wait-time');
+                    if (artist.wait_time_weeks_min) {
+                        if (artist.wait_time_weeks_max) {
+                            waitTimeElement.textContent =
+                                `${artist.wait_time_weeks_min} à ${artist.wait_time_weeks_max} semaines`;
+                        } else {
+                            waitTimeElement.textContent =
+                                `${artist.wait_time_weeks_min} semaine${artist.wait_time_weeks_min > 1 ? 's' : ''}`;
+                        }
+                    } else {
+                        waitTimeElement.textContent = '';
+                    }
+
+                    // Horaires d'ouverture
+                    const openingHoursElement = card.querySelector('.artist-opening-hours');
+
+                    if (artist.working_hours) {
+                        try {
+                            // Les horaires sont stockés en JSON dans le champ working_hours de la table tattooer
+                            const workingHoursData = typeof artist.working_hours === 'string' ?
+                                JSON.parse(artist.working_hours) :
+                                artist.working_hours;
+
+                            // Jours de la semaine en français (clés du JSON)
+                            const daysOfWeek = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi',
+                                'samedi'
+                            ];
+                            const today = daysOfWeek[new Date().getDay()];
+                            const todayData = workingHoursData[today];
+
+                            if (todayData && todayData.open && todayData.close) {
+                                // Vérifier si actuellement ouvert
+                                const now = new Date();
+                                const currentTime =
+                                    `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+                                const isOpenNow = currentTime >= todayData.open && currentTime <= todayData
+                                    .close;
+
+                                openingHoursElement.textContent = isOpenNow ? '🟢 Ouvert actuellement' :
+                                    '🕐 Horaires disponibles';
+                            } else if (todayData && (todayData.open === null || todayData.close === null)) {
+                                // L'artiste a des horaires mais pas pour aujourd'hui (valeurs null = fermé)
+                                openingHoursElement.textContent = '🔴 Fermé actuellement';
+                            } else {
+                                openingHoursElement.textContent = '🕐 Horaires disponibles';
+                            }
+
+                            // Jours d'ouverture
+                            const openDaysElement = card.querySelector('.artist-open-days');
+                            const openDays = [];
+
+                            daysOfWeek.forEach(day => {
+                                const dayData = workingHoursData[day];
+                                if (dayData && dayData.open && dayData.close) {
+                                    openDays.push(day.charAt(0).toUpperCase() + day.slice(1));
+                                }
+                            });
+
+                            if (openDays.length > 0) {
+                                openDaysElement.textContent = `Ouvert : ${openDays.join(', ')}`;
+                            } else {
+                                openDaysElement.textContent = 'Non spécifié';
+                            }
+
+                        } catch (error) {
+                            openingHoursElement.textContent = '🕐 Horaires disponibles';
+                        }
+                    } else {
+                        openingHoursElement.textContent = '';
+                    }
 
                     // Badges (uniquement vérifié et top notes, pas de badge Pro/Free)
                     const badgesContainer = card.querySelector('.absolute.top-2.left-2');
@@ -479,10 +597,10 @@
                             </span>
                         `;
                     } else if (artist.contact_url) {
-                        // Bouton normal "Contacter"
+                        // Bouton "Prendre RDV"
                         contactContainer.innerHTML = `
                             <x-ui.button variant="primary" size="sm" href="${artist.contact_url}" class="flex-1">
-                                Contacter
+                                Prendre RDV
                             </x-ui.button>
                         `;
                     } else {

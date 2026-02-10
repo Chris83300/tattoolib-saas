@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\SecurityMonitoringService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Cache;
 
 class LoginController extends Controller
 {
@@ -18,6 +20,9 @@ class LoginController extends Controller
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
+
+            // Réinitialiser le compteur d'échecs pour cette IP
+            Cache::forget("failed_login:{$request->ip()}");
 
             $user = Auth::user();
 
@@ -35,6 +40,9 @@ class LoginController extends Controller
                     return redirect()->route('home');
             }
         }
+
+        // Tracker les tentatives échouées
+        app(SecurityMonitoringService::class)->trackFailedLogin($request->ip(), $request->email);
 
         return back()->withErrors([
             'email' => 'Les identifiants fournis ne correspondent pas à nos enregistrements.',

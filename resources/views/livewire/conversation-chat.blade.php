@@ -13,10 +13,10 @@
             <div class="flex items-center space-x-4">
                 <span
                     class="px-3 py-1 rounded-full text-xs font-medium
-                    {{ $bookingRequest->status === 'completed' ? 'bg-green-100 text-green-800' : '' }}
-                    {{ $bookingRequest->status === 'in_progress' ? 'bg-blue-100 text-blue-800' : '' }}
-                    {{ $bookingRequest->status === 'accepted' ? 'bg-yellow-100 text-yellow-800' : '' }}
-                    {{ $bookingRequest->status === 'pending' ? 'bg-gray-100 text-gray-800' : '' }}">
+                    {{ $bookingRequest->status === \App\Enums\BookingRequestStatus::COMPLETED ? 'bg-green-100 text-green-800' : '' }}
+                    {{ $bookingRequest->status === \App\Enums\BookingRequestStatus::IN_PROGRESS ? 'bg-blue-100 text-blue-800' : '' }}
+                    {{ $bookingRequest->status === \App\Enums\BookingRequestStatus::ACCEPTED ? 'bg-yellow-100 text-yellow-800' : '' }}
+                    {{ $bookingRequest->status === \App\Enums\BookingRequestStatus::PENDING ? 'bg-gray-100 text-gray-800' : '' }}">
                     {{ $bookingRequestStatus }}
                 </span>
             </div>

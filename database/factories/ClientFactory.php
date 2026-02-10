@@ -14,7 +14,6 @@ class ClientFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'name' => $this->faker->name,
             'phone' => $this->faker->optional()->phoneNumber,
             'birth_date' => $this->faker->optional()->date('Y-m-d', '-18 years'),
             'email' => $this->faker->optional()->safeEmail,

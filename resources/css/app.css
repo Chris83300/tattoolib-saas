@@ -27,6 +27,8 @@
     --color-vert-succes: #10b981;
     --color-rouge-alerte: #ef4444;
     --color-orange-attention: #f59e0b;
+    --color-ambre-warning: #f59e0b;
+    --color-jaune-alerte: #fbbf24;
 
     /* Typography */
     --font-display: "Satoshi", "Space Grotesk", system-ui, sans-serif;
@@ -160,6 +162,37 @@ img-comparison-slider {
 /* ============================================
    COMPOSANTS DE BASE
    ============================================ */
+/* Background color */
+.bg-noir-profond {
+    background-color: var(--color-noir-profond);
+}
+.bg-beige-peau {
+    background-color: var(--color-beige-peau);
+}
+.bg-gris-fonde {
+    background-color: var(--color-gris-fonde);
+}
+.bg-vert-succes {
+    background-color: var(--color-vert-succes);
+}
+.bg-rouge-alerte {
+    background-color: var(--color-rouge-alerte);
+}
+.bg-ambre-warning {
+    background-color: var(--color-ambre-warning);
+}
+.bg-jaune-alerte {
+    background-color: var(--color-jaune-alerte);
+}
+.bg-orange-attention {
+    background-color: var(--color-orange-attention);
+}
+.bg-beige-fonce {
+    background-color: var(--color-beige-fonce);
+}
+.bg-titane {
+    background-color: var(--color-titane);
+}
 
 /* Backdrop blur pour modals/headers */
 .backdrop-blur-dark {
@@ -260,6 +293,26 @@ select:focus[data-flux-control] {
 .text-titre {
     font-size: 8rem;
     margin-bottom: 6rem;
+}
+
+/* Text colors for status badges */
+.text-jaune-alerte {
+    color: var(--color-jaune-alerte);
+}
+.text-beige-peau {
+    color: var(--color-beige-peau);
+}
+.text-ambre-warning {
+    color: var(--color-ambre-warning);
+}
+.text-vert-succes {
+    color: var(--color-vert-succes);
+}
+.text-rouge-alerte {
+    color: var(--color-rouge-alerte);
+}
+.text-orange-attention {
+    color: var(--color-orange-attention);
 }
 
 @media (max-width: 768px) {

@@ -68,7 +68,7 @@
                                                     class="{{ $expiryInfo['days_remaining'] <= 2 ? 'text-rouge-alerte font-semibold' : 'text-jaune-alerte' }}">
                                                     {{ $expiryInfo['time_remaining'] }} restant(es)
                                                 </span>
-                                                @if ($bookingRequest->status === 'awaiting_deposit')
+                                                @if ($bookingRequest->status->value === 'deposit_requested')
                                                     <a href="{{ route('deposit.payment', $bookingRequest->id) }}"
                                                         class="inline-flex items-center px-3 py-1 bg-beige-peau text-noir-profond rounded text-sm font-medium hover:bg-beige-peau/90 transition-colors">
                                                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor"
@@ -91,18 +91,153 @@
 
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-3xl font-bold text-ivoire-text">Chat avec {{ $bookingRequest->client->user->name ?? $bookingRequest->client->full_name }}
+                    <h1 class="text-3xl font-bold text-ivoire-text">Chat avec {{ $bookingRequest->client->user->pseudo ?? $bookingRequest->client->user->first_name . ' ' . $bookingRequest->client->user->last_name ?? $bookingRequest->client->full_name }}
                     </h1>
                     <p class="text-ivoire-text/70 mt-1">Projet: {{ $bookingRequest->tattoo_description }}</p>
                 </div>
 
-                @if ($bookingRequest->status === 'accepted')
-                    <a href="{{ route('booking-request.deposit.request', $bookingRequest) }}"
-                        class="px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
-                        💰 Demander acompte
-                    </a>
+                @if ($bookingRequest->status->value === 'accepted' && !$bookingRequest->deposit_paid_at)
+                    @if ($bookingRequest->deposit_deadline)
+                        @php
+                            $deadline = is_string($bookingRequest->deposit_deadline)
+                                ? \Carbon\Carbon::parse($bookingRequest->deposit_deadline)
+                                : $bookingRequest->deposit_deadline;
+                            $daysRemaining = (int)ceil(now()->diffInHours($deadline) / 24);
+                        @endphp
+                        <div class="px-4 py-2 bg-orange-attention/10 border border-orange-attention/30 rounded-lg">
+                            <p class="text-orange-attention text-sm">
+                                <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Délai : <span class="text-ivoire-text">{{ $daysRemaining > 0 ? $daysRemaining . ' jour(s) restant(s)' : 'Dernier jour' }}</span>
+                                @if ($daysRemaining < 0)
+                                    <span class="block mt-1 text-rouge-alerte font-semibold">⚠️ Délai expiré</span>
+                                @elseif ($daysRemaining <= 1)
+                                    <span class="block mt-1 text-rouge-alerte font-semibold">⚠️ Urgent</span>
+                                @endif
+                            </p>
+                        </div>
+                    @elseif ($bookingRequest->conversation && $bookingRequest->conversation->deposit_deadline_at)
+                        @php
+                            $deadline = is_string($bookingRequest->conversation->deposit_deadline_at)
+                                ? \Carbon\Carbon::parse($bookingRequest->conversation->deposit_deadline_at)
+                                : $bookingRequest->conversation->deposit_deadline_at;
+                            $daysRemaining = (int)ceil(now()->diffInHours($deadline) / 24);
+                        @endphp
+                        <div class="px-4 py-2 bg-jaune-alerte/10 border border-jaune-alerte/30 rounded-lg">
+                            <p class="text-jaune-alerte text-sm">
+                                <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Délai : <span class="text-ivoire-text">{{ $daysRemaining > 0 ? $daysRemaining . ' jour(s) restant(s)' : 'Dernier jour' }}</span>
+                                @if ($daysRemaining < 0)
+                                    <span class="block mt-1 text-rouge-alerte font-semibold">⚠️ Délai expiré</span>
+                                @elseif ($daysRemaining <= 1)
+                                    <span class="block mt-1 text-rouge-alerte font-semibold">⚠️ Urgent</span>
+                                @endif
+                            </p>
+                        </div>
+                    @endif
                 @endif
             </div>
+
+            <!-- Gestion des dessins et modifications -->
+            @if ($bookingRequest->deposit_paid_at)
+                <div class="mt-4 bg-titane/20 rounded-xl p-4 border border-titane/30">
+                    <h3 class="text-lg font-semibold text-ivoire-text mb-3 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Gestion des dessins
+                    </h3>
+
+                    <!-- Délais avant fermeture du chat -->
+                    @if (!$bookingRequest->deposit_paid_at && isset($expiryInfo) && $expiryInfo['time_remaining'])
+                        <div class="mb-4 bg-jaune-alerte/10 border border-jaune-alerte/30 rounded-lg p-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <svg class="w-5 h-5 mr-2 text-jaune-alerte" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <span class="text-jaune-alerte font-medium">
+                                        Temps restant : {{ $expiryInfo['time_remaining'] }}
+                                    </span>
+                                </div>
+                                @if ($expiryInfo['expiry_type'] === 'deposit_pending')
+                                    <a href="{{ route('booking-request.deposit.request', $bookingRequest) }}"
+                                       class="px-3 py-1 bg-beige-peau text-noir-profond rounded-lg text-sm font-semibold hover:bg-beige-peau/90 transition-colors">
+                                        Payer l'acompte
+                                    </a>
+                                @endif
+                            </div>
+                            @if (isset($expiryInfo['warning_message']))
+                                <p class="text-jaune-alerte/80 text-sm mt-2">{{ $expiryInfo['warning_message'] }}</p>
+                            @endif
+                        </div>
+                    @endif
+
+                    @php
+    $summary = $bookingRequest->designTrackingSummary();
+@endphp
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <!-- Dessins complets -->
+    <div class="bg-noir-profond/30 rounded-lg p-3">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-ivoire-text/70 text-sm">Dessins utilisés</span>
+            <span class="text-beige-peau font-bold">{{ $summary['designs_sent'] }}</span>
+        </div>
+        <div class="w-full bg-titane/30 rounded-full h-2">
+            <div class="bg-beige-peau h-2 rounded-full transition-all"
+                 style="width: {{ $summary['designs_included'] > 0 ? min(100, ($summary['designs_sent'] / $summary['designs_included']) * 100) : 0 }}%"></div>
+        </div>
+        <p class="text-ivoire-text/50 text-xs mt-1">
+            {{ $summary['designs_included'] }} inclus — {{ $summary['designs_remaining'] }} restant(s)
+        </p>
+    </div>
+
+    <!-- Modifications du dessin en cours -->
+    <div class="bg-noir-profond/30 rounded-lg p-3">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-ivoire-text/70 text-sm">
+                Modifications
+                @if($summary['designs_sent'] > 0)
+                    <span class="text-xs">(dessin #{{ $summary['current_design_number'] }})</span>
+                @endif
+            </span>
+            <span class="text-beige-peau font-bold">{{ $summary['modifications_used_current'] }}</span>
+        </div>
+        <div class="w-full bg-titane/30 rounded-full h-2">
+            <div class="bg-vert-succes h-2 rounded-full transition-all"
+                 style="width: {{ $summary['modifications_per_design'] > 0 ? min(100, ($summary['modifications_used_current'] / $summary['modifications_per_design']) * 100) : 0 }}%"></div>
+        </div>
+        <p class="text-ivoire-text/50 text-xs mt-1">
+            {{ $summary['modifications_per_design'] }} par dessin — {{ $summary['modifications_remaining_current'] }} restante(s)
+        </p>
+    </div>
+
+    <!-- Résumé forfait -->
+    <div class="bg-noir-profond/30 rounded-lg p-3">
+        <div class="flex items-center mb-2">
+            <svg class="w-4 h-4 mr-2 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span class="text-ivoire-text/70 text-sm">Forfait</span>
+        </div>
+        <p class="text-ivoire-text/50 text-xs">
+            {{ $summary['designs_included'] }} dessin(s) complet(s), {{ $summary['modifications_per_design'] }} modif(s) chacun
+        </p>
+        @if(!$summary['can_send_new_design'] && !$summary['can_send_modification'])
+            <p class="text-ambre-warning text-xs mt-1">⚠️ Forfait épuisé</p>
+        @endif
+    </div>
+</div>
+
+
+                                    </div>
+            @endif
         </div>
 
         <!-- Zone de chat -->
@@ -192,7 +327,8 @@
             </div>
 
             <!-- Messages -->
-            <div id="messages-container" class="h-96 overflow-y-auto p-6 space-y-4">
+            <div id="messages-container" class="h-96 overflow-y-auto p-4 sm:p-6 space-y-4">
+
                 @if ($messages->isEmpty())
                     <div class="text-center py-12">
                         <div class="inline-flex items-center justify-center w-16 h-16 bg-noir-profond rounded-full mb-4">
@@ -204,51 +340,87 @@
                         </div>
                         <h3 class="text-lg font-semibold text-ivoire-text mb-2">
                             @if (
-                                $bookingRequest->status === 'accepted' &&
-                                    $bookingRequest->accepted_at &&
-                                    $bookingRequest->accepted_at->diffInDays(now()) <= 7 &&
-                                    !$bookingRequest->deposit_paid_at)
+                                ($bookingRequest->status->value === 'accepted' || $bookingRequest->status->value === 'deposit_paid') &&
+                                $bookingRequest->conversation &&
+                                $bookingRequest->conversation->status->value === 'active')
                                 Chat ouvert
                             @else
                                 Chat fermé
                             @endif
                         </h3>
-                        <p class="text-ivoire-text/70">
-                            @if ($bookingRequest->status !== 'accepted')
+                        <p class="text-ivoire-text/70 text-sm">
+                            @if ($bookingRequest->status->value !== 'accepted')
                                 Le chat sera disponible lorsque le projet sera accepté
-                            @elseif ($bookingRequest->deposit_paid_at)
-                                Le chat est fermé car l'acompte a été payé
-                            @elseif ($bookingRequest->accepted_at && $bookingRequest->accepted_at->diffInDays(now()) > 7)
-                                Le chat est fermé (délai de 7 jours dépassé)
+                            @elseif (!$bookingRequest->conversation)
+                                La conversation n'a pas été créée
+                            @elseif ($bookingRequest->conversation->status->value !== 'active')
+                                La conversation est fermée
                             @else
                                 Le chat est ouvert pour discuter avec le client
                             @endif
                         </p>
                     </div>
                 @else
+                    <div class="text-xs text-ivoire-text/50 mb-2">
+                        Affichage de {{ $messages->count() }} message(s)
+                    </div>
                     @foreach ($messages as $message)
-                        <div class="flex {{ $message->sender_type === 'client' ? 'justify-start' : 'justify-end' }}">
-                            <div class="max-w-xs lg:max-w-md">
+                        <div class="flex {{ $message->sender_type === 'client' ? 'justify-start' : 'justify-end' }} mb-4">
+                            <div class="max-w-xs sm:max-w-md lg:max-w-md">
+                                <!-- Avatar du client -->
+                                @if ($message->sender_type === 'client')
+                                    <div class="flex items-start gap-3 mb-3">
+                                        <img src="{{ $bookingRequest->client->user->getFirstMediaUrl('avatar') }}"
+                                             alt="Avatar de {{ $bookingRequest->client->full_name }}"
+                                             class="w-10 h-10 rounded-full object-cover border-2 border-titane/30">
+                                        <div class="flex-1">
+                                            <div class="font-semibold text-ivoire-text">{{ $bookingRequest->client->pseudo }}</div>
+                                        </div>
+                                    </div>
+                                @endif
                                 <div
-                                    class="{{ $message->sender_type === 'client' ? 'bg-noir-profond text-ivoire-text' : 'bg-beige-peau text-noir-profond' }} rounded-lg px-4 py-2">
-                                    <p class="text-sm whitespace-pre-wrap">
+                                    class="{{ $message->sender_type === 'client' ? 'bg-noir-profond text-ivoire-text' : 'bg-beige-peau text-noir-profond' }} rounded-lg px-3 py-2 sm:px-4">
+                                    <p class="text-sm whitespace-pre-wrap break-words">
                                         @if (!empty(trim($message->content)))
                                             {{ $message->content }}
                                         @elseif ($message->getMedia('attachments')->isNotEmpty())
                                             <span class="text-ivoire-text/60 italic">Dessin envoyé</span>
+                                        @else
+                                            <span class="text-ivoire-text/60 italic">Message vide</span>
                                         @endif
                                     </p>
+
+                                    {{-- Message système : client a choisi une date --}}
+                                    @if($message->sender_type === 'system' && str_contains($message->content, 'a choisi la date'))
+                                        <div class="bg-vert-succes/10 border border-vert-succes/30 rounded-lg p-3 my-2">
+                                            <p class="text-sm text-vert-succes font-medium">{{ $message->content }}</p>
+
+                                            @if(auth()->user()->isTattooer()
+                                                && $bookingRequest->confirmed_date
+                                                && !$bookingRequest->appointment_datetime)
+                                                <a href="{{ route('tattooer.calendar') }}?book={{ $bookingRequest->id }}&date={{ $bookingRequest->confirmed_date }}&period={{ $bookingRequest->confirmed_period ?? 'morning' }}"
+                                                   class="inline-flex items-center gap-2 mt-3 px-4 py-2.5 bg-beige-peau text-noir-profond font-bold rounded-lg hover:bg-beige-peau/90 transition">
+                                                    📅 Fixer l'horaire du rendez-vous →
+                                                </a>
+                                            @elseif($bookingRequest->appointment_datetime)
+                                                <p class="text-xs text-vert-succes mt-2">
+                                                    ✅ RDV fixé : {{ \Carbon\Carbon::parse($bookingRequest->appointment_datetime)->translatedFormat('d/m/Y') }}
+                                                    de {{ $bookingRequest->scheduled_start_time }} à {{ $bookingRequest->scheduled_end_time }}
+                                                </p>
+                                            @endif
+                                        </div>
+                                    @endif
 
                                     @if ($message->getMedia('attachments')->isNotEmpty())
                                         <div class="mt-2 space-y-1">
                                             @foreach ($message->getMedia('attachments') as $media)
                                                 @if (str_starts_with($media->mime_type, 'image/'))
                                                     <img src="{{ $media->getUrl() }}" alt="Pièce jointe"
-                                                        class="rounded max-w-full cursor-pointer hover:opacity-90"
+                                                        class="rounded max-w-full h-auto cursor-pointer hover:opacity-90"
                                                         onclick="window.open('{{ $media->getUrl() }}', '_blank')">
                                                 @else
                                                     <a href="{{ $media->getUrl() }}" target="_blank"
-                                                        class="block text-xs underline">
+                                                        class="block text-xs underline break-all">
                                                         📎 {{ $media->file_name }}
                                                     </a>
                                                 @endif
@@ -266,9 +438,9 @@
             </div>
 
             <!-- Zone de saisie -->
-            <div class="border-t border-titane/30 p-4">
-                <div class="bg-titane/20 rounded-xl p-6">
-                    @if ($bookingRequest->isChatOpen())
+            <div class="border-t border-titane/30 p-3 sm:p-4">
+                <div class="bg-titane/20 rounded-xl p-4 sm:p-6">
+                    @if (($bookingRequest->status->value === 'accepted' || $bookingRequest->status->value === 'deposit_paid') && $bookingRequest->conversation && $bookingRequest->conversation->status->value === 'active')
                         @if (!$bookingRequest->deposit_paid_at)
                             <div class="bg-jaune-alerte/10 border border-jaune-alerte/30 rounded-lg p-3 mb-4">
                                 <p class="text-jaune-alerte text-sm">
@@ -282,98 +454,183 @@
                             </div>
                         @endif
 
+
                         <form action="{{ route('tattooer.message.send', $bookingRequest) }}" method="POST"
-                            enctype="multipart/form-data" class="space-y-3" x-data="{
-                                message: '',
-                                attachments: [],
-                                resizeTextarea() {
-                                    const textarea = this.$refs.messageInput;
-                                    textarea.style.height = 'auto';
-                                    textarea.style.height = textarea.scrollHeight + 'px';
-                                },
-                                handleFileSelect(event) {
-                                    const files = event.target.files;
-                                    this.attachments = Array.from(files);
-                                },
-                                removeFile(index) {
-                                    this.attachments.splice(index, 1);
-                                }
-                            }"
-                            @submit="message = ''">
-                            @csrf
+    enctype="multipart/form-data" id="messageForm"
+    x-data="messageForm()" @submit="handleSubmit($event)">
+    @csrf
 
-                            @if ($bookingRequest->deposit_paid_at)
-                                <div class="flex items-end gap-2">
-                                    <input type="file" name="attachments[]" id="attachments" multiple
-                                        accept="image/*,application/pdf" class="hidden"
-                                        @change="handleFileSelect($event)">
+    {{-- Champs cachés pour le type de dessin --}}
+    <input type="hidden" name="design_type" x-model="designType">
+    <input type="hidden" name="coverage_type" x-model="coverageType">
 
-                                    <button type="button" onclick="document.getElementById('attachments').click()"
-                                        class="px-4 py-3 bg-noir-profond text-ivoire-text rounded-lg hover:bg-noir-profond/80 transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13">
-                                            </path>
-                                        </svg>
-                                    </button>
+    @if ($bookingRequest->deposit_paid_at)
+        {{-- Prévisualisation des fichiers sélectionnés --}}
+        <div x-show="files.length > 0" x-cloak class="mb-3 flex flex-wrap gap-2 px-2">
+            <template x-for="(file, index) in files" :key="index">
+                <div class="relative bg-noir-profond/50 rounded-lg px-3 py-1.5 flex items-center gap-2 text-sm text-ivoire-text/80">
+                    <span x-text="file.name" class="max-w-[150px] truncate"></span>
+                    <button type="button" @click="removeFile(index)" class="text-rouge-alerte hover:text-rouge-alerte/80 text-lg leading-none">&times;</button>
+                </div>
+            </template>
+        </div>
 
-                                    <textarea x-ref="messageInput" x-model="message" @input="resizeTextarea()" name="content" rows="1"
-                                        placeholder="Votre message..."
-                                        class="flex-1 px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-ivoire-text/50 focus:border-beige-peau focus:ring-1 focus:ring-beige-peau resize-none overflow-hidden"
-                                        style="min-height: 3rem; max-height: 10rem;"
-                                        onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); this.form.submit(); }"></textarea>
+        {{-- Sélecteur de type (visible uniquement si fichiers attachés ET type pas encore choisi) --}}
+        <div x-show="files.length > 0 && !designType" x-cloak class="mb-3 px-2">
+            <p class="text-ivoire-text/70 text-sm mb-2">Quel type d'envoi ?</p>
+            <div class="flex flex-wrap gap-2">
+                <button type="button" @click="selectDesignType('new_design')"
+                    class="px-4 py-2 rounded-lg text-sm font-medium transition-all border"
+                    :class="canSendDesign
+                        ? 'border-vert-succes/50 text-vert-succes hover:bg-vert-succes/10'
+                        : 'border-ambre-warning/50 text-ambre-warning hover:bg-ambre-warning/10'">
+                    🎨 Nouveau dessin
+                    <span x-text="canSendDesign ? '(inclus)' : '(hors forfait)'" class="text-xs ml-1"></span>
+                </button>
+                @if($bookingRequest->designs_sent_count > 0)
+                <button type="button" @click="selectDesignType('modification')"
+                    class="px-4 py-2 rounded-lg text-sm font-medium transition-all border"
+                    :class="canSendModif
+                        ? 'border-beige-peau/50 text-beige-peau hover:bg-beige-peau/10'
+                        : 'border-ambre-warning/50 text-ambre-warning hover:bg-ambre-warning/10'">
+                    ✏️ Modification
+                    <span x-text="canSendModif ? '(inclus)' : '(hors forfait)'" class="text-xs ml-1"></span>
+                </button>
+                @endif
+            </div>
+        </div>
 
-                                    <button type="submit"
-                                        class="px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
-                                        Envoyer
-                                    </button>
-                                </div>
-                            @else
-                                <div class="flex items-end gap-2">
-                                    <input type="file" name="attachments[]" id="attachments" multiple
-                                        accept="image/*,application/pdf" class="hidden"
-                                        @change="handleFileSelect($event)">
+        {{-- Type sélectionné (confirmation avec possibilité de changer) --}}
+        <div x-show="designType && files.length > 0 && coverageType" x-cloak class="mb-3 px-2">
+            <div class="flex items-center gap-2 text-sm">
+                <span class="text-vert-succes" x-show="coverageType === 'included'">✅</span>
+                <span class="text-ambre-warning" x-show="coverageType !== 'included' && coverageType !== ''">⚠️</span>
+                <span class="text-ivoire-text" x-text="designTypeLabel"></span>
+                <button type="button" @click="resetDesignType()" class="text-titane hover:text-ivoire-text text-xs underline ml-2">
+                    Changer
+                </button>
+            </div>
+        </div>
 
-                                    <button type="button" onclick="document.getElementById('attachments').click()"
-                                        class="px-4 py-3 bg-noir-profond text-ivoire-text rounded-lg hover:bg-noir-profond/80 transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13">
-                                            </path>
-                                        </svg>
-                                    </button>
+        {{-- Options hors forfait (simplifiée V1 : envoi gratuit uniquement) --}}
+<div x-show="showOverage" x-cloak class="mb-3 px-2 bg-ambre-warning/5 border border-ambre-warning/20 rounded-lg p-3">
+    <p class="text-ambre-warning text-sm mb-2">⚠️ Limite du forfait atteinte pour ce type d'envoi</p>
+    <p class="text-ivoire-text/60 text-xs mb-3">Le dessin sera envoyé gratuitement (hors forfait).</p>
+    <button type="button" @click="setOverage('send_free')"
+        class="px-4 py-2 border border-titane/30 rounded-lg text-sm text-ivoire-text hover:bg-gris-fonde transition-colors">
+        📤 Confirmer et envoyer
+    </button>
+</div>
 
-                                    <textarea x-ref="messageInput" x-model="message" @input="resizeTextarea()" name="content" rows="1"
-                                        placeholder="Votre message..."
-                                        class="flex-1 px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-ivoire-text/50 focus:border-beige-peau focus:ring-1 focus:ring-beige-peau resize-none overflow-hidden"
-                                        style="min-height: 3rem; max-height: 10rem;"
-                                        onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); this.form.submit(); }"></textarea>
+        {{-- Zone de saisie --}}
+        <div class="flex flex-col sm:flex-row items-end gap-2">
+            <input type="file" name="attachments[]" id="attachments" multiple
+                accept="image/*,application/pdf" class="hidden"
+                @change="handleFileSelect($event)">
 
-                                    <button type="submit"
-                                        class="px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
-                                        Envoyer
-                                    </button>
-                                </div>
-                            @endif
+            <button type="button" onclick="document.getElementById('attachments').click()"
+                class="px-4 py-3 bg-noir-profond text-ivoire-text rounded-lg hover:bg-noir-profond/80 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+            </button>
 
-                            <!-- Prévisualisation des fichiers -->
-                            <div x-show="attachments.length > 0" class="mt-2 flex gap-2 flex-wrap">
-                                <template x-for="(file, index) in attachments" :key="index">
-                                    <div class="relative inline-block">
-                                        <img :src="URL.createObjectURL(file)"
-                                             :alt="file.name"
-                                             class="w-20 h-20 rounded-lg object-cover">
-                                        <button type="button"
-                                                @click="removeFile(index)"
-                                                class="absolute -top-2 -right-2 bg-rouge-alerte text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-rouge-alerte/80">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </template>
-                            </div>
-                        </form>
+            <textarea name="content" rows="2"
+                placeholder="Votre message..."
+                class="flex-1 w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-ivoire-text/50 focus:border-beige-peau focus:ring-1 focus:ring-beige-peau resize-none text-sm"></textarea>
+
+            <button type="submit"
+                class="px-4 sm:px-6 py-2 sm:py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors whitespace-nowrap"
+                :disabled="files.length > 0 && !coverageType"
+                :class="files.length > 0 && !coverageType ? 'opacity-50 cursor-not-allowed' : ''">
+                Envoyer
+            </button>
+        </div>
+    @else
+        {{-- Avant paiement acompte : pas de pièce jointe --}}
+        <div class="flex flex-col sm:flex-row items-end gap-2">
+            <textarea name="content" rows="2" placeholder="Votre message..." required
+                class="flex-1 w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-ivoire-text/50 focus:border-beige-peau focus:ring-1 focus:ring-beige-peau resize-none text-sm"></textarea>
+            <button type="submit"
+                class="px-4 sm:px-6 py-2 sm:py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors whitespace-nowrap">
+                Envoyer
+            </button>
+        </div>
+    @endif
+</form>
+
+@php $summary = $bookingRequest->designTrackingSummary(); @endphp
+<script>
+function messageForm() {
+    return {
+        files: [],
+        designType: '',
+        coverageType: '',
+        surchargeAmount: null,
+        showOverage: false,
+        designTypeLabel: '',
+        canSendDesign: {{ $bookingRequest->canSendNewDesign() ? 'true' : 'false' }},
+        canSendModif: {{ $bookingRequest->canSendModification() ? 'true' : 'false' }},
+
+        handleFileSelect(event) {
+            this.files = Array.from(event.target.files);
+            this.resetDesignType();
+        },
+
+        removeFile(index) {
+            this.files.splice(index, 1);
+            if (this.files.length === 0) {
+                this.resetDesignType();
+                document.getElementById('attachments').value = '';
+            }
+        },
+
+        selectDesignType(type) {
+            this.designType = type;
+            this.showOverage = false;
+
+            const isIncluded = (type === 'new_design' && this.canSendDesign)
+                            || (type === 'modification' && this.canSendModif);
+
+            if (isIncluded) {
+                this.coverageType = 'included';
+                this.designTypeLabel = type === 'new_design'
+                    ? '🎨 Nouveau dessin (inclus dans le forfait)'
+                    : '✏️ Modification (incluse dans le forfait)';
+            } else {
+                this.showOverage = true;
+                this.coverageType = '';
+                this.designTypeLabel = type === 'new_design'
+                    ? '🎨 Nouveau dessin (hors forfait)'
+                    : '✏️ Modification (hors forfait)';
+            }
+        },
+
+        setOverage(type) {
+            this.coverageType = 'send_free';
+            this.showOverage = false;
+            this.designTypeLabel += ' — envoi gratuit hors forfait';
+        },
+
+        resetDesignType() {
+            this.designType = '';
+            this.coverageType = '';
+            this.surchargeAmount = null;
+            this.showOverage = false;
+            this.designTypeLabel = '';
+        },
+
+        handleSubmit(event) {
+            if (this.files.length > 0 && !this.designType) {
+                event.preventDefault();
+                alert('Veuillez choisir le type d\'envoi (nouveau dessin ou modification).');
+                return;
+            }
+        }
+    }
+}
+</script>
                     @else
                         <form class="flex space-x-4 opacity-50 pointer-events-none">
                             <input type="text" placeholder="Chat fermé"
@@ -452,7 +709,7 @@
                                         'in_progress' => '🎨 En cours',
                                         'completed' => '✅ Terminé',
                                         'cancelled' => '❌ Annulée',
-                                        default => ucfirst($bookingRequest->status),
+                                        default => ucfirst($bookingRequest->status->value),
                                     } }}
                                 </span>
                             </div>
@@ -489,8 +746,8 @@
                                 <span class="text-ivoire-text">{{ $bookingRequest->client->phone ?: 'Non renseigné' }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-ivoire-text/70">Date de naissance:</span>
-                                <span class="text-ivoire-text">{{ $bookingRequest->client->birth_date ? $bookingRequest->client->birth_date->format('d/m/Y') : 'Non renseignée' }}</span>
+                                <span class="text-ivoire-text/70">Âge:</span>
+                                <span class="text-ivoire-text">{{ $bookingRequest->client->birth_date->age }} ans</span>
                             </div>
                         </div>
                     </div>
@@ -499,30 +756,36 @@
 
             <!-- Version desktop (toujours visible) -->
             <div class="hidden md:grid md:grid-cols-2 md:gap-6 md:mt-6">
-                <div class="bg-titane/20 rounded-xl p-6 border border-titane/30">
-                    <h3 class="text-lg font-bold text-ivoire-text mb-4">Détails du projet</h3>
-                    <div class="space-y-2 text-sm">
-                        <div class="flex justify-between">
-                            <span class="text-ivoire-text/70">Emplacement:</span>
-                            <span class="text-ivoire-text">{{ $bookingRequest->tattoo_location }}</span>
+                <!-- Infos demande -->
+                <div class="mt-6 bg-gris-fonde rounded-xl border border-titane/30 p-6">
+                    <h3 class="text-lg font-bold text-ivoire-text mb-4">📋 Détails de la demande</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <h4 class="font-semibold text-ivoire-text/80 mb-2">Zone du tatouage</h4>
+                            <p class="text-ivoire-text">{{ $bookingRequest->body_zone }}</p>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-ivoire-text/70">Style:</span>
-                            <span class="text-ivoire-text">{{ $bookingRequest->tattoo_style }}</span>
+
+                        @if ($bookingRequest->description)
+                            <div>
+                                <h4 class="font-semibold text-ivoire-text/80 mb-2">Description</h4>
+                                <p class="text-ivoire-text">{{ $bookingRequest->description }}</p>
+                            </div>
+                        @endif
+
+                        @if ($bookingRequest->price_range_min)
+                            <div>
+                                <h4 class="font-semibold text-ivoire-text/80 mb-2">Prix proposé</h4>
+                                <p class="text-ivoire-text">
+                                    {{ $bookingRequest->price_range_min }}€
+                                    @if ($bookingRequest->price_range_max) - {{ $bookingRequest->price_range_max }}€ @endif
+                                </p>
+                            </div>
+                        @endif
+
+                        <div>
+                            <h4 class="font-semibold text-ivoire-text/80 mb-2">Date de la demande</h4>
+                            <p class="text-ivoire-text">{{ $bookingRequest->created_at->format('d/m/Y à H:i') }}</p>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-ivoire-text/70">Estimation tattoo:</span>
-                            <span class="text-ivoire-text">
-                                @if ($bookingRequest->price_range_min && $bookingRequest->price_range_max)
-                                    {{ number_format($bookingRequest->price_range_min, 0) }}€ - {{ number_format($bookingRequest->price_range_max, 0) }}€
-                                @elseif($bookingRequest->estimated_total_price)
-                                    {{ number_format($bookingRequest->estimated_total_price, 2, ',', ' ') . ' €'
-                                @else
-                                    Non défini
-                                @endif
-                            </span>
-                        </div>
-                        <div class="flex justify-between">
                             <span class="text-ivoire-text/70">Statut:</span>
                             <span
                                 class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
@@ -544,7 +807,7 @@
                                     'in_progress' => '🎨 En cours',
                                     'completed' => '✅ Terminé',
                                     'cancelled' => '❌ Annulée',
-                                    default => ucfirst($bookingRequest->status),
+                                    default => ucfirst($bookingRequest->status->value),
                                 } }}
                             </span>
                         </div>
@@ -563,8 +826,8 @@
                             <span class="text-ivoire-text">{{ $bookingRequest->client->phone ?: 'Non renseigné' }}</span>
                         </div>
                         <div class="flex justify-between">
-                            <span class="text-ivoire-text/70">Date de naissance:</span>
-                            <span class="text-ivoire-text">{{ $bookingRequest->client->birth_date ? $bookingRequest->client->birth_date->format('d/m/Y') : 'Non renseignée' }}</span>
+                            <span class="text-ivoire-text/70">Âge:</span>
+                            <span class="text-ivoire-text">{{ $bookingRequest->client->birth_date->age }} ans</span>
                         </div>
                     </div>
                 </div>
@@ -590,6 +853,107 @@
                 setTimeout(() => {
                     messagesContainer.scrollTop = messagesContainer.scrollHeight;
                 }, 100);
+            }
+        });
+
+        // Intercepter la sélection de fichiers pour ouvrir la modal design
+        function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+
+            // Vérifier s'il y a des images
+            const hasImages = files.some(file => file.type.startsWith('image/'));
+
+            if (hasImages && window.designSendModal) {
+                // Ouvrir la modal de sélection de type d'envoi
+                window.designSendModal.openModal(files);
+
+                // Vider l'input pour éviter double envoi
+                event.target.value = '';
+                event.preventDefault();
+                return false;
+            }
+
+            // Sinon, continuer avec le comportement normal (prévisualisation)
+            updateFilePreview(files);
+        }
+
+        // Fonction pour mettre à jour la prévisualisation des fichiers
+        function updateFilePreview(files) {
+            const preview = document.getElementById('filePreview');
+            const container = document.getElementById('previewContainer');
+
+            if (!preview || !container) return;
+
+            container.innerHTML = '';
+
+            if (files.length === 0) {
+                preview.classList.add('hidden');
+                return;
+            }
+
+            preview.classList.remove('hidden');
+
+            files.forEach((file, index) => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center justify-between p-2 bg-noir-profond/50 rounded text-sm';
+
+                // Prévisualisation image
+                if (file.type.startsWith('image/')) {
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(file);
+                    img.className = 'w-12 h-12 object-cover rounded mr-3';
+                    div.appendChild(img);
+                } else {
+                    // Icône pour fichiers non-image
+                    const icon = document.createElement('div');
+                    icon.className = 'w-12 h-12 bg-titane/30 rounded mr-3 flex items-center justify-center';
+                    icon.innerHTML =
+                        '<svg class="w-6 h-6 text-ivoire-text/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>';
+                    div.appendChild(icon);
+                }
+
+                const info = document.createElement('div');
+                info.className = 'flex-1';
+                info.innerHTML = `
+                    <div class="text-ivoire-text font-medium">${file.name}</div>
+                    <div class="text-ivoire-text/50 text-xs">${(file.size / 1024).toFixed(1)} KB</div>
+                `;
+                div.appendChild(info);
+
+                // Bouton supprimer
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'text-rouge-alerte hover:text-rouge-alerte/80 ml-2';
+                removeBtn.innerHTML =
+                    '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+                removeBtn.onclick = function() {
+                    removeFile(index);
+                };
+                div.appendChild(removeBtn);
+
+                container.appendChild(div);
+            });
+        }
+
+        // Fonction pour supprimer un fichier
+        function removeFile(index) {
+            const input = document.getElementById('attachments');
+            const dt = new DataTransfer();
+            const files = Array.from(input.files);
+
+            files.splice(index, 1);
+            files.forEach(file => dt.items.add(file));
+
+            input.files = dt.files;
+
+            // Déclencher l'événement change pour mettre à jour la prévisualisation
+            input.dispatchEvent(new Event('change'));
+        }
+
+        // Rendre la fonction designSendModal accessible globalement
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof designSendModal === 'function') {
+                window.designSendModal = designSendModal();
             }
         });
     </script>

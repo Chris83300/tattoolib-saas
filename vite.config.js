@@ -41,7 +41,13 @@ export default defineConfig({
         })
     ],
     server: {
+        host: '127.0.0.1', // ⚡ FORCE IPv4 (plus d'IPv6)
+        port: 5173,
+        strictPort: true,
         cors: true,
+        hmr: {
+            host: '127.0.0.1', // HMR sur IPv4 aussi
+        },
         watch: {
             ignored: ['**/storage/framework/views/**'],
         },

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Laravel\Cashier\Billable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -24,6 +25,23 @@ class User extends Authenticatable implements HasMedia
         HasRoles, // ✅ Spatie Permissions
         InteractsWithMedia; // ✅ Spatie MediaLibrary
 
+    protected static function booted()
+    {
+        parent::booted();
+
+        // Observer pour la mise à jour du statut du tattooer
+        static::updated(function ($user) {
+            // Si le statut change vers 'active' et que l'utilisateur est un tattooer
+            if ($user->isDirty('status') && $user->status === 'active' && $user->role === 'tattooer') {
+                $tattooer = $user->tattooer;
+                if ($tattooer && !$tattooer->admin_verified_at) {
+                    $tattooer->admin_verified_at = now();
+                    $tattooer->save();
+                }
+            }
+        });
+    }
+
     protected $fillable = [
         'id',
         'name',
@@ -40,6 +58,10 @@ class User extends Authenticatable implements HasMedia
         'studio_id',
         'is_studio_owner',
         'is_studio_artist',
+        'first_name', // 🆕 Prénom
+        'last_name', // 🆕 Nom de famille
+        'phone', // 🆕 Téléphone
+        'birth_date', // 🆕 Date de naissance
     ];
 
     protected $hidden = [
@@ -217,6 +239,14 @@ class User extends Authenticatable implements HasMedia
     public function receivesBroadcastNotificationsOn()
     {
         return 'users.' . $this->id;
+    }
+
+    /**
+     * Vérifier si utilisateur peut effectuer action sur modèle
+     */
+    public function canAccess(string $ability, $model): bool
+    {
+        return $this->can($ability, $model);
     }
 
     // ===== ADMIN METHODS =====

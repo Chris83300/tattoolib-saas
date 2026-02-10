@@ -3,7 +3,11 @@
 namespace App\Providers;
 
 use App\Models\Message;
+use App\Models\BookingRequest;
+use App\Models\Tattooer;
 use App\Observers\ConversationObserver;
+use App\Observers\BookingRequestObserver;
+use App\Observers\TattooerObserver;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
@@ -22,6 +26,8 @@ class EventServiceProvider extends ServiceProvider
     {
         // Enregistrement des observers
         Message::observe(ConversationObserver::class);
+        BookingRequest::observe(BookingRequestObserver::class);
+        Tattooer::observe(TattooerObserver::class);
 
         parent::boot();
     }
@@ -30,4 +36,4 @@ class EventServiceProvider extends ServiceProvider
     {
         return true;
     }
-} 
+}

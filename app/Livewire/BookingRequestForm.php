@@ -10,6 +10,7 @@ use App\Models\Pierceur;
 use App\Models\User;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Livewire\Attributes\On;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -41,6 +42,8 @@ class BookingRequestForm extends Component
     public $style;
     public $estimatedBudget;
     public $proposedDate;
+    public $preferredDate;
+    public $preferredPeriod;
     public $referenceImages = [];
 
     // Styles disponibles
@@ -142,6 +145,18 @@ class BookingRequestForm extends Component
         }
     }
 
+    #[On('dates-updated')]
+    public function onDatesUpdated(array $selectedDates): void
+    {
+        if (!empty($selectedDates)) {
+            $this->preferredDate = $selectedDates[0]['date'];
+            $this->preferredPeriod = $selectedDates[0]['period'] ?? null;
+        } else {
+            $this->preferredDate = null;
+            $this->preferredPeriod = null;
+        }
+    }
+
     public function submitRequest()
     {
         Log::info('BookingRequestForm::submitRequest called', [
@@ -205,7 +220,7 @@ class BookingRequestForm extends Component
                 'body_zone' => $this->location,
                 'tattoo_size' => $this->tattoo_size ?? 'Moyen',
                 'estimated_total_price' => $this->estimatedBudget,
-                'preferred_date' => $this->proposedDate ? new \DateTime($this->proposedDate) : null,
+                'preferred_date' => $this->preferredDate ? new \DateTime($this->preferredDate) : null,
             ]);
 
             // 3. Images de référence

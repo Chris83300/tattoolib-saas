@@ -21,6 +21,19 @@
                 class="bg-gris-fonde rounded-xl p-6 md:p-8 space-y-6">
                 @csrf
 
+                <!-- Affichage des erreurs de validation -->
+                @if ($errors->any())
+                    <div class="bg-rouge-alerte/10 border border-rouge-alerte/30 rounded-lg p-4 mb-4">
+                        <div class="text-rouge-alerte text-sm">
+                            <ul class="list-disc list-inside space-y-1">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                @endif
+
                 <!-- SECTION 1 : SIRET (PRIORITÉ) -->
                 <div class="border-b border-titane/20 pb-6">
                     <h2 class="text-ivoire-text font-display font-bold text-lg mb-4">
@@ -34,6 +47,9 @@
                         </label>
                         <input type="text" name="siret" required maxlength="14" placeholder="12345678901234"
                             class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors font-mono">
+                        @error('siret')
+                            <p class="text-rouge-alerte text-xs mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
 
@@ -44,12 +60,21 @@
                     </h2>
 
                     <div class="space-y-4">
+                        <!-- Prénom -->
+                        <div>
+                            <label class="block text-ivoire-text text-sm font-semibold mb-2">
+                                Prénom *
+                            </label>
+                            <input type="text" name="first_name" required placeholder="Jean"
+                                class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors">
+                        </div>
+
                         <!-- Nom -->
                         <div>
                             <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                                Nom complet *
+                                Nom *
                             </label>
-                            <input type="text" name="name" required placeholder="Ex: Jean Dupont"
+                            <input type="text" name="last_name" required placeholder="Dupont"
                                 class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors">
                         </div>
 
@@ -77,10 +102,15 @@
                         <!-- Password -->
                         <div>
                             <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                                Mot de passe *
+                                Mot de passe * <span class="text-ivoire-text/50 font-normal">(8 caractères minimum, 1
+                                    majuscule, 1 chiffre, 1 caractère spécial)</span>
                             </label>
                             <input type="password" name="password" required minlength="8"
-                                class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors">
+                                class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors"
+                                placeholder="•••••••••">
+                            @error('password')
+                                <p class="text-rouge-alerte text-xs mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <!-- Password confirmation -->
@@ -89,7 +119,11 @@
                                 Confirmer mot de passe *
                             </label>
                             <input type="password" name="password_confirmation" required minlength="8"
-                                class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors">
+                                class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors"
+                                placeholder="•••••••••">
+                            @error('password_confirmation')
+                                <p class="text-rouge-alerte text-xs mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
                 </div>

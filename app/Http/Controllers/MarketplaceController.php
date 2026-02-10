@@ -12,9 +12,23 @@ class MarketplaceController extends Controller
     /**
      * Page marketplace
      */
-    public function index(): View
+    public function index(Request $request): View
     {
-        return view('marketplace.index');
+        $cacheService = app(\App\Services\CacheService::class);
+
+        $filters = $request->only(['city', 'styles', 'rating']);
+        $artists = $cacheService->getMarketplaceListings($filters);
+
+        // Obtenir aussi les données de filtrage depuis cache
+        $availableStyles = $cacheService->getAvailableStyles();
+        $availableCities = $cacheService->getAvailableCities();
+
+        return view('marketplace.index', compact(
+            'artists',
+            'filters',
+            'availableStyles',
+            'availableCities'
+        ));
     }
 
     /**
@@ -43,12 +57,12 @@ class MarketplaceController extends Controller
         abort_if(!$artist, 404, 'Artiste non trouvé');
 
         // Charger les relations
-        $artist->load(['media']);
+        $artist->load(['media', 'reviews']);
 
         // Stats
         $stats = [
-            'rating' => 0, // Temporaire, à calculer quand les reviews existeront
-            'reviews_count' => 0, // Temporaire
+            'rating' => $artist->reviews_avg_rating ?? 0,
+            'reviews_count' => $artist->reviews_count ?? 0,
             'appointments_count' => $artist->appointments()->whereIn('status', ['completed', 'confirmed'])->count(),
             'years_experience' => max(1, now()->diffInYears($artist->created_at)),
         ];

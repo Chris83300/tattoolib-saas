@@ -105,6 +105,104 @@ class ProjectChat extends Component
     }
 
     /**
+     * Envoyer un message avec dessin (nouveau complet ou modification).
+     * Appelé depuis la modal Alpine designSendModal.
+     *
+     * @param string $designType     'new_design' | 'modification'
+     * @param string $coverageType   'included' | 'send_free' | 'request_payment'
+     * @param float|null $surchargeAmount  Montant si request_payment
+     */
+    public function sendDesignMessage(string $designType, string $coverageType, ?float $surchargeAmount = null): void
+    {
+        $bookingRequest = $this->bookingRequest;
+        // Refresh pour avoir les derniers compteurs
+        $bookingRequest->refresh();
+
+        // ── 1. Mettre à jour les compteurs ──
+        if ($coverageType === 'included' || $coverageType === 'send_free') {
+            if ($designType === 'new_design') {
+                $bookingRequest->recordNewDesign();
+                $designLabel = "🎨 Dessin complet #{$bookingRequest->designs_sent_count}";
+            } else {
+                $bookingRequest->recordModification();
+                $tracker = $bookingRequest->design_modifications_tracker ?? [];
+                $currentDesign = $bookingRequest->designs_sent_count;
+                $modifCount = $tracker[(string) $currentDesign] ?? 0;
+                $designLabel = "✏️ Modification #{$modifCount} du dessin #{$currentDesign}";
+            }
+        } else {
+            // request_payment : on ne décompte pas tant que le client n'a pas payé
+            $designLabel = ($designType === 'new_design')
+                ? "🎨 Nouveau dessin (supplément demandé)"
+                : "✏️ Modification (supplément demandé)";
+        }
+
+        // ── 2. Créer le message avec la/les pièce(s) jointe(s) ──
+        // Utiliser la logique existante d'envoi de messages
+        $message = Message::create([
+            'conversation_id' => $this->bookingRequest->conversation->id,
+            'booking_request_id' => $this->bookingRequest->id,
+            'sender_id' => Auth::id(),
+            'sender_type' => $this->getSenderType(),
+            'content' => $this->message ?? $designLabel,
+        ]);
+
+        // Ajouter les pièces jointes avec metadata design
+        if (!empty($this->attachments)) {
+            foreach ($this->attachments as $attachment) {
+                $message->addMedia($attachment)
+                    ->withCustomProperties([
+                        'design_type'    => $designType,
+                        'coverage_type'  => $coverageType,
+                        'design_number'  => $bookingRequest->designs_sent_count,
+                    ])
+                    ->toMediaCollection('attachments');
+            }
+        }
+
+        // ── 3. Message système ──
+        $systemContent = match($coverageType) {
+            'included'        => "{$designLabel} envoyé (inclus dans le forfait).",
+            'send_free'       => "⚠️ {$designLabel} envoyé (hors forfait — envoi gracieux).",
+            'request_payment' => "💰 {$designLabel} — Supplément de {$surchargeAmount}€ demandé.",
+            default           => "{$designLabel} envoyé.",
+        };
+
+        Message::create([
+            'conversation_id' => $this->bookingRequest->conversation->id,
+            'booking_request_id' => $this->bookingRequest->id,
+            'sender_type'     => 'system',
+            'sender_id'       => null,
+            'content'         => $systemContent,
+        ]);
+
+        // ── 4. Si supplément demandé, mettre à jour le booking ──
+        if ($coverageType === 'request_payment' && $surchargeAmount > 0) {
+            $bookingRequest->update([
+                'overage_decision' => 'request_payment',
+                'surcharge_amount' => $surchargeAmount,
+                'overage_reason'   => $designType === 'new_design'
+                    ? 'Dessin complet supplémentaire hors forfait'
+                    : 'Modification supplémentaire hors forfait',
+            ]);
+        } elseif ($coverageType === 'send_free') {
+            $bookingRequest->update([
+                'overage_decision' => 'send_free',
+                'overage_reason'   => $designType === 'new_design'
+                    ? 'Dessin complet supplémentaire offert'
+                    : 'Modification supplémentaire offerte',
+            ]);
+        }
+
+        // ── 5. Reset formulaire ──
+        $this->message = '';
+        $this->attachments = [];
+        $this->loadMessages();
+        $this->dispatch('message-sent');
+        $this->dispatch('scrollToBottom');
+    }
+
+    /**
      * Obtenir le type d'expéditeur
      */
     private function getSenderType(): string

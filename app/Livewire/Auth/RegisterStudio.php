@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Studio;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Validate;
 
@@ -13,12 +14,21 @@ class RegisterStudio extends AuthLayoutComponent
 {
     // Infos user (gérant)
     #[Validate('required|string|max:255')]
-    public string $name = '';
+    public string $first_name = '';
+
+    #[Validate('required|string|max:255')]
+    public string $last_name = '';
 
     #[Validate('required|email|unique:users,email')]
     public string $email = '';
 
-    #[Validate('required|string|min:8|confirmed')]
+    #[Validate([
+        'required',
+        'string',
+        'min:8',
+        'confirmed',
+        'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&].{8,}$/'
+    ])]
     public string $password = '';
 
     public string $password_confirmation = '';
@@ -27,7 +37,7 @@ class RegisterStudio extends AuthLayoutComponent
     #[Validate('required|string|max:255')]
     public string $studio_name = '';
 
-    #[Validate('required|digits:14|unique:studios,siret')]
+    #[Validate('required|numeric|digits:14|unique:studios,siret')]
     public string $siret = '';
 
     public string $company_name = '';
@@ -116,7 +126,9 @@ class RegisterStudio extends AuthLayoutComponent
 
         // Créer user (gérant)
         $user = User::create([
-            'name' => $this->name,
+            'first_name' => $this->first_name,
+            'last_name' => $this->last_name,
+            'name' => $this->first_name . ' ' . $this->last_name, // Pour compatibilité
             'email' => $this->email,
             'password' => Hash::make($this->password),
             'role' => 'studio',
@@ -142,7 +154,7 @@ class RegisterStudio extends AuthLayoutComponent
         $user->update(['studio_id' => $studio->id]);
 
         // Login automatique
-        auth()->login($user);
+        Auth::login($user);
 
         // Redirection vers page "en attente validation"
         return redirect()->route('studio.pending-verification');

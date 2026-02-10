@@ -8,6 +8,7 @@
     "require": {
         "php": "^8.2",
         "filament/filament": "^4.5",
+        "filament/spatie-laravel-media-library-plugin": "^4.5",
         "kreait/laravel-firebase": "^6.2",
         "laravel/cashier": "^16.2",
         "laravel/fortify": "^1.30",
@@ -38,7 +39,7 @@
         }
     },
     "autoload-dev": {
-        "psr-4": { 
+        "psr-4": {
             "Tests\\": "tests/"
         }
     },
@@ -48,16 +49,16 @@
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\"",
             "@php artisan key:generate",
             "@php artisan migrate --force",
-            "npm install",
-            "npm run build"
+            "@php artisan db:seed --force"
         ],
+        "test": "php artisan test",
+        "test:feature": "php artisan test --testsuite=Feature",
+        "test:unit": "php artisan test --testsuite=Unit",
+        "test:coverage": "XDEBUG_MODE=coverage php artisan test --coverage",
+        "test:parallel": "php artisan test --parallel",
         "dev": [
             "Composer\\Config::disableProcessTimeout",
             "npx concurrently -c \"#93c5fd,#c4b5fd,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"npm run dev\" --names='server,queue,vite'"
-        ],
-        "test": [
-            "@php artisan config:clear --ansi",
-            "@php artisan test"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",

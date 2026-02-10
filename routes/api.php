@@ -85,26 +85,28 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Messages dans une conversation
         Route::get('/{conversation}/messages', [MessageController::class, 'index']);
-        Route::post('/{conversation}/messages', [MessageController::class, 'store']);
+        Route::post('/{conversation}/messages', [MessageController::class, 'store'])
+            ->middleware(['throttle:messages', 'secure.file.upload']);
         Route::delete('/{conversation}/messages/{message}', [MessageController::class, 'destroy']);
         Route::get('/{conversation}/design-versions', [MessageController::class, 'designVersions']);
         Route::get('/{conversation}/messages/search', [MessageController::class, 'search']);
     });
 
     // ===== MESSAGES =====
-    Route::get('/messages/{message}/download', [MessageController::class, 'downloadAttachment']);
+    Route::get('/messages/{message}/download', [MessageController::class, 'downloadAttachment'])
+        ->name('messages.download');
 
 });
 
 // ===== PAYMENTS (Protected routes) =====
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:payments'])->group(function () {
     Route::post('/bookings/{bookingRequest}/payment/deposit',
         [PaymentController::class, 'createDepositPayment']);
 });
 
 // ===== WEBHOOKS (PAS d'auth, vérifié par signature) =====
 Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook'])
-    ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
 
 // ===== TATTOOERS (Protected routes) =====
 Route::middleware('auth:sanctum')->prefix('tattooers/{tattooer}')->group(function () {

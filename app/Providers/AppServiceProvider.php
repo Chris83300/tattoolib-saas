@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Blade;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +20,33 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Custom Blade directives for policies
+        Blade::if('canUpdateBooking', function ($booking) {
+            return auth()->check() && auth()->user()->can('update', $booking);
+        });
+
+        Blade::if('canSendDesign', function ($booking) {
+            return auth()->check() && auth()->user()->can('sendDesign', $booking);
+        });
+
+        Blade::if('canPayDeposit', function ($booking) {
+            return auth()->check() && auth()->user()->can('payDeposit', $booking);
+        });
+
+        Blade::if('canConfirmAppointment', function ($booking) {
+            return auth()->check() && auth()->user()->can('confirmAppointment', $booking);
+        });
+
+        Blade::if('canArchiveConversation', function ($conversation) {
+            return auth()->check() && auth()->user()->can('archive', $conversation);
+        });
+
+        Blade::if('canManagePortfolio', function ($tattooer) {
+            return auth()->check() && auth()->user()->can('managePortfolio', $tattooer);
+        });
+
+        Blade::if('canManageSchedule', function ($tattooer) {
+            return auth()->check() && auth()->user()->can('manageWorkingHours', $tattooer);
+        });
     }
 }

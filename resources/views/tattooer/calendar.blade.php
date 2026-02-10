@@ -68,7 +68,7 @@
 
         <!-- Calendrier -->
         <div class="bg-gris-fonde rounded-xl p-6">
-            <div id="calendar"></div>
+            <div id="calendar" style="min-height: 600px;"></div>
         </div>
 
     </div>
@@ -182,8 +182,25 @@
 
         <script>
             document.addEventListener('DOMContentLoaded', function() {
+                console.log('Calendar script loaded');
+                console.log('FullCalendar available:', typeof FullCalendar !== 'undefined');
+
                 const calendarEl = document.getElementById('calendar');
+                console.log('Calendar element found:', calendarEl);
+
+                if (!calendarEl) {
+                    console.error('Calendar element #calendar not found!');
+                    return;
+                }
+
+                if (typeof FullCalendar === 'undefined') {
+                    console.error('FullCalendar not loaded!');
+                    return;
+                }
+
                 const events = @json($events);
+                console.log('Events loaded:', events);
+
                 const typeSelectEl = document.getElementById('event-type-select');
                 const hiddenTypeEl = document.getElementById('event-type');
                 let lastCreateType = 'appointment';
@@ -236,33 +253,51 @@
 
                     // Cliquer sur un événement
                     eventClick: function(info) {
-                        const eventId = String(info.event.id);
+                        info.jsEvent.preventDefault();
+                        info.jsEvent.stopPropagation();
 
-                        if (confirm('Supprimer cet événement ?')) {
-                            fetch(`/tattooer/calendar/${eventId}`, {
-                                method: 'DELETE',
-                                headers: {
-                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                    'Content-Type': 'application/json'
-                                }
-                            }).then(async (res) => {
-                                if (!res.ok) {
-                                    const data = await res.json();
-                                    alert('Erreur lors de la suppression: ' + (data.error ||
-                                        'Erreur inconnue'));
-                                    return;
-                                }
-                                const data = await res.json();
-                                if (data.success) {
-                                    info.event.remove();
-                                    alert('✅ ' + (data.message || 'Événement supprimé'));
-                                } else {
-                                    alert('❌ ' + (data.error || 'Échec de la suppression'));
-                                }
-                            }).catch(error => {
-                                console.error('Erreur réseau:', error);
-                                alert('❌ Erreur réseau: ' + error.message);
+                        const event = info.event;
+                        const props = event.extendedProps;
+
+                        if (props.type === 'appointment' && props.appointment_id) {
+                            // Ouvrir modale détail RDV via Livewire
+                            Livewire.dispatch('open-appointment-detail', {
+                                appointmentId: props.appointment_id
                             });
+                        } else if (props.type === 'appointment' && props.booking_id) {
+                            // BookingRequest - rediriger vers les détails de la demande
+                            console.log('Redirecting to booking request:', props.booking_id);
+                            window.location.href = `/tattooer/requests/${props.booking_id}`;
+                        } else {
+                            // Comportement existant pour break/vacation
+                            const eventId = String(event.id);
+
+                            if (confirm('Supprimer cet événement ?')) {
+                                fetch(`/tattooer/calendar/${eventId}`, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                        'Content-Type': 'application/json'
+                                    }
+                                }).then(async (res) => {
+                                    if (!res.ok) {
+                                        const data = await res.json();
+                                        alert('Erreur lors de la suppression: ' + (data.error ||
+                                            'Erreur inconnue'));
+                                        return;
+                                    }
+                                    const data = await res.json();
+                                    if (data.success) {
+                                        info.event.remove();
+                                        alert('✅ ' + (data.message || 'Événement supprimé'));
+                                    } else {
+                                        alert('❌ ' + (data.error || 'Échec de la suppression'));
+                                    }
+                                }).catch(error => {
+                                    console.error('Erreur réseau:', error);
+                                    alert('❌ Erreur réseau: ' + error.message);
+                                });
+                            }
                         }
                     },
 
@@ -299,7 +334,13 @@
                     }
                 });
 
+                console.log('Calendar created, rendering...');
                 calendar.render();
+                console.log(
+                    'Calendar rendered successfully!');
+
+                // Rendre calendar accessible globalement pour le formulaire
+                window.calendarInstance = calendar;
 
                 // Re-render on resize (mobile <-> desktop)
                 window.addEventListener('resize', () => {
@@ -335,5 +376,72 @@
             function closeCreateEventModal() {
                 document.getElementById('create-event-modal').classList.add('hidden');
             }
+
+            // Intercepter la soumission du formulaire
+            document.getElementById('create-event-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const formData = new FormData(this);
+                const data = Object.fromEntries(formData.entries());
+
+                fetch('{{ route('tattooer.calendar.store') }}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            // Ajouter l'événement au calendrier
+                            window.calendarInstance.addEvent(result.event);
+
+                            // Fermer la modale
+                            closeCreateEventModal();
+
+                            // Réinitialiser le formulaire
+                            this.reset();
+
+                            // Afficher le succès
+                            alert('✅ ' + result.message);
+                        } else {
+                            alert('❌ ' + (result.error || 'Erreur lors de la création'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erreur:', error);
+                        alert('❌ Erreur réseau: ' + error.message);
+                    });
+            });
+
+            // Détecter les query params pour la modal quick booking
+            const urlParams = new URLSearchParams(window.location.search);
+            const bookingRequestId = urlParams.get('book');
+            const bookingDate = urlParams.get('date');
+            const bookingPeriod = urlParams.get('period');
+
+            if (bookingRequestId && bookingDate) {
+                // Attendre que Livewire soit chargé
+                setTimeout(() => {
+                    if (window.Livewire) {
+                        window.Livewire.dispatch('open-booking-from-chat', {
+                            bookingRequestId: parseInt(bookingRequestId),
+                            date: bookingDate,
+                            period: bookingPeriod || 'morning'
+                        });
+                    }
+                }, 500);
+
+                // Nettoyer l'URL
+                window.history.replaceState({}, '', window.location.pathname);
+            }
         </script>
     @endpush
+
+    {{-- Quick Booking Modal --}}
+    <livewire:tattooer.quick-booking-modal />
+
+@endsection

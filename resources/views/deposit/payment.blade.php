@@ -106,7 +106,7 @@
                     <button id="checkout-button"
                         class="w-full md:w-auto px-8 py-3 bg-[#D4B59E] text-white font-semibold rounded-lg hover:bg-[#C4A68E] transition-colors disabled:opacity-50">
                         <span id="button-text">Payer l'acompte de
-                            {{ number_format($bookingRequest->deposit_amount, 2) }}€</span>
+                            {{ number_format($bookingRequest->total_deposit_amount, 2) }}€</span>
                         <span id="button-loading" class="hidden">
                             <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline"
                                 xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -187,7 +187,7 @@
 
             try {
                 // Créer la session de paiement
-                const response = await fetch('{{ route('deposit.checkout.session', $bookingRequest->id) }}', {
+                const response = await fetch('{{ route('deposit.process', $bookingRequest->id) }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

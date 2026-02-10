@@ -60,7 +60,7 @@
                                     <div>
                                         <!-- PSEUDO (pas le numéro de tel) -->
                                         <h3 class="font-semibold text-ivoire-text">
-                                            {{ $client->user->name }}
+                                            {{ $client->user->pseudo ?? $client->user->first_name . ' ' . $client->user->last_name }}
                                         </h3>
 
                                         <!-- Nombre de demandes avec cet artiste -->
