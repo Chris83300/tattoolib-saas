@@ -5,10 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Dashboard') - Ink&Pik</title>
+    @livewireStyles
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-
-    <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <!-- FullCalendar -->
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
@@ -356,6 +354,7 @@
     </script>
 
     @stack('scripts')
+    @livewireScripts
 </body>
 
 </html>

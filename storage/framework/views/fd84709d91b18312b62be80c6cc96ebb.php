@@ -1,23 +1,22 @@
-@extends('layouts.tattooer')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="space-y-6 lg:ml-60">
 
-        @if (session('success'))
+        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(session('success')): ?>
             <div class="bg-vert-succes/20 border border-vert-succes/50 text-vert-succes px-4 py-3 rounded-lg">
-                {{ session('success') }}
-            </div>
-        @endif
+                <?php echo e(session('success')); ?>
 
-        @if ($errors->any())
+            </div>
+        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
+        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($errors->any()): ?>
             <div class="bg-ambre-warning/20 border border-ambre-warning/50 text-ambre-warning px-4 py-3 rounded-lg">
                 <ul class="list-disc list-inside">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <li><?php echo e($error); ?></li>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </ul>
             </div>
-        @endif
+        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
         <!-- Header -->
         <div class="bg-gris-fonde rounded-xl p-6">
@@ -77,8 +76,8 @@
     <div id="create-event-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
         <div class="bg-gris-fonde rounded-xl p-6 max-w-md w-full">
             <h3 class="text-xl font-bold text-ivoire-text mb-4">Nouvel événement</h3>
-            <form id="create-event-form" action="{{ route('tattooer.calendar.store') }}" method="POST">
-                @csrf
+            <form id="create-event-form" action="<?php echo e(route('tattooer.calendar.store')); ?>" method="POST">
+                <?php echo csrf_field(); ?>
                 <input type="hidden" name="type" id="event-type">
 
                 <div class="space-y-4">
@@ -132,7 +131,7 @@
         </div>
     </div>
 
-    @push('scripts')
+    <?php $__env->startPush('scripts'); ?>
         <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css' rel='stylesheet' />
         <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
         <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/locales/fr.global.min.js'></script>
@@ -211,7 +210,7 @@
                     return;
                 }
 
-                const events = @json($events);
+                const events = <?php echo json_encode($events, 15, 512) ?>;
                 console.log('Events loaded:', events);
                 console.log('Events count:', events.length);
                 console.log('Booking params:', window.bookingParams);
@@ -294,7 +293,7 @@
                                 fetch(`/tattooer/calendar/${eventId}`, {
                                     method: 'DELETE',
                                     headers: {
-                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                        'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
                                         'Content-Type': 'application/json'
                                     }
                                 }).then(async (res) => {
@@ -332,7 +331,7 @@
                         fetch(`/tattooer/calendar/${eventId}`, {
                             method: 'PATCH',
                             headers: {
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
                                 'Content-Type': 'application/json'
                             },
                             body: JSON.stringify({
@@ -448,10 +447,10 @@
                 const formData = new FormData(this);
                 const data = Object.fromEntries(formData.entries());
 
-                fetch('{{ route('tattooer.calendar.store') }}', {
+                fetch('<?php echo e(route('tattooer.calendar.store')); ?>', {
                         method: 'POST',
                         headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
                             'Content-Type': 'application/json',
                             'Accept': 'application/json'
                         },
@@ -484,9 +483,30 @@
                 });
             });
         </script>
-    @endpush
+    <?php $__env->stopPush(); ?>
 
-    {{-- Quick Booking Modal --}}
-    <livewire:tattooer.quick-booking-modal />
+    
+    <?php
+$__split = function ($name, $params = []) {
+    return [$name, $params];
+};
+[$__name, $__params] = $__split('tattooer.quick-booking-modal', []);
 
-@endsection
+$key = null;
+
+$key ??= \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::generateKey('lw-484122170-0', null);
+
+$__html = app('livewire')->mount($__name, $__params, $key);
+
+echo $__html;
+
+unset($__html);
+unset($__name);
+unset($__params);
+unset($__split);
+if (isset($__slots)) unset($__slots);
+?>
+
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.tattooer', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\tattoolib-saas\resources\views/tattooer/calendar.blade.php ENDPATH**/ ?>

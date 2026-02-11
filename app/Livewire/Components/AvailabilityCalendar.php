@@ -356,6 +356,14 @@ class AvailabilityCalendar extends Component
         }
     }
 
+    public function updatedSelectedDates($value, $key)
+    {
+        // Quand la période est mise à jour via wire:model
+        if (is_string($key) && str_contains($key, '.period')) {
+            $this->dispatch('dates-updated', selectedDates: $this->selectedDates);
+        }
+    }
+
     public function render()
     {
         return view('livewire.components.availability-calendar');

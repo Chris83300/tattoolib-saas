@@ -390,7 +390,7 @@ class ClientController extends Controller
         }
 
         // Vérifier que l'acompte est payé
-        if ($bookingRequest->status !== 'deposit_paid') {
+        if ($bookingRequest->status->value !== 'deposit_paid') {
             return redirect()->back()
                 ->with('error', 'Vous devez payer l\'acompte avant de choisir une date.');
         }
@@ -418,7 +418,7 @@ class ClientController extends Controller
             $conversation->messages()->create([
                 'sender_type' => 'system',
                 'sender_id'   => null,
-                'content'     => "📅 Le client a choisi la date du {$dateFr} ({$period}). Cliquez ci-dessous pour fixer l'horaire du rendez-vous.",
+                'content'     => "📅 Le client a choisi la date du {$dateFr} ({$period}).",
             ]);
         }
 

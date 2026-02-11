@@ -365,82 +365,88 @@
                         Affichage de {{ $messages->count() }} message(s)
                     </div>
                     @foreach ($messages as $message)
-                        <div class="flex {{ $message->sender_type === 'client' ? 'justify-start' : 'justify-end' }} mb-4">
-                            <div class="max-w-xs sm:max-w-md lg:max-w-md">
-                                <!-- Avatar du client -->
-                                @if ($message->sender_type === 'client')
-                                    <div class="flex items-start gap-3 mb-3">
-                                        <img src="{{ $bookingRequest->client->user->getFirstMediaUrl('avatar') }}"
-                                             alt="Avatar de {{ $bookingRequest->client->full_name }}"
-                                             class="w-10 h-10 rounded-full object-cover border-2 border-titane/30">
-                                        <div class="flex-1">
-                                            <div class="font-semibold text-ivoire-text">{{ $bookingRequest->client->pseudo }}</div>
-                                        </div>
-                                    </div>
-                                @endif
-                                <div
-                                    class="{{ $message->sender_type === 'client' ? 'bg-noir-profond text-ivoire-text' : 'bg-beige-peau text-noir-profond' }} rounded-lg px-3 py-2 sm:px-4">
-                                    <p class="text-sm whitespace-pre-wrap break-words">
-                                        @if (!empty(trim($message->content)))
-                                            {{ $message->content }}
-                                        @elseif ($message->getMedia('attachments')->isNotEmpty())
-                                            <span class="text-ivoire-text/60 italic">Dessin envoyé</span>
-                                        @else
-                                            <span class="text-ivoire-text/60 italic">Message vide</span>
-                                        @endif
-                                    </p>
+    @if($message->sender_type === 'system')
+        {{-- Messages système — centrés, style distinct --}}
+        <div class="flex justify-center mb-4">
+            <div class="max-w-sm">
+                <div class="bg-titane/20 border border-titane/30 text-ivoire-text/80 rounded-lg px-4 py-2 text-center">
+                    <p class="text-sm whitespace-pre-wrap">{{ $message->content }}</p>
 
-                                    {{-- Message système : client a choisi une date --}}
-                                    @if($message->sender_type === 'system' && str_contains($message->content, 'a choisi la date'))
-                                        <div class="bg-vert-succes/10 border border-vert-succes/30 rounded-lg p-3 my-2">
-                                            <p class="text-sm text-vert-succes font-medium">{{ $message->content }}</p>
-
-                                            @if(auth()->user()->isTattooer()
-                                                && $bookingRequest->confirmed_date
-                                                && !$bookingRequest->appointment_datetime)
-                                                <a href="{{ route('tattooer.calendar') }}?book={{ $bookingRequest->id }}&date={{ $bookingRequest->confirmed_date }}&period={{ $bookingRequest->confirmed_period ?? 'morning' }}"
-                                                   class="inline-flex items-center gap-2 mt-3 px-4 py-2.5 bg-beige-peau text-noir-profond font-bold rounded-lg hover:bg-beige-peau/90 transition">
-                                                    📅 Fixer l'horaire du rendez-vous →
-                                                </a>
-                                            @elseif($bookingRequest->appointment_datetime)
-                                                <p class="text-xs text-vert-succes mt-2">
-                                                    ✅ RDV fixé : {{ \Carbon\Carbon::parse($bookingRequest->appointment_datetime)->translatedFormat('d/m/Y') }}
-                                                    de {{ $bookingRequest->scheduled_start_time }} à {{ $bookingRequest->scheduled_end_time }}
-                                                </p>
-                                            @endif
-                                        </div>
-                                    @endif
-
-                                    @if ($message->getMedia('attachments')->isNotEmpty())
-                                        <div class="mt-2 space-y-1">
-                                            @foreach ($message->getMedia('attachments') as $media)
-                                                @if (str_starts_with($media->mime_type, 'image/'))
-                                                    <img src="{{ $media->getUrl() }}" alt="Pièce jointe"
-                                                        class="rounded max-w-full h-auto cursor-pointer hover:opacity-90"
-                                                        onclick="window.open('{{ $media->getUrl() }}', '_blank')">
-                                                @else
-                                                    <a href="{{ $media->getUrl() }}" target="_blank"
-                                                        class="block text-xs underline break-all">
-                                                        📎 {{ $media->file_name }}
-                                                    </a>
-                                                @endif
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                </div>
-                                <p class="text-xs text-ivoire-text/50 mt-1">
-                                    {{ $message->created_at->format('H:i') }}
-                                </p>
-                            </div>
+                    @if(str_contains($message->content, 'choisi la date'))
+                        @if(auth()->user()->isTattooer()
+                            && $bookingRequest->confirmed_date
+                            && !$bookingRequest->appointment_datetime)
+                            <a href="{{ route('tattooer.calendar') }}?book={{ $bookingRequest->id }}&date={{ \Carbon\Carbon::parse($bookingRequest->confirmed_date)->format('Y-m-d') }}&period={{ $bookingRequest->confirmed_period ?? 'morning' }}"
+                               class="inline-flex items-center gap-2 mt-3 px-4 py-2.5 bg-beige-peau text-noir-profond font-bold rounded-lg hover:bg-beige-peau/90 transition">
+                                📅 Fixer l'horaire du rendez-vous →
+                            </a>
+                        @elseif($bookingRequest->appointment_datetime)
+                            <p class="text-xs text-vert-succes mt-2">
+                                ✅ RDV fixé : {{ \Carbon\Carbon::parse($bookingRequest->appointment_datetime)->translatedFormat('d/m/Y') }}
+                                de {{ $bookingRequest->scheduled_start_time }} à {{ $bookingRequest->scheduled_end_time }}
+                            </p>
+                        @endif
+                    @endif
+                </div>
+                <p class="text-xs text-ivoire-text/40 mt-1 text-center">{{ $message->created_at->format('H:i') }}</p>
+            </div>
+        </div>
+    @else
+        {{-- Messages client / tattooer — layout existant inchangé --}}
+        <div class="flex {{ $message->sender_type === 'client' ? 'justify-start' : 'justify-end' }} mb-4">
+            <div class="max-w-xs sm:max-w-md lg:max-w-md">
+                @if ($message->sender_type === 'client')
+                    <div class="flex items-start gap-3 mb-3">
+                        <img src="{{ $bookingRequest->client->user->getFirstMediaUrl('avatar') }}"
+                             alt="Avatar de {{ $bookingRequest->client->full_name }}"
+                             class="w-10 h-10 rounded-full object-cover border-2 border-titane/30">
+                        <div class="flex-1">
+                            <div class="font-semibold text-ivoire-text">{{ $bookingRequest->client->pseudo }}</div>
                         </div>
-                    @endforeach
+                    </div>
+                @endif
+                <div class="{{ $message->sender_type === 'client' ? 'bg-noir-profond text-ivoire-text' : 'bg-beige-peau text-noir-profond' }} rounded-lg px-3 py-2 sm:px-4">
+                    <p class="text-sm whitespace-pre-wrap break-words">
+                        @if (!empty(trim($message->content)))
+                            {{ $message->content }}
+                        @elseif ($message->getMedia('attachments')->isNotEmpty())
+                            <span class="text-ivoire-text/60 italic">Dessin envoyé</span>
+                        @else
+                            <span class="text-ivoire-text/60 italic">Message vide</span>
+                        @endif
+                    </p>
+
+                    @if ($message->getMedia('attachments')->isNotEmpty())
+                        <div class="mt-2 space-y-1">
+                            @foreach ($message->getMedia('attachments') as $media)
+                                @if (str_starts_with($media->mime_type, 'image/'))
+                                    <img src="{{ $media->getUrl() }}" alt="Pièce jointe"
+                                        class="rounded max-w-full h-auto cursor-pointer hover:opacity-90"
+                                        onclick="window.open('{{ $media->getUrl() }}', '_blank')">
+                                @else
+                                    <a href="{{ $media->getUrl() }}" target="_blank"
+                                        class="block text-xs underline break-all">
+                                        📎 {{ $media->file_name }}
+                                    </a>
+                                @endif
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+                <p class="text-xs text-ivoire-text/50 mt-1">
+                    {{ $message->created_at->format('H:i') }}
+                </p>
+            </div>
+        </div>
+    @endif
+@endforeach
                 @endif
             </div>
 
             <!-- Zone de saisie -->
             <div class="border-t border-titane/30 p-3 sm:p-4">
                 <div class="bg-titane/20 rounded-xl p-4 sm:p-6">
-                    @if (($bookingRequest->status->value === 'accepted' || $bookingRequest->status->value === 'deposit_paid') && $bookingRequest->conversation && $bookingRequest->conversation->status->value === 'active')
+                    @if (in_array($bookingRequest->status->value, ['accepted', 'deposit_paid', 'date_confirmed']) && $bookingRequest->conversation && $bookingRequest->conversation->status->value === 'active')
                         @if (!$bookingRequest->deposit_paid_at)
                             <div class="bg-jaune-alerte/10 border border-jaune-alerte/30 rounded-lg p-3 mb-4">
                                 <p class="text-jaune-alerte text-sm">
@@ -627,6 +633,23 @@ function messageForm() {
                 alert('Veuillez choisir le type d\'envoi (nouveau dessin ou modification).');
                 return;
             }
+
+            // Protection contre double soumission
+            const submitButton = event.target.querySelector('button[type="submit"]');
+            if (submitButton.disabled) {
+                event.preventDefault();
+                return;
+            }
+
+            // Désactiver le bouton pendant la soumission
+            submitButton.disabled = true;
+            submitButton.textContent = 'Envoi en cours...';
+
+            // Réactiver après 5 secondes (en cas d'erreur)
+            setTimeout(() => {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Envoyer';
+            }, 5000);
         }
     }
 }

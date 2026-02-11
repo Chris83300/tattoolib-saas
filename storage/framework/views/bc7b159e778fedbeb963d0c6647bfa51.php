@@ -152,41 +152,145 @@
                         </div>
                     <?php else: ?>
                         <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $messages; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $message): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                            <div class="flex <?php echo e($message->sender_type === 'tattooer' ? 'justify-start' : 'justify-end'); ?>">
-                                <div class="max-w-xs lg:max-w-md">
-                                    <div
-                                        class="<?php echo e($message->sender_type === 'tattooer'
-                                            ? 'bg-noir-profond text-ivoire-text'
-                                            : 'bg-beige-peau text-noir-profond'); ?> rounded-lg px-4 py-2">
-                                        <p class="text-sm whitespace-pre-wrap"><?php echo e($message->content); ?></p>
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($message->sender_type === 'system'): ?>
+                                
+                                <div class="flex justify-center mb-4">
+                                    <div class="max-w-sm">
+                                        <div
+                                            class="bg-titane/20 border border-titane/30 text-ivoire-text/80 rounded-lg px-4 py-2 text-center">
+                                            <p class="text-sm whitespace-pre-wrap"><?php echo e($message->content); ?></p>
+                                        </div>
+                                        <p class="text-xs text-ivoire-text/40 mt-1 text-center">
+                                            <?php echo e($message->created_at->format('H:i')); ?>
 
-                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($message->getMedia('attachments')->isNotEmpty()): ?>
-                                            <div class="mt-2 space-y-1">
-                                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $message->getMedia('attachments'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $media): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(str_starts_with($media->mime_type, 'image/')): ?>
-                                                        <img src="<?php echo e($media->getUrl()); ?>" alt="Pièce jointe"
-                                                            class="rounded max-w-full cursor-pointer hover:opacity-90"
-                                                            onclick="window.open('<?php echo e($media->getUrl()); ?>', '_blank')">
-                                                    <?php else: ?>
-                                                        <a href="<?php echo e($media->getUrl()); ?>" target="_blank"
-                                                            class="block text-xs underline">
-                                                            📎 <?php echo e($media->file_name); ?>
-
-                                                        </a>
-                                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                                            </div>
-                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        </p>
                                     </div>
-                                    <p class="text-xs text-ivoire-text/50 mt-1">
-                                        <?php echo e($message->created_at->format('H:i')); ?>
-
-                                    </p>
                                 </div>
-                            </div>
+                            <?php else: ?>
+                                
+                                <div
+                                    class="flex <?php echo e($message->sender_type === 'tattooer' ? 'justify-start' : 'justify-end'); ?>">
+                                    <div class="max-w-xs lg:max-w-md">
+                                        <div
+                                            class="<?php echo e($message->sender_type === 'tattooer'
+                                                ? 'bg-noir-profond text-ivoire-text'
+                                                : 'bg-beige-peau text-noir-profond'); ?> rounded-lg px-4 py-2">
+                                            <p class="text-sm whitespace-pre-wrap"><?php echo e($message->content); ?></p>
+
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($message->getMedia('attachments')->isNotEmpty()): ?>
+                                                <div class="mt-2 space-y-1">
+                                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $message->getMedia('attachments'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $media): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(str_starts_with($media->mime_type, 'image/')): ?>
+                                                            <img src="<?php echo e($media->getUrl()); ?>" alt="Pièce jointe"
+                                                                class="rounded max-w-full cursor-pointer hover:opacity-90"
+                                                                onclick="window.open('<?php echo e($media->getUrl()); ?>', '_blank')">
+                                                        <?php else: ?>
+                                                            <a href="<?php echo e($media->getUrl()); ?>" target="_blank"
+                                                                class="block text-xs underline">
+                                                                📎 <?php echo e($media->file_name); ?>
+
+                                                            </a>
+                                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                                </div>
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        </div>
+                                        <p class="text-xs text-ivoire-text/50 mt-1">
+                                            <?php echo e($message->created_at->format('H:i')); ?>
+
+                                        </p>
+                                    </div>
+                                </div>
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
+
+                
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(
+                    $bookingRequest->proposed_dates &&
+                        count($bookingRequest->proposed_dates) > 0 &&
+                        !$bookingRequest->confirmed_date &&
+                        in_array($bookingRequest->status->value, ['accepted', 'deposit_paid'])): ?>
+
+                    <div class="bg-vert-succes/5 border border-vert-succes/20 rounded-xl p-4 mx-4 mt-4">
+                        <h3 class="text-sm font-bold text-ivoire-text mb-1">📅 Choisissez votre date de rendez-vous</h3>
+                        <p class="text-xs text-ivoire-text/60 mb-3">Sélectionnez la date qui vous convient.</p>
+
+                        <div class="space-y-2">
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $bookingRequest->proposed_dates; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $proposal): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <?php
+                                    $proposalDate = \Carbon\Carbon::parse($proposal['date']);
+                                    $periodLabel = match ($proposal['period'] ?? '') {
+                                        'morning' => '☀️ Matin',
+                                        'afternoon' => '🌤️ Après-midi',
+                                        'evening' => '🌙 Soirée',
+                                        default => '🔄 Flexible',
+                                    };
+                                    $medal = match ($index) {
+                                        0 => '🥇',
+                                        1 => '🥈',
+                                        2 => '🥉',
+                                        default => '📅',
+                                    };
+                                ?>
+
+                                <form action="<?php echo e(route('client.booking-request.select-date', $bookingRequest)); ?>"
+                                    method="POST">
+                                    <?php echo csrf_field(); ?>
+                                    <input type="hidden" name="index" value="<?php echo e($index); ?>">
+                                    <button type="submit"
+                                        onclick="return confirm('Confirmer la date du <?php echo e($proposalDate->translatedFormat('l d F Y')); ?> (<?php echo e(strip_tags($periodLabel)); ?>) ?')"
+                                        class="w-full flex items-center justify-between p-3 rounded-lg border border-titane/30
+                                               hover:border-beige-peau hover:bg-beige-peau/10 cursor-pointer transition-all text-left">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-lg"><?php echo e($medal); ?></span>
+                                            <div>
+                                                <p class="text-ivoire-text font-medium text-sm">
+                                                    <?php echo e($proposalDate->translatedFormat('l d F Y')); ?>
+
+                                                </p>
+                                                <p class="text-xs text-titane"><?php echo e($periodLabel); ?></p>
+                                            </div>
+                                        </div>
+                                        <span class="text-beige-peau font-bold text-xs">Choisir →</span>
+                                    </button>
+                                </form>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                        </div>
+
+                        <form action="<?php echo e(route('client.booking-request.request-alternatives', $bookingRequest)); ?>"
+                            method="POST" class="mt-2">
+                            <?php echo csrf_field(); ?>
+                            <button type="submit" class="text-xs text-titane underline hover:text-ivoire-text">
+                                Aucune date ne me convient
+                            </button>
+                        </form>
+                    </div>
+                <?php elseif($bookingRequest->confirmed_date && !$bookingRequest->appointment_datetime): ?>
+                    
+                    <div class="bg-vert-succes/10 border border-vert-succes/30 rounded-lg p-4 mx-4 mt-4">
+                        <p class="text-sm text-vert-succes font-medium">
+                            ✅ Date choisie :
+                            <?php echo e(\Carbon\Carbon::parse($bookingRequest->confirmed_date)->translatedFormat('l d F Y')); ?>
+
+                        </p>
+                        <p class="text-xs text-ivoire-text/60 mt-1">L'artiste va fixer l'horaire exact du rendez-vous.</p>
+                    </div>
+                <?php elseif($bookingRequest->appointment_datetime): ?>
+                    
+                    <div class="bg-vert-succes/10 border border-vert-succes/30 rounded-lg p-4 mx-4 mt-4">
+                        <p class="text-sm text-vert-succes font-medium">
+                            ✅ Rendez-vous confirmé :
+                            <?php echo e(\Carbon\Carbon::parse($bookingRequest->appointment_datetime)->translatedFormat('l d F Y')); ?>
+
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->scheduled_start_time && $bookingRequest->scheduled_end_time): ?>
+                                de <?php echo e($bookingRequest->scheduled_start_time); ?> à <?php echo e($bookingRequest->scheduled_end_time); ?>
+
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                        </p>
+                    </div>
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                 <!-- Zone de saisie -->
                 <div class="border-t border-titane/30 p-4">

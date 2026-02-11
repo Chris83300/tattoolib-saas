@@ -153,39 +153,138 @@
                         </div>
                     @else
                         @foreach ($messages as $message)
-                            <div class="flex {{ $message->sender_type === 'tattooer' ? 'justify-start' : 'justify-end' }}">
-                                <div class="max-w-xs lg:max-w-md">
-                                    <div
-                                        class="{{ $message->sender_type === 'tattooer'
-                                            ? 'bg-noir-profond text-ivoire-text'
-                                            : 'bg-beige-peau text-noir-profond' }} rounded-lg px-4 py-2">
-                                        <p class="text-sm whitespace-pre-wrap">{{ $message->content }}</p>
-
-                                        @if ($message->getMedia('attachments')->isNotEmpty())
-                                            <div class="mt-2 space-y-1">
-                                                @foreach ($message->getMedia('attachments') as $media)
-                                                    @if (str_starts_with($media->mime_type, 'image/'))
-                                                        <img src="{{ $media->getUrl() }}" alt="Pièce jointe"
-                                                            class="rounded max-w-full cursor-pointer hover:opacity-90"
-                                                            onclick="window.open('{{ $media->getUrl() }}', '_blank')">
-                                                    @else
-                                                        <a href="{{ $media->getUrl() }}" target="_blank"
-                                                            class="block text-xs underline">
-                                                            📎 {{ $media->file_name }}
-                                                        </a>
-                                                    @endif
-                                                @endforeach
-                                            </div>
-                                        @endif
+                            @if ($message->sender_type === 'system')
+                                {{-- ═══ MESSAGE SYSTÈME — centré, style distinct ═══ --}}
+                                <div class="flex justify-center mb-4">
+                                    <div class="max-w-sm">
+                                        <div
+                                            class="bg-titane/20 border border-titane/30 text-ivoire-text/80 rounded-lg px-4 py-2 text-center">
+                                            <p class="text-sm whitespace-pre-wrap">{{ $message->content }}</p>
+                                        </div>
+                                        <p class="text-xs text-ivoire-text/40 mt-1 text-center">
+                                            {{ $message->created_at->format('H:i') }}
+                                        </p>
                                     </div>
-                                    <p class="text-xs text-ivoire-text/50 mt-1">
-                                        {{ $message->created_at->format('H:i') }}
-                                    </p>
                                 </div>
-                            </div>
+                            @else
+                                {{-- ═══ MESSAGE NORMAL (tattooer à gauche, client à droite) ═══ --}}
+                                <div
+                                    class="flex {{ $message->sender_type === 'tattooer' ? 'justify-start' : 'justify-end' }}">
+                                    <div class="max-w-xs lg:max-w-md">
+                                        <div
+                                            class="{{ $message->sender_type === 'tattooer'
+                                                ? 'bg-noir-profond text-ivoire-text'
+                                                : 'bg-beige-peau text-noir-profond' }} rounded-lg px-4 py-2">
+                                            <p class="text-sm whitespace-pre-wrap">{{ $message->content }}</p>
+
+                                            @if ($message->getMedia('attachments')->isNotEmpty())
+                                                <div class="mt-2 space-y-1">
+                                                    @foreach ($message->getMedia('attachments') as $media)
+                                                        @if (str_starts_with($media->mime_type, 'image/'))
+                                                            <img src="{{ $media->getUrl() }}" alt="Pièce jointe"
+                                                                class="rounded max-w-full cursor-pointer hover:opacity-90"
+                                                                onclick="window.open('{{ $media->getUrl() }}', '_blank')">
+                                                        @else
+                                                            <a href="{{ $media->getUrl() }}" target="_blank"
+                                                                class="block text-xs underline">
+                                                                📎 {{ $media->file_name }}
+                                                            </a>
+                                                        @endif
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <p class="text-xs text-ivoire-text/50 mt-1">
+                                            {{ $message->created_at->format('H:i') }}
+                                        </p>
+                                    </div>
+                                </div>
+                            @endif
                         @endforeach
                     @endif
                 </div>
+
+                {{-- ═══ SÉLECTION DE DATES (si dates proposées et pas encore choisie) ═══ --}}
+                @if (
+                    $bookingRequest->proposed_dates &&
+                        count($bookingRequest->proposed_dates) > 0 &&
+                        !$bookingRequest->confirmed_date &&
+                        in_array($bookingRequest->status->value, ['accepted', 'deposit_paid']))
+
+                    <div class="bg-vert-succes/5 border border-vert-succes/20 rounded-xl p-4 mx-4 mt-4">
+                        <h3 class="text-sm font-bold text-ivoire-text mb-1">📅 Choisissez votre date de rendez-vous</h3>
+                        <p class="text-xs text-ivoire-text/60 mb-3">Sélectionnez la date qui vous convient.</p>
+
+                        <div class="space-y-2">
+                            @foreach ($bookingRequest->proposed_dates as $index => $proposal)
+                                @php
+                                    $proposalDate = \Carbon\Carbon::parse($proposal['date']);
+                                    $periodLabel = match ($proposal['period'] ?? '') {
+                                        'morning' => '☀️ Matin',
+                                        'afternoon' => '🌤️ Après-midi',
+                                        'evening' => '🌙 Soirée',
+                                        default => '🔄 Flexible',
+                                    };
+                                    $medal = match ($index) {
+                                        0 => '🥇',
+                                        1 => '🥈',
+                                        2 => '🥉',
+                                        default => '📅',
+                                    };
+                                @endphp
+
+                                <form action="{{ route('client.booking-request.select-date', $bookingRequest) }}"
+                                    method="POST">
+                                    @csrf
+                                    <input type="hidden" name="index" value="{{ $index }}">
+                                    <button type="submit"
+                                        onclick="return confirm('Confirmer la date du {{ $proposalDate->translatedFormat('l d F Y') }} ({{ strip_tags($periodLabel) }}) ?')"
+                                        class="w-full flex items-center justify-between p-3 rounded-lg border border-titane/30
+                                               hover:border-beige-peau hover:bg-beige-peau/10 cursor-pointer transition-all text-left">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-lg">{{ $medal }}</span>
+                                            <div>
+                                                <p class="text-ivoire-text font-medium text-sm">
+                                                    {{ $proposalDate->translatedFormat('l d F Y') }}
+                                                </p>
+                                                <p class="text-xs text-titane">{{ $periodLabel }}</p>
+                                            </div>
+                                        </div>
+                                        <span class="text-beige-peau font-bold text-xs">Choisir →</span>
+                                    </button>
+                                </form>
+                            @endforeach
+                        </div>
+
+                        <form action="{{ route('client.booking-request.request-alternatives', $bookingRequest) }}"
+                            method="POST" class="mt-2">
+                            @csrf
+                            <button type="submit" class="text-xs text-titane underline hover:text-ivoire-text">
+                                Aucune date ne me convient
+                            </button>
+                        </form>
+                    </div>
+                @elseif($bookingRequest->confirmed_date && !$bookingRequest->appointment_datetime)
+                    {{-- Date choisie, en attente de l'horaire --}}
+                    <div class="bg-vert-succes/10 border border-vert-succes/30 rounded-lg p-4 mx-4 mt-4">
+                        <p class="text-sm text-vert-succes font-medium">
+                            ✅ Date choisie :
+                            {{ \Carbon\Carbon::parse($bookingRequest->confirmed_date)->translatedFormat('l d F Y') }}
+                        </p>
+                        <p class="text-xs text-ivoire-text/60 mt-1">L'artiste va fixer l'horaire exact du rendez-vous.</p>
+                    </div>
+                @elseif($bookingRequest->appointment_datetime)
+                    {{-- RDV confirmé --}}
+                    <div class="bg-vert-succes/10 border border-vert-succes/30 rounded-lg p-4 mx-4 mt-4">
+                        <p class="text-sm text-vert-succes font-medium">
+                            ✅ Rendez-vous confirmé :
+                            {{ \Carbon\Carbon::parse($bookingRequest->appointment_datetime)->translatedFormat('l d F Y') }}
+                            @if ($bookingRequest->scheduled_start_time && $bookingRequest->scheduled_end_time)
+                                de {{ $bookingRequest->scheduled_start_time }} à {{ $bookingRequest->scheduled_end_time }}
+                            @endif
+                        </p>
+                    </div>
+                @endif
 
                 <!-- Zone de saisie -->
                 <div class="border-t border-titane/30 p-4">

@@ -141,9 +141,15 @@ class AcceptBookingModal extends Component
             ]);
         }
 
-        // Fermer la modal et rafraîchir la page
-        $this->closeModal();
-        $this->dispatch('booking-accepted');
+        // Fermer la modal puis rediriger (force le refresh de la page Blade)
+        $this->showModal = false;
+
+        session()->flash('success', '✅ Demande acceptée ! La conversation a été créée.');
+
+        $this->redirect(
+            route('tattooer.request.show', $this->bookingRequest),
+            navigate: false  // false = full page reload (nécessaire car page Blade, pas Livewire)
+        );
     }
 
     public function render()

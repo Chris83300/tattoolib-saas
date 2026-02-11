@@ -663,42 +663,9 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
 
     // Créer le message
     $messageContent = $validated['content'] ?? '';
+    $designLabel = null;
 
-    // Si on envoie un dessin mais pas de texte personnalisé, ajouter un texte par défaut
-    if ($request->hasFile('attachments') && empty($messageContent)) {
-        $designType = $validated['design_type'] ?? null;
-        if ($designType === 'new_design') {
-            $messageContent = '🎨 Nouveau dessin proposé';
-        } elseif ($designType === 'modification') {
-            $messageContent = '✏️ Modification proposée';
-        } else {
-            $messageContent = 'Dessin envoyé';
-        }
-    }
-
-    $message = \App\Models\Message::create([
-        'conversation_id' => $bookingRequest->conversation->id,
-        'sender_type' => 'tattooer',
-        'sender_id' => $tattooer->user_id,
-        'content' => $messageContent,
-        'read_by_client_at' => null,
-        'read_by_tattooer_at' => now(),
-    ]);
-
-    // Gérer les pièces jointes
-    if ($request->hasFile('attachments')) {
-        foreach ($request->file('attachments') as $attachment) {
-            $message->addMedia($attachment)
-                ->withCustomProperties([
-                    'design_type' => $validated['design_type'] ?? null,
-                    'coverage_type' => $validated['coverage_type'] ?? null,
-                    'uploaded_by' => 'tattooer',
-                ])
-                ->toMediaCollection('attachments');
-        }
-    }
-
-    // ═══ GESTION DU COMPTAGE DESSINS ═══
+    // ═══ DÉTERMINER LE LABEL DE TRACKING AVANT DE CRÉER LE MESSAGE ═══
     $designType = $validated['design_type'] ?? null;
     $coverageType = $validated['coverage_type'] ?? null;
 
@@ -723,29 +690,67 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
                 : "✏️ Modification (supplément demandé)";
         }
 
-        // Message système
+        // Message système de tracking
         $systemContent = match($coverageType) {
             'included'  => "{$designLabel} envoyé (inclus dans le forfait).",
             'send_free' => "⚠️ {$designLabel} envoyé (hors forfait — envoi gracieux).",
             default     => "{$designLabel} envoyé.",
         };
+    }
 
-        \App\Models\Message::create([
-            'conversation_id' => $bookingRequest->conversation->id,
-            'sender_type'     => 'tattooer',
-            'sender_id'       => $tattooer->user_id,
-            'content'         => $systemContent,
-        ]);
-
-        // Si envoi gratuit hors forfait
-        if ($coverageType === 'send_free') {
-            $bookingRequest->update([
-                'overage_decision' => 'send_free',
-                'overage_reason'   => $designType === 'new_design'
-                    ? 'Dessin complet supplémentaire offert'
-                    : 'Modification supplémentaire offerte',
-            ]);
+    // ═══ CRÉER UN SEUL MESSAGE AVEC CONTENU + LABEL ═══
+    $finalContent = $messageContent;
+    if ($designLabel && $request->hasFile('attachments')) {
+        if (empty(trim($messageContent))) {
+            // Pas de contenu utilisateur → utiliser le label comme contenu principal
+            $finalContent = match($coverageType) {
+                'included'  => "{$designLabel} envoyé (inclus dans le forfait).",
+                'send_free' => "⚠️ {$designLabel} envoyé (hors forfait — envoi gracieux).",
+                default     => "{$designLabel} envoyé.",
+            };
+        } else {
+            // Contenu utilisateur présent → ajouter le label en préfixe
+            $finalContent = match($coverageType) {
+                'included'  => "{$designLabel} envoyé (inclus dans le forfait).\n\n{$messageContent}",
+                'send_free' => "⚠️ {$designLabel} envoyé (hors forfait — envoi gracieux).\n\n{$messageContent}",
+                default     => "{$designLabel} envoyé.\n\n{$messageContent}",
+            };
         }
+    }
+
+    $message = \App\Models\Message::create([
+        'conversation_id' => $bookingRequest->conversation->id,
+        'sender_type' => 'tattooer',
+        'sender_id' => $tattooer->user_id,
+        'content' => $finalContent,
+        'read_by_client_at' => null,
+        'read_by_tattooer_at' => now(),
+    ]);
+
+    // Gérer les pièces jointes
+    if ($request->hasFile('attachments')) {
+        foreach ($request->file('attachments') as $attachment) {
+            $message->addMedia($attachment)
+                ->withCustomProperties([
+                    'design_type' => $validated['design_type'] ?? null,
+                    'coverage_type' => $validated['coverage_type'] ?? null,
+                    'uploaded_by' => 'tattooer',
+                ])
+                ->toMediaCollection('attachments');
+        }
+    }
+
+    // ═══ GESTION DU COMPTAGE DESSINS (déjà fait plus haut) ═══
+    // Le tracking est déjà intégré dans le message unique ci-dessus
+
+    // Si envoi gratuit hors forfait
+    if ($coverageType === 'send_free') {
+        $bookingRequest->update([
+            'overage_decision' => 'send_free',
+            'overage_reason'   => $designType === 'new_design'
+                ? 'Dessin complet supplémentaire offert'
+                : 'Modification supplémentaire offerte',
+        ]);
     }
 
     return redirect()->route('tattooer.message.show', $bookingRequest)
@@ -1214,7 +1219,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
     /**
      * Refuser une demande de réservation
      */
-    public function requestReject(BookingRequest $bookingRequest)
+    public function requestReject(Request $request, BookingRequest $bookingRequest)
     {
         // Vérifier que la demande appartient bien au tattooer connecté
         $tattooer = auth()->user()->tattooer;
@@ -1224,18 +1229,50 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
             abort(403, 'Non autorisé');
         }
 
+        // Valider le message optionnel
+        $validated = $request->validate([
+            'rejection_reason' => 'nullable|string|max:500',
+        ]);
+
+        $reason = $validated['rejection_reason'] ?? null;
+        $defaultReason = 'Demande refusée par l\'artiste.';
+
         // Mettre à jour le statut de la demande
         $bookingRequest->update([
             'status' => 'rejected',
             'rejected_at' => now(),
-            'cancellation_reason' => request('reason', 'Demande refusée par le tattooer'),
+            'cancellation_reason' => $reason ?: $defaultReason,
         ]);
 
-        // TODO: Envoyer une notification au client
-        // TODO: Créer une conversation si elle n'existe pas
+        // Créer une conversation si elle n'existe pas + envoyer un message
+        $conversation = $bookingRequest->conversation;
+
+        if (!$conversation) {
+            $conversation = \App\Models\Conversation::create([
+                'booking_request_id' => $bookingRequest->id,
+                'client_id' => $bookingRequest->client_id,
+                'tattooer_id' => $tattooer->id,
+                'status' => 'closed',
+            ]);
+        } else {
+            $conversation->update(['status' => 'closed']);
+        }
+
+        // Message système de rejet
+        $messageContent = "❌ L'artiste a décliné votre demande.";
+        if ($reason) {
+            $messageContent .= "\n\n💬 Message de l'artiste :\n\"{$reason}\"";
+        }
+
+        $conversation->messages()->create([
+            'sender_type' => 'system',
+            'sender_id'   => null,
+            'content'     => $messageContent,
+        ]);
+
+        // TODO: Envoyer notification au client
 
         return redirect()->route('tattooer.request.show', $bookingRequest)
             ->with('success', 'Demande refusée avec succès !');
     }
-
-    }
+}

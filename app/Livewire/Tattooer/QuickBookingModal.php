@@ -2,11 +2,12 @@
 
 namespace App\Livewire\Tattooer;
 
-use App\Models\Appointment;
 use App\Models\BookingRequest;
+use App\Models\Appointment;
 use App\Models\CalendarEvent;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -15,7 +16,7 @@ class QuickBookingModal extends Component
     public bool $showModal = false;
     public ?int $bookingRequestId = null;
     public ?BookingRequest $bookingRequest = null;
-    
+
     public string $appointmentTitle = '';
     public string $appointmentDate = '';
     public string $appointmentDateDisplay = '';
@@ -36,26 +37,41 @@ class QuickBookingModal extends Component
     #[On('open-booking-from-chat')]
     public function openFromChat(int $bookingRequestId, string $date, string $period): void
     {
+        // Debug logs
+        Log::info('🎯 QuickBookingModal.openFromChat called', [
+            'bookingRequestId' => $bookingRequestId,
+            'date' => $date,
+            'period' => $period,
+            'auth_id' => auth()->id(),
+        ]);
+
         $tattooer = auth()->user()->tattooer;
-        
+
         $this->bookingRequest = BookingRequest::with(['client.user'])
             ->where('id', $bookingRequestId)
             ->where('bookable_id', $tattooer->id)
             ->where('bookable_type', $tattooer->getMorphClass())
             ->firstOrFail();
 
+        // Debug: Vérifier la demande
+        Log::info('📋 BookingRequest found', [
+            'id' => $this->bookingRequest->id,
+            'client_id' => $this->bookingRequest->client_id,
+            'status' => $this->bookingRequest->status->value,
+        ]);
+
         $this->bookingRequestId = $bookingRequestId;
 
         // Titre pré-rempli avec le pseudo du client
-        $clientPseudo = $this->bookingRequest->client?->user?->pseudo 
-            ?? $this->bookingRequest->client?->user?->name 
+        $clientPseudo = $this->bookingRequest->client?->user?->pseudo
+            ?? $this->bookingRequest->client?->user?->name
             ?? 'Client';
         $this->appointmentTitle = "Tattoo → {$clientPseudo}";
-        
+
         // Date verrouillée
         $this->appointmentDate = $date;
         $this->appointmentDateDisplay = Carbon::parse($date)->translatedFormat('l d F Y');
-        
+
         // Heures pré-remplies selon la période
         $this->startTime = match($period) {
             'morning'   => '09:00',
@@ -67,10 +83,22 @@ class QuickBookingModal extends Component
             'morning'   => '12:00',
             'afternoon' => '18:00',
             'evening'   => '21:00',
-            default     => '13:00',
+            default     => '12:00',
         };
 
+        // Debug: Vérifier les propriétés
+        Log::info('🔧 Modal properties set', [
+            'showModal' => true,
+            'appointmentTitle' => $this->appointmentTitle,
+            'appointmentDate' => $this->appointmentDate,
+            'startTime' => $this->startTime,
+            'endTime' => $this->endTime,
+        ]);
+
+        // Ouvrir la modal
         $this->showModal = true;
+
+        Log::info('✅ Modal should be open now');
     }
 
     public function createAppointment(): void
@@ -83,7 +111,7 @@ class QuickBookingModal extends Component
         $durationMinutes = $startDatetime->diffInMinutes($endDatetime);
 
         DB::transaction(function () use ($tattooer, $startDatetime, $endDatetime, $durationMinutes) {
-            
+
             // 1. Créer l'Appointment
             $appointment = Appointment::create([
                 'booking_request_id' => $this->bookingRequest->id,
@@ -93,9 +121,9 @@ class QuickBookingModal extends Component
                 'start_datetime'     => $startDatetime,
                 'end_datetime'       => $endDatetime,
                 'duration_minutes'   => $durationMinutes,
-                'status'             => 'confirmed',
+                'status'             => \App\Enums\AppointmentStatus::SCHEDULED,
                 'deposit_amount'     => $this->bookingRequest->total_deposit_amount ?? 0,
-                'total_price'        => $this->bookingRequest->estimated_total_price 
+                'total_price'        => $this->bookingRequest->estimated_total_price
                                      ?? $this->bookingRequest->price_estimate_max ?? 0,
             ]);
 
@@ -113,9 +141,8 @@ class QuickBookingModal extends Component
 
             // 3. Mettre à jour la BookingRequest
             $this->bookingRequest->update([
-                'status'                       => 'confirmed',
+                'status'                       => 'date_confirmed',
                 'appointment_datetime'         => $startDatetime,
-                'appointment_duration_minutes'  => $durationMinutes,
                 'scheduled_start_time'          => $this->startTime,
                 'scheduled_end_time'            => $this->endTime,
                 'scheduled_duration_minutes'    => $durationMinutes,
@@ -140,9 +167,9 @@ class QuickBookingModal extends Component
 
         $this->showModal = false;
         session()->flash('success', '✅ Rendez-vous créé avec succès !');
-        
+
         // Rafraîchir le calendrier FullCalendar
-        $this->dispatch('appointment-created');
+        $this->dispatch('refresh-quick-booking');
     }
 
     public function render()

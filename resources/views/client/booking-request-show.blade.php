@@ -18,8 +18,8 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h1 class="text-3xl font-bold text-ivoire-text">Détails de la demande</h1>
-                        <p class="text-ivoire-text/70 mt-1">Artiste: {{ $bookingRequest->bookable->user->first_name }}
-                            {{ $bookingRequest->bookable->user->last_name }}</p>
+                        <p class="text-ivoire-text/70 mt-1">Artiste: <span
+                                class="font-semibold text-cuivre">{{ $bookingRequest->bookable->user->pseudo }}</span></p>
                     </div>
                 </div>
             </div>
@@ -276,7 +276,10 @@
                                 @endif
 
                                 <!-- 📅 Sélection de dates -->
-                                @if ($bookingRequest->status === 'deposit_paid' && $bookingRequest->proposed_dates && !$bookingRequest->confirmed_date)
+                                @if (
+                                    $bookingRequest->status->value === 'deposit_paid' &&
+                                        $bookingRequest->proposed_dates &&
+                                        !$bookingRequest->confirmed_date)
 
                                     <div class="bg-gris-fonde rounded-xl p-4 border border-beige-peau/20 mt-4">
                                         <h4 class="font-semibold text-ivoire-text mb-2">📅 Choisissez votre date de
@@ -304,29 +307,39 @@
                                                     };
                                                 @endphp
 
-                                                <button type="button"
-                                                    wire:click="selectProposedDate({{ $index }})"
-                                                    wire:confirm="Confirmer la date du {{ $proposalDate->translatedFormat('l d F Y') }} ({{ strip_tags($periodLabel) }}) ?"
-                                                    class="w-full flex items-center justify-between p-4 rounded-lg border border-titane/30
-                                                           hover:border-beige-peau hover:bg-beige-peau/10 cursor-pointer transition-all">
-                                                    <div class="flex items-center gap-3">
-                                                        <span class="text-2xl">{{ $medal }}</span>
-                                                        <div class="text-left">
-                                                            <p class="text-ivoire-text font-medium">
-                                                                {{ $proposalDate->translatedFormat('l d F Y') }}
-                                                            </p>
-                                                            <p class="text-xs text-titane">{{ $periodLabel }}</p>
+                                                <form
+                                                    action="{{ route('client.booking-request.select-date', $bookingRequest) }}"
+                                                    method="POST">
+                                                    @csrf
+                                                    <input type="hidden" name="index" value="{{ $index }}">
+                                                    <button type="submit"
+                                                        onclick="return confirm('Confirmer la date du {{ $proposalDate->translatedFormat('l d F Y') }} ({{ strip_tags($periodLabel) }}) ?')"
+                                                        class="w-full flex items-center justify-between p-4 rounded-lg border border-titane/30
+                                                               hover:border-beige-peau hover:bg-beige-peau/10 cursor-pointer transition-all">
+                                                        <div class="flex items-center gap-3">
+                                                            <span class="text-2xl">{{ $medal }}</span>
+                                                            <div class="text-left">
+                                                                <p class="text-ivoire-text font-medium">
+                                                                    {{ $proposalDate->translatedFormat('l d F Y') }}
+                                                                </p>
+                                                                <p class="text-xs text-titane">{{ $periodLabel }}</p>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                    <span class="text-beige-peau font-bold text-sm">Choisir →</span>
-                                                </button>
+                                                        <span class="text-beige-peau font-bold text-sm">Choisir →</span>
+                                                    </button>
+                                                </form>
                                             @endforeach
                                         </div>
 
-                                        <button type="button" wire:click="requestAlternativeDates"
-                                            class="text-xs text-titane underline hover:text-ivoire-text mt-3 block">
-                                            Aucune date ne me convient — demander d'autres propositions
-                                        </button>
+                                        <form
+                                            action="{{ route('client.booking-request.request-alternatives', $bookingRequest) }}"
+                                            method="POST" class="mt-3">
+                                            @csrf
+                                            <button type="submit"
+                                                class="text-xs text-titane underline hover:text-ivoire-text">
+                                                Aucune date ne me convient — demander d'autres propositions
+                                            </button>
+                                        </form>
                                     </div>
                                 @endif
 

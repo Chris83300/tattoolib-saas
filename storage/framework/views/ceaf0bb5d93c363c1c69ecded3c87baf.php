@@ -367,87 +367,93 @@
                         Affichage de <?php echo e($messages->count()); ?> message(s)
                     </div>
                     <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $messages; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $message): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <div class="flex <?php echo e($message->sender_type === 'client' ? 'justify-start' : 'justify-end'); ?> mb-4">
-                            <div class="max-w-xs sm:max-w-md lg:max-w-md">
-                                <!-- Avatar du client -->
-                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($message->sender_type === 'client'): ?>
-                                    <div class="flex items-start gap-3 mb-3">
-                                        <img src="<?php echo e($bookingRequest->client->user->getFirstMediaUrl('avatar')); ?>"
-                                             alt="Avatar de <?php echo e($bookingRequest->client->full_name); ?>"
-                                             class="w-10 h-10 rounded-full object-cover border-2 border-titane/30">
-                                        <div class="flex-1">
-                                            <div class="font-semibold text-ivoire-text"><?php echo e($bookingRequest->client->pseudo); ?></div>
-                                        </div>
-                                    </div>
-                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                                <div
-                                    class="<?php echo e($message->sender_type === 'client' ? 'bg-noir-profond text-ivoire-text' : 'bg-beige-peau text-noir-profond'); ?> rounded-lg px-3 py-2 sm:px-4">
-                                    <p class="text-sm whitespace-pre-wrap break-words">
-                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!empty(trim($message->content))): ?>
-                                            <?php echo e($message->content); ?>
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($message->sender_type === 'system'): ?>
+        
+        <div class="flex justify-center mb-4">
+            <div class="max-w-sm">
+                <div class="bg-titane/20 border border-titane/30 text-ivoire-text/80 rounded-lg px-4 py-2 text-center">
+                    <p class="text-sm whitespace-pre-wrap"><?php echo e($message->content); ?></p>
 
-                                        <?php elseif($message->getMedia('attachments')->isNotEmpty()): ?>
-                                            <span class="text-ivoire-text/60 italic">Dessin envoyé</span>
-                                        <?php else: ?>
-                                            <span class="text-ivoire-text/60 italic">Message vide</span>
-                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                                    </p>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(str_contains($message->content, 'choisi la date')): ?>
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->isTattooer()
+                            && $bookingRequest->confirmed_date
+                            && !$bookingRequest->appointment_datetime): ?>
+                            <a href="<?php echo e(route('tattooer.calendar')); ?>?book=<?php echo e($bookingRequest->id); ?>&date=<?php echo e(\Carbon\Carbon::parse($bookingRequest->confirmed_date)->format('Y-m-d')); ?>&period=<?php echo e($bookingRequest->confirmed_period ?? 'morning'); ?>"
+                               class="inline-flex items-center gap-2 mt-3 px-4 py-2.5 bg-beige-peau text-noir-profond font-bold rounded-lg hover:bg-beige-peau/90 transition">
+                                📅 Fixer l'horaire du rendez-vous →
+                            </a>
+                        <?php elseif($bookingRequest->appointment_datetime): ?>
+                            <p class="text-xs text-vert-succes mt-2">
+                                ✅ RDV fixé : <?php echo e(\Carbon\Carbon::parse($bookingRequest->appointment_datetime)->translatedFormat('d/m/Y')); ?>
 
-                                    
-                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($message->sender_type === 'system' && str_contains($message->content, 'a choisi la date')): ?>
-                                        <div class="bg-vert-succes/10 border border-vert-succes/30 rounded-lg p-3 my-2">
-                                            <p class="text-sm text-vert-succes font-medium"><?php echo e($message->content); ?></p>
+                                de <?php echo e($bookingRequest->scheduled_start_time); ?> à <?php echo e($bookingRequest->scheduled_end_time); ?>
 
-                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->isTattooer()
-                                                && $bookingRequest->confirmed_date
-                                                && !$bookingRequest->appointment_datetime): ?>
-                                                <a href="<?php echo e(route('tattooer.calendar')); ?>?book=<?php echo e($bookingRequest->id); ?>&date=<?php echo e($bookingRequest->confirmed_date); ?>&period=<?php echo e($bookingRequest->confirmed_period ?? 'morning'); ?>"
-                                                   class="inline-flex items-center gap-2 mt-3 px-4 py-2.5 bg-beige-peau text-noir-profond font-bold rounded-lg hover:bg-beige-peau/90 transition">
-                                                    📅 Fixer l'horaire du rendez-vous →
-                                                </a>
-                                            <?php elseif($bookingRequest->appointment_datetime): ?>
-                                                <p class="text-xs text-vert-succes mt-2">
-                                                    ✅ RDV fixé : <?php echo e(\Carbon\Carbon::parse($bookingRequest->appointment_datetime)->translatedFormat('d/m/Y')); ?>
-
-                                                    de <?php echo e($bookingRequest->scheduled_start_time); ?> à <?php echo e($bookingRequest->scheduled_end_time); ?>
-
-                                                </p>
-                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                                        </div>
-                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-
-                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($message->getMedia('attachments')->isNotEmpty()): ?>
-                                        <div class="mt-2 space-y-1">
-                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $message->getMedia('attachments'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $media): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(str_starts_with($media->mime_type, 'image/')): ?>
-                                                    <img src="<?php echo e($media->getUrl()); ?>" alt="Pièce jointe"
-                                                        class="rounded max-w-full h-auto cursor-pointer hover:opacity-90"
-                                                        onclick="window.open('<?php echo e($media->getUrl()); ?>', '_blank')">
-                                                <?php else: ?>
-                                                    <a href="<?php echo e($media->getUrl()); ?>" target="_blank"
-                                                        class="block text-xs underline break-all">
-                                                        📎 <?php echo e($media->file_name); ?>
-
-                                                    </a>
-                                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                                        </div>
-                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                                </div>
-                                <p class="text-xs text-ivoire-text/50 mt-1">
-                                    <?php echo e($message->created_at->format('H:i')); ?>
-
-                                </p>
-                            </div>
+                            </p>
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                </div>
+                <p class="text-xs text-ivoire-text/40 mt-1 text-center"><?php echo e($message->created_at->format('H:i')); ?></p>
+            </div>
+        </div>
+    <?php else: ?>
+        
+        <div class="flex <?php echo e($message->sender_type === 'client' ? 'justify-start' : 'justify-end'); ?> mb-4">
+            <div class="max-w-xs sm:max-w-md lg:max-w-md">
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($message->sender_type === 'client'): ?>
+                    <div class="flex items-start gap-3 mb-3">
+                        <img src="<?php echo e($bookingRequest->client->user->getFirstMediaUrl('avatar')); ?>"
+                             alt="Avatar de <?php echo e($bookingRequest->client->full_name); ?>"
+                             class="w-10 h-10 rounded-full object-cover border-2 border-titane/30">
+                        <div class="flex-1">
+                            <div class="font-semibold text-ivoire-text"><?php echo e($bookingRequest->client->pseudo); ?></div>
                         </div>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    </div>
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                <div class="<?php echo e($message->sender_type === 'client' ? 'bg-noir-profond text-ivoire-text' : 'bg-beige-peau text-noir-profond'); ?> rounded-lg px-3 py-2 sm:px-4">
+                    <p class="text-sm whitespace-pre-wrap break-words">
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!empty(trim($message->content))): ?>
+                            <?php echo e($message->content); ?>
+
+                        <?php elseif($message->getMedia('attachments')->isNotEmpty()): ?>
+                            <span class="text-ivoire-text/60 italic">Dessin envoyé</span>
+                        <?php else: ?>
+                            <span class="text-ivoire-text/60 italic">Message vide</span>
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    </p>
+
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($message->getMedia('attachments')->isNotEmpty()): ?>
+                        <div class="mt-2 space-y-1">
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $message->getMedia('attachments'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $media): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(str_starts_with($media->mime_type, 'image/')): ?>
+                                    <img src="<?php echo e($media->getUrl()); ?>" alt="Pièce jointe"
+                                        class="rounded max-w-full h-auto cursor-pointer hover:opacity-90"
+                                        onclick="window.open('<?php echo e($media->getUrl()); ?>', '_blank')">
+                                <?php else: ?>
+                                    <a href="<?php echo e($media->getUrl()); ?>" target="_blank"
+                                        class="block text-xs underline break-all">
+                                        📎 <?php echo e($media->file_name); ?>
+
+                                    </a>
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                        </div>
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                </div>
+                <p class="text-xs text-ivoire-text/50 mt-1">
+                    <?php echo e($message->created_at->format('H:i')); ?>
+
+                </p>
+            </div>
+        </div>
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             </div>
 
             <!-- Zone de saisie -->
             <div class="border-t border-titane/30 p-3 sm:p-4">
                 <div class="bg-titane/20 rounded-xl p-4 sm:p-6">
-                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(($bookingRequest->status->value === 'accepted' || $bookingRequest->status->value === 'deposit_paid') && $bookingRequest->conversation && $bookingRequest->conversation->status->value === 'active'): ?>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(in_array($bookingRequest->status->value, ['accepted', 'deposit_paid', 'date_confirmed']) && $bookingRequest->conversation && $bookingRequest->conversation->status->value === 'active'): ?>
                         <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!$bookingRequest->deposit_paid_at): ?>
                             <div class="bg-jaune-alerte/10 border border-jaune-alerte/30 rounded-lg p-3 mb-4">
                                 <p class="text-jaune-alerte text-sm">
@@ -634,6 +640,23 @@ function messageForm() {
                 alert('Veuillez choisir le type d\'envoi (nouveau dessin ou modification).');
                 return;
             }
+
+            // Protection contre double soumission
+            const submitButton = event.target.querySelector('button[type="submit"]');
+            if (submitButton.disabled) {
+                event.preventDefault();
+                return;
+            }
+
+            // Désactiver le bouton pendant la soumission
+            submitButton.disabled = true;
+            submitButton.textContent = 'Envoi en cours...';
+
+            // Réactiver après 5 secondes (en cas d'erreur)
+            setTimeout(() => {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Envoyer';
+            }, 5000);
         }
     }
 }
