@@ -603,7 +603,8 @@ function messageForm() {
                 this.coverageType = 'included';
                 this.designTypeLabel = type === 'new_design'
                     ? '🎨 Nouveau dessin (inclus dans le forfait)'
-                    : '✏️ Modification (incluse dans le forfait)';
+                    : '✏️ Modification (incluse dans le forfait)'
+                    ;
             } else {
                 this.showOverage = true;
                 this.coverageType = '';

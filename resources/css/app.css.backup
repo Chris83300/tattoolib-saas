@@ -1,0 +1,379 @@
+@import "tailwindcss";
+
+@source "../views/**/*.blade.php";
+@source "../../app/**/*.php";
+@source "../js/**/*.js";
+
+@theme {
+    /* ============================================
+     PALETTE INK&PIK - FINALE VALIDÉE
+     ============================================ */
+
+    /* Couleurs principales */
+    --color-noir-profond: #0a0a0a;
+    --color-gris-fonde: #1a1a1a;
+    --color-beige-peau: #e9c6a0;
+    --color-titane: #b9bcc7;
+
+    /* Couleurs texte */
+    --color-ivoire-text: #f7f5f0;
+    --color-noir-text: #0a0a0a;
+
+    /* Couleurs accent */
+    --color-cuivre: #b87333;
+    --color-electric-blue: #1e3a8a; /* #007bff */
+    --color-beige-fonce: #988167;
+
+    /* Couleurs fonctionnelles */
+    --color-vert-succes: #10b981;
+    --color-rouge-alerte: #ef4444;
+    --color-orange-attention: #f59e0b;
+    --color-ambre-warning: #f59e0b;
+    --color-jaune-alerte: #fbbf24;
+
+    /* Typography */
+    --font-display: "Satoshi", "Space Grotesk", system-ui, sans-serif;
+    --font-body: "Inter", system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", monospace;
+
+    /* Spacing iOS safe area */
+    --spacing-safe-top: env(safe-area-inset-top);
+    --spacing-safe-bottom: env(safe-area-inset-bottom);
+
+    /* Shadows custom */
+    --shadow-card:
+        0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+    --shadow-card-hover:
+        0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+}
+
+/* Styles pour img-comparison-slider */
+img-comparison-slider {
+    --divider-width: 3px;
+    --divider-color: #d4b59e; /* beige-peau */
+    --default-handle-opacity: 1;
+    --default-handle-color: #d4b59e;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+/* Animation pulse pour status ouvert */
+@keyframes pulse-dot {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.animate-pulse {
+    animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* ============================================
+   CLASSES UTILITAIRES CUSTOM
+   ============================================ */
+
+/* Safe area iOS (notch) */
+.safe-top {
+    padding-top: max(1rem, var(--spacing-safe-top));
+}
+
+.safe-bottom {
+    padding-bottom: max(1rem, var(--spacing-safe-bottom));
+}
+
+/* Scrollbar custom (dark) */
+.scrollbar-dark::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.scrollbar-dark::-webkit-scrollbar-track {
+    background: var(--color-noir-profond);
+}
+
+.scrollbar-dark::-webkit-scrollbar-thumb {
+    background: var(--color-titane);
+    border-radius: 4px;
+}
+
+.scrollbar-dark::-webkit-scrollbar-thumb:hover {
+    background: var(--color-beige-peau);
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes slide-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes pulse-badge {
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
+}
+
+.animate-slide-up {
+    animation: slide-up 0.4s ease-out;
+}
+
+.animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+}
+
+.animate-pulse-badge {
+    animation: pulse-badge 2s ease-in-out infinite;
+}
+
+/* ============================================
+   FOCUS STATES ACCESSIBILITÉ
+   ============================================ */
+
+.focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-beige-peau focus:ring-offset-2 focus:ring-offset-noir-profond;
+}
+
+/* ============================================
+   COMPOSANTS DE BASE
+   ============================================ */
+/* Background color */
+.bg-noir-profond {
+    background-color: var(--color-noir-profond);
+}
+.bg-beige-peau {
+    background-color: var(--color-beige-peau);
+}
+.bg-gris-fonde {
+    background-color: var(--color-gris-fonde);
+}
+.bg-vert-succes {
+    background-color: var(--color-vert-succes);
+}
+.bg-rouge-alerte {
+    background-color: var(--color-rouge-alerte);
+}
+.bg-ambre-warning {
+    background-color: var(--color-ambre-warning);
+}
+.bg-jaune-alerte {
+    background-color: var(--color-jaune-alerte);
+}
+.bg-orange-attention {
+    background-color: var(--color-orange-attention);
+}
+.bg-beige-fonce {
+    background-color: var(--color-beige-fonce);
+}
+.bg-titane {
+    background-color: var(--color-titane);
+}
+
+/* Backdrop blur pour modals/headers */
+.backdrop-blur-dark {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    background-color: rgba(10, 10, 10, 0.95);
+}
+
+/* Gradient overlay (images) */
+.gradient-overlay {
+    background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(10, 10, 10, 0.8) 100%
+    );
+}
+
+/* Touch feedback mobile */
+.touch-feedback {
+    @apply active:scale-95 transition-transform duration-100;
+}
+
+/* Card style standard */
+.card-dark {
+    @apply bg-gris-fonde rounded-lg p-4 shadow-card hover:shadow-card-hover transition-shadow;
+}
+
+/* Button reset (pour custom styling) */
+.btn-reset {
+    @apply appearance-none border-none bg-transparent p-0 m-0 cursor-pointer;
+}
+
+/* ============================================
+   RESPONSIVE HELPERS
+   ============================================ */
+
+/* Container custom (max-width + padding) */
+.container-custom {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+/* Grid responsive (auto-fit cards) */
+.grid-cards {
+    @apply grid gap-4 md:gap-6;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+/* ============================================
+   TYPOGRAPHY SCALE
+   ============================================ */
+
+.text-display {
+    @apply font-display font-bold text-3xl md:text-5xl leading-tight;
+}
+
+.text-heading {
+    @apply font-display font-bold text-2xl md:text-3xl leading-tight;
+}
+
+.text-subheading {
+    @apply font-body font-semibold text-lg md:text-xl;
+}
+
+.text-body {
+    @apply font-body text-base leading-relaxed;
+}
+
+.text-caption {
+    @apply font-body text-sm text-ivoire-text/70;
+}
+
+/* ============================================
+   UTILITAIRES BEIGE (ACCENT UNIQUEMENT)
+   ============================================ */
+
+/* Classes helper pour forcer respect règle "beige = accent" */
+.accent-beige {
+    @apply text-beige-peau;
+}
+
+.accent-beige-bg {
+    @apply bg-beige-peau/10;
+}
+
+.accent-beige-border {
+    @apply border-beige-peau;
+}
+
+/* Flux input focus states */
+input:focus[data-flux-control],
+textarea:focus[data-flux-control],
+select:focus[data-flux-control] {
+    @apply outline-hidden ring-2 ring-beige-peau ring-offset-2 ring-offset-noir-profond;
+}
+
+/* WELCOME BLADE */
+
+.text-titre {
+    font-size: 8rem;
+    margin-bottom: 6rem;
+}
+
+/* Text colors for status badges */
+.text-jaune-alerte {
+    color: var(--color-jaune-alerte);
+}
+.text-beige-peau {
+    color: var(--color-beige-peau);
+}
+.text-ambre-warning {
+    color: var(--color-ambre-warning);
+}
+.text-vert-succes {
+    color: var(--color-vert-succes);
+}
+.text-rouge-alerte {
+    color: var(--color-rouge-alerte);
+}
+.text-orange-attention {
+    color: var(--color-orange-attention);
+}
+
+@media (max-width: 768px) {
+    .text-titre {
+        font-size: 4rem;
+        margin-bottom: 3rem;
+    }
+}
+
+/* ═══ BREAKPOINTS MANQUANTS - FORCÉS MANUELLEMENT ═══ */
+/* sm: 640px */
+@media (min-width: 640px) {
+    .sm\:flex-row {
+        flex-direction: row;
+    }
+    .sm\:flex-col {
+        flex-direction: column;
+    }
+    .sm\:grid-cols-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .sm\:grid-cols-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .sm\:grid-cols-4 {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .sm\:block {
+        display: block;
+    }
+    .sm\:hidden {
+        display: none;
+    }
+    .sm\:text-sm {
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+    }
+    .sm\:px-6 {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+    .sm\:gap-4 {
+        gap: 1rem;
+    }
+}
+
+/* lg: 1024px */
+@media (min-width: 1024px) {
+    .lg\:grid-cols-4 {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .lg\:grid-cols-6 {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+    .lg\:text-xl {
+        font-size: 1.25rem;
+        line-height: 1.75rem;
+    }
+    .lg\:px-8 {
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+}

@@ -121,6 +121,7 @@ class QuickBookingModal extends Component
                 'start_datetime'     => $startDatetime,
                 'end_datetime'       => $endDatetime,
                 'duration_minutes'   => $durationMinutes,
+                'title'             => $this->appointmentTitle,
                 'status'             => \App\Enums\AppointmentStatus::SCHEDULED,
                 'deposit_amount'     => $this->bookingRequest->total_deposit_amount ?? 0,
                 'total_price'        => $this->bookingRequest->estimated_total_price
@@ -155,6 +156,13 @@ class QuickBookingModal extends Component
                     'sender_type' => 'system',
                     'sender_id'   => null,
                     'content'     => "✅ Rendez-vous confirmé !\n📅 {$startDatetime->translatedFormat('l d F Y')}\n🕐 {$this->startTime} → {$this->endTime}\nVous recevrez un rappel avant le jour J.",
+                ]);
+
+                // Envoyer le formulaire de consentement dans le chat
+                $conversation->messages()->create([
+                    'sender_type' => 'system',
+                    'sender_id'   => null,
+                    'content'     => '[CONSENT_FORM:' . $this->bookingRequest->id . ']',
                 ]);
             }
 

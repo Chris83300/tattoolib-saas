@@ -3,7 +3,9 @@
 namespace App\Livewire\Tattooer;
 
 use App\Models\BookingRequest;
-use Carbon\Carbon;
+use App\Models\Conversation;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -18,6 +20,7 @@ class AcceptBookingModal extends Component
     public ?float $priceEstimateMax = null;
     public ?float $totalDepositAmount = null;
     public int $clientPaymentDeadlineDays = 7;
+    public string $tattooerNotes = '';
 
     // Section 2 — Dates (reçues du composant AvailabilityCalendar)
     public array $proposedDates = [];
@@ -94,62 +97,82 @@ class AcceptBookingModal extends Component
 
     public function submitAcceptance(): void
     {
-        $this->validate();
+        try {
+            $this->validate();
 
-        // Vérifier cohérence prix
-        if ($this->totalDepositAmount > $this->priceEstimateMax * 0.5) {
-            $this->addError('totalDepositAmount', 'L\'acompte ne peut pas dépasser 50% du prix maximum.');
-            return;
-        }
-
-        // Mettre à jour directement le bookingRequest
-        $this->bookingRequest->update([
-            'status' => 'accepted',
-            'accepted_at' => now(),
-            'price_estimate_min' => $this->priceEstimateMin,
-            'price_estimate_max' => $this->priceEstimateMax,
-            'total_deposit_amount' => $this->totalDepositAmount,
-            'client_payment_deadline_days' => $this->clientPaymentDeadlineDays,
-            'proposed_dates' => $this->proposedDates,
-            'included_design_versions' => $this->includedDesignVersions,
-            'modifications_per_design' => $this->modificationsPerDesign,
-            'deposit_deadline' => now()->addDays($this->clientPaymentDeadlineDays),
-            'date_selection_deadline' => now()->addHours(48),
-        ]);
-
-        // Créer la conversation si elle n'existe pas
-        if (!$this->bookingRequest->conversation) {
-            $conversation = \App\Models\Conversation::create([
+            // Debug
+            \Log::info('AcceptBookingModal: submitAcceptance called', [
                 'booking_request_id' => $this->bookingRequest->id,
-                'client_id' => $this->bookingRequest->client_id,
-                'tattooer_id' => auth()->user()->tattooer->id,
-                'status' => 'active',
+                'validated_data' => [
+                    'priceEstimateMin' => $this->priceEstimateMin,
+                    'priceEstimateMax' => $this->priceEstimateMax,
+                    'totalDepositAmount' => $this->totalDepositAmount,
+                ]
             ]);
 
-            // Envoyer le message d'acceptation
-            $conversation->messages()->create([
-                'sender_type' => 'tattooer',
-                'sender_id' => auth()->id(),
-                'content' => "Bonjour ! 🎨\n\n" .
-                           "J'accepte votre demande de tattoo avec plaisir !\n\n" .
-                           "📍 Zone : {$this->bookingRequest->body_zone}\n" .
-                           "💰 Prix : {$this->priceEstimateMin}€ - {$this->priceEstimateMax}€\n" .
-                           "💳 Acompte : {$this->totalDepositAmount}€\n\n" .
-                           "N'hésitez pas à me contacter si vous avez des questions !",
-                'read_by_client_at' => null,
-                'read_by_tattooer_at' => now(),
+            // Vérifier cohérence prix
+            if ($this->totalDepositAmount > $this->priceEstimateMax * 0.5) {
+                $this->addError('totalDepositAmount', 'L\'acompte ne peut pas dépasser 50% du prix maximum.');
+                return;
+            }
+
+            // Mettre à jour directement le bookingRequest
+            $this->bookingRequest->update([
+                'status' => 'accepted',
+                'accepted_at' => now(),
+                'price_estimate_min' => $this->priceEstimateMin,
+                'price_estimate_max' => $this->priceEstimateMax,
+                'total_deposit_amount' => $this->totalDepositAmount,
+                'client_payment_deadline_days' => $this->clientPaymentDeadlineDays,
+                'proposed_dates' => $this->proposedDates,
+                'included_design_versions' => $this->includedDesignVersions,
+                'modifications_per_design' => $this->modificationsPerDesign,
+                'deposit_deadline' => now()->addDays($this->clientPaymentDeadlineDays),
+                'date_selection_deadline' => now()->addHours(48),
             ]);
+
+            // Créer la conversation si elle n'existe pas
+            if (!$this->bookingRequest->conversation) {
+                $conversation = \App\Models\Conversation::create([
+                    'booking_request_id' => $this->bookingRequest->id,
+                    'client_id' => $this->bookingRequest->client_id,
+                    'tattooer_id' => auth()->user()->tattooer->id,
+                    'status' => 'active',
+                ]);
+
+                // Envoyer le message d'acceptation
+                $conversation->messages()->create([
+                    'sender_type' => 'tattooer',
+                    'sender_id' => auth()->id(),
+                    'content' => "Bonjour ! 🎨\n\n" .
+                               "J'accepte votre demande de tattoo avec plaisir !\n\n" .
+                               "📍 Zone : {$this->bookingRequest->body_zone}\n" .
+                               "💰 Prix : {$this->priceEstimateMin}€ - {$this->priceEstimateMax}€\n" .
+                               "💳 Acompte : {$this->totalDepositAmount}€\n\n" .
+                               "N'hésitez pas à me contacter si vous avez des questions !",
+                    'read_by_client_at' => null,
+                    'read_by_tattooer_at' => now(),
+                ]);
+            }
+
+            // Fermer la modal puis rediriger (force le refresh de la page Blade)
+            $this->showModal = false;
+
+            session()->flash('success', '✅ Demande acceptée ! La conversation a été créée.');
+
+            $this->redirect(
+                route('tattooer.request.show', $this->bookingRequest),
+                navigate: false  // false = full page reload (nécessaire car page Blade, pas Livewire)
+            );
+
+        } catch (\Exception $e) {
+            \Log::error('AcceptBookingModal: submitAcceptance error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            $this->addError('general', 'Une erreur est survenue : ' . $e->getMessage());
         }
-
-        // Fermer la modal puis rediriger (force le refresh de la page Blade)
-        $this->showModal = false;
-
-        session()->flash('success', '✅ Demande acceptée ! La conversation a été créée.');
-
-        $this->redirect(
-            route('tattooer.request.show', $this->bookingRequest),
-            navigate: false  // false = full page reload (nécessaire car page Blade, pas Livewire)
-        );
     }
 
     public function render()

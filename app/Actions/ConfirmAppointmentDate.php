@@ -25,7 +25,7 @@ class ConfirmAppointmentDate
 
             // 2. Sauvegarder la date confirmée
             $appointmentDateTime = $this->buildAppointmentDateTime($date, $period, $time);
-            
+
             $bookingRequest->update([
                 'confirmed_date' => $date,
                 'confirmed_period' => $period,
@@ -133,7 +133,7 @@ class ConfirmAppointmentDate
     private function sendConfirmationMessage(BookingRequest $bookingRequest, string $date, string $period, string $appointmentDateTime): void
     {
         $conversation = $bookingRequest->conversation;
-        
+
         if (!$conversation) {
             return;
         }
@@ -158,6 +158,13 @@ class ConfirmAppointmentDate
             'sender_id' => null,
             'sender_type' => 'system',
             'content' => $content,
+        ]);
+
+        // Envoyer le formulaire de consentement dans le chat
+        $conversation->messages()->create([
+            'sender_id' => null,
+            'sender_type' => 'system',
+            'content' => '[CONSENT_FORM:' . $bookingRequest->id . ']',
         ]);
     }
 
@@ -189,7 +196,7 @@ class ConfirmAppointmentDate
         }
 
         $proposedDates = $bookingRequest->proposed_dates;
-        
+
         foreach ($proposedDates as $proposedDate) {
             if ($proposedDate['date'] === $date && $proposedDate['period'] === $period) {
                 return true;
@@ -209,10 +216,10 @@ class ConfirmAppointmentDate
         }
 
         $formattedDates = [];
-        
+
         foreach ($bookingRequest->proposed_dates as $proposedDate) {
             $carbonDate = Carbon::parse($proposedDate['date']);
-            
+
             $formattedDates[] = [
                 'date' => $proposedDate['date'],
                 'period' => $proposedDate['period'],
@@ -251,7 +258,7 @@ class ConfirmAppointmentDate
             $conversation = $bookingRequest->conversation;
             if ($conversation) {
                 $content = "📅 Nouvelles dates proposées\n\n";
-                
+
                 foreach ($newDates as $date) {
                     $periodLabel = match($date['period']) {
                         'morning' => 'Matin',
@@ -260,11 +267,11 @@ class ConfirmAppointmentDate
                         'anytime' => 'Toute la journée',
                         default => ucfirst($date['period']),
                     };
-                    
+
                     $formattedDate = Carbon::parse($date['date'])->translatedFormat('l d F Y');
                     $content .= "• {$formattedDate} - {$periodLabel}\n";
                 }
-                
+
                 $content .= "\nMerci de choisir une date qui vous convient.";
 
                 $conversation->messages()->create([

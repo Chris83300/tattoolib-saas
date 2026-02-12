@@ -5,13 +5,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class TraceabilityRecord extends Model
+class TraceabilityRecord extends Model implements HasMedia
 {
-    use HasFactory;
+    use HasFactory, InteractsWithMedia;
 
     protected $fillable = [
         'user_id',
+        'tattooer_id',
         'appointment_id',
         'client_consent_form_id',
 
@@ -309,13 +312,46 @@ class TraceabilityRecord extends Model
     }
 
     /**
-     * Vérifie si l'enregistrement est complet
+     * La fiche de traçabilité est-elle complète ?
+     *
+     * Complète si :
+     * - Au moins un matériel renseigné (cartouche/aiguille/stérilisation)
+     * - ET (au moins une encre OU au moins une photo de lot)
      */
     public function isComplete(): bool
     {
-        return !empty($this->needles_used) &&
-               !empty($this->inks_used) &&
-               !empty($this->sterile_equipment) &&
-               $this->tattooer_verified_traceability;
+        // Vérifier si du matériel est renseigné dans sterile_equipment JSON
+        $hasEquipment = false;
+        if (is_array($this->sterile_equipment)) {
+            $equip = $this->sterile_equipment;
+            $hasEquipment = !empty($equip['needles'][0]['brand'] ?? null)
+                || !empty($equip['needles'][0]['lot_number'] ?? null)
+                || !empty($equip['needles'][1]['brand'] ?? null)
+                || !empty($equip['needles'][1]['lot_number'] ?? null)
+                || !empty($equip['sterilization_date'] ?? null)
+                || !empty($equip['sterilization_lot_number'] ?? null)
+                || !empty($this->autoclave_batch_number);
+        }
+
+        // Vérifier encres dans sterile_equipment JSON ou photos
+        $hasInksOrPhotos = false;
+        if (is_array($this->sterile_equipment)) {
+            $hasInksOrPhotos = !empty($this->sterile_equipment['inks'] ?? []);
+        }
+        // Vérifier les photos uploadées
+        if (!$hasInksOrPhotos) {
+            $hasInksOrPhotos = $this->getMedia('lot_photos')->count() > 0;
+        }
+
+        return $hasEquipment && $hasInksOrPhotos;
+    }
+
+    /**
+     * Enregistrer les collections de médias
+     */
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('lot_photos')
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
     }
 }

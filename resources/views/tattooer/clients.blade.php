@@ -33,103 +33,71 @@
         </div>
 
         <!-- Liste des clients -->
-        <div class="bg-gris-fonde rounded-xl p-6">
-            @if ($clients->count() > 0)
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    @foreach ($clients as $client)
-                        <a href="{{ route('tattooer.client.show', $client->id) }}"
-                            class="block p-6 bg-noir-profond rounded-xl hover:bg-noir-profond/80 transition-all hover:scale-105">
-                            <div class="flex items-start justify-between mb-4">
-                                <div class="flex items-center gap-3">
-                                    <!-- Avatar -->
-                                    <div
-                                        class="w-12 h-12 rounded-full overflow-hidden bg-titane/30 flex-shrink-0 flex items-center justify-center">
-                                        @if ($client->user->getFirstMedia('avatar'))
-                                            <img src="{{ $client->user->getFirstMedia('avatar')->getUrl() }}"
-                                                alt="{{ $client->user->name }}" class="w-full h-full object-cover">
-                                        @else
-                                            <svg class="w-6 h-6 text-ivoire-text/40" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                            </svg>
-                                        @endif
-                                    </div>
+        @if ($clients->count() > 0)
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                @foreach ($clients as $client)
+                    <a href="{{ route('tattooer.client.show', $client) }}"
+                        class="block bg-gris-fonde rounded-xl p-4 hover:bg-gris-fonde/80 transition-all hover:scale-[1.02] active:scale-[0.98]">
 
-                                    <!-- Info client -->
-                                    <div>
-                                        <!-- PSEUDO (pas le numéro de tel) -->
-                                        <h3 class="font-semibold text-ivoire-text">
-                                            {{ $client->user->pseudo ?? $client->user->first_name . ' ' . $client->user->last_name }}
-                                        </h3>
+                        <div class="flex items-center gap-3 mb-3">
+                            {{-- Avatar --}}
+                            <div
+                                class="w-12 h-12 rounded-full overflow-hidden bg-titane/30 flex-shrink-0 flex items-center justify-center">
+                                @php
+                                    // Avatar : d'abord sur User, sinon sur Client
+$avatarUrl = null;
+if ($client->user && $client->user->getFirstMediaUrl('avatar')) {
+    $avatarUrl = $client->user->getFirstMediaUrl('avatar');
+} elseif ($client->getFirstMediaUrl('avatar')) {
+    $avatarUrl = $client->getFirstMediaUrl('avatar');
+                                    }
+                                @endphp
 
-                                        <!-- Nombre de demandes avec cet artiste -->
-                                        @php
-                                            $nbDemandes = $client
-                                                ->bookingRequests()
-                                                ->where('bookable_type', 'App\\Models\\Tattooer')
-                                                ->where('bookable_id', auth()->user()->tattooer->id)
-                                                ->count();
-                                        @endphp
-                                        <p class="text-sm text-ivoire-text/60">{{ $nbDemandes }}
-                                            demande{{ $nbDemandes > 1 ? 's' : '' }}</p>
-                                    </div>
-                                </div>
-
-                                <!-- Flèche -->
-                                <svg class="w-5 h-5 text-ivoire-text/40" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 5l7 7-7 7" />
-                                </svg>
+                                @if ($avatarUrl)
+                                    <img src="{{ $avatarUrl }}" alt="" class="w-full h-full object-cover">
+                                @else
+                                    <span class="text-lg font-bold text-beige-peau">
+                                        {{ strtoupper(substr($client->first_name ?? ($client->user?->name ?? '?'), 0, 1)) }}{{ strtoupper(substr($client->last_name ?? '', 0, 1)) }}
+                                    </span>
+                                @endif
                             </div>
 
-                            @if ($client->tattooHistory->count() > 0)
-                                @php
-                                    $lastTattoo = $client->tattooHistory->first();
-                                @endphp
-                                <div class="mb-4">
-                                    <p class="text-sm text-ivoire-text/70 mb-1">Dernier tattoo</p>
-                                    <p class="text-sm text-ivoire-text">
-                                        {{ $lastTattoo->tattoo_date->format('d/m/Y') }}
-                                        @if ($lastTattoo->tattoo_location)
-                                            - {{ $lastTattoo->tattoo_location }}
-                                        @endif
-                                    </p>
-                                </div>
-                            @endif
+                            {{-- Nom + pseudo --}}
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold text-ivoire-text truncate">
+                                    @php
+                                        $pseudo = $client->pseudo ?? ($client->user?->pseudo ?? null);
+                                        $fullName = trim(
+                                            ($client->first_name ?? '') . ' ' . ($client->last_name ?? ''),
+                                        );
+                                        if (!$fullName) {
+                                            $fullName = $client->user?->name ?? 'Client';
+                                        }
+                                    @endphp
 
-                            <div class="flex items-center justify-between">
-                                <div class="flex gap-2">
-                                    @if ($client->email)
-                                        <a href="mailto:{{ $client->email }}"
-                                            class="p-2 bg-noir-profond/50 rounded-lg hover:bg-noir-profond transition-colors"
-                                            onclick="event.stopPropagation()">
-                                            <svg class="w-4 h-4 text-ivoire-text/70" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M3 8l7.89 5.26a2 2 0 002.22 0l7.89-5.26a2 2 0 002.22 0L3 8zm0 0l7.89 5.26a2 2 0 002.22 0L3 8zm0 0L3 8l7.89 5.26a2 2 0 002.22 0L3 8z">
-                                                </path>
-                                            </svg>
-                                        </a>
+                                    @if ($pseudo)
+                                        {{ $pseudo }}
+                                    @else
+                                        {{ $fullName }}
                                     @endif
+                                </h3>
 
-                                    @if ($client->phone)
-                                        <a href="tel:{{ $client->phone }}"
-                                            class="p-2 bg-noir-profond/50 rounded-lg hover:bg-noir-profond transition-colors"
-                                            onclick="event.stopPropagation()">
-                                            <svg class="w-4 h-4 text-ivoire-text/70" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 2.493a1 1 0 01.684.948l1.498-2.493a1 1 0 00.684-.948H19a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5z">
-                                                </path>
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M3 5l6 6m0 0l6 6m-6-6v12"></path>
-                                            </svg>
-                                        </a>
+                                @if ($pseudo && $fullName && $fullName !== $pseudo)
+                                    <p class="text-xs text-ivoire-text/50 truncate">{{ $fullName }}</p>
+                                @endif
+
+                                <p class="text-xs text-titane mt-0.5">
+                                    {{ $client->tattooer_stats->total_requests }}
+                                    demande{{ $client->tattooer_stats->total_requests > 1 ? 's' : '' }}
+                                    @if ($client->tattooer_stats->completed > 0)
+                                        · {{ $client->tattooer_stats->completed }}
+                                        terminée{{ $client->tattooer_stats->completed > 1 ? 's' : '' }}
                                     @endif
-                                </div>
+                                </p>
+                            </div>
 
+                            {{-- Badges --}}
+                            <div class="flex-shrink-0">
                                 @if ($client->is_blacklisted)
                                     <span
                                         class="px-2 py-1 bg-rouge-alerte/20 text-rouge-alerte rounded-full text-xs font-semibold">
@@ -140,40 +108,59 @@
                                         class="px-2 py-1 bg-ambre-warning/20 text-ambre-warning rounded-full text-xs font-semibold">
                                         ⚠️ {{ $client->no_show_count }} no-shows
                                     </span>
+                                @else
+                                    <svg class="w-5 h-5 text-titane" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5l7 7-7 7" />
+                                    </svg>
                                 @endif
                             </div>
-                        </a>
-                    @endforeach
-                </div>
+                        </div>
 
-                <!-- Pagination -->
-                <div class="mt-8 flex justify-center">
-                    {{ $clients->links() }}
+                        {{-- Infos complémentaires --}}
+                        <div class="flex items-center justify-between text-xs text-titane border-t border-titane/20 pt-2">
+                            <span>
+                                @if ($client->tattooer_stats->total_paid > 0)
+                                    💰 {{ number_format($client->tattooer_stats->total_paid, 0) }}€ versés
+                                @else
+                                    Aucun paiement
+                                @endif
+                            </span>
+                            <span>
+                                @if ($client->tattooer_stats->last_request_at)
+                                    {{ \Carbon\Carbon::parse($client->tattooer_stats->last_request_at)->diffForHumans() }}
+                                @endif
+                            </span>
+                        </div>
+                    </a>
+                @endforeach
+            </div>
+
+            {{-- Pagination --}}
+            <div class="mt-6 flex justify-center">
+                {{ $clients->withQueryString()->links() }}
+            </div>
+        @else
+            <div class="bg-gris-fonde rounded-xl p-12 text-center">
+                <div class="w-16 h-16 bg-noir-profond rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-titane" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
                 </div>
-            @else
-                <div class="text-center py-12">
-                    <div class="w-16 h-16 bg-noir-profond rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-ivoire-text/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2a3 3 0 00-5.356-1.857M7 20H2v-2a3 3 0 015.356-1.857m0 0a5.002 5.002 0 019.288 0A15.003 15.003 0 0010.607 7.055M17 20H7m0 0a5.002 5.002 0 00-9.288 0A15.003 15.003 0 0013.393 12.945m0 0V12A15.003 15.003 0 0010.607 7.055m0 0a5.002 5.002 0 009.288 0A15.003 15.003 0 006.607 12.945m0 0V12a15.003 15.003 0 003.393 12.945">
-                            </path>
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-semibold text-ivoire-text mb-2">
-                        Aucun client
-                    </h3>
-                    <p class="text-ivoire-text/60">
-                        Vous n'avez pas encore de clients enregistrés.
-                    </p>
+                <h3 class="text-lg font-semibold text-ivoire-text mb-2">
                     @if (request('search'))
-                        <p class="text-sm text-ivoire-text/50 mt-2">
-                            Aucun résultat pour "{{ request('search') }}"
-                        </p>
+                        Aucun résultat pour "{{ request('search') }}"
+                    @else
+                        Aucun client pour le moment
                     @endif
-                </div>
-            @endif
-        </div>
-
+                </h3>
+                <p class="text-ivoire-text/60 text-sm">
+                    Les clients apparaissent ici après le versement de leur acompte.
+                </p>
+            </div>
+        @endif
     </div>
 
     @push('scripts')

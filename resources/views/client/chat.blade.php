@@ -154,18 +154,59 @@
                     @else
                         @foreach ($messages as $message)
                             @if ($message->sender_type === 'system')
-                                {{-- ═══ MESSAGE SYSTÈME — centré, style distinct ═══ --}}
-                                <div class="flex justify-center mb-4">
-                                    <div class="max-w-sm">
+                                @php
+                                    // Vérifier si c'est un message de formulaire de consentement
+$isConsentForm = str_contains($message->content ?? '', '[CONSENT_FORM:');
+$cBrId = null;
+$cBr = null;
+$cSigned = false;
+
+if ($isConsentForm) {
+    preg_match('/\[CONSENT_FORM:(\d+)\]/', $message->content, $cMatches);
+    $cBrId = $cMatches[1] ?? null;
+    $cBr = $cBrId ? \App\Models\BookingRequest::find($cBrId) : null;
+    $cSigned = $cBr
+        ? \App\Models\Consent::where('booking_request_id', $cBr->id)
+            ->whereNotNull('signed_at')
+                                                ->exists()
+                                            : false;
+                                    }
+                                @endphp
+
+                                @if ($isConsentForm)
+                                    {{-- ═══ MESSAGE CONSENTEMENT ═══ --}}
+                                    <div class="flex justify-center mb-4">
                                         <div
-                                            class="bg-titane/20 border border-titane/30 text-ivoire-text/80 rounded-lg px-4 py-2 text-center">
-                                            <p class="text-sm whitespace-pre-wrap">{{ $message->content }}</p>
+                                            class="bg-titane/10 border border-titane/20 rounded-xl p-4 max-w-sm w-full text-center">
+                                            <p class="text-sm text-ivoire-text/80 mb-3">📝 Merci de remplir votre fiche de
+                                                consentement avant le rendez-vous.</p>
+                                            @if ($cSigned)
+                                                <div
+                                                    class="px-4 py-2.5 bg-vert-succes/20 text-vert-succes rounded-lg text-sm font-semibold">
+                                                    ✅ Consentement signé</div>
+                                            @elseif ($cBr)
+                                                <button
+                                                    onclick="document.getElementById('consent-modal').classList.remove('hidden'); document.body.style.overflow='hidden'; setTimeout(initSigCanvases, 150);"
+                                                    class="w-full px-4 py-3 bg-beige-peau text-noir-profond font-bold rounded-lg hover:bg-beige-peau/90 transition-colors text-sm">
+                                                    📝 Remplir le consentement
+                                                </button>
+                                            @endif
                                         </div>
-                                        <p class="text-xs text-ivoire-text/40 mt-1 text-center">
-                                            {{ $message->created_at->format('H:i') }}
-                                        </p>
                                     </div>
-                                </div>
+                                @else
+                                    {{-- ═══ MESSAGE SYSTÈME NORMAL ═══ --}}
+                                    <div class="flex justify-center mb-4">
+                                        <div class="max-w-sm">
+                                            <div
+                                                class="bg-titane/20 border border-titane/30 text-ivoire-text/80 rounded-lg px-4 py-2 text-center">
+                                                <p class="text-sm whitespace-pre-wrap">{{ $message->content }}</p>
+                                            </div>
+                                            <p class="text-xs text-ivoire-text/40 mt-1 text-center">
+                                                {{ $message->created_at->format('H:i') }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                @endif
                             @else
                                 {{-- ═══ MESSAGE NORMAL (tattooer à gauche, client à droite) ═══ --}}
                                 <div
@@ -209,8 +250,8 @@
                     $bookingRequest->proposed_dates &&
                         count($bookingRequest->proposed_dates) > 0 &&
                         !$bookingRequest->confirmed_date &&
-                        in_array($bookingRequest->status->value, ['accepted', 'deposit_paid']))
-
+                        in_array($bookingRequest->status->value, ['accepted', 'deposit_paid']) &&
+                        $bookingRequest->deposit_paid_at)
                     <div class="bg-vert-succes/5 border border-vert-succes/20 rounded-xl p-4 mx-4 mt-4">
                         <h3 class="text-sm font-bold text-ivoire-text mb-1">📅 Choisissez votre date de rendez-vous</h3>
                         <p class="text-xs text-ivoire-text/60 mb-3">Sélectionnez la date qui vous convient.</p>
@@ -960,4 +1001,238 @@
             }
         </script>
     @endpush
+
+    {{-- ═══ MODAL CONSENTEMENT CLIENT ═══ --}}
+    @php
+        // Trouver le booking request qui a un consentement à remplir
+        $consentBr = $bookingRequest;
+        $isMinor = auth()->user()->client?->birth_date && auth()->user()->client->birth_date->age < 18;
+    @endphp
+
+    @if (
+        $consentBr &&
+            !\App\Models\Consent::where('booking_request_id', $consentBr->id)->whereNotNull('signed_at')->exists())
+        <div id="consent-modal" class="hidden fixed inset-0 z-50" style="background:rgba(0,0,0,0.85);"
+            onclick="if(event.target===this){this.classList.add('hidden');document.body.style.overflow='';}">
+            <div class="flex items-end sm:items-center justify-center min-h-screen p-0 sm:p-4">
+                <div class="bg-gris-fonde w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto">
+
+                    {{-- Header --}}
+                    <div
+                        class="sticky top-0 bg-gris-fonde z-10 px-4 py-3 border-b border-titane/20 flex items-center justify-between rounded-t-2xl">
+                        <h2 class="text-base font-bold text-ivoire-text">📝 Consentement éclairé</h2>
+                        <button
+                            onclick="document.getElementById('consent-modal').classList.add('hidden');document.body.style.overflow='';"
+                            class="p-2 hover:bg-noir-profond rounded-lg">
+                            <svg class="w-5 h-5 text-titane" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <form action="{{ route('client.consent.store', $consentBr) }}" method="POST" class="p-4 space-y-4"
+                        id="consent-form">
+                        @csrf
+
+                        {{-- RISQUES EN ACCORDÉON --}}
+                        <div class="bg-noir-profond/50 rounded-xl overflow-hidden" x-data="{ openRisk: null }">
+                            <p class="text-sm font-bold text-ivoire-text px-4 pt-3 pb-1">⚠️ Risques liés au tatouage</p>
+                            <p class="text-xs text-titane px-4 pb-2">Consultez chaque section avant de signer</p>
+
+                            @foreach ([['🦠', 'Infections', 'Malgré les précautions d\'hygiène strictes, un risque d\'infection bactérienne existe. Signes : rougeur qui s\'étend, gonflement, pus, fièvre. Consultez un médecin immédiatement.'], ['🤧', 'Réactions allergiques', 'Certaines encres (surtout rouges, jaunes, vertes) peuvent provoquer des réactions allergiques immédiates ou retardées. Signalez toute allergie connue ci-dessous.'], ['🩹', 'Cicatrisation', 'La cicatrisation prend 2 à 4 semaines avec des soins quotidiens. Une mauvaise cicatrisation peut altérer le résultat. Suivez les instructions de soin post-tatouage.'], ['🎨', 'Résultat esthétique', 'Le rendu final peut légèrement différer du dessin selon la texture de peau et la cicatrisation. Les couleurs peuvent paraître plus claires après cicatrisation.'], ['⚕️', 'Contre-indications', 'Tatouage déconseillé si : anticoagulants, grossesse/allaitement, diabète non contrôlé, immunodépression, problèmes de cicatrisation.']] as $i => [$icon, $title, $text])
+                                <div class="border-t border-titane/10">
+                                    <button type="button"
+                                        @click="openRisk = openRisk === {{ $i }} ? null : {{ $i }}"
+                                        class="w-full px-4 py-2.5 flex items-center justify-between text-left">
+                                        <span
+                                            class="flex items-center gap-2 text-sm text-ivoire-text/90">{{ $icon }}
+                                            {{ $title }}</span>
+                                        <svg class="w-4 h-4 text-titane transition-transform"
+                                            :class="{ 'rotate-180': openRisk === {{ $i }} }" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                    <div x-show="openRisk === {{ $i }}" x-collapse>
+                                        <p class="px-4 pb-3 text-xs text-ivoire-text/60 leading-relaxed">
+                                            {{ $text }}</p>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        {{-- INFOS MÉDICALES --}}
+                        <div class="space-y-3">
+                            <p class="text-sm font-bold text-ivoire-text">🏥 Vos informations médicales</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                @foreach (['Diabète', 'Hémophilie', 'Épilepsie', 'Problèmes cardiaques', 'VIH/Hépatite', 'Troubles immunitaires'] as $cond)
+                                    <label
+                                        class="flex items-center gap-2 text-xs text-ivoire-text/80 bg-noir-profond/30 rounded-lg px-3 py-2 cursor-pointer">
+                                        <input type="checkbox" name="medical_conditions[]" value="{{ $cond }}"
+                                            class="rounded border-titane/30 bg-noir-profond text-beige-peau focus:ring-beige-peau w-4 h-4">
+                                        {{ $cond }}
+                                    </label>
+                                @endforeach
+                            </div>
+                            <textarea name="allergies" rows="2" placeholder="Allergies (latex, encres, médicaments...)"
+                                class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-xl text-ivoire-text placeholder-titane text-sm resize-none"></textarea>
+                            <textarea name="medications" rows="2" placeholder="Traitements en cours..."
+                                class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-xl text-ivoire-text placeholder-titane text-sm resize-none"></textarea>
+                            <label
+                                class="flex items-center gap-2 text-sm text-ivoire-text/80 bg-ambre-warning/5 rounded-lg px-3 py-2">
+                                <input type="checkbox" name="is_pregnant" value="1"
+                                    class="rounded border-titane/30 bg-noir-profond text-ambre-warning"> Enceinte /
+                                Allaitement
+                            </label>
+                            <label
+                                class="flex items-center gap-2 text-sm text-ivoire-text/80 bg-rouge-alerte/5 rounded-lg px-3 py-2">
+                                <input type="checkbox" name="has_skin_conditions" value="1"
+                                    class="rounded border-titane/30 bg-noir-profond text-rouge-alerte"> Sous alcool /
+                                substances
+                            </label>
+                        </div>
+
+                        {{-- MINEUR --}}
+                        @if ($isMinor)
+                            <input type="hidden" name="is_minor" value="1">
+                            <div class="bg-ambre-warning/10 border border-ambre-warning/30 rounded-xl p-4 space-y-3">
+                                <p class="text-sm font-bold text-ambre-warning">⚠️ Accord parental obligatoire</p>
+                                <input type="text" name="parent_name" placeholder="Nom du parent/tuteur" required
+                                    class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-xl text-ivoire-text placeholder-titane text-sm">
+                                <select name="parent_relation" required
+                                    class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-xl text-ivoire-text text-sm">
+                                    <option value="">Lien de parenté</option>
+                                    <option value="père">Père</option>
+                                    <option value="mère">Mère</option>
+                                    <option value="tuteur légal">Tuteur légal</option>
+                                </select>
+                                <div>
+                                    <label class="text-xs text-ivoire-text/80 block mb-1">Signature parent</label>
+                                    <canvas class="sig-canvas bg-white rounded-xl border border-titane/30 w-full"
+                                        style="touch-action:none;min-height:100px;"></canvas>
+                                    <input type="hidden" name="parent_signature_data">
+                                    <button type="button"
+                                        onclick="clearSig(this.previousElementSibling.previousElementSibling)"
+                                        class="text-xs text-titane underline mt-1">Effacer</button>
+                                </div>
+                            </div>
+                        @else
+                            <input type="hidden" name="is_minor" value="0">
+                        @endif
+
+                        {{-- CONSENTEMENT --}}
+                        <div class="bg-noir-profond/50 rounded-xl p-4 space-y-2">
+                            <p class="text-sm font-bold text-ivoire-text mb-1">✅ Je consens</p>
+                            <label class="flex items-start gap-2 text-sm text-ivoire-text/80">
+                                <input type="checkbox" name="accepts_terms" value="1" required
+                                    class="mt-0.5 rounded border-titane/30 bg-noir-profond text-beige-peau w-4 h-4">
+                                J'ai lu et j'accepte les risques ci-dessus.
+                            </label>
+                            <label class="flex items-start gap-2 text-sm text-ivoire-text/80">
+                                <input type="checkbox" name="accepts_aftercare" value="1" required
+                                    class="mt-0.5 rounded border-titane/30 bg-noir-profond text-beige-peau w-4 h-4">
+                                Je m'engage à suivre les soins post-tatouage.
+                            </label>
+                        </div>
+
+                        {{-- SIGNATURE --}}
+                        <div>
+                            <label class="text-sm font-bold text-ivoire-text block mb-2">✍️ Votre signature</label>
+                            <canvas id="client-sig"
+                                class="sig-canvas bg-white rounded-xl border-2 border-beige-peau/30 w-full"
+                                style="touch-action:none;min-height:120px;"></canvas>
+                            <input type="hidden" name="signature_data" id="client-sig-data" required>
+                            <button type="button" onclick="clearSig(document.getElementById('client-sig'))"
+                                class="text-xs text-titane underline mt-1">Effacer</button>
+                        </div>
+
+                        <div class="sticky bottom-0 bg-gris-fonde pt-3">
+                            <button type="submit" onclick="captureSignatures()"
+                                class="w-full px-4 py-3.5 bg-beige-peau text-noir-profond font-bold rounded-xl text-sm">
+                                ✅ Signer le consentement
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function initSigCanvases() {
+                document.querySelectorAll('.sig-canvas').forEach(c => {
+                    if (c.dataset.init) return;
+                    const ctx = c.getContext('2d');
+                    let drawing = false;
+                    const r = c.getBoundingClientRect();
+                    if (r.width > 0) {
+                        c.width = r.width;
+                        c.height = Math.max(r.height, 100);
+                    }
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 2;
+                    ctx.lineCap = 'round';
+
+                    function pos(e) {
+                        const r = c.getBoundingClientRect();
+                        const t = e.touches?.[0] || e;
+                        return {
+                            x: t.clientX - r.left,
+                            y: t.clientY - r.top
+                        };
+                    }
+
+                    function start(e) {
+                        e.preventDefault();
+                        drawing = true;
+                        const p = pos(e);
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                    }
+
+                    function draw(e) {
+                        if (!drawing) return;
+                        e.preventDefault();
+                        const p = pos(e);
+                        ctx.lineTo(p.x, p.y);
+                        ctx.stroke();
+                    }
+
+                    function stop() {
+                        drawing = false;
+                    }
+                    c.addEventListener('mousedown', start);
+                    c.addEventListener('mousemove', draw);
+                    c.addEventListener('mouseup', stop);
+                    c.addEventListener('mouseleave', stop);
+                    c.addEventListener('touchstart', start, {
+                        passive: false
+                    });
+                    c.addEventListener('touchmove', draw, {
+                        passive: false
+                    });
+                    c.addEventListener('touchend', stop);
+                    c.dataset.init = '1';
+                });
+            }
+
+            function clearSig(canvas) {
+                canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+            }
+
+            function captureSignatures() {
+                const c = document.getElementById('client-sig');
+                if (c) document.getElementById('client-sig-data').value = c.toDataURL('image/png');
+                // Parent sig
+                document.querySelectorAll('.sig-canvas').forEach(canvas => {
+                    const hidden = canvas.nextElementSibling;
+                    if (hidden && hidden.type === 'hidden' && hidden.name.includes('parent')) {
+                        hidden.value = canvas.toDataURL('image/png');
+                    }
+                });
+            }
+            document.addEventListener('DOMContentLoaded', initSigCanvases);
+        </script>
+    @endif
 @endsection

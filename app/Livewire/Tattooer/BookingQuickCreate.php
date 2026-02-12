@@ -26,14 +26,14 @@ class BookingQuickCreate extends Component
     {
         $bookingRequest = BookingRequest::with('client.user')->findOrFail($bookingRequestId);
         $client = $bookingRequest->client;
-        
+
         // Pseudo du client (ou nom si pas de pseudo)
         $pseudo = $client->user->pseudo ?? $client->user->name;
-        
+
         $this->appointmentTitle = "Tattoo → {$pseudo}";
         $this->appointmentDate = $date;
         $this->currentBookingRequestId = $bookingRequestId;
-        
+
         // Pré-remplir heure selon période
         $this->appointmentStartTime = match($period) {
             'morning' => '09:00',
@@ -47,7 +47,7 @@ class BookingQuickCreate extends Component
             'evening' => '20:00',
             default => '13:00',
         };
-        
+
         $this->showModal = true;
     }
 
@@ -74,12 +74,12 @@ class BookingQuickCreate extends Component
         ]);
 
         $bookingRequest = BookingRequest::findOrFail($this->currentBookingRequestId);
-        
+
         DB::transaction(function () use ($bookingRequest) {
             // 1. Créer l'Appointment
             $startDatetime = Carbon::parse($this->appointmentDate . ' ' . $this->appointmentStartTime);
             $endDatetime = Carbon::parse($this->appointmentDate . ' ' . $this->appointmentEndTime);
-            
+
             $appointment = Appointment::create([
                 'booking_request_id' => $bookingRequest->id,
                 'bookable_type' => $bookingRequest->bookable_type,
@@ -117,6 +117,13 @@ class BookingQuickCreate extends Component
                     'sender_type' => 'system',
                     'content' => "✅ Rendez-vous confirmé le {$startDatetime->translatedFormat('l d F Y')} de {$startDatetime->format('H:i')} à {$endDatetime->format('H:i')}.",
                 ]);
+
+                // Envoyer le formulaire de consentement dans le chat
+                $conversation->messages()->create([
+                    'sender_type' => 'system',
+                    'sender_id' => null,
+                    'content' => '[CONSENT_FORM:' . $bookingRequest->id . ']',
+                ]);
             }
 
             // TODO: Notification client (sera implémenté plus tard)
@@ -124,9 +131,9 @@ class BookingQuickCreate extends Component
 
         // Reset form
         $this->closeModal();
-        
+
         session()->flash('success', 'Rendez-vous créé avec succès !');
-        
+
         // Refresh la page ou le composant
         $this->dispatch('appointment-created');
     }

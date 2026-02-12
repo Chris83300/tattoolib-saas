@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BookingRequest;
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Models\Consent;
 use App\Enums\BookingRequestStatus;
 use App\Enums\ConversationStatus;
 use App\Enums\AppointmentStatus;
@@ -420,6 +421,13 @@ class ClientController extends Controller
                 'sender_id'   => null,
                 'content'     => "📅 Le client a choisi la date du {$dateFr} ({$period}).",
             ]);
+
+            // Envoyer le formulaire de consentement dans le chat
+            $conversation->messages()->create([
+                'sender_type' => 'system',
+                'sender_id'   => null,
+                'content'     => '[CONSENT_FORM:' . $bookingRequest->id . ']',
+            ]);
         }
 
         // TODO: Notification au tattooer (ex: ClientSelectedDateNotification)
@@ -450,5 +458,57 @@ class ClientController extends Controller
 
         return redirect()->back()
             ->with('info', 'Votre demande a été envoyée à l\'artiste.');
+    }
+
+    /**
+     * Enregistrer le consentement éclairé du client
+     */
+    public function consentStore(Request $request, BookingRequest $bookingRequest)
+    {
+        $client = Auth::user()->client;
+
+        // Vérifier que la demande appartient au client
+        if ($bookingRequest->client_id !== $client->id) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'medical_conditions' => 'nullable|array',
+            'medical_conditions.*' => 'string|max:255',
+            'allergies' => 'nullable|string|max:1000',
+            'medications' => 'nullable|string|max:1000',
+            'is_pregnant' => 'boolean',
+            'has_skin_conditions' => 'boolean',
+            'accepts_terms' => 'required|accepted',
+            'accepts_aftercare' => 'required|accepted',
+            'signature_data' => 'required|string',
+            'is_minor' => 'boolean',
+            'parent_signature_data' => 'required_if:is_minor,true|nullable|string',
+            'parent_name' => 'required_if:is_minor,true|nullable|string|max:255',
+            'parent_relation' => 'required_if:is_minor,true|nullable|string|max:100',
+        ]);
+
+        $tattooer = $bookingRequest->bookable;
+
+        Consent::updateOrCreate(
+            ['booking_request_id' => $bookingRequest->id],
+            array_merge($validated, [
+                'client_id' => $client->id,
+                'bookable_id' => $tattooer->id,
+                'bookable_type' => get_class($tattooer),
+                'signed_at' => now(),
+            ])
+        );
+
+        // Message système confirmation dans le chat
+        if ($bookingRequest->conversation) {
+            $bookingRequest->conversation->messages()->create([
+                'sender_type' => 'system',
+                'sender_id' => null,
+                'content' => '✅ Consentement éclairé signé le ' . now()->format('d/m/Y à H:i'),
+            ]);
+        }
+
+        return back()->with('success', '✅ Consentement signé !');
     }
 }

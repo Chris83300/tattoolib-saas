@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Tattooer;
+use App\Models\User;
 use App\Models\BookingRequest;
+use App\Models\Consent;
+use App\Models\TraceabilityRecord;
+use App\Models\Appointment;
 use App\Models\CalendarEvent;
 use App\Enums\BookingRequestStatus;
 use Illuminate\Support\Facades\Auth;
@@ -782,26 +785,361 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
     /**
      * Clients du tattooer
      */
-    public function clients()
+    public function clients(Request $request)
     {
         $tattooer = auth()->user()->tattooer;
 
-        // Charger les relations nécessaires
-        $tattooer->load(['media', 'user']);
+        // Récupérer les IDs clients uniques qui ont PAYÉ L'ACOMPTE avec ce tattooer
+        $clientIds = BookingRequest::where('bookable_id', $tattooer->id)
+            ->where('bookable_type', $tattooer->getMorphClass())
+            ->whereNotNull('deposit_paid_at')  // ← UNIQUEMENT après acompte payé
+            ->distinct()
+            ->pluck('client_id');
 
-        // Récupérer les clients uniques
-        $clients = BookingRequest::where('bookable_id', $tattooer->id)
-            ->where('bookable_type', 'App\Models\Tattooer')
-            ->with(['client.user', 'client.media'])
-            ->distinct('client_id')
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($request) {
-                return $request->client;
-            })
-            ->unique('id');
+        // Construire la query sur le modèle Client (pas BookingRequest)
+        $query = \App\Models\Client::whereIn('id', $clientIds)
+            ->with(['user.media', 'media', 'tattooHistory']);
+
+        // Recherche
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('pseudo', 'LIKE', "%{$search}%")
+                  ->orWhere('first_name', 'LIKE', "%{$search}%")
+                  ->orWhere('last_name', 'LIKE', "%{$search}%")
+                  ->orWhere('email', 'LIKE', "%{$search}%")
+                  ->orWhere('phone', 'LIKE', "%{$search}%")
+                  ->orWhereHas('user', function ($uq) use ($search) {
+                      $uq->where('pseudo', 'LIKE', "%{$search}%")
+                         ->orWhere('name', 'LIKE', "%{$search}%");
+                  });
+            });
+        }
+
+        $clients = $query->orderBy('updated_at', 'desc')->paginate(12);
+
+        // Ajouter des stats par client pour ce tattooer
+        $clients->getCollection()->transform(function ($client) use ($tattooer) {
+            // Stats spécifiques à CE tattooer
+            $bookings = BookingRequest::where('client_id', $client->id)
+                ->where('bookable_id', $tattooer->id)
+                ->where('bookable_type', $tattooer->getMorphClass())
+                ->get();
+
+            $client->tattooer_stats = (object) [
+                'total_requests' => $bookings->count(),
+                'completed' => $bookings->where('status', 'completed')->count(),
+                'total_paid' => $bookings->sum('total_deposit_amount'),
+                'last_request_at' => $bookings->max('created_at'),
+            ];
+
+            return $client;
+        });
 
         return view('tattooer.clients', compact('tattooer', 'clients'));
+    }
+
+    /**
+     * Fiche client détaillée (PRO uniquement)
+     */
+    public function clientShow(\App\Models\Client $client)
+    {
+        $tattooer = auth()->user()->tattooer;
+
+        // Vérifier que ce client a au moins une demande avec acompte payé chez ce tattooer
+        $hasRelation = BookingRequest::where('client_id', $client->id)
+            ->where('bookable_id', $tattooer->id)
+            ->where('bookable_type', $tattooer->getMorphClass())
+            ->whereNotNull('deposit_paid_at')
+            ->exists();
+
+        if (!$hasRelation) {
+            abort(403, 'Ce client ne fait pas partie de votre clientèle.');
+        }
+
+        // Charger les relations
+        $client->load(['user.media', 'media']);
+
+        // Toutes les demandes de CE client avec CE tattooer
+        $bookingRequests = BookingRequest::where('client_id', $client->id)
+            ->where('bookable_id', $tattooer->id)
+            ->where('bookable_type', $tattooer->getMorphClass())
+            ->with(['conversation.messages.media', 'appointment'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Historique tattoos
+        $history = $client->tattooHistory()
+            ->where('bookable_id', $tattooer->id)
+            ->where('bookable_type', $tattooer->getMorphClass())
+            ->orderBy('tattoo_date', 'desc')
+            ->get();
+
+        // Consentements par booking request (booking_request_id)
+        $consents = Consent::whereIn('booking_request_id', $bookingRequests->pluck('id'))
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->keyBy('booking_request_id');
+
+        // Appointments liés aux demandes de ce tattooer
+        $appointments = collect();
+        foreach ($bookingRequests as $br) {
+            if ($br->appointment) {
+                $appointments->push($br->appointment);
+            }
+        }
+
+        // Traçabilités par appointment
+
+        // Traçabilités par appointment
+        $traceabilities = TraceabilityRecord::whereIn('appointment_id', $appointments->pluck('id'))
+            ->with('media')
+            ->get()
+            ->keyBy('appointment_id');
+
+        // Stats résumé
+        $stats = (object) [
+            'total_requests' => $bookingRequests->count(),
+            'completed' => $bookingRequests->where('status', 'completed')->count(),
+            'cancelled' => $bookingRequests->whereIn('status', ['cancelled', 'rejected'])->count(),
+            'no_shows' => $client->no_show_count,
+            'total_paid' => $bookingRequests->sum('total_deposit_amount'),
+            'total_appointments' => $appointments->count(),
+            'first_visit' => $bookingRequests->min('created_at'),
+            'last_visit' => $bookingRequests->max('created_at'),
+        ];
+
+        // Médias sauvegardés depuis les chats (Phase 2 pour la gestion complète)
+        $chatMedia = collect();
+        foreach ($bookingRequests as $br) {
+            if ($br->conversation) {
+                foreach ($br->conversation->messages as $msg) {
+                    foreach ($msg->getMedia('attachments') as $media) {
+                        if (str_starts_with($media->mime_type, 'image/')) {
+                            $chatMedia->push($media);
+                        }
+                    }
+                }
+            }
+        }
+
+        return view('tattooer.client-show', compact(
+            'client', 'tattooer', 'bookingRequests', 'history',
+            'appointments', 'consents', 'traceabilities', 'stats', 'chatMedia'
+        ));
+    }
+
+    /**
+     * Enregistrer le consentement pour une booking request
+     */
+    public function storeConsent(Request $request, BookingRequest $bookingRequest)
+    {
+        $tattooer = auth()->user()->tattooer;
+
+        // Vérifier propriété
+        if ($bookingRequest->bookable_id !== $tattooer->id ||
+            $bookingRequest->bookable_type !== $tattooer->getMorphClass()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'medical_conditions' => 'nullable|array',
+            'medical_conditions.*' => 'string|max:255',
+            'allergies' => 'nullable|string|max:1000',
+            'medications' => 'nullable|string|max:1000',
+            'is_pregnant' => 'boolean',
+            'has_skin_conditions' => 'boolean',
+            'accepts_terms' => 'required|accepted',
+            'accepts_aftercare' => 'required|accepted',
+            'signature_data' => 'required|string', // base64
+            // Mineur
+            'is_minor' => 'boolean',
+            'parent_name' => 'required_if:is_minor,true|nullable|string|max:255',
+            'parent_relation' => 'required_if:is_minor,true|nullable|string|max:100',
+            'parent_phone' => 'required_if:is_minor,true|nullable|string|max:20',
+            'parent_email' => 'nullable|email|max:255',
+            'parent_signature_data' => 'required_if:is_minor,true|nullable|string',
+            'parent_id_document' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+        ]);
+
+        $consent = Consent::updateOrCreate(
+            ['bookable_id' => $bookingRequest->id, 'bookable_type' => $tattooer->getMorphClass()],
+            array_merge($validated, [
+                'client_id' => $bookingRequest->client_id,
+                'signed_at' => now(),
+                'parent_signed_at' => ($validated['is_minor'] ?? false) ? now() : null,
+            ])
+        );
+
+        // Upload pièce d'identité parent si mineur
+        if ($request->hasFile('parent_id_document')) {
+            $consent->clearMediaCollection('parent_id_photo');
+            $consent->addMediaFromRequest('parent_id_document')
+                ->toMediaCollection('parent_id_photo');
+        }
+
+        return back()->with('success', '✅ Consentement enregistré.');
+    }
+
+    /**
+     * Enregistrer la traçabilité pour un rendez-vous
+     */
+    public function storeTraceability(Request $request, \App\Models\Appointment $appointment)
+    {
+        $tattooer = auth()->user()->tattooer;
+
+        // Vérifier propriété via booking request
+        $bookingRequest = $appointment->bookingRequest;
+        if (!$bookingRequest || $bookingRequest->bookable_id !== $tattooer->id) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'needle_brand' => 'nullable|string|max:255',
+            'needle_lot_number' => 'nullable|string|max:255',
+            'cartridge_brand' => 'nullable|string|max:255',
+            'cartridge_lot_number' => 'nullable|string|max:255',
+            'inks' => 'nullable|array',
+            'inks.*' => 'nullable|array',
+            'inks.*.brand' => 'nullable|string|max:255',
+            'inks.*.color' => 'nullable|string|max:255',
+            'inks.*.lot_number' => 'nullable|string|max:255',
+            'sterilization_date' => 'nullable|date',
+            'sterilization_lot_number' => 'nullable|string|max:255',
+            'autoclave_cycle_number' => 'nullable|string|max:255',
+            'other_supplies' => 'nullable|string|max:2000',
+            'notes' => 'nullable|string|max:2000',
+            'lot_photos' => 'nullable|array|max:5',
+            'lot_photos.*' => 'image|mimes:jpg,jpeg,png,webp|max:5120',
+        ]);
+
+        // Filtrer les encres vides
+        if (isset($validated['inks'])) {
+            $validated['inks'] = array_values(array_filter($validated['inks'], function ($ink) {
+                return !empty(trim($ink['brand'] ?? '')) || !empty(trim($ink['color'] ?? '')) || !empty(trim($ink['lot_number'] ?? ''));
+            }));
+            if (empty($validated['inks'])) {
+                unset($validated['inks']);
+            }
+        }
+
+        // Préparer les données pour le modèle (adapter aux colonnes existantes)
+        $traceData = [
+            'tattooer_id' => $tattooer->id,
+            'appointment_id' => $appointment->id,
+            'procedure_date' => now()->format('Y-m-d'),
+            'sterile_equipment' => [
+                'needles' => [
+                    ['brand' => $validated['needle_brand'] ?? '', 'lot_number' => $validated['needle_lot_number'] ?? ''],
+                    ['brand' => $validated['cartridge_brand'] ?? '', 'lot_number' => $validated['cartridge_lot_number'] ?? '']
+                ],
+                'inks' => $validated['inks'] ?? [],
+                'sterilization_date' => $validated['sterilization_date'] ?? null,
+                'sterilization_lot_number' => $validated['sterilization_lot_number'] ?? '',
+                'autoclave_cycle_number' => $validated['autoclave_cycle_number'] ?? ''
+            ],
+            'procedure_notes' => $validated['other_supplies'] ?? '',
+            'equipment_notes' => $validated['notes'] ?? '',
+            'tattooer_verified_traceability' => true,
+            'verified_at' => now(),
+        ];
+
+        $traceability = TraceabilityRecord::updateOrCreate(
+            ['appointment_id' => $appointment->id],
+            $traceData
+        );
+
+        // Upload photos de lots via Media Library
+        if ($request->hasFile('lot_photos')) {
+            foreach ($request->file('lot_photos') as $photo) {
+                $traceability->addMedia($photo)->toMediaCollection('lot_photos');
+            }
+        }
+
+        return redirect()->to(url()->previous() . '#trace')->with('success', '✅ Traçabilité enregistrée.');
+    }
+
+    /**
+     * Mettre à jour les notes privées du client
+     */
+    public function updateClientNotes(Request $request, \App\Models\Client $client)
+    {
+        $tattooer = auth()->user()->tattooer;
+
+        // Vérifier la relation
+        $hasRelation = BookingRequest::where('client_id', $client->id)
+            ->where('bookable_id', $tattooer->id)
+            ->where('bookable_type', $tattooer->getMorphClass())
+            ->exists();
+
+        if (!$hasRelation) {
+            abort(403);
+        }
+
+        $request->validate(['notes' => 'nullable|string|max:5000']);
+        $client->update(['notes' => $request->notes]);
+
+        return back()->with('success', 'Notes enregistrées.');
+    }
+
+    /**
+     * Upload photos du tattoo réalisé
+     */
+    public function uploadClientTattooPhotos(Request $request, \App\Models\Client $client, BookingRequest $bookingRequest)
+    {
+        $tattooer = auth()->user()->tattooer;
+
+        if ($bookingRequest->bookable_id !== $tattooer->id) {
+            abort(403);
+        }
+
+        $request->validate([
+            'photos' => 'required|array|max:10',
+            'photos.*' => 'image|mimes:jpg,jpeg,png,webp|max:5120',
+        ]);
+
+        foreach ($request->file('photos') as $photo) {
+            $bookingRequest->addMedia($photo)
+                ->withCustomProperties([
+                    'type' => 'tattoo_result',
+                    'uploaded_by' => 'tattooer',
+                    'uploaded_at' => now()->toISOString(),
+                ])
+                ->toMediaCollection('tattoo_results');
+        }
+
+        return redirect()->to(url()->previous() . '#media')->with('success', '📸 Photos enregistrées.');
+    }
+
+    /**
+     * Supprimer un média client
+     */
+    public function deleteClientMedia(\App\Models\Client $client, $mediaId)
+    {
+        $tattooer = auth()->user()->tattooer;
+
+        // Vérifier la relation client-tattooer
+        $hasRelation = BookingRequest::where('client_id', $client->id)
+            ->where('bookable_id', $tattooer->id)
+            ->where('bookable_type', $tattooer->getMorphClass())
+            ->exists();
+
+        if (!$hasRelation) {
+            abort(403);
+        }
+
+        // Trouver le media dans les booking requests de ce tattooer
+        $bookingRequestIds = BookingRequest::where('client_id', $client->id)
+            ->where('bookable_id', $tattooer->id)
+            ->pluck('id');
+
+        $media = \Spatie\MediaLibrary\MediaCollections\Models\Media::where('id', $mediaId)
+            ->where('model_type', BookingRequest::class)
+            ->whereIn('model_id', $bookingRequestIds)
+            ->firstOrFail();
+
+        $media->delete();
+
+        return back()->with('success', 'Photo supprimée.');
     }
 
     /**

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\BookingRequest;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
@@ -14,7 +15,7 @@ class Consent extends Model implements HasMedia
     use HasFactory, InteractsWithMedia;
 
     protected $fillable = [
-        'client_id', 'bookable_id', 'bookable_type', 'signature_data', 'signed_at',
+        'client_id', 'booking_request_id', 'bookable_id', 'bookable_type', 'signature_data', 'signed_at',
         'medical_conditions', 'allergies', 'medications',
         'is_pregnant', 'has_skin_conditions',
         'is_minor', 'parent_signature_data', 'parent_name', 'parent_relation',
@@ -38,6 +39,11 @@ class Consent extends Model implements HasMedia
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);
+    }
+
+    public function bookingRequest(): BelongsTo
+    {
+        return $this->belongsTo(BookingRequest::class);
     }
 
     public function bookable(): MorphTo

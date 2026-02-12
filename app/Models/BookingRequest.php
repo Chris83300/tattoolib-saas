@@ -12,9 +12,19 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\HasMedia;
 
+use App\Models\Consent;
+
 class BookingRequest extends Model implements HasMedia
 {
     use HasFactory, SoftDeletes, InteractsWithMedia;
+
+    // ... existing code ...
+
+    public function consent(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Consent::class, 'bookable_id', 'id')
+            ->where('bookable_type', $this->getMorphClass());
+    }
 
     protected $fillable = [
         'client_id',
@@ -1170,6 +1180,10 @@ class BookingRequest extends Model implements HasMedia
     {
         $this->addMediaCollection('reference_images')
             ->useDisk('media')
-            ->acceptsMimeTypes(['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif', 'image/gif', 'image/svg+xml']);
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+
+        $this->addMediaCollection('tattoo_results')
+            ->useDisk('media')
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
     }
 }

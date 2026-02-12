@@ -46,6 +46,22 @@ Route::middleware(['auth'])->prefix('tattooer')->name('tattooer.')->group(functi
     Route::post('/message/{bookingRequest}/send', [TattooerController::class, 'messageSend'])->name('message.send');
     Route::get('/clients', [TattooerController::class, 'clients'])->name('clients');
     Route::get('/clients/{client}', [TattooerController::class, 'clientShow'])->name('client.show');
+    Route::post('/clients/{client}/notes', [TattooerController::class, 'updateClientNotes'])->name('client.update-notes');
+
+    // Consentement
+    Route::post('/consent/{bookingRequest}', [TattooerController::class, 'storeConsent'])
+        ->name('consent.store');
+
+    // Traçabilité
+    Route::post('/traceability/{appointment}', [TattooerController::class, 'storeTraceability'])
+        ->name('traceability.store');
+
+    // Médias client
+    Route::post('/client/{client}/photos/{bookingRequest}', [TattooerController::class, 'uploadClientTattooPhotos'])
+        ->name('client.photos.upload');
+    Route::delete('/client/{client}/media/{media}', [TattooerController::class, 'deleteClientMedia'])
+        ->name('client.media.delete');
+
     Route::get('/clients/{clientId}/requests', [TattooerController::class, 'clientRequests'])->name('tattooer.client-requests');
     Route::get('/portfolio', [TattooerController::class, 'portfolio'])->name('portfolio');
     Route::post('/portfolio/upload', [TattooerController::class, 'portfolioUpload'])->name('portfolio.upload');
@@ -193,6 +209,9 @@ Route::middleware(['auth'])->prefix('client')->name('client.')->group(function (
     Route::post('/booking-requests/{bookingRequest}/request-alternatives', [App\Http\Controllers\ClientController::class, 'requestAlternativeDates'])->name('booking-request.request-alternatives');
     Route::get('/chat/{conversation}', [App\Http\Controllers\ClientController::class, 'chat'])->name('chat');
     Route::post('/message/{conversation}/send', [App\Http\Controllers\ClientController::class, 'sendMessage'])->name('message.send');
+
+    // Consentement
+    Route::post('/consent/{bookingRequest}', [App\Http\Controllers\ClientController::class, 'consentStore'])->name('consent.store');
 
     // Messages / Conversations
     Route::get('/messages', [App\Http\Controllers\ClientController::class, 'messages'])->name('messages');
