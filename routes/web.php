@@ -48,9 +48,9 @@ Route::middleware(['auth'])->prefix('tattooer')->name('tattooer.')->group(functi
     Route::get('/clients/{client}', [TattooerController::class, 'clientShow'])->name('client.show');
     Route::post('/clients/{client}/notes', [TattooerController::class, 'updateClientNotes'])->name('client.update-notes');
 
-    // Consentement
+    // Consentement tattooer
     Route::post('/consent/{bookingRequest}', [TattooerController::class, 'storeConsent'])
-        ->name('consent.store');
+        ->name('tattooer.consent.store');
 
     // Traçabilité
     Route::post('/traceability/{appointment}', [TattooerController::class, 'storeTraceability'])
@@ -211,7 +211,7 @@ Route::middleware(['auth'])->prefix('client')->name('client.')->group(function (
     Route::post('/message/{conversation}/send', [App\Http\Controllers\ClientController::class, 'sendMessage'])->name('message.send');
 
     // Consentement
-    Route::post('/consent/{bookingRequest}', [App\Http\Controllers\ClientController::class, 'consentStore'])->name('consent.store');
+    Route::post('/consent/{bookingRequest}', [App\Http\Controllers\ClientController::class, 'storeConsent'])->name('consent.store');
 
     // Messages / Conversations
     Route::get('/messages', [App\Http\Controllers\ClientController::class, 'messages'])->name('messages');

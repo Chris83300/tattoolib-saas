@@ -362,62 +362,226 @@
                         <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent && $consent->isValid()): ?>
                             
                             <div class="space-y-3">
-                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->allergies || $consent->has_skin_conditions || $consent->medications || $consent->is_pregnant): ?>
-                                    <div class="bg-noir-profond/50 rounded-lg p-3">
-                                        <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-2">Infos médicales
-                                            déclarées</p>
-                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->allergies): ?>
-                                            <p class="text-sm text-ivoire-text mb-1">🤧 <span
-                                                    class="text-ivoire-text/60">Allergies :</span>
-                                                <?php echo e(is_array($consent->allergies) ? implode(', ', $consent->allergies) : $consent->allergies); ?>
+                                <!-- Identité client -->
+                                <div class="bg-noir-profond/50 rounded-lg p-3">
+                                    <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-2">📋 Identité client</p>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                        <p><span class="text-ivoire-text/60">Nom complet:</span>
+                                            <?php echo e($consent->client_full_name ?? 'Non renseigné'); ?></p>
+                                        <p><span class="text-ivoire-text/60">Date naissance:</span>
+                                            <?php echo e($consent->client_birth_date?->format('d/m/Y') ?? 'Non renseigné'); ?></p>
+                                        <p><span class="text-ivoire-text/60">Téléphone:</span>
+                                            <?php echo e($consent->client_phone ?? 'Non renseigné'); ?></p>
+                                        <p><span class="text-ivoire-text/60">Email:</span>
+                                            <?php echo e($consent->client_email ?? 'Non renseigné'); ?></p>
+                                        <p class="md:col-span-2"><span class="text-ivoire-text/60">Adresse:</span>
+                                            <?php echo e($consent->client_address ?? 'Non renseigné'); ?></p>
+                                        <p><span class="text-ivoire-text/60">Pièce identité:</span>
+                                            <?php echo e($consent->client_id_type ? ucfirst($consent->client_id_type) : 'Non renseigné'); ?>
 
-                                            </p>
-                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->has_skin_conditions): ?>
-                                            <p class="text-sm text-ivoire-text mb-1">🩹 <span
-                                                    class="text-ivoire-text/60">Sous alcool /
-                                                    substances :</span> Oui</p>
-                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medications): ?>
-                                            <p class="text-sm text-ivoire-text mb-1">💊 <span
-                                                    class="text-ivoire-text/60">Médicaments :</span>
-                                                <?php echo e(is_array($consent->medications) ? implode(', ', $consent->medications) : $consent->medications); ?>
-
-                                            </p>
-                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->is_pregnant): ?>
-                                            <p class="text-sm text-ivoire-text mb-1">🤰 <span
-                                                    class="text-ivoire-text/60">Grossesse :</span> Oui</p>
-                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            - <?php echo e($consent->client_id_number ?? 'Non renseigné'); ?></p>
                                     </div>
-                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                </div>
 
+                                <!-- Section mineur -->
                                 <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->is_minor): ?>
                                     <div class="bg-ambre-warning/10 border border-ambre-warning/30 rounded-lg p-3">
-                                        <p class="text-xs font-bold text-ambre-warning uppercase mb-2">Consentement
+                                        <p class="text-xs font-bold text-ambre-warning uppercase mb-2">👶 Consentement
                                             parental</p>
-                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->parent_name): ?>
-                                            <p class="text-sm text-ivoire-text mb-1">👤 <?php echo e($consent->parent_name); ?></p>
-                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->parent_relation): ?>
-                                            <p class="text-sm text-ivoire-text mb-1">🔗 <?php echo e($consent->parent_relation); ?>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                            <p><span class="text-ivoire-text/60">Nom parent:</span>
+                                                <?php echo e($consent->parent_name ?? 'Non renseigné'); ?></p>
+                                            <p><span class="text-ivoire-text/60">Relation:</span>
+                                                <?php echo e($consent->parent_relation ? ucfirst($consent->parent_relation) : 'Non renseigné'); ?>
 
                                             </p>
-                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->parent_signature_data): ?>
-                                            <p class="text-sm text-vert-succes mb-1">✍️ Signature parent présente</p>
-                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <p><span class="text-ivoire-text/60">N° pièce parent:</span>
+                                                <?php echo e($consent->parent_id_number ?? 'Non renseigné'); ?></p>
+                                            <p class="md:col-span-2">
+                                                <span class="text-ivoire-text/60">Pièce identité:</span>
+                                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->getFirstMediaUrl('parent_id')): ?>
+                                                    <a href="<?php echo e($consent->getFirstMediaUrl('parent_id')); ?>"
+                                                        target="_blank"
+                                                        class="text-blue-400 hover:text-blue-300 underline">📄 Voir le
+                                                        document</a>
+                                                <?php else: ?>
+                                                    <span class="text-amber-400">Non fournie</span>
+                                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            </p>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->parent_signature_data): ?>
+                                                <p class="md:col-span-2"><span class="text-ivoire-text/60">Signature
+                                                        parent:</span> <span class="text-vert-succes">✅ Signée</span></p>
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        </div>
                                     </div>
                                 <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
+                                <!-- Questionnaire médical SNAT 2026 -->
                                 <div class="bg-noir-profond/50 rounded-lg p-3">
-                                    <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-2">Signature du client</p>
+                                    <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-2">🏥 Questionnaire
+                                        médical</p>
+                                    <div class="space-y-1 text-sm">
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_allergies): ?>
+                                            <p>🤧 <span class="text-ivoire-text/60">Allergies:</span>
+                                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_allergies_detail): ?>
+                                                    <?php echo e($consent->medical_allergies_detail); ?>
+
+                                                <?php else: ?>
+                                                    Oui
+                                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            </p>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_anticoagulant): ?>
+                                            <p>💉 <span class="text-ivoire-text/60">Traitement anticoagulant:</span> Oui
+                                            </p>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_diabetes): ?>
+                                            <p>🩸 <span class="text-ivoire-text/60">Diabète:</span> Oui</p>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_cicatrisation): ?>
+                                            <p>🩹 <span class="text-ivoire-text/60">Cicatrisation difficile:</span> Oui</p>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_skin_disease): ?>
+                                            <p>🩹 <span class="text-ivoire-text/60">Maladie de peau:</span>
+                                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_skin_disease_detail): ?>
+                                                    <?php echo e($consent->medical_skin_disease_detail); ?>
+
+                                                <?php else: ?>
+                                                    Oui
+                                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            </p>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_vih_hepatite): ?>
+                                            <p>🔬 <span class="text-ivoire-text/60">VIH/Hépatite:</span> Oui</p>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_pregnant): ?>
+                                            <p>🤰 <span class="text-ivoire-text/60">Grossesse/Allaitement:</span> Oui</p>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_roaccutane): ?>
+                                            <p>💊 <span class="text-ivoire-text/60">Roaccutane:</span> Oui</p>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_cheloide): ?>
+                                            <p>⚕️ <span class="text-ivoire-text/60">Chéloïdes:</span> Oui</p>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_other): ?>
+                                            <p>📝 <span class="text-ivoire-text/60">Autres pathologies:</span>
+                                                <?php echo e($consent->medical_other); ?></p>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                    </div>
+                                </div>
+
+                                <!-- Clause financière -->
+                                <div class="bg-noir-profond/50 rounded-lg p-3">
+                                    <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-2">💰 Clause financière
+                                    </p>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                                        <p><span class="text-ivoire-text/60">Prix total:</span>
+                                            <?php echo e($consent->total_price ? number_format($consent->total_price, 2, ',', ' ') . ' €' : 'Non renseigné'); ?>
+
+                                        </p>
+                                        <p><span class="text-ivoire-text/60">Acompte:</span>
+                                            <?php echo e($consent->deposit_amount ? number_format($consent->deposit_amount, 2, ',', ' ') . ' €' : 'Non renseigné'); ?>
+
+                                        </p>
+                                        <p><span class="text-ivoire-text/60">Retouche:</span>
+                                            <?php echo e($consent->retouche_included ? 'Incluse' : 'Non incluse'); ?></p>
+                                    </div>
+                                </div>
+
+                                <!-- Autorisation image -->
+                                <div class="bg-noir-profond/50 rounded-lg p-3">
+                                    <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-2">� Autorisation image
+                                    </p>
+                                    <p class="text-sm">
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->image_authorization === true): ?>
+                                            <span class="text-vert-succes">✅ Autorisation accordée</span>
+                                        <?php elseif($consent->image_authorization === false): ?>
+                                            <span class="text-rouge-alerte">❌ Autorisation refusée</span>
+                                        <?php else: ?>
+                                            <span class="text-ambre-warning">⚠️ Non spécifié</span>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                    </p>
+                                </div>
+
+                                <!-- Confirmations -->
+                                <div class="bg-noir-profond/50 rounded-lg p-3">
+                                    <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-2">✅ Confirmations
+                                        obligatoires</p>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-1 text-sm">
+                                        <p>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->confirm_medical_sincere): ?>
+                                                ✅
+                                            <?php else: ?>
+                                                ❌
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <span class="text-ivoire-text/60">Déclarations sincères</span>
+                                        </p>
+                                        <p>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->confirm_risks_informed): ?>
+                                                ✅
+                                            <?php else: ?>
+                                                ❌
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <span class="text-ivoire-text/60">Risques informés</span>
+                                        </p>
+                                        <p>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->confirm_info_sheet_read): ?>
+                                                ✅
+                                            <?php else: ?>
+                                                ❌
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <span class="text-ivoire-text/60">Fiche info lue</span>
+                                        </p>
+                                        <p>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->confirm_aftercare_received): ?>
+                                                ✅
+                                            <?php else: ?>
+                                                ❌
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <span class="text-ivoire-text/60">Soins reçus</span>
+                                        </p>
+                                        <p>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->confirm_not_intoxicated): ?>
+                                                ✅
+                                            <?php else: ?>
+                                                ❌
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <span class="text-ivoire-text/60">Non intoxiqué</span>
+                                        </p>
+                                        <p>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->confirm_over_18_or_authorized): ?>
+                                                ✅
+                                            <?php else: ?>
+                                                ❌
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <span class="text-ivoire-text/60">+18 ans ou autorisé</span>
+                                        </p>
+                                        <p>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->confirm_rgpd): ?>
+                                                ✅
+                                            <?php else: ?>
+                                                ❌
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <span class="text-ivoire-text/60">RGPD accepté</span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Signature -->
+                                <div class="bg-noir-profond/50 rounded-lg p-3">
+                                    <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-2">✍️ Signature client</p>
                                     <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->signature_data): ?>
                                         <img src="<?php echo e($consent->signature_data); ?>" alt="Signature"
-                                            class="h-12 bg-white rounded">
+                                            class="h-16 bg-white rounded mb-2">
                                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                                    <p class="text-xs text-titane mt-1">Signé le
-                                        <?php echo e($consent->signed_at->format('d/m/Y à H:i')); ?></p>
+                                    <div class="space-y-1 text-sm">
+                                        <p><span class="text-ivoire-text/60">Mention:</span>
+                                            <?php echo e($consent->handwritten_mention ?? 'Non renseigné'); ?></p>
+                                        <p><span class="text-ivoire-text/60">Date:</span>
+                                            <?php echo e($consent->signed_at?->format('d/m/Y à H:i')); ?></p>
+                                        <p><span class="text-ivoire-text/60">IP:</span>
+                                            <?php echo e($consent->signed_ip ?? 'Non renseigné'); ?></p>
+                                    </div>
                                 </div>
 
                                 <p class="text-xs text-titane text-center mt-2">Ce consentement est verrouillé après

@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\BookingRequest;
-use App\Models\Consent;
+use App\Models\ClientConsentForm;
 use App\Models\TraceabilityRecord;
 use App\Models\Appointment;
 use App\Models\CalendarEvent;
@@ -875,7 +875,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
             ->get();
 
         // Consentements par booking request (booking_request_id)
-        $consents = Consent::whereIn('booking_request_id', $bookingRequests->pluck('id'))
+        $consents = ClientConsentForm::whereIn('booking_request_id', $bookingRequests->pluck('id'))
             ->orderBy('created_at', 'desc')
             ->get()
             ->keyBy('booking_request_id');
@@ -961,8 +961,8 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
             'parent_id_document' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
-        $consent = Consent::updateOrCreate(
-            ['bookable_id' => $bookingRequest->id, 'bookable_type' => $tattooer->getMorphClass()],
+        $consent = ClientConsentForm::updateOrCreate(
+            ['booking_request_id' => $bookingRequest->id],
             array_merge($validated, [
                 'client_id' => $bookingRequest->client_id,
                 'signed_at' => now(),
@@ -972,9 +972,9 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
 
         // Upload pièce d'identité parent si mineur
         if ($request->hasFile('parent_id_document')) {
-            $consent->clearMediaCollection('parent_id_photo');
+            $consent->clearMediaCollection('parent_id');
             $consent->addMediaFromRequest('parent_id_document')
-                ->toMediaCollection('parent_id_photo');
+                ->toMediaCollection('parent_id');
         }
 
         return back()->with('success', '✅ Consentement enregistré.');

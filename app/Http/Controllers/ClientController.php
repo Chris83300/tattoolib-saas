@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BookingRequest;
 use App\Models\Conversation;
 use App\Models\Message;
-use App\Models\Consent;
+use App\Models\ClientConsentForm;
 use App\Enums\BookingRequestStatus;
 use App\Enums\ConversationStatus;
 use App\Enums\AppointmentStatus;
@@ -461,44 +461,106 @@ class ClientController extends Controller
     }
 
     /**
-     * Enregistrer le consentement éclairé du client
+     * Enregistrer le consentement éclairé du client (SNAT 2026)
      */
-    public function consentStore(Request $request, BookingRequest $bookingRequest)
+    public function storeConsent(Request $request, BookingRequest $bookingRequest)
     {
         $client = Auth::user()->client;
 
         // Vérifier que la demande appartient au client
         if ($bookingRequest->client_id !== $client->id) {
-            abort(403);
+            abort(403, 'Cette demande de réservation ne vous appartient pas.');
         }
 
+        // Validation complète SNAT 2026
         $validated = $request->validate([
-            'medical_conditions' => 'nullable|array',
-            'medical_conditions.*' => 'string|max:255',
-            'allergies' => 'nullable|string|max:1000',
-            'medications' => 'nullable|string|max:1000',
-            'is_pregnant' => 'boolean',
-            'has_skin_conditions' => 'boolean',
-            'accepts_terms' => 'required|accepted',
-            'accepts_aftercare' => 'required|accepted',
-            'signature_data' => 'required|string',
+            // Identité client
+            'client_full_name' => 'required|string|max:255',
+            'client_birth_date' => 'required|date|before:today',
+            'client_address' => 'required|string|max:500',
+            'client_phone' => 'required|string|max:20',
+            'client_email' => 'required|email|max:255',
+            'client_id_type' => 'required|in:cni,passeport,titre_sejour',
+            'client_id_number' => 'required|string|max:50',
+
+            // Mineur
             'is_minor' => 'boolean',
-            'parent_signature_data' => 'required_if:is_minor,true|nullable|string',
             'parent_name' => 'required_if:is_minor,true|nullable|string|max:255',
-            'parent_relation' => 'required_if:is_minor,true|nullable|string|max:100',
+            'parent_relation' => 'required_if:is_minor,true|nullable|in:pere,mere,tuteur',
+            'parent_id_number' => 'required_if:is_minor,true|nullable|string|max:50',
+            'parent_signature_data' => 'required_if:is_minor,true|nullable|string',
+
+            // Acte (pré-rempli depuis BR)
+            'act_type' => 'required|string|in:tatouage,piercing,dermographie,scarification,modification_corporelle',
+            'body_zone' => 'required|string|max:255',
+            'act_description' => 'required|string|max:1000',
+
+            // Questionnaire médical
+            'medical_allergies' => 'boolean',
+            'medical_allergies_detail' => 'required_if:medical_allergies,true|nullable|string|max:1000',
+            'medical_anticoagulant' => 'boolean',
+            'medical_diabetes' => 'boolean',
+            'medical_cicatrisation' => 'boolean',
+            'medical_skin_disease' => 'boolean',
+            'medical_skin_disease_detail' => 'required_if:medical_skin_disease,true|nullable|string|max:1000',
+            'medical_vih_hepatite' => 'boolean',
+            'medical_pregnant' => 'boolean',
+            'medical_roaccutane' => 'boolean',
+            'medical_cheloide' => 'boolean',
+            'medical_other' => 'nullable|string|max:1000',
+
+            // Confirmations obligatoires
+            'confirm_medical_sincere' => 'required|accepted',
+            'confirm_risks_informed' => 'required|accepted',
+            'confirm_info_sheet_read' => 'required|accepted',
+            'confirm_aftercare_received' => 'required|accepted',
+            'confirm_not_intoxicated' => 'required|accepted',
+            'confirm_over_18_or_authorized' => 'required|accepted',
+            'confirm_rgpd' => 'required|accepted',
+
+            // Financier (pré-rempli depuis BR)
+            'total_price' => 'required|numeric|min:0',
+            'deposit_amount' => 'required|numeric|min:0',
+            'retouche_included' => 'boolean',
+
+            // Image
+            'image_authorization' => 'required|boolean',
+
+            // Signature
+            'signature_data' => 'required|string',
+            'handwritten_mention' => 'required|string|max:255',
+        ], [
+            'confirm_info_sheet_read.accepted' => 'Vous devez confirmer avoir lu la fiche d\'information préalable.',
+            'confirm_medical_sincere.accepted' => 'Vous devez certifier avoir répondu de manière sincère au questionnaire médical.',
+            'signature_data.required' => 'La signature est obligatoire.',
         ]);
 
         $tattooer = $bookingRequest->bookable;
 
-        Consent::updateOrCreate(
+        // Pré-remplir les données depuis BookingRequest
+        $consentData = array_merge($validated, [
+            'client_id' => $client->id,
+            'tattooer_id' => $tattooer->id,
+            'appointment_id' => $bookingRequest->appointment?->id,
+            'booking_request_id' => $bookingRequest->id,
+            'signed_at' => now(),
+            'signed_ip' => $request->ip(),
+            'signed_user_agent' => $request->userAgent(),
+            'status' => 'signed',
+        ]);
+
+        // Créer/Mettre à jour le consentement
+        $consent = ClientConsentForm::updateOrCreate(
             ['booking_request_id' => $bookingRequest->id],
-            array_merge($validated, [
-                'client_id' => $client->id,
-                'bookable_id' => $tattooer->id,
-                'bookable_type' => get_class($tattooer),
-                'signed_at' => now(),
-            ])
+            $consentData
         );
+
+        // Upload pièce d'identité parent si mineur
+        if ($request->hasFile('parent_id_document') && $validated['is_minor']) {
+            $consent->clearMediaCollection('parent_id');
+            $consent->addMediaFromRequest('parent_id_document')
+                ->toMediaCollection('parent_id');
+        }
 
         // Message système confirmation dans le chat
         if ($bookingRequest->conversation) {
@@ -509,6 +571,6 @@ class ClientController extends Controller
             ]);
         }
 
-        return back()->with('success', '✅ Consentement signé !');
+        return back()->with('success', '✅ Consentement éclairé signé avec succès !');
     }
 }

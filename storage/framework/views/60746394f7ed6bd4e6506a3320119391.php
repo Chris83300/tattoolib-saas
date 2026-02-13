@@ -22,7 +22,8 @@
                     }
                 ?>
 
-                <div class="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden bg-titane/30 flex-shrink-0 flex items-center justify-center">
+                <div
+                    class="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden bg-titane/30 flex-shrink-0 flex items-center justify-center">
                     <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($avatarUrl): ?>
                         <img src="<?php echo e($avatarUrl); ?>" alt="<?php echo e($pseudo ?? $fullName); ?>" class="w-full h-full object-cover">
                     <?php else: ?>
@@ -92,15 +93,17 @@
                     <button @click="activeTab = '<?php echo e($key); ?>'"
                         class="flex items-center gap-1.5 px-3 py-2 rounded-lg font-semibold whitespace-nowrap transition-all text-sm flex-shrink-0"
                         :class="activeTab === '<?php echo e($key); ?>'
-                            ? 'bg-beige-peau text-noir-profond'
-                            : 'text-titane hover:text-ivoire-text hover:bg-noir-profond'">
+                            ?
+                            'bg-beige-peau text-noir-profond' :
+                            'text-titane hover:text-ivoire-text hover:bg-noir-profond'">
                         <span><?php echo e($tab['icon']); ?></span>
                         <span><?php echo e($tab['label']); ?></span>
                         <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(isset($tab['count']) && $tab['count'] > 0): ?>
                             <span class="px-1.5 py-0.5 rounded-full text-xs"
                                 :class="activeTab === '<?php echo e($key); ?>'
-                                    ? 'bg-noir-profond/20 text-noir-profond'
-                                    : 'bg-titane/20 text-titane'">
+                                    ?
+                                    'bg-noir-profond/20 text-noir-profond' :
+                                    'bg-titane/20 text-titane'">
                                 <?php echo e($tab['count']); ?>
 
                             </span>
@@ -121,11 +124,13 @@
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2 min-w-0">
                                 <span class="text-titane flex-shrink-0">📧</span>
-                                <span class="text-ivoire-text text-sm truncate"><?php echo e($client->user?->email ?? $client->email); ?></span>
+                                <span
+                                    class="text-ivoire-text text-sm truncate"><?php echo e($client->user?->email ?? $client->email); ?></span>
                             </div>
                             <a href="mailto:<?php echo e($client->user?->email ?? $client->email); ?>"
                                 class="p-2 bg-noir-profond rounded-lg hover:bg-beige-peau/20 transition-colors flex-shrink-0">
-                                <svg class="w-4 h-4 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 text-beige-peau" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                 </svg>
@@ -141,7 +146,8 @@
                             </div>
                             <a href="tel:<?php echo e($client->phone); ?>"
                                 class="p-2 bg-noir-profond rounded-lg hover:bg-beige-peau/20 transition-colors flex-shrink-0">
-                                <svg class="w-4 h-4 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 text-beige-peau" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                 </svg>
@@ -157,7 +163,8 @@
 
                                 (<?php echo e($client->birth_date->age); ?> ans)
                                 <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($client->birth_date->age < 18): ?>
-                                    <span class="ml-1 px-1.5 py-0.5 bg-ambre-warning/20 text-ambre-warning rounded text-xs font-semibold">MINEUR</span>
+                                    <span
+                                        class="ml-1 px-1.5 py-0.5 bg-ambre-warning/20 text-ambre-warning rounded text-xs font-semibold">MINEUR</span>
                                 <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </span>
                         </div>
@@ -217,18 +224,55 @@
                                 </h4>
                                 <?php
                                     $statusConfig = match ($br->status->value ?? $br->status) {
-                                        'pending' => ['bg' => 'bg-ambre-warning/20', 'text' => 'text-ambre-warning', 'label' => '⏳ En attente'],
-                                        'accepted' => ['bg' => 'bg-vert-succes/20', 'text' => 'text-vert-succes', 'label' => '✅ Acceptée'],
-                                        'deposit_paid' => ['bg' => 'bg-vert-succes/20', 'text' => 'text-vert-succes', 'label' => '💰 Acompte payé'],
-                                        'date_confirmed' => ['bg' => 'bg-beige-peau/20', 'text' => 'text-beige-peau', 'label' => '📅 Date confirmée'],
-                                        'in_progress' => ['bg' => 'bg-beige-peau/20', 'text' => 'text-beige-peau', 'label' => '🎨 En cours'],
-                                        'completed' => ['bg' => 'bg-vert-succes/20', 'text' => 'text-vert-succes', 'label' => '✅ Terminé'],
-                                        'cancelled' => ['bg' => 'bg-rouge-alerte/20', 'text' => 'text-rouge-alerte', 'label' => '❌ Annulée'],
-                                        'rejected' => ['bg' => 'bg-rouge-alerte/20', 'text' => 'text-rouge-alerte', 'label' => '❌ Refusée'],
-                                        default => ['bg' => 'bg-titane/20', 'text' => 'text-titane', 'label' => ucfirst($br->status->value ?? $br->status)],
+                                        'pending' => [
+                                            'bg' => 'bg-ambre-warning/20',
+                                            'text' => 'text-ambre-warning',
+                                            'label' => '⏳ En attente',
+                                        ],
+                                        'accepted' => [
+                                            'bg' => 'bg-vert-succes/20',
+                                            'text' => 'text-vert-succes',
+                                            'label' => '✅ Acceptée',
+                                        ],
+                                        'deposit_paid' => [
+                                            'bg' => 'bg-vert-succes/20',
+                                            'text' => 'text-vert-succes',
+                                            'label' => '💰 Acompte payé',
+                                        ],
+                                        'date_confirmed' => [
+                                            'bg' => 'bg-beige-peau/20',
+                                            'text' => 'text-beige-peau',
+                                            'label' => '📅 Date confirmée',
+                                        ],
+                                        'in_progress' => [
+                                            'bg' => 'bg-beige-peau/20',
+                                            'text' => 'text-beige-peau',
+                                            'label' => '🎨 En cours',
+                                        ],
+                                        'completed' => [
+                                            'bg' => 'bg-vert-succes/20',
+                                            'text' => 'text-vert-succes',
+                                            'label' => '✅ Terminé',
+                                        ],
+                                        'cancelled' => [
+                                            'bg' => 'bg-rouge-alerte/20',
+                                            'text' => 'text-rouge-alerte',
+                                            'label' => '❌ Annulée',
+                                        ],
+                                        'rejected' => [
+                                            'bg' => 'bg-rouge-alerte/20',
+                                            'text' => 'text-rouge-alerte',
+                                            'label' => '❌ Refusée',
+                                        ],
+                                        default => [
+                                            'bg' => 'bg-titane/20',
+                                            'text' => 'text-titane',
+                                            'label' => ucfirst($br->status->value ?? $br->status),
+                                        ],
                                     };
                                 ?>
-                                <span class="px-2 py-0.5 <?php echo e($statusConfig['bg']); ?> <?php echo e($statusConfig['text']); ?> rounded text-xs font-semibold">
+                                <span
+                                    class="px-2 py-0.5 <?php echo e($statusConfig['bg']); ?> <?php echo e($statusConfig['text']); ?> rounded text-xs font-semibold">
                                     <?php echo e($statusConfig['label']); ?>
 
                                 </span>
@@ -238,7 +282,8 @@
 
                         <a href="<?php echo e(route('tattooer.request.show', $br)); ?>"
                             class="p-2 bg-noir-profond rounded-lg hover:bg-beige-peau/20 transition-colors flex-shrink-0">
-                            <svg class="w-4 h-4 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 text-beige-peau" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                             </svg>
@@ -254,7 +299,8 @@
                             </span>
                         <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($br->price_estimate_min && $br->price_estimate_max): ?>
-                            <span>🏷️ <?php echo e(number_format($br->price_estimate_min, 0)); ?>-<?php echo e(number_format($br->price_estimate_max, 0)); ?>€</span>
+                            <span>🏷️
+                                <?php echo e(number_format($br->price_estimate_min, 0)); ?>-<?php echo e(number_format($br->price_estimate_max, 0)); ?>€</span>
                         <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($br->tattoo_size): ?>
                             <span>📐 <?php echo e($br->tattoo_size); ?></span>
@@ -279,9 +325,11 @@
                     <div class="flex items-center justify-between cursor-pointer" @click="expanded = !expanded">
                         <div class="flex items-center gap-3">
                             <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent && $consent->isValid()): ?>
-                                <span class="w-8 h-8 bg-vert-succes/20 text-vert-succes rounded-full flex items-center justify-center text-sm">✅</span>
+                                <span
+                                    class="w-8 h-8 bg-vert-succes/20 text-vert-succes rounded-full flex items-center justify-center text-sm">✅</span>
                             <?php else: ?>
-                                <span class="w-8 h-8 bg-ambre-warning/20 text-ambre-warning rounded-full flex items-center justify-center text-sm">⚠️</span>
+                                <span
+                                    class="w-8 h-8 bg-ambre-warning/20 text-ambre-warning rounded-full flex items-center justify-center text-sm">⚠️</span>
                             <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             <div>
                                 <p class="text-sm font-semibold text-ivoire-text">
@@ -314,54 +362,230 @@
                         <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent && $consent->isValid()): ?>
                             
                             <div class="space-y-3">
-                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->allergies || $consent->has_skin_conditions || $consent->medications || $consent->is_pregnant): ?>
-                                    <div class="bg-noir-profond/50 rounded-lg p-3">
-                                        <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-2">Infos médicales déclarées</p>
-                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->allergies): ?>
-                                            <p class="text-sm text-ivoire-text mb-1">🤧 <span class="text-ivoire-text/60">Allergies :</span>
-                                                <?php echo e(is_array($consent->allergies) ? implode(', ', $consent->allergies) : $consent->allergies); ?>
-
-                                            </p>
-                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->has_skin_conditions): ?>
-                                            <p class="text-sm text-ivoire-text mb-1">🩹 <span class="text-ivoire-text/60">Peau :</span> Oui</p>
-                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medications): ?>
-                                            <p class="text-sm text-ivoire-text mb-1">💊 <span class="text-ivoire-text/60">Médicaments :</span>
-                                                <?php echo e(is_array($consent->medications) ? implode(', ', $consent->medications) : $consent->medications); ?>
-
-                                            </p>
-                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->is_pregnant): ?>
-                                            <p class="text-sm text-ivoire-text mb-1">🤰 <span class="text-ivoire-text/60">Grossesse :</span> Oui</p>
-                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                                    </div>
-                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-
-                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->is_minor): ?>
-                                    <div class="bg-ambre-warning/10 border border-ambre-warning/30 rounded-lg p-3">
-                                        <p class="text-xs font-bold text-ambre-warning uppercase mb-2">Consentement parental</p>
-                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->parent_name): ?>
-                                            <p class="text-sm text-ivoire-text mb-1">👤 <?php echo e($consent->parent_name); ?></p>
-                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->parent_relation): ?>
-                                            <p class="text-sm text-ivoire-text mb-1">🔗 <?php echo e($consent->parent_relation); ?></p>
-                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->parent_signature_data): ?>
-                                            <p class="text-sm text-vert-succes mb-1">✍️ Signature parent présente</p>
-                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                                    </div>
-                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-
+                                <!-- Identité client -->
                                 <div class="bg-noir-profond/50 rounded-lg p-3">
-                                    <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-2">Signature du client</p>
-                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->signature_data): ?>
-                                        <img src="<?php echo e($consent->signature_data); ?>" alt="Signature" class="h-12 bg-white rounded">
-                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                                    <p class="text-xs text-titane mt-1">Signé le <?php echo e($consent->signed_at->format('d/m/Y à H:i')); ?></p>
+                                    <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-2">📋 Identité client</p>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                        <p><span class="text-ivoire-text/60">Nom complet:</span>
+                                            <?php echo e($consent->client_full_name ?? 'Non renseigné'); ?></p>
+                                        <p><span class="text-ivoire-text/60">Date naissance:</span>
+                                            <?php echo e($consent->client_birth_date?->format('d/m/Y') ?? 'Non renseigné'); ?></p>
+                                        <p><span class="text-ivoire-text/60">Téléphone:</span>
+                                            <?php echo e($consent->client_phone ?? 'Non renseigné'); ?></p>
+                                        <p><span class="text-ivoire-text/60">Email:</span>
+                                            <?php echo e($consent->client_email ?? 'Non renseigné'); ?></p>
+                                        <p class="md:col-span-2"><span class="text-ivoire-text/60">Adresse:</span>
+                                            <?php echo e($consent->client_address ?? 'Non renseigné'); ?></p>
+                                        <p><span class="text-ivoire-text/60">Pièce identité:</span>
+                                            <?php echo e($consent->client_id_type ? ucfirst($consent->client_id_type) : 'Non renseigné'); ?>
+
+                                            - <?php echo e($consent->client_id_number ?? 'Non renseigné'); ?></p>
+                                    </div>
                                 </div>
 
-                                <p class="text-xs text-titane text-center mt-2">Ce consentement est verrouillé après signature.</p>
+                                <!-- Section mineur -->
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->is_minor): ?>
+                                    <div class="bg-ambre-warning/10 border border-ambre-warning/30 rounded-lg p-3">
+                                        <p class="text-xs font-bold text-ambre-warning uppercase mb-2">👶 Consentement
+                                            parental</p>
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                                            <p><span class="text-ivoire-text/60">Nom parent:</span>
+                                                <?php echo e($consent->parent_name ?? 'Non renseigné'); ?></p>
+                                            <p><span class="text-ivoire-text/60">Relation:</span>
+                                                <?php echo e($consent->parent_relation ? ucfirst($consent->parent_relation) : 'Non renseigné'); ?>
+
+                                            </p>
+                                            <p><span class="text-ivoire-text/60">N° pièce parent:</span>
+                                                <?php echo e($consent->parent_id_number ?? 'Non renseigné'); ?></p>
+                                            <p class="md:col-span-2">
+                                                <span class="text-ivoire-text/60">Pièce identité:</span>
+                                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->getFirstMediaUrl('parent_id')): ?>
+                                                    <a href="<?php echo e($consent->getFirstMediaUrl('parent_id')); ?>"
+                                                        target="_blank"
+                                                        class="text-blue-400 hover:text-blue-300 underline">📄 Voir le
+                                                        document</a>
+                                                <?php else: ?>
+                                                    <span class="text-amber-400">Non fournie</span>
+                                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            </p>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->parent_signature_data): ?>
+                                                <p class="md:col-span-2"><span class="text-ivoire-text/60">Signature
+                                                        parent:</span> <span class="text-vert-succes">✅ Signée</span></p>
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        </div>
+                                    </div>
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
+                                <!-- Questionnaire médical SNAT 2026 -->
+                                <div class="bg-noir-profond/50 rounded-lg p-3">
+                                    <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-2">🏥 Questionnaire
+                                        médical</p>
+                                    <div class="space-y-1 text-sm">
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_allergies): ?>
+                                            <p>🤧 <span class="text-ivoire-text/60">Allergies:</span>
+                                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_allergies_detail): ?>
+                                                    <?php echo e($consent->medical_allergies_detail); ?>
+
+                                                <?php else: ?>
+                                                    Oui
+                                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            </p>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_anticoagulant): ?>
+                                            <p>💉 <span class="text-ivoire-text/60">Traitement anticoagulant:</span> Oui
+                                            </p>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_diabetes): ?>
+                                            <p>🩸 <span class="text-ivoire-text/60">Diabète:</span> Oui</p>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_cicatrisation): ?>
+                                            <p>🩹 <span class="text-ivoire-text/60">Cicatrisation difficile:</span> Oui</p>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_skin_disease): ?>
+                                            <p>🩹 <span class="text-ivoire-text/60">Maladie de peau:</span>
+                                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_skin_disease_detail): ?>
+                                                    <?php echo e($consent->medical_skin_disease_detail); ?>
+
+                                                <?php else: ?>
+                                                    Oui
+                                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            </p>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_vih_hepatite): ?>
+                                            <p>🔬 <span class="text-ivoire-text/60">VIH/Hépatite:</span> Oui</p>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_pregnant): ?>
+                                            <p>🤰 <span class="text-ivoire-text/60">Grossesse/Allaitement:</span> Oui</p>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_roaccutane): ?>
+                                            <p>💊 <span class="text-ivoire-text/60">Roaccutane:</span> Oui</p>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_cheloide): ?>
+                                            <p>⚕️ <span class="text-ivoire-text/60">Chéloïdes:</span> Oui</p>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_other): ?>
+                                            <p>📝 <span class="text-ivoire-text/60">Autres pathologies:</span>
+                                                <?php echo e($consent->medical_other); ?></p>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                    </div>
+                                </div>
+
+                                <!-- Clause financière -->
+                                <div class="bg-noir-profond/50 rounded-lg p-3">
+                                    <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-2">💰 Clause financière
+                                    </p>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                                        <p><span class="text-ivoire-text/60">Prix total:</span>
+                                            <?php echo e($consent->total_price ? number_format($consent->total_price, 2, ',', ' ') . ' €' : 'Non renseigné'); ?>
+
+                                        </p>
+                                        <p><span class="text-ivoire-text/60">Acompte:</span>
+                                            <?php echo e($consent->deposit_amount ? number_format($consent->deposit_amount, 2, ',', ' ') . ' €' : 'Non renseigné'); ?>
+
+                                        </p>
+                                        <p><span class="text-ivoire-text/60">Retouche:</span>
+                                            <?php echo e($consent->retouche_included ? 'Incluse' : 'Non incluse'); ?></p>
+                                    </div>
+                                </div>
+
+                                <!-- Autorisation image -->
+                                <div class="bg-noir-profond/50 rounded-lg p-3">
+                                    <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-2">� Autorisation image
+                                    </p>
+                                    <p class="text-sm">
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->image_authorization === true): ?>
+                                            <span class="text-vert-succes">✅ Autorisation accordée</span>
+                                        <?php elseif($consent->image_authorization === false): ?>
+                                            <span class="text-rouge-alerte">❌ Autorisation refusée</span>
+                                        <?php else: ?>
+                                            <span class="text-ambre-warning">⚠️ Non spécifié</span>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                    </p>
+                                </div>
+
+                                <!-- Confirmations -->
+                                <div class="bg-noir-profond/50 rounded-lg p-3">
+                                    <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-2">✅ Confirmations
+                                        obligatoires</p>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-1 text-sm">
+                                        <p>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->confirm_medical_sincere): ?>
+                                                ✅
+                                            <?php else: ?>
+                                                ❌
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <span class="text-ivoire-text/60">Déclarations sincères</span>
+                                        </p>
+                                        <p>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->confirm_risks_informed): ?>
+                                                ✅
+                                            <?php else: ?>
+                                                ❌
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <span class="text-ivoire-text/60">Risques informés</span>
+                                        </p>
+                                        <p>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->confirm_info_sheet_read): ?>
+                                                ✅
+                                            <?php else: ?>
+                                                ❌
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <span class="text-ivoire-text/60">Fiche info lue</span>
+                                        </p>
+                                        <p>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->confirm_aftercare_received): ?>
+                                                ✅
+                                            <?php else: ?>
+                                                ❌
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <span class="text-ivoire-text/60">Soins reçus</span>
+                                        </p>
+                                        <p>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->confirm_not_intoxicated): ?>
+                                                ✅
+                                            <?php else: ?>
+                                                ❌
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <span class="text-ivoire-text/60">Non intoxiqué</span>
+                                        </p>
+                                        <p>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->confirm_over_18_or_authorized): ?>
+                                                ✅
+                                            <?php else: ?>
+                                                ❌
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <span class="text-ivoire-text/60">+18 ans ou autorisé</span>
+                                        </p>
+                                        <p>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->confirm_rgpd): ?>
+                                                ✅
+                                            <?php else: ?>
+                                                ❌
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <span class="text-ivoire-text/60">RGPD accepté</span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Signature -->
+                                <div class="bg-noir-profond/50 rounded-lg p-3">
+                                    <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-2">✍️ Signature client</p>
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->signature_data): ?>
+                                        <img src="<?php echo e($consent->signature_data); ?>" alt="Signature"
+                                            class="h-16 bg-white rounded mb-2">
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                    <div class="space-y-1 text-sm">
+                                        <p><span class="text-ivoire-text/60">Mention:</span>
+                                            <?php echo e($consent->handwritten_mention ?? 'Non renseigné'); ?></p>
+                                        <p><span class="text-ivoire-text/60">Date:</span>
+                                            <?php echo e($consent->signed_at?->format('d/m/Y à H:i')); ?></p>
+                                        <p><span class="text-ivoire-text/60">IP:</span>
+                                            <?php echo e($consent->signed_ip ?? 'Non renseigné'); ?></p>
+                                    </div>
+                                </div>
+
+                                <p class="text-xs text-titane text-center mt-2">Ce consentement est verrouillé après
+                                    signature.</p>
                             </div>
                         <?php else: ?>
                             
@@ -390,26 +614,29 @@
             <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__empty_1 = true; $__currentLoopData = $relevantAppointments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $apt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                 <?php $trace = $traceabilities[$apt->id] ?? null; ?>
 
-                <div class="bg-gris-fonde rounded-xl p-4"
-                    x-data="{
-                        expanded: <?php echo e($loop->first && !$trace ? 'true' : 'false'); ?>,
-                        inks: <?php echo e(json_encode($trace?->sterile_equipment['inks'] ?? [['brand' => '', 'color' => '', 'lot_number' => '']])); ?>
+                <div class="bg-gris-fonde rounded-xl p-4" x-data="{
+                    expanded: <?php echo e($loop->first && !$trace ? 'true' : 'false'); ?>,
+                    inks: <?php echo e(json_encode($trace?->sterile_equipment['inks'] ?? [['brand' => '', 'color' => '', 'lot_number' => '']])); ?>
 
-                    }">
+                }">
 
                     
                     <div class="flex items-center justify-between cursor-pointer" @click="expanded = !expanded">
                         <div class="flex items-center gap-3">
                             <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($trace && $trace->isComplete()): ?>
-                                <span class="w-8 h-8 bg-vert-succes/20 text-vert-succes rounded-full flex items-center justify-center text-sm">✅</span>
+                                <span
+                                    class="w-8 h-8 bg-vert-succes/20 text-vert-succes rounded-full flex items-center justify-center text-sm">✅</span>
                             <?php elseif($trace): ?>
-                                <span class="w-8 h-8 bg-ambre-warning/20 text-ambre-warning rounded-full flex items-center justify-center text-sm">📝</span>
+                                <span
+                                    class="w-8 h-8 bg-ambre-warning/20 text-ambre-warning rounded-full flex items-center justify-center text-sm">📝</span>
                             <?php else: ?>
-                                <span class="w-8 h-8 bg-rouge-alerte/20 text-rouge-alerte rounded-full flex items-center justify-center text-sm">⚠️</span>
+                                <span
+                                    class="w-8 h-8 bg-rouge-alerte/20 text-rouge-alerte rounded-full flex items-center justify-center text-sm">⚠️</span>
                             <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             <div>
                                 <p class="text-sm font-semibold text-ivoire-text">
-                                    <?php echo e($apt->bookingRequest?->tattoo_style ?? 'Tatouage'); ?> — <?php echo e($apt->bookingRequest?->body_zone ?? ''); ?>
+                                    <?php echo e($apt->bookingRequest?->tattoo_style ?? 'Tatouage'); ?> —
+                                    <?php echo e($apt->bookingRequest?->body_zone ?? ''); ?>
 
                                     · <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($trace && $trace->isComplete()): ?>
                                         <span class="text-vert-succes">Complète</span>
@@ -438,7 +665,8 @@
                             <?php echo csrf_field(); ?>
 
                             
-                            <p class="text-xs font-bold text-ivoire-text/60 uppercase tracking-wider">Aiguilles & Cartouches</p>
+                            <p class="text-xs font-bold text-ivoire-text/60 uppercase tracking-wider">Aiguilles &
+                                Cartouches</p>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label class="text-xs text-titane block mb-1">Marque aiguilles</label>
@@ -471,7 +699,8 @@
 
                             
                             <div class="flex items-center justify-between mb-2">
-                                <p class="text-xs font-bold text-ivoire-text/60 uppercase tracking-wider">Encres utilisées</p>
+                                <p class="text-xs font-bold text-ivoire-text/60 uppercase tracking-wider">Encres utilisées
+                                </p>
                                 <button type="button" @click="inks.push({brand: '', color: '', lot_number: ''})"
                                     class="text-xs text-beige-peau hover:text-beige-peau/80 font-semibold">
                                     + Ajouter une encre
@@ -481,11 +710,14 @@
                             <template x-for="(ink, index) in inks" :key="index">
                                 <div class="bg-noir-profond/30 rounded-lg p-3 mb-2 space-y-2">
                                     <div class="flex items-center justify-between">
-                                        <span class="text-xs text-titane font-semibold" x-text="'Encre ' + (index + 1)"></span>
+                                        <span class="text-xs text-titane font-semibold"
+                                            x-text="'Encre ' + (index + 1)"></span>
                                         <button type="button" @click="if(inks.length > 1) inks.splice(index, 1)"
                                             x-show="inks.length > 1" class="text-rouge-alerte/60 hover:text-rouge-alerte">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M6 18L18 6M6 6l12 12" />
                                             </svg>
                                         </button>
                                     </div>
@@ -496,8 +728,8 @@
                                         <input type="text" :name="'inks[' + index + '][color]'" x-model="ink.color"
                                             placeholder="Couleur"
                                             class="flex-1 px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm focus:border-beige-peau">
-                                        <input type="text" :name="'inks[' + index + '][lot_number]'" x-model="ink.lot_number"
-                                            placeholder="N° lot"
+                                        <input type="text" :name="'inks[' + index + '][lot_number]'"
+                                            x-model="ink.lot_number" placeholder="N° lot"
                                             class="flex-1 px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm focus:border-beige-peau">
                                     </div>
                                 </div>
@@ -535,7 +767,9 @@
 
                             
                             <div>
-                                <label class="text-xs text-titane block mb-1">📸 Photos des numéros de lot (optionnel)</label>
+                                <label class="text-xs text-titane block mb-1">📸 Photos des numéros de lot
+                                    (optionnel)
+                                </label>
                                 <input type="file" name="lot_photos[]" multiple accept="image/*"
                                     onchange="previewFiles(this)"
                                     class="w-full text-sm text-ivoire-text file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-beige-peau/20 file:text-beige-peau file:font-semibold file:text-xs">
@@ -599,8 +833,10 @@
                                     <?php echo method_field('DELETE'); ?>
                                     <button type="submit" onclick="return confirm('Supprimer cette photo ?')"
                                         class="w-6 h-6 bg-rouge-alerte rounded-full flex items-center justify-center shadow-lg hover:bg-rouge-alerte/80">
-                                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M6 18L18 6M6 6l12 12" />
                                         </svg>
                                     </button>
                                 </form>
@@ -637,8 +873,10 @@
                                         <?php echo method_field('DELETE'); ?>
                                         <button type="submit" onclick="return confirm('Supprimer cette photo ?')"
                                             class="w-6 h-6 bg-rouge-alerte rounded-full flex items-center justify-center shadow-lg">
-                                            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M6 18L18 6M6 6l12 12" />
                                             </svg>
                                         </button>
                                     </form>
@@ -648,7 +886,8 @@
                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                     <form action="<?php echo e(route('tattooer.client.photos.upload', [$client, $br])); ?>" method="POST"
-                        enctype="multipart/form-data" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                        enctype="multipart/form-data"
+                        class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                         <?php echo csrf_field(); ?>
                         <input type="file" name="photos[]" multiple accept="image/jpeg,image/png,image/webp"
                             onchange="previewFiles(this)"
@@ -667,7 +906,8 @@
         <div x-show="activeTab === 'notes'" x-cloak>
             <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
                 <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider mb-3">Notes privées</h3>
-                <p class="text-xs text-titane mb-3">Visibles uniquement par vous. Allergies, préférences, comportement...</p>
+                <p class="text-xs text-titane mb-3">Visibles uniquement par vous. Allergies, préférences, comportement...
+                </p>
 
                 <form action="<?php echo e(route('tattooer.client.update-notes', $client)); ?>" method="POST">
                     <?php echo csrf_field(); ?>
@@ -687,8 +927,7 @@
     
     <div id="lightbox" class="hidden fixed inset-0 bg-black/95 z-[60] flex items-center justify-center"
         onclick="if(event.target===this)window.closeLightbox()">
-        <button onclick="window.closeLightbox()"
-            class="absolute top-4 right-4 p-2 text-white/70 hover:text-white z-10">
+        <button onclick="window.closeLightbox()" class="absolute top-4 right-4 p-2 text-white/70 hover:text-white z-10">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -705,8 +944,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
         </button>
-        <img id="lightbox-img" src="" alt=""
-            class="max-w-[90vw] max-h-[85vh] object-contain rounded-lg"
+        <img id="lightbox-img" src="" alt="" class="max-w-[90vw] max-h-[85vh] object-contain rounded-lg"
             onclick="event.stopPropagation()">
         <div id="lightbox-counter"
             class="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/60 text-sm bg-black/50 px-3 py-1 rounded-full">
@@ -760,8 +998,8 @@
 
         // ═══ PREVIEW UPLOAD ═══
         function previewFiles(input) {
-            var preview = input.closest('div').querySelector('.upload-preview')
-                || input.parentElement.querySelector('.upload-preview');
+            var preview = input.closest('div').querySelector('.upload-preview') ||
+                input.parentElement.querySelector('.upload-preview');
             if (!preview) return;
             preview.innerHTML = '';
             Array.from(input.files).forEach(function(file) {
@@ -787,7 +1025,9 @@
                         el._x_dataStack[0].activeTab = hash;
                     }
                 }, 50);
-                setTimeout(function() { clearInterval(check); }, 1000);
+                setTimeout(function() {
+                    clearInterval(check);
+                }, 1000);
             }
         });
     </script>

@@ -6,106 +6,99 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class ClientConsentForm extends Model
+class ClientConsentForm extends Model implements HasMedia
 {
-    use HasFactory;
+    use HasFactory, InteractsWithMedia;
 
     protected $fillable = [
-        'client_id',
-        'user_id',
-        'appointment_id',
-
-        // Informations personnelles
-        'full_name',
-        'birth_date',
-        'id_document_type',
-        'id_document_number',
+        // Relations
+        'client_id', 'tattooer_id', 'appointment_id', 'booking_request_id',
+        // Identité client
+        'client_full_name', 'client_birth_date', 'client_address',
+        'client_phone', 'client_email', 'client_id_type', 'client_id_number',
+        // Pièce identité (gardé de v1)
         'id_document_expiry',
-        'phone',
-        'email',
-        'address',
-
-        // Vérification d'âge
-        'is_adult',
-        'consent_date',
-        'consent_time',
-
-        // Déclaration de santé
-        'has_allergies',
-        'allergies_details',
-        'has_skin_conditions',
-        'skin_conditions_details',
-        'has_blood_disorders',
-        'blood_disorders_details',
-        'has_diabetes',
-        'has_heart_conditions',
-        'is_pregnant',
-        'is_breastfeeding',
-        'taking_medications',
-        'medications_details',
-        'has_recent_surgery',
-        'recent_surgery_details',
-
-        // Tatouages existants
-        'has_existing_tattoos',
-        'existing_tattoos_location',
-
-        // Consentement
-        'consents_to_tattoo',
-        'understands_risks',
-        'understands_aftercare',
-        'consents_to_photos',
-        'consents_to_data_processing',
-
-        // Documents
-        'id_document_photos',
-        'consent_signature',
-        'ip_address',
-        'user_agent',
-
-        // Statut
-        'status',
-        'signed_at',
-        'verified_by',
-        'verified_at',
+        // Mineur
+        'is_minor', 'parent_name', 'parent_relation', 'parent_id_number',
+        'parent_signature_data',
+        // Acte
+        'act_type', 'body_zone', 'act_description',
+        // Médical SNAT
+        'medical_allergies', 'medical_allergies_detail',
+        'medical_anticoagulant', 'medical_diabetes', 'medical_cicatrisation',
+        'medical_skin_disease', 'medical_skin_disease_detail',
+        'medical_vih_hepatite', 'medical_pregnant', 'medical_roaccutane',
+        'medical_cheloide', 'medical_other',
+        // Confirmations SNAT
+        'confirm_medical_sincere', 'confirm_risks_informed',
+        'confirm_info_sheet_read', 'confirm_aftercare_received',
+        'confirm_not_intoxicated', 'confirm_over_18_or_authorized',
+        'confirm_rgpd',
+        // Financier
+        'total_price', 'deposit_amount', 'retouche_included',
+        // Image
+        'image_authorization',
+        // Signature
+        'signature_data', 'signed_at', 'signed_ip', 'signed_user_agent',
+        'handwritten_mention',
+        // Workflow
+        'status', 'verified_by', 'verified_at',
     ];
 
     protected $casts = [
-        'birth_date' => 'date',
+        'client_birth_date' => 'date',
         'id_document_expiry' => 'date',
-        'consent_date' => 'date',
-        'consent_time' => 'datetime:H:i',
-        'has_allergies' => 'boolean',
-        'has_skin_conditions' => 'boolean',
-        'has_blood_disorders' => 'boolean',
-        'has_diabetes' => 'boolean',
-        'has_heart_conditions' => 'boolean',
-        'is_pregnant' => 'boolean',
-        'is_breastfeeding' => 'boolean',
-        'taking_medications' => 'boolean',
-        'has_recent_surgery' => 'boolean',
-        'has_existing_tattoos' => 'boolean',
-        'consents_to_tattoo' => 'boolean',
-        'understands_risks' => 'boolean',
-        'understands_aftercare' => 'boolean',
-        'consents_to_photos' => 'boolean',
-        'consents_to_data_processing' => 'boolean',
+        'is_minor' => 'boolean',
+        'medical_allergies' => 'boolean',
+        'medical_anticoagulant' => 'boolean',
+        'medical_diabetes' => 'boolean',
+        'medical_cicatrisation' => 'boolean',
+        'medical_skin_disease' => 'boolean',
+        'medical_vih_hepatite' => 'boolean',
+        'medical_pregnant' => 'boolean',
+        'medical_roaccutane' => 'boolean',
+        'medical_cheloide' => 'boolean',
+        'confirm_medical_sincere' => 'boolean',
+        'confirm_risks_informed' => 'boolean',
+        'confirm_info_sheet_read' => 'boolean',
+        'confirm_aftercare_received' => 'boolean',
+        'confirm_not_intoxicated' => 'boolean',
+        'confirm_over_18_or_authorized' => 'boolean',
+        'confirm_rgpd' => 'boolean',
+        'total_price' => 'decimal:2',
+        'deposit_amount' => 'decimal:2',
+        'retouche_included' => 'boolean',
+        'image_authorization' => 'boolean',
         'signed_at' => 'datetime',
         'verified_at' => 'datetime',
-        'allergies_details' => 'encrypted',
-        'medications_details' => 'encrypted',
-        'skin_conditions_details' => 'encrypted',
-        'id_document_photos' => 'encrypted:array',
-        'consent_signature' => 'encrypted:array',
     ];
 
     // ===== CONSTANTES =====
 
-    const ID_DOCUMENT_TYPES = [
-        'carte_id' => 'Carte d\'identité',
+    // SNAT 2026 - Types de pièces d'identité
+    const SNAT_ID_TYPES = [
+        'cni' => 'Carte Nationale d\'Identité',
         'passeport' => 'Passeport',
-        'permis' => 'Permis de conduire',
+        'titre_sejour' => 'Titre de Séjour',
+    ];
+
+    // SNAT 2026 - Relations parentales
+    const PARENT_RELATIONS = [
+        'pere' => 'Père',
+        'mere' => 'Mère',
+        'tuteur' => 'Tuteur légal',
+    ];
+
+    // SNAT 2026 - Types d'actes
+    const ACT_TYPES = [
+        'tatouage' => 'Tatouage',
+        'piercing' => 'Piercing',
+        'dermographie' => 'Dermographie',
+        'scarification' => 'Scarification',
+        'modification_corporelle' => 'Modification corporelle',
     ];
 
     const STATUS_DRAFT = 'draft';
@@ -137,6 +130,11 @@ class ClientConsentForm extends Model
         return $this->belongsTo(Appointment::class);
     }
 
+    public function bookingRequest(): BelongsTo
+    {
+        return $this->belongsTo(BookingRequest::class);
+    }
+
     public function parentalConsent(): HasOne
     {
         return $this->hasOne(ParentalConsentForm::class);
@@ -150,6 +148,19 @@ class ClientConsentForm extends Model
     public function verifiedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'verified_by');
+    }
+
+    // ===== MEDIA =====
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('parent_id')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp', 'application/pdf']);
+
+        $this->addMediaCollection('client_id')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp', 'application/pdf']);
     }
 
     // ===== SCOPES =====
@@ -182,143 +193,33 @@ class ClientConsentForm extends Model
     // ===== MÉTHODES MÉTIER =====
 
     /**
-     * Vérifie si le client est majeur
-     */
-    public function isAdult(): bool
-    {
-        return $this->birth_date->age >= 18;
-    }
-
-    /**
-     * Calcule l'âge du client
-     */
-    public function getAge(): int
-    {
-        return $this->birth_date->age;
-    }
-
-    /**
-     * Vérifie si un consentement parental est requis
-     */
-    public function requiresParentalConsent(): bool
-    {
-        return !$this->is_adult || $this->getAge() < 18;
-    }
-
-    /**
-     * Vérifie si le formulaire est valide
+     * Vérifie si le formulaire est valide (SNAT 2026)
      */
     public function isValid(): bool
     {
-        // Vérifier que tous les consentements sont cochés
-        if (!$this->consents_to_tattoo || !$this->understands_risks || !$this->understands_aftercare) {
-            return false;
-        }
+        return $this->status === 'signed'
+            || (!empty($this->signed_at) && !empty($this->signature_data));
+    }
 
-        // Vérifier la validité du document d'identité
-        if ($this->id_document_expiry && $this->id_document_expiry->isPast()) {
-            return false;
-        }
+    public function isDraft(): bool
+    {
+        return $this->status === 'draft';
+    }
 
-        // Vérifier si mineur avec consentement parental
-        if ($this->requiresParentalConsent() && !$this->parentalConsent) {
-            return false;
-        }
-
-        return true;
+    public function isVerified(): bool
+    {
+        return $this->status === 'verified' && !empty($this->verified_at);
     }
 
     /**
-     * Marque comme signé
+     * Le tattooer vérifie le consentement (après lecture)
      */
-    public function markAsSigned(): void
+    public function verify(int $userId): void
     {
         $this->update([
-            'status' => self::STATUS_SIGNED,
-            'signed_at' => now(),
-            'consent_date' => now()->toDateString(),
-            'consent_time' => now(),
-            'ip_address' => request()->ip(),
-            'user_agent' => request()->userAgent(),
-        ]);
-    }
-
-    /**
-     * Marque comme vérifié par le tatoueur
-     */
-    public function markAsVerified(int $verifiedByUserId): void
-    {
-        $this->update([
-            'status' => self::STATUS_VERIFIED,
-            'verified_by' => $verifiedByUserId,
+            'status' => 'verified',
+            'verified_by' => $userId,
             'verified_at' => now(),
         ]);
-    }
-
-    /**
-     * Vérifie si le formulaire est expiré (1 an)
-     */
-    public function isExpired(): bool
-    {
-        return $this->signed_at && $this->signed_at->lt(now()->subYear());
-    }
-
-    /**
-     * Ajoute une photo de pièce d'identité
-     */
-    public function addIdDocumentPhoto(string $photoUrl, string $type = 'front'): void
-    {
-        $photos = $this->id_document_photos ?? [];
-
-        $photos[] = [
-            'url' => $photoUrl,
-            'type' => $type, // 'front', 'back', 'selfie'
-            'added_at' => now()->toISOString(),
-        ];
-
-        $this->update(['id_document_photos' => $photos]);
-    }
-
-    /**
-     * Ajoute la signature numérique
-     */
-    public function addSignature(array $signatureData): void
-    {
-        $this->update([
-            'consent_signature' => [
-                'signature_data' => $signatureData['signature_data'], // Base64 ou URL
-                'signature_date' => now()->toISOString(),
-                'ip_address' => request()->ip(),
-            ],
-        ]);
-    }
-
-    /**
-     * Génère un résumé pour affichage
-     */
-    public function getSummary(): array
-    {
-        return [
-            'id' => $this->id,
-            'client_name' => $this->full_name,
-            'age' => $this->getAge(),
-            'is_adult' => $this->is_adult,
-            'requires_parental_consent' => $this->requiresParentalConsent(),
-            'has_parental_consent' => $this->parentalConsent ? true : false,
-            'status' => $this->status,
-            'signed_at' => $this->signed_at,
-            'health_risks' => [
-                'has_allergies' => $this->has_allergies,
-                'has_skin_conditions' => $this->has_skin_conditions,
-                'has_blood_disorders' => $this->has_blood_disorders,
-                'has_diabetes' => $this->has_diabetes,
-                'is_pregnant' => $this->is_pregnant,
-            ],
-            'consents' => [
-                'consents_to_tattoo' => $this->consents_to_tattoo,
-                'understands_risks' => $this->understands_risks,
-                'consents_to_photos' => $this->consents_to_photos,
-            ],
-        ];
     }
 }
