@@ -149,6 +149,12 @@ class BookingRequest extends Model implements HasMedia
         'client_selected_dates',
         'date_selection_deadline',
         'client_dates_selected_at',
+
+        // === 💰 PAIEMENT DU SOLDE ===
+        'balance_amount',
+        'balance_paid_at',
+        'balance_payment_method',
+        'balance_stripe_session_id',
     ];
 
     protected $casts = [
@@ -194,6 +200,11 @@ class BookingRequest extends Model implements HasMedia
         'client_selected_dates' => 'array',
         'date_selection_deadline' => 'datetime',
         'client_dates_selected_at' => 'datetime',
+
+        // === 💰 PAIEMENT DU SOLDE ===
+        'balance_amount' => 'decimal:2',
+        'balance_paid_at' => 'datetime',
+        'balance_payment_method' => 'string',
 
         // === 🎯 AUTRES CHAMPS ===
         'price_range_min' => 'decimal:2',
@@ -1171,6 +1182,18 @@ class BookingRequest extends Model implements HasMedia
             && $this->tattooer_design_deadline
             && $this->tattooer_design_deadline->isPast()
             && !$this->design_sent_at;
+    }
+
+    /**
+     * Calculer le solde restant à payer
+     */
+    public function getBalanceRemainingAttribute(): float
+    {
+        if (!$this->total_price || !$this->total_deposit_amount) {
+            return 0;
+        }
+        $paid = $this->balance_amount ?? 0;
+        return max(0, $this->total_price - $this->total_deposit_amount - $paid);
     }
 
     /**

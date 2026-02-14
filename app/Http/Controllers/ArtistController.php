@@ -53,8 +53,11 @@ class ArtistController extends Controller
             'workingHours',
         ]);
 
-        // Portfolio via Spatie
-        $portfolioRealizations = $artist->getMedia('portfolio');
+        // Portfolio via Spatie - utiliser les mêmes collections que le portfolio du tattooer
+        $portfolioRealizations = $artist->getMedia('portfolio')->filter(fn($media) =>
+            !$media->getCustomProperty('type') ||
+            $media->getCustomProperty('type') === 'tattoo'
+        );
         $portfolioDrawings = $artist->getMedia('drawings');
         $portfolioBeforeAfter = $artist->getMedia('before_after');
 

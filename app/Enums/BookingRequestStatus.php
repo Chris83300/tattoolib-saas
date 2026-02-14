@@ -10,6 +10,9 @@ enum BookingRequestStatus: string
     case DEPOSIT_PAID = 'deposit_paid';          // acompte payé
     case DATE_CONFIRMED = 'date_confirmed';      // date du RDV confirmée par les 2 parties
     case COMPLETED = 'completed';                // prestation effectuée
+    case BALANCE_PAID = 'balance_paid';          // solde payé en ligne
+    case BALANCE_PAID_OFFLINE = 'balance_paid_offline'; // solde payé hors plateforme
+    case FULLY_COMPLETED = 'fully_completed';    // tout terminé (acompte + solde)
     case REJECTED = 'rejected';                  // refusée par le tattooer
     case CANCELLED = 'cancelled';                // annulée (par client ou tatoueur) après acceptation
     case EXPIRED = 'expired';                    // délai dépassé (acompte non payé)
@@ -27,6 +30,9 @@ enum BookingRequestStatus: string
             self::DEPOSIT_PAID => 'Acompte payé',
             self::DATE_CONFIRMED => 'Date confirmée',
             self::COMPLETED => 'Terminé',
+            self::BALANCE_PAID => 'Solde payé (en ligne)',
+            self::BALANCE_PAID_OFFLINE => 'Solde payé (hors ligne)',
+            self::FULLY_COMPLETED => 'Prestation complète',
             self::REJECTED => 'Refusé',
             self::CANCELLED => 'Annulé',
             self::EXPIRED => 'Expiré',
@@ -46,6 +52,9 @@ enum BookingRequestStatus: string
             self::DEPOSIT_PAID => 'vert-succes',
             self::DATE_CONFIRMED => 'beige-peau',
             self::COMPLETED => 'vert-succes',
+            self::BALANCE_PAID => 'vert-succes',
+            self::BALANCE_PAID_OFFLINE => 'vert-succes',
+            self::FULLY_COMPLETED => 'vert-succes',
             self::REJECTED => 'rouge-alerte',
             self::CANCELLED => 'rouge-alerte',
             self::EXPIRED => 'rouge-alerte',
@@ -64,7 +73,10 @@ enum BookingRequestStatus: string
             self::DEPOSIT_REQUESTED => in_array($target, [self::DEPOSIT_PAID, self::EXPIRED, self::CANCELLED]),
             self::DEPOSIT_PAID => in_array($target, [self::DATE_CONFIRMED, self::CANCELLED]),
             self::DATE_CONFIRMED => in_array($target, [self::COMPLETED, self::NO_SHOW, self::CANCELLED]),
-            self::COMPLETED => false, // État terminal
+            self::COMPLETED => in_array($target, [self::BALANCE_PAID, self::BALANCE_PAID_OFFLINE, self::FULLY_COMPLETED]),
+            self::BALANCE_PAID => in_array($target, [self::FULLY_COMPLETED]),
+            self::BALANCE_PAID_OFFLINE => in_array($target, [self::FULLY_COMPLETED]),
+            self::FULLY_COMPLETED => false, // État terminal
             self::REJECTED => false, // État terminal
             self::CANCELLED => false, // État terminal
             self::EXPIRED => false, // État terminal
@@ -83,7 +95,10 @@ enum BookingRequestStatus: string
             self::DEPOSIT_REQUESTED => [self::DEPOSIT_PAID, self::EXPIRED, self::CANCELLED],
             self::DEPOSIT_PAID => [self::DATE_CONFIRMED, self::CANCELLED],
             self::DATE_CONFIRMED => [self::COMPLETED, self::NO_SHOW, self::CANCELLED],
-            self::COMPLETED => [],
+            self::COMPLETED => [self::BALANCE_PAID, self::BALANCE_PAID_OFFLINE, self::FULLY_COMPLETED],
+            self::BALANCE_PAID => [self::FULLY_COMPLETED],
+            self::BALANCE_PAID_OFFLINE => [self::FULLY_COMPLETED],
+            self::FULLY_COMPLETED => [],
             self::REJECTED => [],
             self::CANCELLED => [],
             self::EXPIRED => [],
@@ -129,5 +144,13 @@ enum BookingRequestStatus: string
     public function allowsDateConfirmation(): bool
     {
         return $this === self::DEPOSIT_PAID;
+    }
+
+    /**
+     * Vérifie si le statut permet le paiement du solde
+     */
+    public function allowsBalancePayment(): bool
+    {
+        return $this === self::COMPLETED;
     }
 }

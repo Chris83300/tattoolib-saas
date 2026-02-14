@@ -2,20 +2,19 @@
 
 namespace App\Notifications;
 
-use App\Models\Project;
+use App\Models\Appointment;
 use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Messages\DatabaseMessage;
+use Illuminate\Notifications\Notification;
 
 class AppointmentReminderNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
     public function __construct(
-        public Project $project, 
-        public string $type // 'tomorrow' or 'today'
+        public Appointment $appointment,
+        public int $daysBefore = 0
     ) {}
 
     /**
@@ -33,41 +32,30 @@ class AppointmentReminderNotification extends Notification implements ShouldQueu
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $appointmentDate = $this->project->appointment_date->format('d/m/Y à H:i');
-        $artistName = $this->project->bookable->user->name;
-        $isTomorrow = $this->type === 'tomorrow';
-        
-        $subject = $isTomorrow 
-            ? '🗓️ Rappel : Votre rendez-vous demain avec ' . $artistName
-            : '🎉 Votre rendez-vous est aujourd\'hui avec ' . $artistName;
+        $date = $this->appointment->start_datetime->translatedFormat('d/m/Y à H:i');
+        $artistName = $this->appointment->bookingRequest?->bookable?->user?->display_name ?? 'votre artiste';
 
-        $mail = (new MailMessage)
+        $subject = match($this->daysBefore) {
+            7 => "📅 Rappel : votre rendez-vous tattoo dans 7 jours",
+            2 => "📅 Rappel : votre rendez-vous tattoo dans 2 jours",
+            0 => "📅 Rappel : votre rendez-vous tattoo est aujourd'hui !",
+            default => "📅 Rappel : votre rendez-vous tattoo"
+        };
+
+        $message = match($this->daysBefore) {
+            7 => "Votre rendez-vous avec {$artistName} est prévu le {$date}.",
+            2 => "Votre rendez-vous avec {$artistName} est prévu le {$date}.",
+            0 => "Votre rendez-vous avec {$artistName} est aujourd'hui à {$date} !",
+            default => "Votre rendez-vous avec {$artistName} est prévu le {$date}."
+        };
+
+        return (new MailMessage)
             ->subject($subject)
-            ->greeting('Bonjour ' . $this->project->client->first_name . ',')
-            ->line($isTomorrow 
-                ? 'N\'oubliez pas votre rendez-vous demain :'
-                : 'Votre rendez-vous est aujourd\'hui !');
-
-        $mail->line('📅 **Date :** ' . $appointmentDate)
-            ->line('📍 **Artiste :** ' . $artistName)
-            ->line('🎯 **Emplacement :** ' . $this->project->tattoo_location);
-
-        if ($this->project->deposit_amount && !$this->project->isDepositPaid()) {
-            $mail->line('')
-                ->line('⚠️ **Attention :** Votre acompte de ' . number_format($this->project->deposit_amount, 2) . '€ n\'a pas encore été payé.')
-                ->action('Payer l\'acompte', route('deposit.payment', $this->project->id));
-        }
-
-        $mail->line('')
-            ->line($isTomorrow 
-                ? 'À très bientôt pour votre séance de tattoo !'
-                : 'On vous attend à l\'heure convenue !')
-            ->line('')
-            ->line('En cas d\'empêchement, merci de prévenir l\'artiste au plus vite.')
-            ->line('Merci de votre confiance,')
-            ->line('L\'équipe Ink&Pik');
-
-        return $mail;
+            ->greeting("Bonjour {$notifiable->display_name} !")
+            ->line($message)
+            ->line("Pensez à confirmer votre présence et à préparer les documents nécessaires.")
+            ->action('Voir les détails', url('/client/appointments'))
+            ->line("À très bientôt sur Ink&Pik !");
     }
 
     /**
@@ -77,40 +65,19 @@ class AppointmentReminderNotification extends Notification implements ShouldQueu
      */
     public function toArray(object $notifiable): array
     {
-        $isTomorrow = $this->type === 'tomorrow';
-        
-        return [
-            'project_id' => $this->project->id,
-            'type' => 'appointment_reminder',
-            'reminder_type' => $this->type,
-            'title' => $isTomorrow ? 'Rappel RDV demain' : 'RDV aujourd\'hui',
-            'message' => 'Rendez-vous ' . ($isTomorrow ? 'demain' : 'aujourd\'hui') . ' à ' . $this->project->appointment_date->format('H:i'),
-            'appointment_date' => $this->project->appointment_date,
-            'artist_name' => $this->project->bookable->user->name,
-            'deposit_pending' => $this->project->deposit_amount && !$this->project->isDepositPaid(),
-            'action_url' => route('client.projects.show', $this->project->id),
-        ];
-    }
+        $daysText = match($this->daysBefore) {
+            7 => 'J-7',
+            2 => 'J-2',
+            0 => 'Jour J',
+            default => $this->daysBefore . ' jours'
+        };
 
-    /**
-     * Get the database representation of the notification.
-     */
-    public function toDatabase(object $notifiable): DatabaseMessage
-    {
-        $isTomorrow = $this->type === 'tomorrow';
-        
-        return new DatabaseMessage([
-            'project_id' => $this->project->id,
+        return [
             'type' => 'appointment_reminder',
-            'reminder_type' => $this->type,
-            'title' => $isTomorrow ? 'Rappel RDV demain' : 'RDV aujourd\'hui',
-            'message' => 'Rendez-vous ' . ($isTomorrow ? 'demain' : 'aujourd\'hui') . ' à ' . $this->project->appointment_date->format('H:i'),
-            'data' => [
-                'appointment_date' => $this->project->appointment_date,
-                'artist_name' => $this->project->bookable->user->name,
-                'deposit_pending' => $this->project->deposit_amount && !$this->project->isDepositPaid(),
-                'action_url' => route('client.projects.show', $this->project->id),
-            ],
-        ]);
+            'appointment_id' => $this->appointment->id,
+            'message' => "📅 Rappel RDV {$daysText}",
+            'action_url' => '/client/appointments',
+            'days_before' => $this->daysBefore,
+        ];
     }
 }

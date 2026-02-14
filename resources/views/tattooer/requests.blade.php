@@ -116,7 +116,7 @@
                             <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-2 mb-3">
                                 <div>
                                     <h3 class="text-lg font-semibold text-ivoire-text mb-1">
-                                        {{ $request->client->first_name }} {{ $request->client->last_name }}
+                                        {{ $request->client->pseudo }}
                                     </h3>
                                     <p class="text-ivoire-text/70 text-sm">
                                         {{ $request->client->user->email }} • {{ $request->client->phone }}

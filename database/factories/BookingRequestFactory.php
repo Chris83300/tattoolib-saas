@@ -98,4 +98,44 @@ class BookingRequestFactory extends Factory
             'status' => BookingRequestStatus::NO_SHOW,
         ]);
     }
+
+    public function awaitingDeposit()
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => BookingRequestStatus::DEPOSIT_REQUESTED,
+            'total_deposit_amount' => 100,
+            'client_payment_deadline' => now()->addDays(7),
+        ]);
+    }
+
+    public function balancePaid()
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => BookingRequestStatus::BALANCE_PAID,
+            'balance_amount' => 200,
+            'balance_paid_at' => now(),
+            'balance_payment_method' => 'stripe',
+        ]);
+    }
+
+    public function fullyCompleted()
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => BookingRequestStatus::FULLY_COMPLETED,
+            'total_price' => 300,
+            'total_deposit_amount' => 100,
+            'balance_amount' => 200,
+            'balance_paid_at' => now(),
+        ]);
+    }
+
+    public function withConversation(): static
+    {
+        return $this->afterCreating(function (BookingRequest $br) {
+            $conversation = \App\Models\Conversation::factory()->create([
+                'booking_request_id' => $br->id,
+            ]);
+            $br->update(['conversation_id' => $conversation->id]);
+        });
+    }
 }

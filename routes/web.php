@@ -56,6 +56,17 @@ Route::middleware(['auth'])->prefix('tattooer')->name('tattooer.')->group(functi
     Route::post('/traceability/{appointment}', [TattooerController::class, 'storeTraceability'])
         ->name('traceability.store');
 
+    // Clôture RDV
+    Route::post('/appointments/{appointment}/complete', [TattooerController::class, 'completeAppointment'])
+        ->name('appointments.complete');
+
+    Route::post('/appointments/{appointment}/no-show', [TattooerController::class, 'reportNoShow'])
+        ->name('appointments.no-show');
+
+    // Paiement du solde hors plateforme
+    Route::post('/bookings/{bookingRequest}/balance/confirm-offline', [App\Http\Controllers\BalancePaymentController::class, 'confirmOffline'])
+        ->name('balance-payment.confirm-offline');
+
     // Médias client
     Route::post('/client/{client}/photos/{bookingRequest}', [TattooerController::class, 'uploadClientTattooPhotos'])
         ->name('client.photos.upload');
@@ -210,11 +221,24 @@ Route::middleware(['auth'])->prefix('client')->name('client.')->group(function (
     Route::get('/chat/{conversation}', [App\Http\Controllers\ClientController::class, 'chat'])->name('chat');
     Route::post('/message/{conversation}/send', [App\Http\Controllers\ClientController::class, 'sendMessage'])->name('message.send');
 
+    // Paiement du solde
+    Route::get('/bookings/{bookingRequest}/balance', [App\Http\Controllers\BalancePaymentController::class, 'show'])
+        ->name('balance-payment.show');
+    Route::post('/bookings/{bookingRequest}/balance/checkout', [App\Http\Controllers\BalancePaymentController::class, 'checkout'])
+        ->name('balance-payment.checkout');
+    Route::get('/bookings/{bookingRequest}/balance/success', [App\Http\Controllers\BalancePaymentController::class, 'success'])
+        ->name('balance-payment.success');
+
     // Consentement
     Route::post('/consent/{bookingRequest}', [App\Http\Controllers\ClientController::class, 'storeConsent'])->name('consent.store');
 
+    // Client signale no-show artiste
+    Route::post('/appointments/{appointment}/no-show', [App\Http\Controllers\ClientController::class, 'reportNoShow'])
+        ->name('appointments.no-show');
+
     // Messages / Conversations
     Route::get('/messages', [App\Http\Controllers\ClientController::class, 'messages'])->name('messages');
+    Route::get('/conversations', [App\Http\Controllers\ClientController::class, 'conversationsList'])->name('conversations');
 
     Route::get('/reservations', App\Livewire\Client\Bookings::class)->name('bookings');
     Route::get('/parametres', App\Livewire\Client\Settings::class)->name('settings');

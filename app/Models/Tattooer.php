@@ -69,6 +69,7 @@ class Tattooer extends Model implements HasMedia
         'bio', // ✅ Description du tatoueur
         'working_hours', // ✅ Horaires JSON
         'styles', // ✅ Styles de tatouage (JSON)
+        'custom_styles', // ✅ Styles personnalisés (JSON)
         'years_of_experience', // ✅ Expérience
         'minimum_price', // ✅ Prix minimum
         'wait_time_weeks_min', // ✅ Temps d'attente min
@@ -119,6 +120,7 @@ class Tattooer extends Model implements HasMedia
         'is_subscribed' => 'boolean',
         'working_hours' => 'string', // ✅ Garder comme string pour JSON decode
         'styles' => 'json', // ✅ Styles de tatouage (JSON)
+        'custom_styles' => 'json', // ✅ Styles personnalisés (JSON)
         'years_of_experience' => 'integer',
         'minimum_price' => 'decimal:2',
         'wait_time_weeks_min' => 'integer',

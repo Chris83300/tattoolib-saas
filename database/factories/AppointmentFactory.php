@@ -74,4 +74,20 @@ class AppointmentFactory extends Factory
             'status' => AppointmentStatus::NO_SHOW,
         ]);
     }
+
+    public function past(): static
+    {
+        return $this->state(fn () => [
+            'start_datetime' => now()->subHours(4),
+            'end_datetime' => now()->subHours(2),
+        ]);
+    }
+
+    public function pastMoreThan24h(): static
+    {
+        return $this->state(fn () => [
+            'start_datetime' => now()->subHours(30),
+            'end_datetime' => now()->subHours(28),
+        ]);
+    }
 }

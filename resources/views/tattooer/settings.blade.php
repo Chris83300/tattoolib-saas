@@ -242,6 +242,9 @@
                                 $currentStyles = is_array($tattooer->styles)
                                     ? $tattooer->styles
                                     : json_decode($tattooer->styles ?? '[]', true) ?? [];
+                                $currentCustomStyles = is_array($tattooer->custom_styles)
+                                    ? $tattooer->custom_styles
+                                    : json_decode($tattooer->custom_styles ?? '[]', true) ?? [];
                             @endphp
 
                             @foreach ($allStyles as $style)
@@ -254,360 +257,417 @@
                                 </label>
                             @endforeach
                         </div>
-                    </div>
 
-                    <!-- Informations professionnelles -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <label class="block font-semibold text-ivoire-text mb-2">Années d'expérience</label>
-                            <input type="number" name="years_of_experience"
-                                value="{{ $tattooer->years_of_experience ?? '' }}" min="0" max="50"
-                                class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
-                            <p class="text-xs text-ivoire-text/60 mt-1">Nombre d'années de pratique</p>
-                        </div>
-
-                        <div>
-                            <label class="block font-semibold text-ivoire-text mb-2">Prix minimum</label>
-                            <div class="relative">
-                                <input type="number" name="minimum_price" value="{{ $tattooer->minimum_price ?? '' }}"
-                                    min="0" max="1000" step="0.01"
-                                    class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base pr-8">
-                                <span
-                                    class="absolute right-3 top-1/2 transform -translate-y-1/2 text-ivoire-text/60">€</span>
+                        <!-- Styles personnalisés -->
+                        <div class="mt-4" x-data="{
+                            showCustom: {{ in_array('Autres', $currentStyles) ? 'true' : 'false' }},
+                            customStyles: {{ json_encode(
+                                array_values(
+                                    array_unique(
+                                        array_filter(
+                                            array_merge(
+                                                array_filter($currentStyles, fn($s) => !in_array($s, $allStyles) && $s !== 'Autres'),
+                                                $currentCustomStyles ?? [],
+                                            ),
+                                        ),
+                                    ),
+                                ),
+                            ) }},
+                            addStyle() {
+                                this.customStyles.push('');
+                                this.$nextTick(() => {
+                                    const inputs = this.$refs.list.querySelectorAll('input[type=text]');
+                                    inputs[inputs.length - 1].focus();
+                                });
+                            },
+                            removeStyle(index) {
+                                this.customStyles.splice(index, 1);
+                            }
+                        }">
+                            <div class="flex items-center gap-2 mb-3">
+                                <input type="checkbox" name="has_custom_styles" value="1" x-model="showCustom"
+                                    class="w-4 h-4 text-beige-peau focus:ring-beige-peau">
+                                <span class="text-ivoire-text text-sm font-semibold">Autres styles</span>
                             </div>
-                            <p class="text-xs text-ivoire-text/60 mt-1">Prix à partir de...</p>
-                        </div>
 
-                        <div>
-                            <label class="block font-semibold text-ivoire-text mb-2">Délai d'attente</label>
-                            <div class="space-y-3">
-                                <div class="flex items-center gap-3">
-                                    <div class="flex-1">
-                                        <input type="number" name="wait_time_weeks_min"
-                                            value="{{ $tattooer->wait_time_weeks_min ?? '' }}" min="0"
-                                            max="52"
-                                            class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm"
-                                            placeholder="Min">
-                                    </div>
-                                    <span class="text-ivoire-text/60">à</span>
-                                    <div class="flex-1">
-                                        <input type="number" name="wait_time_weeks_max"
-                                            value="{{ $tattooer->wait_time_weeks_max ?? '' }}" min="0"
-                                            max="52"
-                                            class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm"
-                                            placeholder="Max">
-                                    </div>
-                                    <span class="text-ivoire-text/60 text-sm">semaines</span>
+                            <div x-show="showCustom" x-collapse>
+                                <div x-ref="list" class="space-y-2">
+                                    <template x-for="(style, index) in customStyles" :key="index">
+                                        <div class="flex items-center gap-2">
+                                            <input type="text" x-model="customStyles[index]"
+                                                name="custom_style_names[]" placeholder="Ex: Chicano, Géométrique..."
+                                                class="flex-1 px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm">
+                                            <button type="button" @click="removeStyle(index)"
+                                                class="p-2 text-rouge-alerte hover:bg-rouge-alerte/10 rounded-lg transition-colors">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </template>
                                 </div>
-                                <p class="text-xs text-ivoire-text/60">
-                                    Ex: 2 à 6 semaines
-                                </p>
+
+                                <button type="button" @click="addStyle()"
+                                    class="mt-2 inline-flex items-center gap-1.5 px-3 py-2 text-beige-peau border border-beige-peau/30 rounded-lg hover:bg-beige-peau/10 transition-colors text-sm font-medium">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    Ajouter un style
+                                </button>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Réseaux sociaux -->
+                <!-- Informations professionnelles -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
-                        <h3 class="text-lg font-semibold text-ivoire-text mb-4">📱 Réseaux sociaux</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label class="block font-semibold text-ivoire-text mb-2">
-                                    📷 Instagram
-                                </label>
-                                <div class="relative">
-                                    <span
-                                        class="absolute left-3 top-1/2 transform -translate-y-1/2 text-ivoire-text/60">@</span>
-                                    <input type="text" name="instagram" value="{{ $tattooer->instagram ?? '' }}"
-                                        placeholder="votre_pseudo"
-                                        class="w-full pl-8 pr-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
+                        <label class="block font-semibold text-ivoire-text mb-2">Années d'expérience</label>
+                        <input type="number" name="years_of_experience"
+                            value="{{ $tattooer->years_of_experience ?? '' }}" min="0" max="50"
+                            class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
+                        <p class="text-xs text-ivoire-text/60 mt-1">Nombre d'années de pratique</p>
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold text-ivoire-text mb-2">Prix minimum</label>
+                        <div class="relative">
+                            <input type="number" name="minimum_price" value="{{ $tattooer->minimum_price ?? '' }}"
+                                min="0" max="1000" step="0.01"
+                                class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base pr-8">
+                            <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-ivoire-text/60">€</span>
+                        </div>
+                        <p class="text-xs text-ivoire-text/60 mt-1">Prix à partir de...</p>
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold text-ivoire-text mb-2">Délai d'attente</label>
+                        <div class="space-y-3">
+                            <div class="flex items-center gap-3">
+                                <div class="flex-1">
+                                    <input type="number" name="wait_time_weeks_min"
+                                        value="{{ $tattooer->wait_time_weeks_min ?? '' }}" min="0" max="52"
+                                        class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm"
+                                        placeholder="Min">
                                 </div>
-                                <p class="text-xs text-ivoire-text/60 mt-1">Votre pseudo Instagram (sans @)</p>
+                                <span class="text-ivoire-text/60">à</span>
+                                <div class="flex-1">
+                                    <input type="number" name="wait_time_weeks_max"
+                                        value="{{ $tattooer->wait_time_weeks_max ?? '' }}" min="0" max="52"
+                                        class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm"
+                                        placeholder="Max">
+                                </div>
+                                <span class="text-ivoire-text/60 text-sm">semaines</span>
                             </div>
-
-                            <div>
-                                <label class="block font-semibold text-ivoire-text mb-2">
-                                    📘 Facebook
-                                </label>
-                                <input type="text" name="facebook" value="{{ $tattooer->facebook ?? '' }}"
-                                    placeholder="https://facebook.com/votre-page"
-                                    class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
-                                <p class="text-xs text-ivoire-text/60 mt-1">URL de votre page Facebook</p>
-                            </div>
-
-                            <div class="md:col-span-2">
-                                <label class="block font-semibold text-ivoire-text mb-2">
-                                    🌐 Site web
-                                </label>
-                                <input type="url" name="website" value="{{ $tattooer->website ?? '' }}"
-                                    placeholder="https://votre-site.com"
-                                    class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
-                                <p class="text-xs text-ivoire-text/60 mt-1">URL de votre site web ou portfolio</p>
-                            </div>
+                            <p class="text-xs text-ivoire-text/60">
+                                Ex: 2 à 6 semaines
+                            </p>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Bouton sauvegarder -->
-                    <div class="flex justify-end">
-                        <button type="submit"
-                            class="w-full md:w-auto min-h-11 px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors text-sm md:text-base active:scale-95">
-                            💾 Enregistrer les modifications
-                        </button>
+                <!-- Réseaux sociaux -->
+                <div>
+                    <h3 class="text-lg font-semibold text-ivoire-text mb-4">📱 Réseaux sociaux</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block font-semibold text-ivoire-text mb-2">
+                                📷 Instagram
+                            </label>
+                            <div class="relative">
+                                <span
+                                    class="absolute left-3 top-1/2 transform -translate-y-1/2 text-ivoire-text/60">@</span>
+                                <input type="text" name="instagram" value="{{ $tattooer->instagram ?? '' }}"
+                                    placeholder="votre_pseudo"
+                                    class="w-full pl-8 pr-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
+                            </div>
+                            <p class="text-xs text-ivoire-text/60 mt-1">Votre pseudo Instagram (sans @)</p>
+                        </div>
+
+                        <div>
+                            <label class="block font-semibold text-ivoire-text mb-2">
+                                📘 Facebook
+                            </label>
+                            <input type="text" name="facebook" value="{{ $tattooer->facebook ?? '' }}"
+                                placeholder="https://facebook.com/votre-page"
+                                class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
+                            <p class="text-xs text-ivoire-text/60 mt-1">URL de votre page Facebook</p>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="block font-semibold text-ivoire-text mb-2">
+                                🌐 Site web
+                            </label>
+                            <input type="url" name="website" value="{{ $tattooer->website ?? '' }}"
+                                placeholder="https://votre-site.com"
+                                class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
+                            <p class="text-xs text-ivoire-text/60 mt-1">URL de votre site web ou portfolio</p>
+                        </div>
                     </div>
+                </div>
+
+                <!-- Bouton sauvegarder -->
+                <div class="flex justify-end">
+                    <button type="submit"
+                        class="w-full md:w-auto min-h-11 px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors text-sm md:text-base active:scale-95">
+                        💾 Enregistrer les modifications
+                    </button>
+                </div>
+        </div>
+        </form>
+    </div>
+
+    <!-- TAB: Horaires -->
+    <div id="tab-schedule" class="tab-content hidden">
+        <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
+            <h3 class="text-xl font-bold text-ivoire-text mb-4">Horaires d'ouverture</h3>
+
+            <form action="{{ route('tattooer.settings.update-schedule') }}" method="POST">
+                @csrf
+
+                @php
+                    $days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+
+                    // Lire les horaires depuis le champ JSON working_hours du tattooer
+                    $workingHoursData = $tattooer->working_hours ? json_decode($tattooer->working_hours, true) : [];
+
+                    $schedule = [];
+                    foreach ($days as $day) {
+                        $dayKey = strtolower($day);
+                        $dayData = $workingHoursData[$dayKey] ?? null;
+                        $schedule[$dayKey] = [
+                            'open' => $dayData['open'] ?? null,
+                            'close' => $dayData['close'] ?? null,
+                            'break_start' => $dayData['break_start'] ?? null,
+                            'break_end' => $dayData['break_end'] ?? null,
+                            'is_open' => !empty($dayData['open']) && !empty($dayData['close']),
+                        ];
+                    }
+                @endphp
+
+                <div class="space-y-3">
+                    @foreach ($days as $day)
+                        <div class="flex flex-col gap-3 p-3 sm:p-4 bg-noir-profond rounded-lg">
+                            <!-- Header du jour -->
+                            <div class="flex flex-row items-center justify-between gap-3">
+                                <div class="flex-1 min-w-0">
+                                    <span
+                                        class="font-semibold text-ivoire-text text-sm sm:text-base">{{ $day }}</span>
+                                </div>
+
+                                <label class="flex items-center gap-2 flex-shrink-0">
+                                    <input type="checkbox" name="working_hours[{{ strtolower($day) }}][is_open]"
+                                        value="1" {{ $schedule[strtolower($day)]['is_open'] ? 'checked' : '' }}
+                                        onchange="toggleDayInputs(this, '{{ strtolower($day) }}')" class="w-4 h-4">
+                                    <span class="text-ivoire-text/70 text-xs sm:text-sm whitespace-nowrap">Ouvert</span>
+                                </label>
+                            </div>
+
+                            <!-- Inputs horaires -->
+                            <div id="{{ strtolower($day) }}-inputs"
+                                class="flex flex-col gap-3 {{ !$schedule[strtolower($day)]['is_open'] ? 'hidden' : '' }}">
+                                <span class="text-ivoire-text/70 text-sm">Horaires d'ouverture</span>
+                                <div class="flex items-center gap-2">
+                                    <input type="time" name="working_hours[{{ strtolower($day) }}][open]"
+                                        value="{{ $schedule[strtolower($day)]['open'] ?? '09:00' }}"
+                                        class="flex-1 px-3 py-2 bg-gris-fonde border border-titane/30 rounded text-ivoire-text text-sm">
+                                    <span class="text-ivoire-text/60 text-sm whitespace-nowrap">à</span>
+                                    <input type="time" name="working_hours[{{ strtolower($day) }}][close]"
+                                        value="{{ $schedule[strtolower($day)]['close'] ?? '18:00' }}"
+                                        class="flex-1 px-3 py-2 bg-gris-fonde border border-titane/30 rounded text-ivoire-text text-sm">
+                                </div>
+
+                                <!-- Pause déjeuner -->
+                                <span class="text-ivoire-text/70 text-sm">Pause déjeuner</span>
+                                <div class="flex items-center gap-2">
+                                    <input type="time" name="working_hours[{{ strtolower($day) }}][break_start]"
+                                        value="{{ $schedule[strtolower($day)]['break_start'] ?? '' }}"
+                                        placeholder="Pause"
+                                        class="flex-1 px-3 py-2 bg-gris-fonde border border-titane/30 rounded text-ivoire-text text-sm">
+                                    <span class="text-ivoire-text/60 text-sm whitespace-nowrap">à</span>
+                                    <input type="time" name="working_hours[{{ strtolower($day) }}][break_end]"
+                                        value="{{ $schedule[strtolower($day)]['break_end'] ?? '' }}"
+                                        placeholder="Fin pause"
+                                        class="flex-1 px-3 py-2 bg-gris-fonde border border-titane/30 rounded text-ivoire-text text-sm">
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button type="submit"
+                        class="w-full md:w-auto min-h-11 px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors text-sm md:text-base active:scale-95">
+                        💾 Enregistrer les horaires
+                    </button>
                 </div>
             </form>
         </div>
+    </div>
 
-        <!-- TAB: Horaires -->
-        <div id="tab-schedule" class="tab-content hidden">
-            <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
-                <h3 class="text-xl font-bold text-ivoire-text mb-4">Horaires d'ouverture</h3>
+    <!-- TAB: Stripe Connect -->
+    <div id="tab-stripe" class="tab-content hidden">
+        <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
+            <h3 class="text-xl font-bold text-ivoire-text mb-4">Configuration Stripe Connect</h3>
 
-                <form action="{{ route('tattooer.settings.update-schedule') }}" method="POST">
-                    @csrf
-
-                    @php
-                        $days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
-
-                        // Lire les horaires depuis le champ JSON working_hours du tattooer
-                        $workingHoursData = $tattooer->working_hours ? json_decode($tattooer->working_hours, true) : [];
-
-                        $schedule = [];
-                        foreach ($days as $day) {
-                            $dayKey = strtolower($day);
-                            $dayData = $workingHoursData[$dayKey] ?? null;
-                            $schedule[$dayKey] = [
-                                'open' => $dayData['open'] ?? null,
-                                'close' => $dayData['close'] ?? null,
-                                'break_start' => $dayData['break_start'] ?? null,
-                                'break_end' => $dayData['break_end'] ?? null,
-                                'is_open' => !empty($dayData['open']) && !empty($dayData['close']),
-                            ];
-                        }
-                    @endphp
-
-                    <div class="space-y-3">
-                        @foreach ($days as $day)
-                            <div class="flex flex-col gap-3 p-3 sm:p-4 bg-noir-profond rounded-lg">
-                                <!-- Header du jour -->
-                                <div class="flex flex-row items-center justify-between gap-3">
-                                    <div class="flex-1 min-w-0">
-                                        <span
-                                            class="font-semibold text-ivoire-text text-sm sm:text-base">{{ $day }}</span>
-                                    </div>
-
-                                    <label class="flex items-center gap-2 flex-shrink-0">
-                                        <input type="checkbox" name="working_hours[{{ strtolower($day) }}][is_open]"
-                                            value="1" {{ $schedule[strtolower($day)]['is_open'] ? 'checked' : '' }}
-                                            onchange="toggleDayInputs(this, '{{ strtolower($day) }}')" class="w-4 h-4">
-                                        <span
-                                            class="text-ivoire-text/70 text-xs sm:text-sm whitespace-nowrap">Ouvert</span>
-                                    </label>
-                                </div>
-
-                                <!-- Inputs horaires -->
-                                <div id="{{ strtolower($day) }}-inputs"
-                                    class="flex flex-col gap-3 {{ !$schedule[strtolower($day)]['is_open'] ? 'hidden' : '' }}">
-                                    <span class="text-ivoire-text/70 text-sm">Horaires d'ouverture</span>
-                                    <div class="flex items-center gap-2">
-                                        <input type="time" name="working_hours[{{ strtolower($day) }}][open]"
-                                            value="{{ $schedule[strtolower($day)]['open'] ?? '09:00' }}"
-                                            class="flex-1 px-3 py-2 bg-gris-fonde border border-titane/30 rounded text-ivoire-text text-sm">
-                                        <span class="text-ivoire-text/60 text-sm whitespace-nowrap">à</span>
-                                        <input type="time" name="working_hours[{{ strtolower($day) }}][close]"
-                                            value="{{ $schedule[strtolower($day)]['close'] ?? '18:00' }}"
-                                            class="flex-1 px-3 py-2 bg-gris-fonde border border-titane/30 rounded text-ivoire-text text-sm">
-                                    </div>
-
-                                    <!-- Pause déjeuner -->
-                                    <span class="text-ivoire-text/70 text-sm">Pause déjeuner</span>
-                                    <div class="flex items-center gap-2">
-                                        <input type="time" name="working_hours[{{ strtolower($day) }}][break_start]"
-                                            value="{{ $schedule[strtolower($day)]['break_start'] ?? '' }}"
-                                            placeholder="Pause"
-                                            class="flex-1 px-3 py-2 bg-gris-fonde border border-titane/30 rounded text-ivoire-text text-sm">
-                                        <span class="text-ivoire-text/60 text-sm whitespace-nowrap">à</span>
-                                        <input type="time" name="working_hours[{{ strtolower($day) }}][break_end]"
-                                            value="{{ $schedule[strtolower($day)]['break_end'] ?? '' }}"
-                                            placeholder="Fin pause"
-                                            class="flex-1 px-3 py-2 bg-gris-fonde border border-titane/30 rounded text-ivoire-text text-sm">
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-
-                    <div class="mt-6 flex justify-end">
-                        <button type="submit"
-                            class="w-full md:w-auto min-h-11 px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors text-sm md:text-base active:scale-95">
-                            💾 Enregistrer les horaires
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- TAB: Stripe Connect -->
-        <div id="tab-stripe" class="tab-content hidden">
-            <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
-                <h3 class="text-xl font-bold text-ivoire-text mb-4">Configuration Stripe Connect</h3>
-
-                @if ($tattooer->stripe_connect_id ?? false)
-                    <div class="bg-vert-succes/20 border border-vert-succes/30 rounded-xl p-4 sm:p-6 mb-6">
-                        <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4">
-                            <svg class="w-8 h-8 text-vert-succes flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                    clip-rule="evenodd"></path>
-                            </svg>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="font-bold text-vert-succes text-lg sm:text-xl">Compte Stripe connecté</h4>
-                                <p class="text-vert-succes/80 text-sm">Vous pouvez recevoir des paiements</p>
-                            </div>
-                        </div>
-
-                        <div class="flex flex-col sm:flex-row gap-3">
-                            <a href="#" target="_blank"
-                                class="inline-block w-full sm:w-auto px-4 sm:px-6 py-3 bg-noir-profond text-ivoire-text rounded-lg font-semibold hover:bg-noir-profond/80 transition-colors text-center">
-                                📊 Accéder au dashboard Stripe
-                            </a>
+            @if ($tattooer->stripe_connect_id ?? false)
+                <div class="bg-vert-succes/20 border border-vert-succes/30 rounded-xl p-4 sm:p-6 mb-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4">
+                        <svg class="w-8 h-8 text-vert-succes flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-bold text-vert-succes text-lg sm:text-xl">Compte Stripe connecté</h4>
+                            <p class="text-vert-succes/80 text-sm">Vous pouvez recevoir des paiements</p>
                         </div>
                     </div>
-                @else
-                    <div class="bg-ambre-warning/20 border border-ambre-warning/30 rounded-xl p-4 sm:p-6 mb-6">
-                        <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4">
-                            <svg class="w-8 h-8 text-ambre-warning flex-shrink-0" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
-                                </path>
-                            </svg>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="font-bold text-ambre-warning text-lg sm:text-xl">Compte Stripe non connecté</h4>
-                                <p class="text-ambre-warning/80 text-sm">Connectez Stripe pour recevoir des paiements en
-                                    ligne</p>
-                            </div>
-                        </div>
 
-                        <div class="flex flex-col sm:flex-row gap-3">
-                            <a href="#"
-                                class="inline-block w-full sm:w-auto px-4 sm:px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors text-center">
-                                🔗 Connecter Stripe Connect
-                            </a>
-                        </div>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <a href="#" target="_blank"
+                            class="inline-block w-full sm:w-auto px-4 sm:px-6 py-3 bg-noir-profond text-ivoire-text rounded-lg font-semibold hover:bg-noir-profond/80 transition-colors text-center">
+                            📊 Accéder au dashboard Stripe
+                        </a>
                     </div>
-                @endif
-
-                <div class="bg-noir-profond rounded-xl p-4 sm:p-6">
-                    <h4 class="font-semibold text-ivoire-text mb-3 text-lg">Avantages Stripe Connect</h4>
-                    <ul class="space-y-3 text-ivoire-text/70">
-                        <li class="flex items-start gap-3">
-                            <svg class="w-5 h-5 text-vert-succes flex-shrink-0 mt-0.5" fill="currentColor"
-                                viewBox="0 0 20 20">
-                                <path fill-rule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                    clip-rule="evenodd"></path>
-                            </svg>
-                            <span class="text-sm sm:text-base">Paiements sécurisés par carte bancaire</span>
-                        </li>
-                        <li class="flex items-start gap-3">
-                            <svg class="w-5 h-5 text-vert-succes flex-shrink-0 mt-0.5" fill="currentColor"
-                                viewBox="0 0 20 20">
-                                <path fill-rule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                    clip-rule="evenodd"></path>
-                            </svg>
-                            <span class="text-sm sm:text-base">Virements automatiques sur votre compte</span>
-                        </li>
-                        <li class="flex items-start gap-3">
-                            <svg class="w-5 h-5 text-vert-succes flex-shrink-0 mt-0.5" fill="currentColor"
-                                viewBox="0 0 20 20">
-                                <path fill-rule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                    clip-rule="evenodd"></path>
-                            </svg>
-                            <span class="text-sm sm:text-base">Dashboard de suivi des paiements</span>
-                        </li>
-                    </ul>
                 </div>
-            </div>
-        </div>
-
-        <!-- TAB: Mot de passe -->
-        <div id="tab-password" class="tab-content hidden">
-            <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
-                <h3 class="text-xl font-bold text-ivoire-text mb-4">Changer mon mot de passe</h3>
-
-                <form action="{{ route('tattooer.settings.update-password') }}" method="POST" class="max-w-md">
-                    @csrf
-
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block font-semibold text-ivoire-text mb-2 text-sm sm:text-base">Mot de passe
-                                actuel</label>
-                            <input type="password" name="current_password" required
-                                class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm sm:text-base">
-                        </div>
-
-                        <div>
-                            <label class="block font-semibold text-ivoire-text mb-2 text-sm sm:text-base">Nouveau mot de
-                                passe</label>
-                            <input type="password" name="password" required minlength="8"
-                                class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm sm:text-base">
-                            <p class="text-xs text-ivoire-text/60 mt-1">Minimum 8 caractères</p>
-                        </div>
-
-                        <div>
-                            <label class="block font-semibold text-ivoire-text mb-2 text-sm sm:text-base">Confirmer le mot
-                                de passe</label>
-                            <input type="password" name="password_confirmation" required
-                                class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm sm:text-base">
+            @else
+                <div class="bg-ambre-warning/20 border border-ambre-warning/30 rounded-xl p-4 sm:p-6 mb-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4">
+                        <svg class="w-8 h-8 text-ambre-warning flex-shrink-0" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                            </path>
+                        </svg>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-bold text-ambre-warning text-lg sm:text-xl">Compte Stripe non connecté</h4>
+                            <p class="text-ambre-warning/80 text-sm">Connectez Stripe pour recevoir des paiements en
+                                ligne</p>
                         </div>
                     </div>
 
-                    <div class="mt-6">
-                        <button type="submit"
-                            class="w-full sm:w-auto min-h-11 px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors text-sm sm:text-base active:scale-95">
-                            🔒 Changer le mot de passe
-                        </button>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <a href="#"
+                            class="inline-block w-full sm:w-auto px-4 sm:px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors text-center">
+                            🔗 Connecter Stripe Connect
+                        </a>
                     </div>
-                </form>
+                </div>
+            @endif
+
+            <div class="bg-noir-profond rounded-xl p-4 sm:p-6">
+                <h4 class="font-semibold text-ivoire-text mb-3 text-lg">Avantages Stripe Connect</h4>
+                <ul class="space-y-3 text-ivoire-text/70">
+                    <li class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-vert-succes flex-shrink-0 mt-0.5" fill="currentColor"
+                            viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="text-sm sm:text-base">Paiements sécurisés par carte bancaire</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-vert-succes flex-shrink-0 mt-0.5" fill="currentColor"
+                            viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="text-sm sm:text-base">Virements automatiques sur votre compte</span>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-vert-succes flex-shrink-0 mt-0.5" fill="currentColor"
+                            viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="text-sm sm:text-base">Dashboard de suivi des paiements</span>
+                    </li>
+                </ul>
             </div>
         </div>
+    </div>
 
-        <!-- TAB: Suppression du compte -->
-        <div id="tab-delete-account" class="tab-content hidden">
-            <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
-                <h3 class="text-xl font-bold text-ivoire-text mb-4">⚠️ Supprimer mon compte</h3>
+    <!-- TAB: Mot de passe -->
+    <div id="tab-password" class="tab-content hidden">
+        <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
+            <h3 class="text-xl font-bold text-ivoire-text mb-4">Changer mon mot de passe</h3>
 
-                <div class="bg-rouge-alerte/10 border border-rouge-alerte/30 rounded-lg p-4 mb-4">
-                    <h4 class="font-semibold text-rouge-alerte mb-2">🚨 ATTENTION - Action irréversible</h4>
-                    <ul class="text-sm text-rouge-alerte space-y-1">
-                        <li>• Cette action est <span class="font-bold">définitive et irréversible</span></li>
-                        <li>• Toutes vos données seront <span class="font-bold">permanemment supprimées</span></li>
-                        <li>• Profil, photos, portfolio, avis</li>
-                        <li>• Historique des rendez-vous et clients</li>
-                        <li>• Données de traçabilité et conformité</li>
-                        <li>• Messages et conversations</li>
-                    </ul>
+            <form action="{{ route('tattooer.settings.update-password') }}" method="POST" class="max-w-md">
+                @csrf
 
-                    <div class="mt-3 p-3 bg-noir-profond rounded border border-titane/20">
-                        <p class="text-xs text-ivoire-text/80">
-                            💡 <strong>Conseil avant suppression :</strong><br>
-                            Exportez vos données clients, sauvegardez vos portfolios et archives importantes.
-                            Une fois supprimé, aucun récupération ne sera possible.
-                        </p>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block font-semibold text-ivoire-text mb-2 text-sm sm:text-base">Mot de passe
+                            actuel</label>
+                        <input type="password" name="current_password" required
+                            class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm sm:text-base">
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold text-ivoire-text mb-2 text-sm sm:text-base">Nouveau mot de
+                            passe</label>
+                        <input type="password" name="password" required minlength="8"
+                            class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm sm:text-base">
+                        <p class="text-xs text-ivoire-text/60 mt-1">Minimum 8 caractères</p>
+                    </div>
+
+                    <div>
+                        <label class="block font-semibold text-ivoire-text mb-2 text-sm sm:text-base">Confirmer le mot
+                            de passe</label>
+                        <input type="password" name="password_confirmation" required
+                            class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm sm:text-base">
                     </div>
                 </div>
 
                 <div class="mt-6">
-                    <button onclick="confirmDeleteAccount()"
-                        class="w-full sm:w-auto min-h-11 px-6 py-3 bg-rouge-alerte text-white rounded-lg font-semibold hover:bg-rouge-alerte/90 transition-colors text-sm sm:text-base active:scale-95">
-                        🗑️ Supprimer définitivement mon compte
+                    <button type="submit"
+                        class="w-full sm:w-auto min-h-11 px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors text-sm sm:text-base active:scale-95">
+                        🔒 Changer le mot de passe
                     </button>
                 </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TAB: Suppression du compte -->
+    <div id="tab-delete-account" class="tab-content hidden">
+        <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
+            <h3 class="text-xl font-bold text-ivoire-text mb-4">⚠️ Supprimer mon compte</h3>
+
+            <div class="bg-rouge-alerte/10 border border-rouge-alerte/30 rounded-lg p-4 mb-4">
+                <h4 class="font-semibold text-rouge-alerte mb-2">🚨 ATTENTION - Action irréversible</h4>
+                <ul class="text-sm text-rouge-alerte space-y-1">
+                    <li>• Cette action est <span class="font-bold">définitive et irréversible</span></li>
+                    <li>• Toutes vos données seront <span class="font-bold">permanemment supprimées</span></li>
+                    <li>• Profil, photos, portfolio, avis</li>
+                    <li>• Historique des rendez-vous et clients</li>
+                    <li>• Données de traçabilité et conformité</li>
+                    <li>• Messages et conversations</li>
+                </ul>
+
+                <div class="mt-3 p-3 bg-noir-profond rounded border border-titane/20">
+                    <p class="text-xs text-ivoire-text/80">
+                        💡 <strong>Conseil avant suppression :</strong><br>
+                        Exportez vos données clients, sauvegardez vos portfolios et archives importantes.
+                        Une fois supprimé, aucun récupération ne sera possible.
+                    </p>
+                </div>
+            </div>
+
+            <div class="mt-6">
+                <button onclick="confirmDeleteAccount()"
+                    class="w-full sm:w-auto min-h-11 px-6 py-3 bg-rouge-alerte text-white rounded-lg font-semibold hover:bg-rouge-alerte/90 transition-colors text-sm sm:text-base active:scale-95">
+                    🗑️ Supprimer définitivement mon compte
+                </button>
             </div>
         </div>
-
     </div>
 
     @push('scripts')
@@ -875,6 +935,64 @@
                     notification.remove();
                 }, 3000);
             }
+
+            // Gestion des styles personnalisés
+            function toggleCustomStyles() {
+                const checkbox = document.querySelector('input[name="custom_styles[]"]');
+                const container = document.getElementById('custom-styles-inputs');
+                const addButton = container?.querySelector('button[onclick="addCustomStyleInput()"]');
+
+                if (checkbox && container && addButton) {
+                    const isChecked = checkbox.checked;
+                    container.style.display = isChecked ? 'block' : 'none';
+                    addButton.style.display = isChecked ? 'inline-block' : 'none';
+                }
+            }
+
+            function addCustomStyleInput() {
+                const container = document.getElementById('custom-styles-inputs');
+                const addButton = event.target;
+                const newInput = document.createElement('div');
+                newInput.className = 'flex items-center gap-2';
+
+                // Créer l'input
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.name = 'custom_style_names[]';
+                input.placeholder = 'Nom du style personnalisé';
+                input.className =
+                    'flex-1 px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm';
+
+                // Créer le bouton de suppression
+                const deleteButton = document.createElement('button');
+                deleteButton.type = 'button';
+                deleteButton.textContent = '✕';
+                deleteButton.className =
+                    'px-2 py-1 bg-rouge-alerte text-white rounded hover:bg-rouge-alerte/80 transition-colors';
+                deleteButton.onclick = function() {
+                    this.parentElement.remove();
+                };
+
+                // Assembler le tout
+                newInput.appendChild(input);
+                newInput.appendChild(deleteButton);
+
+                // Insérer avant le bouton d'ajout
+                addButton.parentElement.insertBefore(newInput, addButton);
+
+                // Vider le champ d'ajout
+                addButton.querySelector('input').value = '';
+            }
+
+            // Écouter les changements sur la checkbox "Autres"
+            document.addEventListener('DOMContentLoaded', function() {
+                const customStylesCheckbox = document.querySelector('input[name="custom_styles[]"]');
+                if (customStylesCheckbox) {
+                    customStylesCheckbox.addEventListener('change', toggleCustomStyles);
+                    // Initialiser l'affichage
+                    toggleCustomStyles();
+                }
+            });
         </script>
     @endpush
 @endsection

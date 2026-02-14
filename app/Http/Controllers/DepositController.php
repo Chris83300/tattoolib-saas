@@ -243,7 +243,13 @@ class DepositController extends Controller
                             ]);
                         }
 
-                        // 5. Récupérer et stocker l'URL du reçu Stripe
+                        // 5. Notifier le tattooer
+                        $tattooerUser = $bookingRequest->bookable?->user;
+                        if ($tattooerUser) {
+                            $tattooerUser->notify(new \App\Notifications\DepositPaidNotification($bookingRequest));
+                        }
+
+                        // 6. Récupérer et stocker l'URL du reçu Stripe
                         try {
                             $paymentIntent = \Stripe\PaymentIntent::retrieve($session->payment_intent);
                             $charge = $paymentIntent->latest_charge;

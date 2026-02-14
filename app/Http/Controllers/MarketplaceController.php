@@ -69,7 +69,9 @@ class MarketplaceController extends Controller
 
         // Portfolio
         $portfolio = $artist->getMedia('portfolio');
+        $drawings = $artist->getMedia('drawings');
+        $beforeAfter = $artist->getMedia('before_after');
 
-        return view('marketplace.show', compact('artist', 'type', 'stats', 'portfolio'));
+        return view('marketplace.show', compact('artist', 'type', 'stats', 'portfolio', 'drawings', 'beforeAfter'));
     }
 }

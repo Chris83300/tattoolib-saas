@@ -67,7 +67,9 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'role' => 'client',
-        ]);
+        ])->afterCreating(function (User $user) {
+            \App\Models\Client::create(['user_id' => $user->id]);
+        });
     }
 
     /**
@@ -77,7 +79,9 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'role' => 'tattooer',
-        ]);
+        ])->afterCreating(function (User $user) {
+            \App\Models\Tattooer::factory()->create(['user_id' => $user->id]);
+        });
     }
 
     /**
@@ -87,7 +91,9 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'role' => 'studio',
-        ]);
+        ])->afterCreating(function (User $user) {
+            \App\Models\Studio::factory()->create(['user_id' => $user->id]);
+        });
     }
 
     /**
@@ -97,7 +103,9 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'role' => 'studio_artist',
-        ]);
+        ])->afterCreating(function (User $user) {
+            \App\Models\StudioArtist::factory()->create(['user_id' => $user->id]);
+        });
     }
 
     /**
@@ -107,6 +115,8 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'role' => 'pierceur',
-        ]);
+        ])->afterCreating(function (User $user) {
+            \App\Models\Pierceur::factory()->create(['user_id' => $user->id]);
+        });
     }
 }

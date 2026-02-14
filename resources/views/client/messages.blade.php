@@ -1,4 +1,4 @@
-@extends('layouts.client')
+@extends('layouts.app')
 
 @section('title', 'Mes conversations')
 
@@ -8,10 +8,10 @@
         <!-- Header -->
         <div>
             <h1 class="text-2xl md:text-3xl font-bold text-ivoire-text mb-2">
-                💬 Mes conversations
+                Messages
             </h1>
             <p class="text-ivoire-text/70">
-                Échangez avec vos tatoueurs et perceurs
+                Conversations avec vos artistes
             </p>
         </div>
 
@@ -20,151 +20,180 @@
             @if ($conversations->count() > 0)
                 <div class="space-y-4">
                     @foreach ($conversations as $conversation)
-                        @php
-                            // Récupérer l'artiste (tattooer ou pierceur) via bookingRequest
-$bookingRequest = $conversation->bookingRequest;
-$artist = $bookingRequest?->bookable; // MorphTo : Tattooer | Pierceur
-$artistUser = $artist?->user;
-$artistName = $artistUser?->name ?? 'Artiste inconnu';
-
-// Type d'artiste
-                            $artistType = $bookingRequest?->bookable_type;
-                            $artistTypeLabel = match ($artistType) {
-                                'App\Models\Tattooer' => '🎨 Tattooer',
-                                'App\Models\Pierceur' => '💎 Pierceur',
-                                default => '👤 Artiste',
-                            };
-
-                            // Dernier message
-                            $lastMessage = $conversation->lastMessage;
-
-                            // Badge statut conversation
-                            $expiryBadge = match ($conversation->expiry_type) {
-                                'permanent' => ['text' => '✅ Actif', 'class' => 'bg-vert-succes/20 text-vert-succes'],
-                                'deposit_pending' => [
-                                    'text' => '⏱️ En attente acompte',
-                                    'class' => 'bg-ambre-warning/20 text-ambre-warning',
-                                ],
-                                'post_appointment' => [
-                                    'text' => '📋 RDV terminé',
-                                    'class' => 'bg-titane/30 text-ivoire-text/60',
-                                ],
-                                'archived' => ['text' => '📦 Archivé', 'class' => 'bg-gris-fonde text-ivoire-text/50'],
-                                default => ['text' => '❓ Inconnu', 'class' => 'bg-titane/20 text-ivoire-text/40'],
-                            };
-                        @endphp
-
-                        <a href="{{ route('client.chat', $conversation->id) }}"
-                            class="block p-4 bg-noir-profond rounded-lg hover:bg-noir-profond/80 transition-colors border border-titane/20 hover:border-beige-peau/30">
-                            <div class="flex items-start justify-between gap-4">
-                                <!-- Colonne gauche : Info artiste + dernier message -->
-                                <div class="flex-1 min-w-0">
+                        <a href="{{ route('client.chat', $conversation) }}"
+                            class="block p-4 bg-noir-profond rounded-lg hover:bg-noir-profond/80 transition-colors">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
                                     <div class="flex items-center gap-3 mb-2">
-                                        <!-- Avatar artiste -->
+                                        <!-- Avatar -->
                                         <div
-                                            class="w-10 h-10 bg-beige-peau/20 rounded-full flex items-center justify-center flex-shrink-0">
-                                            @if ($artist && $artist->getFirstMediaUrl('avatar'))
-                                                <img src="{{ $artist->getFirstMediaUrl('avatar') }}"
-                                                    alt="{{ $artistName }}" class="w-10 h-10 rounded-full object-cover">
+                                            class="w-10 h-10 rounded-full overflow-hidden bg-titane/30 flex items-center justify-center">
+                                            @php
+                                                $artist = $conversation->bookingRequest?->bookable;
+                                                $artistUser = $artist?->user;
+                                            @endphp
+                                            @if ($artistUser && $artistUser->getFirstMedia('avatar'))
+                                                <img src="{{ $artistUser->getFirstMedia('avatar')->getUrl() }}"
+                                                    alt="{{ $artistUser->name }}" class="w-full h-full object-cover">
                                             @else
-                                                <svg class="w-5 h-5 text-beige-peau" fill="currentColor"
-                                                    viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd"
-                                                        d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                                                        clip-rule="evenodd"></path>
+                                                <svg class="w-5 h-5 text-ivoire-text/40" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                                 </svg>
                                             @endif
                                         </div>
-
-                                        <div class="min-w-0 flex-1">
-                                            <h3 class="font-semibold text-ivoire-text truncate">
-                                                {{ $artistName }}
+                                        <div>
+                                            <!-- Nom de l'artiste -->
+                                            <h3 class="font-semibold text-ivoire-text">
+                                                {{ $artistUser->pseudo ?? 'Artiste inconnu' }}
+                                                @if ($artist)
+                                                    <span class="text-ivoire-text/60 text-sm ml-2">
+                                                        {{ class_basename($artist) }}
+                                                    </span>
+                                                @endif
                                             </h3>
-                                            <p class="text-xs text-ivoire-text/50">
-                                                {{ $artistTypeLabel }}
+                                            <p class="text-sm text-ivoire-text/60">
+                                                {{ $conversation->bookingRequest?->description ? Str::limit($conversation->bookingRequest->description, 50) : 'Nouvelle demande de projet' }}
                                             </p>
                                         </div>
                                     </div>
 
-                                    <!-- Sujet conversation -->
-                                    @if ($conversation->subject || $bookingRequest?->tattoo_description)
-                                        <p class="text-sm text-ivoire-text/60 mb-2 truncate">
-                                            {{ $conversation->subject ?? \Illuminate\Support\Str::limit($bookingRequest->tattoo_description, 60) }}
-                                        </p>
-                                    @endif
-
-                                    <!-- Dernier message -->
-                                    @if ($lastMessage)
-                                        <div class="mt-2 bg-gris-fonde/50 rounded-lg p-2">
-                                            <p class="text-sm text-ivoire-text/70 line-clamp-2">
-                                                @if ($lastMessage->sender_id === auth()->id())
-                                                    <span class="font-semibold text-beige-peau">Vous :</span>
-                                                @else
-                                                    <span class="font-semibold text-ivoire-text">{{ $artistName }}
-                                                        :</span>
-                                                @endif
-                                                {{ $lastMessage->content ?? '📎 Fichier joint' }}
+                                    @if ($conversation->messages->count() > 0)
+                                        @php
+                                            $lastMessage = $conversation->messages->first();
+                                        @endphp
+                                        <div class="mt-2">
+                                            <p class="text-sm text-ivoire-text/70">
+                                                {{ $lastMessage->content ? Str::limit($lastMessage->content, 80) : 'Message sans texte' }}
                                             </p>
                                             <p class="text-xs text-ivoire-text/50 mt-1">
-                                                {{ $lastMessage->created_at->diffForHumans() }}
-                                            </p>
-                                        </div>
-                                    @else
-                                        <p class="text-xs text-ivoire-text/50 italic">
-                                            Aucun message pour le moment
-                                        </p>
-                                    @endif
-
-                                    <!-- Alerte expiration (si applicable) -->
-                                    @if ($conversation->getExpiryWarningMessage())
-                                        <div class="mt-3 bg-ambre-warning/10 border border-ambre-warning/30 rounded-lg p-2">
-                                            <p class="text-xs text-ambre-warning font-medium">
-                                                {{ $conversation->getExpiryWarningMessage() }}
+                                                {{ $lastMessage->created_at->format('d/m/Y à H:i') }}
                                             </p>
                                         </div>
                                     @endif
                                 </div>
 
-                                <!-- Colonne droite : Badges statut -->
-                                <div class="flex flex-col items-end gap-2 flex-shrink-0">
-                                    <!-- Badge non-lus -->
-                                    @if ($conversation->unread_count > 0)
-                                        <span
-                                            class="bg-rouge-alerte text-noir-profond px-2.5 py-1 rounded-full text-xs font-bold shadow-lg">
-                                            {{ $conversation->unread_count }}
-                                        </span>
+                                <div class="flex flex-col items-end gap-2">
+                                    <!-- Badge statut acompte -->
+                                    @php
+                                        $br = $conversation->bookingRequest;
+                                    @endphp
+
+                                    @if ($br)
+                                        <div class="flex flex-col gap-1">
+                                            @if ($br->deposit_paid_at)
+                                                <span
+                                                    class="px-2.5 py-0.5 bg-vert-succes/20 text-vert-succes rounded-full text-xs font-bold">
+                                                    💰 Acompte payé
+                                                </span>
+                                            @elseif (in_array($br->status->value, ['accepted', 'awaiting_deposit']) && $br->deposit_amount)
+                                                <span
+                                                    class="px-2.5 py-0.5 bg-jaune-alerte/20 text-jaune-alerte rounded-full text-xs font-bold">
+                                                    ⏳ Acompte en attente
+                                                </span>
+                                            @endif
+
+                                            <!-- Badge statut demande -->
+                                            <span
+                                                class="px-2.5 py-0.5 rounded-full text-xs font-semibold
+                                                    @switch($br->status->value)
+                                                        @case('pending')
+                                                            bg-gris-fonde text-ivoire-text/80
+                                                        @break
+
+                                                        @case('accepted')
+                                                            bg-beige-peau/20 text-beige-peau border border-beige-peau/30
+                                                        @break
+
+                                                        @case('awaiting_deposit')
+                                                            bg-ambre-warning/20 text-ambre-warning border border-ambre-warning/30
+                                                        @break
+
+                                                        @case('deposit_paid')
+                                                            bg-vert-succes/20 text-vert-succes border border-vert-succes/30
+                                                        @break
+
+                                                        @case('design_sent')
+                                                            bg-titane/30 text-ivoire-text/80
+                                                        @break
+
+                                                        @case('date_confirmed')
+                                                            bg-vert-succes/20 text-vert-succes border border-vert-succes/30
+                                                        @break
+
+                                                        @case('confirmed')
+                                                            bg-vert-succes/20 text-vert-succes border border-vert-succes/30
+                                                        @break
+
+                                                        @case('completed')
+                                                            bg-vert-succes/20 text-vert-succes border border-vert-succes/30
+                                                        @break
+
+                                                        @case('cancelled')
+                                                            bg-rouge-alerte/20 text-rouge-alerte border border-rouge-alerte/30
+                                                        @break
+
+                                                        @default
+                                                            bg-titane/30 text-ivoire-text/80
+                                                    @endswitch
+                                                ">
+                                                @switch($br->status->value)
+                                                    @case('pending')
+                                                        En attente
+                                                    @break
+
+                                                    @case('accepted')
+                                                        Acceptée
+                                                    @break 
+
+                                                    @case('awaiting_deposit')
+                                                        Acompte attendu
+                                                    @break
+
+                                                    @case('deposit_paid')
+                                                        Acompte payé
+                                                    @break
+
+                                                    @case('design_sent')
+                                                        Dessin envoyé
+                                                    @break
+
+                                                    @case('date_confirmed')
+                                                        📅 Date confirmée
+                                                    @break
+
+                                                    @case('confirmed')
+                                                        Confirmé
+                                                    @break
+
+                                                    @case('completed')
+                                                        Terminé
+                                                    @break
+
+                                                    @case('cancelled')
+                                                        Annulé
+                                                    @break
+
+                                                    @default
+                                                        {{ ucfirst($br->status->value) }}
+                                                @endswitch
+                                            </span>
+                                        </div>
                                     @endif
 
-                                    <!-- Badge statut conversation -->
-                                    <span class="px-2 py-1 rounded-full text-xs font-medium {{ $expiryBadge['class'] }}">
-                                        {{ $expiryBadge['text'] }}
-                                    </span>
-
-                                    <!-- Jours restants (si expiration proche) -->
-                                    @if ($conversation->expiry_type === 'deposit_pending' && $conversation->getDaysUntilExpiry())
-                                        @php
-                                            $daysLeft = $conversation->getDaysUntilExpiry();
-                                        @endphp
-                                        @if ($daysLeft > 0 && $daysLeft <= 7)
-                                            <span class="text-xs text-ambre-warning font-medium">
-                                                ⏰ {{ $daysLeft }}j restants
-                                            </span>
-                                        @endif
+                                    @if ($conversation->unread_count > 0)
+                                        <span
+                                            class="bg-rouge-alerte text-noir-profond px-2 py-1 rounded-full text-xs font-bold">
+                                            {{ $conversation->unread_count }}
+                                        </span>
                                     @endif
                                 </div>
                             </div>
                         </a>
                     @endforeach
                 </div>
-
-                <!-- Pagination (si besoin) -->
-                {{-- @if ($conversations->hasPages())
-                <div class="mt-6">
-                    {{ $conversations->links() }}
-                </div>
-            @endif --}}
             @else
-                <!-- État vide -->
                 <div class="text-center py-12">
                     <div class="w-16 h-16 bg-noir-profond rounded-full flex items-center justify-center mx-auto mb-4">
                         <svg class="w-8 h-8 text-ivoire-text/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -176,32 +205,32 @@ $artistName = $artistUser?->name ?? 'Artiste inconnu';
                     <h3 class="text-lg font-semibold text-ivoire-text mb-2">
                         Aucune conversation
                     </h3>
-                    <p class="text-ivoire-text/60 mb-6">
+                    <p class="text-ivoire-text/60">
                         Vous n'avez pas encore de messages avec vos artistes.
                     </p>
-                    <a href="{{ route('marketplace.index') }}"
-                        class="inline-flex items-center gap-2 px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
-                        Trouver un artiste
-                    </a>
+                    <div class="mt-6 space-x-4">
+                        <a href="{{ route('client.booking-requests') }}"
+                            class="inline-flex items-center px-4 py-2 bg-beige-peau hover:bg-beige-peau/90 text-noir-profond rounded-lg font-medium transition-colors">
+                            Nouvelle demande
+                        </a>
+                        <a href="{{ route('marketplace.index') }}"
+                            class="inline-flex items-center px-4 py-2 border border-beige-peau/30 text-beige-peau hover:bg-beige-peau/10 rounded-lg font-medium transition-colors">
+                            Trouver un artiste
+                        </a>
+                    </div>
                 </div>
             @endif
         </div>
 
     </div>
-@endsection
 
-@push('scripts')
-    <script>
-        // Optionnel : Auto-refresh toutes les 30 secondes pour voir nouveaux messages
-        // (Désactivé par défaut, active uniquement si besoin)
-        /*
-        setInterval(() => {
-            window.location.reload();
-        }, 30000);
-        */
-    </script>
-@endpush
+    @push('scripts')
+        <script>
+            // Auto-rafraîchissement toutes les 30 secondes pour les nouveaux messages
+            setInterval(() => {
+                // Optionnel : recharger la page pour voir les nouveaux messages
+                // window.location.reload();
+            }, 30000);
+        </script>
+    @endpush
+@endsection

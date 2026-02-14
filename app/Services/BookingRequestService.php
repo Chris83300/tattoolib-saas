@@ -106,7 +106,7 @@ class BookingRequestService
             }
 
             // Notifier client
-            $this->notifyClient($bookingRequest, 'rejected');
+            $this->notifyClient($bookingRequest, 'rejected', $reason);
 
             // Logger le rejet
             Log::info('Booking request rejected', [
@@ -512,9 +512,28 @@ class BookingRequestService
     /**
      * Notifier le client
      */
-    private function notifyClient(BookingRequest $bookingRequest, string $event): void
+    private function notifyClient(BookingRequest $bookingRequest, string $event, ?string $reason = null): void
     {
-        // TODO: Implémenter notifications (email + push)
+        $client = $bookingRequest->client;
+        if (!$client) {
+            return;
+        }
+
+        $notification = match($event) {
+            'accepted' => new \App\Notifications\BookingRequestAcceptedNotification($bookingRequest),
+            'rejected' => new \App\Notifications\BookingRejectedNotification($bookingRequest, $reason),
+            'design_sent' => new \App\Notifications\DesignSentNotification($bookingRequest),
+            'deposit_requested' => new \App\Notifications\DepositRequestedNotification($bookingRequest),
+            'appointment_confirmed' => new \App\Notifications\AppointmentConfirmedNotification($bookingRequest),
+            'cancelled' => new \App\Notifications\BookingCancelledNotification($bookingRequest),
+            'modified' => new \App\Notifications\BookingModifiedNotification($bookingRequest),
+            default => null
+        };
+
+        if ($notification) {
+            $client->notify($notification);
+        }
+
         Log::info('Client notification sent', [
             'booking_request_id' => $bookingRequest->id,
             'event' => $event,
@@ -525,9 +544,25 @@ class BookingRequestService
     /**
      * Notifier le tatoueur
      */
-    private function notifyTattooer(BookingRequest $bookingRequest, string $event): void
+    private function notifyTattooer(BookingRequest $bookingRequest, string $event, ?string $reason = null): void
     {
-        // TODO: Implémenter notifications
+        $tattooerUser = $bookingRequest->bookable?->user;
+        if (!$tattooerUser) {
+            return;
+        }
+
+        $notification = match($event) {
+            'new_request' => new \App\Notifications\NewBookingRequestNotification($bookingRequest),
+            'deposit_paid' => new \App\Notifications\DepositPaidNotification($bookingRequest),
+            'cancelled' => new \App\Notifications\BookingCancelledNotification($bookingRequest),
+            'balance_paid' => new \App\Notifications\BalancePaidNotification($bookingRequest),
+            default => null
+        };
+
+        if ($notification) {
+            $tattooerUser->notify($notification);
+        }
+
         Log::info('Tattooer notification sent', [
             'booking_request_id' => $bookingRequest->id,
             'event' => $event,

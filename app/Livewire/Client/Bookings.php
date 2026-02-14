@@ -23,7 +23,7 @@ class Bookings extends Component
         }
 
         $bookings = $client->bookingRequests()
-            ->with(['tattooer', 'appointment'])
+            ->with(['bookable', 'appointment'])
             ->latest()
             ->get();
 

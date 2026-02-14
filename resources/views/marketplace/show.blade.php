@@ -213,16 +213,25 @@
         <div class="max-w-4xl mx-auto px-4 py-8 space-y-8">
 
             <!-- Styles pratiqués -->
-            @if ($type === 'tattooer' && isset($artist->styles) && !empty($artist->styles))
+            @php
+                $currentStyles = is_array($artist->styles)
+                    ? $artist->styles
+                    : json_decode($artist->styles ?? '[]', true) ?? [];
+                $customStyles = is_array($artist->custom_styles ?? null)
+                    ? $artist->custom_styles
+                    : json_decode($artist->custom_styles ?? '[]', true) ?? [];
+                // Fusionner prédéfinis + personnalisés, retirer "Autres" (c'est juste le flag checkbox)
+$displayStyles = array_filter(
+    array_unique(array_merge($currentStyles, $customStyles)),
+    fn($s) => $s !== 'Autres' && trim($s) !== '',
+                );
+            @endphp
+
+            @if ($type === 'tattooer' && !empty($displayStyles))
                 <div class="bg-titane/10 rounded-xl p-6 border border-titane/20">
                     <h3 class="text-lg font-bold text-ivoire-text mb-4">🎨 Styles pratiqués</h3>
                     <div class="flex flex-wrap gap-2">
-                        @php
-                            $currentStyles = is_array($artist->styles)
-                                ? $artist->styles
-                                : json_decode($artist->styles ?? '[]', true) ?? [];
-                        @endphp
-                        @foreach ($currentStyles as $style)
+                        @foreach ($displayStyles as $style)
                             <span class="px-3 py-1 bg-beige-peau/20 text-beige-peau rounded-full text-sm font-medium">
                                 {{ $style }}
                             </span>
@@ -404,23 +413,41 @@
             @endif
 
             <!-- PORTFOLIO -->
-            @if ($portfolio->isNotEmpty())
+            @if (
+                $portfolio->isNotEmpty() ||
+                    (isset($drawings) && $drawings->isNotEmpty()) ||
+                    (isset($beforeAfter) && $beforeAfter->isNotEmpty()))
                 <div class="space-y-12">
                     <h2 class="text-2xl font-display font-bold text-ivoire-text mb-8">Portfolio</h2>
 
+                    <!-- Section 1 : Réalisations -->
+                    @if ($portfolio->isNotEmpty())
+                        <div>
+                            <h3 class="text-xl font-bold text-ivoire-text mb-6 flex items-center gap-2">
+                                <span class="text-2xl">✏️</span>
+                                Réalisations
+                            </h3>
+                            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                @foreach ($portfolio as $media)
+                                    <div class="aspect-square rounded-xl overflow-hidden bg-titane/20 cursor-pointer hover:opacity-90 transition-opacity group"
+                                        onclick="openLightbox('{{ $media->getUrl() }}')">
+                                        <img src="{{ $media->getUrl() }}" alt="Tatouage"
+                                            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
                     <!-- Section 2 : Dessins / Sketches -->
-                    @if (
-                        $type === 'tattooer' &&
-                            isset($artist) &&
-                            method_exists($artist, 'getMedia') &&
-                            $artist->getMedia('drawings')->isNotEmpty())
+                    @if ($type === 'tattooer' && isset($drawings) && $drawings->isNotEmpty())
                         <div>
                             <h3 class="text-xl font-bold text-ivoire-text mb-6 flex items-center gap-2">
                                 <span class="text-2xl">🎨</span>
                                 Dessins & Sketches
                             </h3>
                             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                @foreach ($artist->getMedia('drawings') as $media)
+                                @foreach ($drawings as $media)
                                     <div class="aspect-square rounded-xl overflow-hidden bg-titane/20 cursor-pointer hover:opacity-90 transition-opacity group"
                                         onclick="openLightbox('{{ $media->getUrl() }}')">
                                         <img src="{{ $media->getUrl() }}" alt="Dessin / Sketch"
@@ -432,11 +459,7 @@
                     @endif
 
                     <!-- Section 3 : Avant / Après -->
-                    @if (
-                        $type === 'tattooer' &&
-                            isset($artist) &&
-                            method_exists($artist, 'getMedia') &&
-                            $artist->getMedia('before_after')->isNotEmpty())
+                    @if ($type === 'tattooer' && isset($beforeAfter) && $beforeAfter->isNotEmpty())
                         <div>
                             <h3 class="text-xl font-bold text-ivoire-text mb-6 flex items-center gap-2">
                                 <span class="text-2xl">📸</span>
@@ -444,48 +467,18 @@
                             </h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 @php
-                                    $pairs = collect();
+                                    $beforeAfterSorted = $beforeAfter->sortBy('id')->values();
+                                    $pairs = [];
 
-                                    // Paires robustes (nouveau format): groupé par pair_id + role
-                                    $withPairId = $artist
-                                        ->getMedia('before_after')
-                                        ->filter(function ($m) {
-                                            return (string) $m->getCustomProperty('pair_id');
-                                        })
-                                        ->groupBy(function ($m) {
-                                            return (string) $m->getCustomProperty('pair_id');
-                                        });
-
-                                    foreach ($withPairId as $pairId => $items) {
-                                        $before = $items->first(function ($m) {
-                                            return $m->getCustomProperty('role') === 'before';
-                                        });
-                                        $after = $items->first(function ($m) {
-                                            return $m->getCustomProperty('role') === 'after';
-                                        });
-                                        if ($before && $after) {
-                                            $pairs->push([$before, $after]);
-                                        }
-                                    }
-
-                                    // Fallback legacy: paires par ordre d'upload (2 par 2)
-$legacy = $artist
-    ->getMedia('before_after')
-    ->filter(function ($m) {
-        return !(string) $m->getCustomProperty('pair_id');
-    })
-    ->sortBy('id')
-                                        ->values()
-                                        ->chunk(2);
-
-                                    foreach ($legacy as $pair) {
-                                        if ($pair->count() === 2) {
-                                            $pairs->push([$pair[0], $pair[1]]);
+                                    // Créer des paires (2 par 2) - garder les objets Media
+                                    for ($i = 0; $i < $beforeAfterSorted->count(); $i += 2) {
+                                        if ($beforeAfterSorted->has($i + 1)) {
+                                            $pairs[] = [$beforeAfterSorted[$i], $beforeAfterSorted[$i + 1]];
                                         }
                                     }
                                 @endphp
 
-                                @if ($pairs->count() > 0)
+                                @if (!empty($pairs))
                                     @foreach ($pairs as $pair)
                                         @if (is_array($pair) && count($pair) === 2)
                                             <div class="bg-titane/10 rounded-xl p-4 border border-titane/30">
@@ -529,9 +522,21 @@ $legacy = $artist
                                         @endif
                                     @endforeach
                                 @else
-                                    <div class="text-center text-ivoire-text/60">
-                                        <p class="text-sm">Aucune image avant/après disponible</p>
-                                    </div>
+                                    @if ($beforeAfter->isNotEmpty())
+                                        <!-- Afficher les images individuellement si nombre impair -->
+                                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                            @foreach ($beforeAfter as $media)
+                                                <div class="aspect-square rounded-xl overflow-hidden bg-titane/20 cursor-pointer hover:opacity-90 transition-opacity group"
+                                                    onclick="openLightbox('{{ $media->getUrl() }}')">
+                                                    <img src="{{ $media->getUrl() }}" alt="Avant/Après"
+                                                        class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <p class="text-ivoire-text/50 text-center py-8">Aucune image avant/après disponible
+                                        </p>
+                                    @endif
                                 @endif
                             </div>
                         </div>
@@ -580,6 +585,45 @@ $legacy = $artist
                 document.getElementById('lightbox').classList.add('hidden');
                 document.getElementById('lightbox').classList.remove('flex');
             }
+
+            // Before/After Slider
+            document.addEventListener('DOMContentLoaded', function() {
+                const sliders = document.querySelectorAll('.before-after-slider');
+
+                sliders.forEach(slider => {
+                    const handle = slider.querySelector('.slider-handle');
+                    const afterImage = slider.querySelector('.after-image');
+
+                    if (!handle || !afterImage) return;
+
+                    let isDragging = false;
+
+                    function updateSlider(x) {
+                        const rect = slider.getBoundingClientRect();
+                        const percent = Math.max(0, Math.min(100, ((x - rect.left) / rect.width) * 100));
+
+                        handle.style.left = percent + '%';
+                        afterImage.style.clipPath = `inset(0 ${100 - percent}% 0 0)`;
+                    }
+
+                    handle.addEventListener('mousedown', () => isDragging = true);
+                    document.addEventListener('mouseup', () => isDragging = false);
+                    document.addEventListener('mousemove', (e) => {
+                        if (isDragging) updateSlider(e.clientX);
+                    });
+
+                    // Touch support
+                    handle.addEventListener('touchstart', () => isDragging = true);
+                    document.addEventListener('touchend', () => isDragging = false);
+                    document.addEventListener('touchmove', (e) => {
+                        if (isDragging) updateSlider(e.touches[0].clientX);
+                    });
+
+                    // Initialize at 50%
+                    updateSlider(slider.getBoundingClientRect().left + slider.getBoundingClientRect().width /
+                        2);
+                });
+            });
         </script>
     @endpush
 @endsection

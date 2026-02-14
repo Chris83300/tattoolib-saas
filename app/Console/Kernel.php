@@ -72,6 +72,12 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->runInBackground();
 
+        // 🗑️ Nettoyer les événements calendrier de la semaine passée (tous les lundis à 2h)
+        $schedule->command('app:cleanup-past-calendar-events')
+            ->weeklyOn(1, '02:00')
+            ->withoutOverlapping()
+            ->runInBackground();
+
         // ⭐ Nettoyer les conversations expirées toutes les heures
         $schedule->command('app:schedule-conversation-cleanup')
             ->hourly()

@@ -412,6 +412,88 @@
                         </div>
                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
+                    
+                    <?php
+                        $allowsBalance = $bookingRequest->status === \App\Enums\BookingRequestStatus::COMPLETED;
+                        $hasBalance = ($bookingRequest->balance_remaining ?? 0) > 0;
+                    ?>
+
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($allowsBalance && $hasBalance): ?>
+                        <div class="mt-4 p-4 rounded-xl bg-orange-terre-cuite/5 border border-orange-terre-cuite/20">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <h4 class="text-sm font-semibold text-noir-profond">Solde restant</h4>
+                                    <p class="text-2xl font-bold text-orange-terre-cuite">
+                                        <?php echo e(number_format($bookingRequest->balance_remaining, 2, ',', ' ')); ?> €</p>
+                                </div>
+                                <span class="text-xs text-noir-profond/50 bg-noir-profond/5 px-2 py-1 rounded">En
+                                    attente</span>
+                            </div>
+                            <p class="text-xs text-noir-profond/60 mb-3">Le client peut payer en ligne, ou vous pouvez
+                                confirmer un paiement direct.</p>
+
+                            <button x-data @click="$dispatch('open-modal', 'offline-payment-modal')"
+                                class="inline-flex items-center gap-2 px-4 py-2 bg-orange-terre-cuite text-white rounded-lg text-sm font-medium hover:bg-orange-terre-cuite/90 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                                </svg>
+                                Confirmer paiement reçu
+                            </button>
+                        </div>
+
+                        
+                        <div x-data="{ open: false }"
+                            @open-modal.window="if ($event.detail === 'offline-payment-modal') open = true" x-show="open"
+                            x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                            <div class="absolute inset-0 bg-noir-profond/60" @click="open = false"></div>
+                            <div class="relative bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">
+                                <h3 class="text-lg font-bold text-noir-profond mb-1">Confirmer le paiement du solde</h3>
+                                <p class="text-sm text-noir-profond/60 mb-4">Le client vous a réglé directement ?</p>
+                                <form action="<?php echo e(route('tattooer.balance-payment.confirm-offline', $bookingRequest)); ?>"
+                                    method="POST">
+                                    <?php echo csrf_field(); ?>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-noir-profond mb-1">Montant reçu
+                                                (€)</label>
+                                            <input type="number" name="amount" step="0.01"
+                                                value="<?php echo e($bookingRequest->balance_remaining); ?>"
+                                                class="w-full border border-noir-profond/20 rounded-xl p-3 text-sm focus:ring-2 focus:ring-orange-terre-cuite/50 focus:border-orange-terre-cuite">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-noir-profond mb-1">Mode de
+                                                paiement</label>
+                                            <select name="payment_method"
+                                                class="w-full border border-noir-profond/20 rounded-xl p-3 text-sm focus:ring-2 focus:ring-orange-terre-cuite/50 focus:border-orange-terre-cuite">
+                                                <option value="cash">💵 Espèces</option>
+                                                <option value="card_direct">💳 Carte bancaire (TPE)</option>
+                                                <option value="transfer">🏦 Virement bancaire</option>
+                                                <option value="other">📋 Autre</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-noir-profond mb-1">Notes
+                                                (optionnel)</label>
+                                            <textarea name="notes" rows="2" placeholder="Ex: Pourboire inclus, paiement partiel..."
+                                                class="w-full border border-noir-profond/20 rounded-xl p-3 text-sm focus:ring-2 focus:ring-orange-terre-cuite/50 focus:border-orange-terre-cuite"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-end gap-3 mt-5">
+                                        <button type="button" @click="open = false"
+                                            class="px-4 py-2 border border-noir-profond/20 rounded-lg text-sm text-noir-profond/70 hover:bg-noir-profond/5">
+                                            Annuler
+                                        </button>
+                                        <button type="submit"
+                                            class="px-4 py-2 bg-vert-succes text-white rounded-lg text-sm font-medium hover:bg-vert-succes/90">
+                                            ✅ Confirmer le paiement
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
                     <!-- Timeline -->
                     <div class="bg-titane/20 rounded-xl p-6 border border-titane/30">
                         <h3 class="text-lg font-bold text-ivoire-text mb-4">Historique</h3>

@@ -6,9 +6,11 @@ use App\Models\BookingRequest;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\ClientConsentForm;
+use App\Models\Appointment;
 use App\Enums\BookingRequestStatus;
 use App\Enums\ConversationStatus;
 use App\Enums\AppointmentStatus;
+use App\Actions\ReportNoShowAction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -255,10 +257,32 @@ class ClientController extends Controller
      */
     public function messages()
     {
-        $user = auth()->user();
+        $conversations = auth()->user()
+            ->conversations()                          // via pivot conversation_user (users.id)
+            ->where('status', 'active')
+            ->whereNull('deleted_at')                  // soft delete
+            ->with([
+                'bookingRequest.bookable.user',        // artiste (pour avatar + nom)
+                'messages' => function ($query) {
+                    $query->latest()->limit(1); // dernier message pour aperçu
+                },
+            ])
+            ->orderByDesc('last_message_at')
+            ->get();
 
-        // Récupérer toutes les conversations où l'utilisateur est participant
-        $conversations = $user->conversations()
+        return view('client.messages', compact('conversations'));
+    }
+
+    /**
+     * Liste des conversations (pour navigation)
+     */
+    public function conversationsList()
+    {
+        $user = auth()->user();
+        $client = $user->client;
+
+        // Récupérer toutes les conversations où le client est participant
+        $conversations = $client->conversations()
             ->with([
                 'lastMessage.sender',
                 'bookingRequest' => function ($query) {
@@ -266,9 +290,6 @@ class ClientController extends Controller
                         'bookable.user', // Tattooer ou Pierceur
                         'client.user'
                     ]);
-                },
-                'participants' => function ($query) {
-                    $query->select('users.id', 'users.name', 'users.email');
                 }
             ])
             ->where('status', 'active')
@@ -276,18 +297,15 @@ class ClientController extends Controller
             ->get();
 
         // Ajouter compteur non-lus pour chaque conversation
-        $conversations->transform(function ($conversation) use ($user) {
+        $conversations->transform(function ($conversation) use ($client) {
             // Récupérer le pivot de l'utilisateur dans cette conversation
-            $pivot = $conversation->participants()
-                ->where('user_id', $user->id)
-                ->first()
-                ?->pivot;
+            $pivot = $conversation->pivot; // Disponible grâce à belongsToMany
 
             if ($pivot) {
                 // Compter messages non lus (créés après last_read_at)
                 $conversation->unread_count = $conversation->messages()
-                    ->where('sender_id', '!=', $user->id)
-                    ->where('sender_type', '!=', get_class($user))
+                    ->where('sender_id', '!=', $client->id)
+                    ->where('sender_type', '!=', get_class($client))
                     ->where(function ($query) use ($pivot) {
                         $query->where('created_at', '>', $pivot->last_read_at ?? now()->subYears(10));
                     })
@@ -572,5 +590,27 @@ class ClientController extends Controller
         }
 
         return back()->with('success', '✅ Consentement éclairé signé avec succès !');
+    }
+
+    /**
+     * Client signale un no-show (artiste absent)
+     */
+    public function reportNoShow(Request $request, Appointment $appointment)
+    {
+        // Vérifier que le client est bien celui du booking
+        $bookingRequest = $appointment->bookingRequest;
+        abort_unless(
+            $bookingRequest && $bookingRequest->client_id === auth()->id(),
+            403
+        );
+
+        $validated = $request->validate([
+            'no_show_reason' => 'nullable|string|max:1000',
+        ]);
+
+        $action = new ReportNoShowAction();
+        $action->execute($appointment, 'client', $validated['no_show_reason'] ?? null);
+
+        return back()->with('success', 'Signalement envoyé. Notre équipe va examiner la situation.');
     }
 }

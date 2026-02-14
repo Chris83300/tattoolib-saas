@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BookingRequest;
 use App\Models\AccountingTransaction;
+use App\Models\Payment;
 use App\Models\Conversation;
 use App\Enums\BookingRequestStatus;
 use App\Enums\ConversationStatus;
@@ -83,6 +84,7 @@ class StripeWebhookController extends Controller
             try {
                 // Récupérer la booking request depuis la session
                 $bookingRequestId = $session->metadata['booking_request_id'] ?? null;
+                $paymentType = $session->metadata['payment_type'] ?? 'deposit';
 
                 if (!$bookingRequestId) {
                     Log::warning('Webhook: booking_request_id manquant dans la session', ['session_id' => $session->id]);
@@ -96,39 +98,12 @@ class StripeWebhookController extends Controller
                     return;
                 }
 
-                // Vérifier si le paiement est déjà traité (idempotence)
-                if ($bookingRequest->deposit_paid_at) {
-                    Log::info('Webhook: Paiement déjà traité (idempotent)', ['booking_request_id' => $bookingRequestId]);
-                    return;
+                // Traitement différent selon le type de paiement
+                if ($paymentType === 'balance') {
+                    $this->handleBalancePayment($session, $bookingRequest);
+                } else {
+                    $this->handleDepositPayment($session, $bookingRequest);
                 }
-
-                // Mettre à jour la booking request
-                $bookingRequest->update([
-                    'status' => BookingRequestStatus::DEPOSIT_PAID,
-                    'deposit_paid_at' => now(),
-                    'stripe_payment_intent_id' => $session->payment_intent,
-                ]);
-
-                // Créer la transaction comptable
-                $transaction = AccountingTransaction::createFromStripeSession($session, $bookingRequest, 'deposit');
-
-                // Récupérer l'URL du reçu
-                $this->storeReceiptUrl($transaction, $session->payment_intent);
-
-                // Mettre à jour la conversation
-                $this->updateConversationAfterPayment($bookingRequest);
-
-                // Créer l'appointment si la date est définie
-                if ($bookingRequest->appointment_datetime) {
-                    $this->createAppointmentFromBookingRequest($bookingRequest);
-                }
-
-                // Logger le succès
-                Log::info('Webhook: Paiement d\'acompte traité avec succès', [
-                    'booking_request_id' => $bookingRequestId,
-                    'transaction_id' => $transaction->id,
-                    'amount' => $transaction->amount,
-                ]);
 
             } catch (\Exception $e) {
                 Log::error('Webhook: Erreur lors du traitement du paiement', [
@@ -139,6 +114,105 @@ class StripeWebhookController extends Controller
                 throw $e;
             }
         });
+    }
+
+    /**
+     * Gérer le paiement du solde
+     */
+    private function handleBalancePayment($session, BookingRequest $bookingRequest)
+    {
+        // Vérifier si le paiement est déjà traité (idempotence)
+        if ($bookingRequest->balance_paid_at) {
+            Log::info('Webhook: Paiement du solde déjà traité (idempotent)', ['booking_request_id' => $bookingRequest->id]);
+            return;
+        }
+
+        // Mettre à jour la booking request
+        $bookingRequest->update([
+            'balance_amount' => $session->amount_total / 100,
+            'balance_paid_at' => now(),
+            'balance_payment_method' => 'stripe',
+            'status' => BookingRequestStatus::FULLY_COMPLETED,
+        ]);
+
+        // Enregistrer le paiement
+        Payment::create([
+            'booking_request_id' => $bookingRequest->id,
+            'stripe_payment_intent_id' => $session->payment_intent,
+            'amount' => $session->amount_total / 100,
+            'currency' => 'eur',
+            'payment_type' => 'balance',
+            'status' => 'succeeded',
+            'paid_at' => now(),
+        ]);
+
+        // Message système
+        $conversation = $bookingRequest->conversation;
+        if ($conversation) {
+            $amount = number_format($session->amount_total / 100, 2, ',', ' ');
+            $conversation->messages()->create([
+                'sender_id' => null,
+                'body' => "💰 Solde de {$amount}€ payé en ligne. Prestation complète !",
+                'is_system' => true,
+                'metadata' => json_encode(['type' => 'balance_paid_online']),
+            ]);
+        }
+
+        // Notifier le tattooer
+        $bookingRequest->bookable?->user?->notify(
+            new \App\Notifications\BalancePaidNotification($bookingRequest)
+        );
+
+        Log::info('Webhook: Paiement du solde traité avec succès', [
+            'booking_request_id' => $bookingRequest->id,
+            'amount' => $session->amount_total / 100,
+        ]);
+    }
+
+    /**
+     * Gérer le paiement de l'acompte
+     */
+    private function handleDepositPayment($session, BookingRequest $bookingRequest)
+    {
+        // Vérifier si le paiement est déjà traité (idempotence)
+        if ($bookingRequest->deposit_paid_at) {
+            Log::info('Webhook: Paiement déjà traité (idempotent)', ['booking_request_id' => $bookingRequest->id]);
+            return;
+        }
+
+        // Mettre à jour la booking request
+        $bookingRequest->update([
+            'status' => BookingRequestStatus::DEPOSIT_PAID,
+            'deposit_paid_at' => now(),
+            'stripe_payment_intent_id' => $session->payment_intent,
+        ]);
+
+        // Créer la transaction comptable
+        $transaction = AccountingTransaction::createFromStripeSession($session, $bookingRequest, 'deposit');
+
+        // Récupérer l'URL du reçu
+        $this->storeReceiptUrl($transaction, $session->payment_intent);
+
+        // Mettre à jour la conversation
+        $this->updateConversationAfterPayment($bookingRequest);
+
+        // Créer l'appointment si la date est définie
+        if ($bookingRequest->appointment_datetime) {
+            $this->createAppointmentFromBookingRequest($bookingRequest);
+        }
+
+        // Notifier le tattooer
+        $tattooerUser = $bookingRequest->bookable?->user;
+        if ($tattooerUser) {
+            $tattooerUser->notify(new \App\Notifications\DepositPaidNotification($bookingRequest));
+        }
+
+        // Logger le succès
+        Log::info('Webhook: Paiement d\'acompte traité avec succès', [
+            'booking_request_id' => $bookingRequest->id,
+            'transaction_id' => $transaction->id,
+            'amount' => $transaction->amount,
+        ]);
     }
 
     /**

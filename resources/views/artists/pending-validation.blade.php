@@ -20,7 +20,7 @@
 
                 <!-- Titre personnalisé -->
                 <h1 class="text-2xl font-bold text-ivoire-text mb-2">
-                    Bonjour {{ $artist->user->name }} !
+                    Bonjour {{ $artist->user->first_name }} {{ $artist->user->last_name }} !
                 </h1>
 
                 <h2 class="text-xl font-semibold text-beige-peau mb-4">

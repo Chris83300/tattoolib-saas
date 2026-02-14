@@ -33,6 +33,11 @@ class Appointment extends Model
         // Statuts
         'status',
 
+        // Complétion
+        'completed_at',
+        'completed_by',
+        'completion_notes',
+
         // Annulation
         'cancelled_by',
         'cancelled_at',
@@ -84,6 +89,7 @@ class Appointment extends Model
         'client_reported_at' => 'datetime',
         'client_dispute_at' => 'datetime',
         'dispute_resolved_at' => 'datetime',
+        'completed_at' => 'datetime',
         'refunded' => 'boolean',
         'client_reported_issue' => 'boolean',
         'client_dispute_refund' => 'boolean',

@@ -134,6 +134,11 @@
                 </div>
 
                 @forelse($upcomingAppointments as $appointment)
+                    @php
+                        $isConfirmed = $appointment->status === \App\Enums\AppointmentStatus::CONFIRMED;
+                        $isPast = $appointment->end_datetime && $appointment->end_datetime->isPast();
+                    @endphp
+
                     <div class="border-b border-titane/20 pb-4 mb-4 last:border-0 last:pb-0 last:mb-0">
                         <div class="flex items-start justify-between">
                             <div class="flex-1">
@@ -147,6 +152,65 @@
                                     <span>📅 {{ $appointment->appointment_datetime->format('d/m/Y à H:i') }}</span>
                                     <span>⏱️ {{ $appointment->estimated_duration ?? '60' }}min</span>
                                 </div>
+
+                                {{-- Boutons de clôture pour RDV passés --}}
+                                @if ($isConfirmed && $isPast)
+                                    <div class="mt-3 flex flex-wrap gap-2">
+                                        <form action="{{ route('tattooer.appointments.complete', $appointment) }}"
+                                            method="POST"
+                                            onsubmit="return confirm('Confirmer que le RDV s\'est bien passé ?')">
+                                            @csrf
+                                            <button type="submit"
+                                                class="inline-flex items-center gap-1 px-3 py-1.5 bg-vert-succes text-white rounded-lg text-xs font-medium hover:bg-vert-succes/90 transition">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M5 13l4 4L19 7" />
+                                                </svg>
+                                                Terminé
+                                            </button>
+                                        </form>
+                                        <button x-data
+                                            @click="$dispatch('open-modal', 'no-show-modal-{{ $appointment->id }}')"
+                                            class="inline-flex items-center gap-1 px-3 py-1.5 bg-rouge-alerte text-white rounded-lg text-xs font-medium hover:bg-rouge-alerte/90 transition">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            No-show
+                                        </button>
+                                    </div>
+
+                                    {{-- Modal No-Show --}}
+                                    <div x-data="{ open: false }"
+                                        @open-modal.window="if ($event.detail === 'no-show-modal-{{ $appointment->id }}') open = true"
+                                        x-show="open" x-cloak x-transition
+                                        class="fixed inset-0 z-50 flex items-center justify-center p-4">
+                                        <div class="absolute inset-0 bg-noir-profond/60" @click="open = false"></div>
+                                        <div class="relative bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">
+                                            <h3 class="text-lg font-bold text-noir-profond mb-1">Signaler un no-show</h3>
+                                            <p class="text-sm text-noir-profond/60 mb-4">Le client ne s'est pas présenté au
+                                                rendez-vous ?</p>
+                                            <form action="{{ route('tattooer.appointments.no-show', $appointment) }}"
+                                                method="POST">
+                                                @csrf
+                                                <textarea name="no_show_reason" rows="3" placeholder="Décrivez la situation (optionnel)..."
+                                                    class="w-full border border-noir-profond/20 rounded-xl p-3 mb-4 text-sm focus:ring-2 focus:ring-orange-terre-cuite/50 focus:border-orange-terre-cuite"></textarea>
+                                                <div class="flex justify-end gap-3">
+                                                    <button type="button" @click="open = false"
+                                                        class="px-4 py-2 border border-noir-profond/20 rounded-lg text-sm text-noir-profond/70 hover:bg-noir-profond/5">
+                                                        Annuler
+                                                    </button>
+                                                    <button type="submit"
+                                                        class="px-4 py-2 bg-rouge-alerte text-white rounded-lg text-sm font-medium hover:bg-rouge-alerte/90">
+                                                        Confirmer
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
                             <span class="bg-vert-succes/20 text-vert-succes px-2 py-1 rounded text-xs font-semibold">
                                 Confirmé

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use App\Models\User;
 use App\Models\BookingRequest;
 use App\Models\ClientConsentForm;
@@ -10,8 +10,10 @@ use App\Models\TraceabilityRecord;
 use App\Models\Appointment;
 use App\Models\CalendarEvent;
 use App\Enums\BookingRequestStatus;
+use App\Actions\CompleteAppointmentAction;
+use App\Actions\ReportNoShowAction;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 
 class TattooerController extends Controller
 {
@@ -146,6 +148,9 @@ class TattooerController extends Controller
             'bio' => 'nullable|string|max:2000',
             'styles' => 'nullable|array',
             'styles.*' => 'string|max:100',
+            'custom_styles' => 'nullable|array',
+            'custom_style_names' => 'nullable|array',
+            'custom_style_names.*' => 'nullable|string|max:100',
             'years_of_experience' => 'nullable|integer|min:0|max:50',
             'minimum_price' => 'nullable|numeric|min:0|max:10000',
 
@@ -167,6 +172,15 @@ class TattooerController extends Controller
             'sms_notifications' => 'boolean',
         ]);
 
+        // Séparer les styles prédéfinis et personnalisés
+        $styles = array_values(array_filter(
+            $validated['styles'] ?? [],
+            fn($s) => $s !== 'Autres' && trim($s) !== ''
+        ));
+        $customStyleNames = array_values(
+            array_filter($validated['custom_style_names'] ?? [], fn($s) => trim($s) !== '')
+        );
+
         // Mettre à jour l'utilisateur
         $tattooer->user->update([
             'first_name' => $validated['first_name'] ?? $tattooer->user->first_name,
@@ -186,7 +200,8 @@ class TattooerController extends Controller
             'postal_code' => $validated['postal_code'] ?? null,
             'country' => $validated['country'] ?? null,
             'bio' => $validated['bio'] ?? null,
-            'styles' => $validated['styles'] ?? [],
+            'styles' => $styles,
+            'custom_styles' => $customStyleNames,
             'years_of_experience' => $validated['years_of_experience'] ?? null,
             'minimum_price' => $validated['minimum_price'] ?? null,
             'wait_time_weeks_min' => $validated['wait_time_weeks_min'] ?? null,
@@ -334,6 +349,7 @@ class TattooerController extends Controller
                 $clientName = $apt->bookingRequest?->client?->user?->pseudo
                     ?? $apt->bookingRequest?->client?->user?->name
                     ?? 'Client';
+                $bookingRequest = $apt->bookingRequest;
                 return [
                     'id' => 'apt_' . $apt->id,
                     'title' => 'Tattoo → ' . $clientName,
@@ -347,7 +363,14 @@ class TattooerController extends Controller
                         'appointment_id' => $apt->id,
                         'booking_request_id' => $apt->booking_request_id,
                         'client_name' => $clientName,
-                        'notes' => '',
+                        'client_pseudo' => $apt->bookingRequest?->client?->user?->pseudo ?? $clientName,
+                        'body_zone' => $bookingRequest?->body_zone ?? '',
+                        'tattoo_size' => $bookingRequest?->tattoo_size ?? '',
+                        'deposit_paid' => $bookingRequest?->deposit_paid_at !== null,
+                        'deposit_amount' => (float) ($bookingRequest?->deposit_amount ?? 0),
+                        'total_price' => (float) ($bookingRequest?->total_price ?? $bookingRequest?->estimated_total_price ?? 0),
+                        'status' => $apt->status,
+                        'notes' => $apt->notes ?? '',
                     ],
                 ];
             })
@@ -370,7 +393,7 @@ class TattooerController extends Controller
                     : $booking->created_at;
                 return [
                     'id' => 'booking_' . $booking->id,
-                    'title' => 'RDV - ' . $clientName,
+                    'title' => 'Tattoo → ' . $clientName,
                     'start' => $startDate->format('Y-m-d\TH:i:s'),
                     'end' => $startDate->copy()->addHours(2)->format('Y-m-d\TH:i:s'),
                     'backgroundColor' => '#D4B59E',
@@ -379,7 +402,16 @@ class TattooerController extends Controller
                     'extendedProps' => [
                         'type' => 'appointment',
                         'booking_id' => $booking->id,
+                        'booking_request_id' => $booking->id,
                         'client_name' => $clientName,
+                        'client_pseudo' => $booking->client?->user?->pseudo ?? $clientName,
+                        'body_zone' => $booking->body_zone ?? '',
+                        'tattoo_size' => $booking->tattoo_size ?? '',
+                        'deposit_paid' => $booking->deposit_paid_at !== null,
+                        'deposit_amount' => (float) ($booking->deposit_amount ?? 0),
+                        'total_price' => (float) ($booking->total_price ?? $booking->estimated_total_price ?? 0),
+                        'status' => 'scheduled', // Pas d'appointment = scheduled par défaut
+                        'notes' => '',
                     ],
                 ];
             })
@@ -1152,23 +1184,28 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
         // Charger les relations nécessaires
         $tattooer->load(['media', 'user']);
 
-        // Récupérer les images du portfolio
-        $portfolio = $tattooer->getMedia('portfolio')
+        // Récupérer les images du portfolio par collections
+        $tattoos = $tattooer->getMedia('portfolio')
             ->sortByDesc('created_at')
             ->values();
 
-        // Séparer les médias par collection name (plus fiable que custom_properties)
-        $tattoos = $tattooer->getMedia('portfolio')->filter(fn($media) => $media->collection_name === 'portfolio');
-        $drawings = $tattooer->getMedia('drawings');
-        $beforeAfter = $tattooer->getMedia('before_after');
+        $drawings = $tattooer->getMedia('drawings')
+            ->sortByDesc('created_at')
+            ->values();
 
-        // Pour les tattoos, filtrer ceux qui n'ont pas de type spécifique
-        $tattoos = $tattoos->filter(fn($media) =>
-            !$media->getCustomProperty('type') ||
-            $media->getCustomProperty('type') === 'tattoo'
-        );
+        $beforeAfter = $tattooer->getMedia('before_after')
+            ->sortByDesc('created_at')
+            ->values();
 
-        return view('tattooer.portfolio', compact('tattooer', 'portfolio', 'tattoos', 'drawings', 'beforeAfter'));
+        // Debug temporaire pour voir les collections
+        Log::info('Portfolio collections', [
+            'tattoos_count' => $tattoos->count(),
+            'drawings_count' => $drawings->count(),
+            'before_after_count' => $beforeAfter->count(),
+            'all_media_count' => $tattooer->media->count()
+        ]);
+
+        return view('tattooer.portfolio', compact('tattooer', 'tattoos', 'drawings', 'beforeAfter'));
     }
 
     /**
@@ -1612,5 +1649,63 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
 
         return redirect()->route('tattooer.request.show', $bookingRequest)
             ->with('success', 'Demande refusée avec succès !');
+    }
+
+    /**
+     * Marquer un rendez-vous comme terminé
+     */
+    public function completeAppointment(Request $request, Appointment $appointment)
+    {
+        // Vérifier que le tattooer est bien le propriétaire
+        $this->authorizeAppointmentOwner($appointment);
+
+        // Vérifier que le RDV est bien passé (end_datetime < now)
+        if ($appointment->end_datetime->isFuture()) {
+            return back()->with('error', 'Ce rendez-vous n\'est pas encore terminé.');
+        }
+
+        $validated = $request->validate([
+            'completion_notes' => 'nullable|string|max:1000',
+        ]);
+
+        $action = new CompleteAppointmentAction();
+        $action->execute($appointment, 'tattooer', $validated['completion_notes'] ?? null);
+
+        return back()->with('success', 'Rendez-vous marqué comme terminé !');
+    }
+
+    /**
+     * Signaler un no-show (client absent)
+     */
+    public function reportNoShow(Request $request, Appointment $appointment)
+    {
+        $this->authorizeAppointmentOwner($appointment);
+
+        $validated = $request->validate([
+            'no_show_reason' => 'nullable|string|max:1000',
+        ]);
+
+        $action = new ReportNoShowAction();
+        $action->execute($appointment, 'tattooer', $validated['no_show_reason'] ?? null);
+
+        return back()->with('success', 'No-show signalé. Notre équipe va examiner la situation.');
+    }
+
+    /**
+     * Vérifier que le tattooer connecté est bien le propriétaire du RDV
+     */
+    private function authorizeAppointmentOwner(Appointment $appointment): void
+    {
+        $bookingRequest = $appointment->bookingRequest;
+        $user = auth()->user();
+
+        // Adapter selon la logique polymorphique (bookable_type/bookable_id)
+        abort_unless(
+            $bookingRequest &&
+            $bookingRequest->bookable_type === get_class($user->tattooer) &&
+            $bookingRequest->bookable_id === $user->tattooer?->id,
+            403,
+            'Vous n\'êtes pas autorisé à modifier ce rendez-vous.'
+        );
     }
 }

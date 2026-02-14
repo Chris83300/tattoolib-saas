@@ -55,7 +55,9 @@ class Client extends Model implements HasMedia
 
     public function conversations()
     {
-        return $this->morphMany(Conversation::class, 'participant');
+        return $this->belongsToMany(Conversation::class, 'conversation_user', 'user_id', 'conversation_id')
+            ->withPivot(['role', 'last_read_at', 'is_muted'])
+            ->withTimestamps();
     }
 
     // Nouvelles relations pour le workflow client

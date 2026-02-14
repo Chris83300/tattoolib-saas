@@ -13,6 +13,9 @@
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/locales/fr.global.min.js'></script>
 
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
     <!-- CSRF Token for AJAX -->
     <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
 </head>
@@ -66,8 +69,8 @@
                     </svg>
                     <span class="font-semibold">Demandes</span>
                     <?php
-                        $pendingCount = \App\Models\BookingRequest::where('bookable_id', auth()->user()->tattooer->id)
-                            ->where('bookable_type', 'App\Models\Tattooer')
+                        $pendingCount = \App\Models\BookingRequest::where('bookable_id', auth()->user()->profile->id)
+                            ->where('bookable_type', get_class(auth()->user()->profile))
                             ->where('status', 'pending')
                             ->count();
                     ?>

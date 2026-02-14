@@ -20,7 +20,8 @@
 
                 {{-- Alerte expiration --}}
                 @if ($expiryInfo && $expiryInfo['warning_message'])
-                    <div class="mb-4 p-4 rounded-lg border {{ $expiryInfo['is_expired'] ? 'bg-rouge-alerte/10 border-rouge-alerte/30' : 'bg-jaune-alerte/10 border-jaune-alerte/30' }}">
+                    <div
+                        class="mb-4 p-4 rounded-lg border {{ $expiryInfo['is_expired'] ? 'bg-rouge-alerte/10 border-rouge-alerte/30' : 'bg-jaune-alerte/10 border-jaune-alerte/30' }}">
                         <div class="flex items-start">
                             <svg class="w-5 h-5 mt-0.5 mr-3 {{ $expiryInfo['is_expired'] ? 'text-rouge-alerte' : 'text-jaune-alerte' }}"
                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -28,7 +29,8 @@
                                     d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             <div class="flex-1">
-                                <h3 class="font-semibold {{ $expiryInfo['is_expired'] ? 'text-rouge-alerte' : 'text-jaune-alerte' }} mb-1">
+                                <h3
+                                    class="font-semibold {{ $expiryInfo['is_expired'] ? 'text-rouge-alerte' : 'text-jaune-alerte' }} mb-1">
                                     @if ($expiryInfo['is_expired'])
                                         ❌ Conversation expirée
                                     @elseif($expiryInfo['expiry_type'] === 'deposit_pending')
@@ -37,20 +39,24 @@
                                         ℹ️ Information
                                     @endif
                                 </h3>
-                                <p class="{{ $expiryInfo['is_expired'] ? 'text-rouge-alerte' : 'text-jaune-alerte' }} text-sm">
+                                <p
+                                    class="{{ $expiryInfo['is_expired'] ? 'text-rouge-alerte' : 'text-jaune-alerte' }} text-sm">
                                     {{ $expiryInfo['warning_message'] }}
                                 </p>
                                 @if (!$expiryInfo['is_expired'] && $expiryInfo['time_remaining'] !== '')
                                     <div class="mt-2">
                                         <div class="flex items-center justify-between text-sm">
-                                            <span class="{{ $expiryInfo['days_remaining'] <= 2 ? 'text-rouge-alerte font-semibold' : 'text-jaune-alerte' }}">
+                                            <span
+                                                class="{{ $expiryInfo['days_remaining'] <= 2 ? 'text-rouge-alerte font-semibold' : 'text-jaune-alerte' }}">
                                                 {{ $expiryInfo['time_remaining'] }} restant(es)
                                             </span>
                                             @if ($bookingRequest->status === 'awaiting_deposit' && !$bookingRequest->deposit_paid_at)
                                                 <a href="{{ route('deposit.payment', $bookingRequest->id) }}"
                                                     class="inline-flex items-center px-3 py-1 bg-beige-peau text-noir-profond rounded text-sm font-medium hover:bg-beige-peau/90 transition-colors">
-                                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
                                                             d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                                                     </svg>
                                                     Payer l'acompte
@@ -75,7 +81,8 @@
                 @if (!$expiryInfo && $bookingRequest->status === 'awaiting_deposit' && !$bookingRequest->deposit_paid_at)
                     <div class="mb-4 p-4 bg-jaune-alerte/10 border border-jaune-alerte/30 rounded-lg">
                         <div class="flex items-start">
-                            <svg class="w-5 h-5 mt-0.5 mr-3 text-jaune-alerte" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 mt-0.5 mr-3 text-jaune-alerte" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
@@ -99,8 +106,10 @@
 
                 <div class="flex items-center justify-between">
                     <div>
-                        <h1 class="text-3xl font-bold text-ivoire-text">Chat avec {{ $bookingRequest->bookable->user->name }}</h1>
-                        <p class="text-ivoire-text/70 mt-1">Projet: {{ Str::limit($bookingRequest->tattoo_description, 80) }}</p>
+                        <h1 class="text-3xl font-bold text-ivoire-text">Chat avec
+                            {{ $bookingRequest->bookable->user->name }}</h1>
+                        <p class="text-ivoire-text/70 mt-1">Projet:
+                            {{ Str::limit($bookingRequest->tattoo_description, 80) }}</p>
                     </div>
                 </div>
             </div>
@@ -114,8 +123,10 @@
                 <div id="messages-container" class="h-96 overflow-y-auto p-6 space-y-4">
                     @if ($messages->isEmpty())
                         <div class="text-center py-12">
-                            <div class="inline-flex items-center justify-center w-16 h-16 bg-noir-profond rounded-full mb-4">
-                                <svg class="w-8 h-8 text-ivoire-text/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div
+                                class="inline-flex items-center justify-center w-16 h-16 bg-noir-profond rounded-full mb-4">
+                                <svg class="w-8 h-8 text-ivoire-text/50" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.009 9.009 0 00-2.617-.656L4 19l1.383-5.344A9.002 9.002 0 016 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                                 </svg>
@@ -147,10 +158,17 @@
                                 {{-- ═══ MESSAGE SYSTÈME ═══ --}}
                                 @php
                                     $consentMatch = [];
-                                    $isConsentMsg = preg_match('/\[CONSENT_FORM:(\d+)\]/', $message->content, $consentMatch);
+                                    $isConsentMsg = preg_match(
+                                        '/\[CONSENT_FORM:(\d+)\]/',
+                                        $message->content,
+                                        $consentMatch,
+                                    );
                                     $consentBrId = $isConsentMsg ? (int) $consentMatch[1] : null;
                                     $existingConsent = $consentBrId
-                                        ? \App\Models\ClientConsentForm::where('booking_request_id', $consentBrId)->first()
+                                        ? \App\Models\ClientConsentForm::where(
+                                            'booking_request_id',
+                                            $consentBrId,
+                                        )->first()
                                         : null;
                                 @endphp
 
@@ -158,18 +176,24 @@
                                     {{-- Message consentement --}}
                                     @if ($existingConsent && $existingConsent->isValid())
                                         <div class="flex justify-center mb-4">
-                                            <div class="bg-vert-succes/10 border border-vert-succes/30 rounded-xl p-4 text-center max-w-sm">
+                                            <div
+                                                class="bg-vert-succes/10 border border-vert-succes/30 rounded-xl p-4 text-center max-w-sm">
                                                 <span class="text-2xl">✅</span>
-                                                <p class="text-sm text-vert-succes font-semibold mt-1">Consentement éclairé signé</p>
-                                                <p class="text-xs text-titane mt-1">Le {{ $existingConsent->signed_at->format('d/m/Y à H:i') }}</p>
+                                                <p class="text-sm text-vert-succes font-semibold mt-1">Consentement éclairé
+                                                    signé</p>
+                                                <p class="text-xs text-titane mt-1">Le
+                                                    {{ $existingConsent->signed_at->format('d/m/Y à H:i') }}</p>
                                             </div>
                                         </div>
                                     @else
                                         <div class="flex justify-center mb-4">
-                                            <div class="bg-beige-peau/10 border border-beige-peau/30 rounded-xl p-4 text-center max-w-sm">
+                                            <div
+                                                class="bg-beige-peau/10 border border-beige-peau/30 rounded-xl p-4 text-center max-w-sm">
                                                 <span class="text-2xl">📝</span>
-                                                <p class="text-sm text-ivoire-text font-semibold mt-1">Consentement éclairé à remplir</p>
-                                                <p class="text-xs text-titane mt-1 mb-3">Obligatoire avant votre rendez-vous</p>
+                                                <p class="text-sm text-ivoire-text font-semibold mt-1">Consentement éclairé
+                                                    à remplir</p>
+                                                <p class="text-xs text-titane mt-1 mb-3">Obligatoire avant votre rendez-vous
+                                                </p>
                                                 <button
                                                     onclick="document.getElementById('consent-modal-{{ $consentBrId }}').classList.remove('hidden'); document.body.style.overflow='hidden';"
                                                     class="px-6 py-2.5 bg-beige-peau text-noir-profond rounded-lg font-bold text-sm hover:bg-beige-peau/90 transition-colors">
@@ -182,28 +206,31 @@
                                     {{-- Message système normal --}}
                                     <div class="flex justify-center mb-4">
                                         <div class="max-w-sm">
-                                            <div class="bg-titane/20 border border-titane/30 text-ivoire-text/80 rounded-lg px-4 py-2 text-center">
+                                            <div
+                                                class="bg-titane/20 border border-titane/30 text-ivoire-text/80 rounded-lg px-4 py-2 text-center">
                                                 <p class="text-sm">{{ $message->content }}</p>
-                                                <p class="text-xs text-ivoire-text/50 mt-1">{{ $message->created_at->format('H:i') }}</p>
+                                                <p class="text-xs text-ivoire-text/50 mt-1">
+                                                    {{ $message->created_at->format('H:i') }}</p>
                                             </div>
                                         </div>
                                     </div>
                                 @endif
                             @else
                                 {{-- ═══ MESSAGE NORMAL (client / tattooer) ═══ --}}
-                                <div class="flex {{ $message->sender_type === 'tattooer' ? 'justify-start' : 'justify-end' }} mb-4">
+                                <div
+                                    class="flex {{ $message->sender_type === 'tattooer' ? 'justify-start' : 'justify-end' }} mb-4">
                                     <div class="max-w-xs lg:max-w-md">
-                                        <div class="{{ $message->sender_type === 'tattooer'
-                                            ? 'bg-noir-profond text-ivoire-text'
-                                            : 'bg-beige-peau text-noir-profond' }} rounded-lg px-4 py-2">
+                                        <div
+                                            class="{{ $message->sender_type === 'tattooer'
+                                                ? 'bg-noir-profond text-ivoire-text'
+                                                : 'bg-beige-peau text-noir-profond' }} rounded-lg px-4 py-2">
                                             <p class="text-sm whitespace-pre-wrap">{{ $message->content }}</p>
 
                                             @if ($message->getMedia('attachments')->isNotEmpty())
                                                 <div class="mt-2 space-y-1">
                                                     @foreach ($message->getMedia('attachments') as $media)
                                                         @if (str_starts_with($media->mime_type, 'image/'))
-                                                            <img src="{{ $media->getUrl() }}"
-                                                                alt="Pièce jointe"
+                                                            <img src="{{ $media->getUrl() }}" alt="Pièce jointe"
                                                                 class="rounded max-w-full cursor-pointer hover:opacity-90"
                                                                 onclick="window.open('{{ $media->getUrl() }}', '_blank')">
                                                         @else
@@ -216,7 +243,8 @@
                                                 </div>
                                             @endif
                                         </div>
-                                        <p class="text-xs text-ivoire-text/50 mt-1 {{ $message->sender_type === 'tattooer' ? '' : 'text-right' }}">
+                                        <p
+                                            class="text-xs text-ivoire-text/50 mt-1 {{ $message->sender_type === 'tattooer' ? '' : 'text-right' }}">
                                             {{ $message->created_at->format('H:i') }}
                                         </p>
                                     </div>
@@ -229,11 +257,10 @@
                 {{-- ═══ SÉLECTION DE DATES ═══ --}}
                 @if (
                     $bookingRequest->proposed_dates &&
-                    count($bookingRequest->proposed_dates) > 0 &&
-                    !$bookingRequest->confirmed_date &&
-                    in_array($bookingRequest->status->value, ['accepted', 'deposit_paid']) &&
-                    $bookingRequest->deposit_paid_at
-                )
+                        count($bookingRequest->proposed_dates) > 0 &&
+                        !$bookingRequest->confirmed_date &&
+                        in_array($bookingRequest->status->value, ['accepted', 'deposit_paid']) &&
+                        $bookingRequest->deposit_paid_at)
                     <div class="bg-vert-succes/5 border border-vert-succes/20 rounded-xl p-4 mx-4 mt-4">
                         <h3 class="text-sm font-bold text-ivoire-text mb-1">📅 Choisissez votre date de rendez-vous</h3>
                         <p class="text-xs text-ivoire-text/60 mb-3">Sélectionnez la date qui vous convient.</p>
@@ -256,7 +283,8 @@
                                     };
                                 @endphp
 
-                                <form action="{{ route('client.booking-request.select-date', $bookingRequest) }}" method="POST">
+                                <form action="{{ route('client.booking-request.select-date', $bookingRequest) }}"
+                                    method="POST">
                                     @csrf
                                     <input type="hidden" name="index" value="{{ $index }}">
                                     <button type="submit"
@@ -278,7 +306,8 @@
                             @endforeach
                         </div>
 
-                        <form action="{{ route('client.booking-request.request-alternatives', $bookingRequest) }}" method="POST" class="mt-2">
+                        <form action="{{ route('client.booking-request.request-alternatives', $bookingRequest) }}"
+                            method="POST" class="mt-2">
                             @csrf
                             <button type="submit" class="text-xs text-titane underline hover:text-ivoire-text">
                                 Aucune date ne me convient
@@ -288,7 +317,8 @@
                 @elseif($bookingRequest->confirmed_date && !$bookingRequest->appointment_datetime)
                     <div class="bg-vert-succes/10 border border-vert-succes/30 rounded-lg p-4 mx-4 mt-4">
                         <p class="text-sm text-vert-succes font-medium">
-                            ✅ Date choisie : {{ \Carbon\Carbon::parse($bookingRequest->confirmed_date)->translatedFormat('l d F Y') }}
+                            ✅ Date choisie :
+                            {{ \Carbon\Carbon::parse($bookingRequest->confirmed_date)->translatedFormat('l d F Y') }}
                         </p>
                         <p class="text-xs text-ivoire-text/60 mt-1">L'artiste va fixer l'horaire exact du rendez-vous.</p>
                     </div>
@@ -325,13 +355,15 @@
                             @if ($deadline)
                                 <div class="bg-jaune-alerte/10 border border-jaune-alerte/30 rounded-lg p-3 mb-4">
                                     <p class="text-jaune-alerte text-sm">
-                                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                         Les pièces jointes sont désactivées jusqu'au paiement de l'acompte
                                         <span class="block mt-1">
-                                            Délai : {{ $daysRemaining > 0 ? $daysRemaining . ' jour(s) restant(s)' : 'Dernier jour' }}
+                                            Délai :
+                                            {{ $daysRemaining > 0 ? $daysRemaining . ' jour(s) restant(s)' : 'Dernier jour' }}
                                             @if ($daysRemaining <= 1)
                                                 <span class="text-rouge-alerte font-semibold"> - Urgent !</span>
                                             @endif
@@ -379,7 +411,8 @@
                                 @php $summary = $bookingRequest->designTrackingSummary(); @endphp
                                 <div class="mt-4 bg-titane/20 rounded-xl p-4 border border-titane/30">
                                     <h3 class="text-lg font-semibold text-ivoire-text mb-3 flex items-center">
-                                        <svg class="w-5 h-5 mr-2 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-5 h-5 mr-2 text-beige-peau" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                         </svg>
@@ -398,7 +431,8 @@
                                                 </div>
                                             </div>
                                             <p class="text-ivoire-text/50 text-xs mt-1">
-                                                {{ $summary['designs_included'] }} inclus — {{ $summary['designs_remaining'] }} restant(s)
+                                                {{ $summary['designs_included'] }} inclus —
+                                                {{ $summary['designs_remaining'] }} restant(s)
                                             </p>
                                         </div>
 
@@ -407,10 +441,12 @@
                                                 <span class="text-ivoire-text/70 text-sm">
                                                     Modifications
                                                     @if ($summary['designs_sent'] > 0)
-                                                        <span class="text-xs">(dessin #{{ $summary['current_design_number'] }})</span>
+                                                        <span class="text-xs">(dessin
+                                                            #{{ $summary['current_design_number'] }})</span>
                                                     @endif
                                                 </span>
-                                                <span class="text-vert-succes font-bold">{{ $summary['modifications_used_current'] }}</span>
+                                                <span
+                                                    class="text-vert-succes font-bold">{{ $summary['modifications_used_current'] }}</span>
                                             </div>
                                             <div class="w-full bg-titane/30 rounded-full h-2">
                                                 <div class="bg-vert-succes h-2 rounded-full transition-all"
@@ -418,13 +454,15 @@
                                                 </div>
                                             </div>
                                             <p class="text-ivoire-text/50 text-xs mt-1">
-                                                {{ $summary['modifications_per_design'] }} par dessin — {{ $summary['modifications_remaining_current'] }} restante(s)
+                                                {{ $summary['modifications_per_design'] }} par dessin —
+                                                {{ $summary['modifications_remaining_current'] }} restante(s)
                                             </p>
                                         </div>
 
                                         <div class="bg-noir-profond/30 rounded-lg p-3">
                                             <div class="flex items-center mb-2">
-                                                <svg class="w-4 h-4 mr-2 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <svg class="w-4 h-4 mr-2 text-beige-peau" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                         d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                 </svg>
@@ -493,13 +531,16 @@
                                 ? \Carbon\Carbon::parse($conversation->deposit_deadline_at)
                                 : $conversation->deposit_deadline_at;
                         }
-                        $actionDaysRemaining = $actionDeadline ? (int) ceil(now()->diffInHours($actionDeadline) / 24) : null;
+                        $actionDaysRemaining = $actionDeadline
+                            ? (int) ceil(now()->diffInHours($actionDeadline) / 24)
+                            : null;
                     @endphp
 
                     @if ($actionDeadline)
                         <div class="mb-4 p-3 bg-jaune-alerte/10 border border-jaune-alerte/30 rounded-lg">
                             <p class="text-jaune-alerte text-sm">
-                                <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
@@ -507,7 +548,8 @@
                                 @if ($actionDaysRemaining < 0)
                                     <span class="block mt-1 text-rouge-alerte font-semibold">⚠️ Délai expiré</span>
                                 @elseif ($actionDaysRemaining <= 1)
-                                    <span class="block mt-1 text-rouge-alerte font-semibold">⚠️ Urgent - Dernier jour</span>
+                                    <span class="block mt-1 text-rouge-alerte font-semibold">⚠️ Urgent - Dernier
+                                        jour</span>
                                 @else
                                     <span class="block mt-1">({{ $actionDaysRemaining }} jour(s) restant(s))</span>
                                 @endif
@@ -521,7 +563,8 @@
                             💳 Payer l'acompte ({{ $bookingRequest->total_deposit_amount }}€)
                         </a>
 
-                        <form action="{{ route('client.booking-request.cancel', $bookingRequest) }}" method="POST" class="flex-1">
+                        <form action="{{ route('client.booking-request.cancel', $bookingRequest) }}" method="POST"
+                            class="flex-1">
                             @csrf
                             @method('DELETE')
                             <button type="submit"
@@ -559,7 +602,8 @@
                             <h3 class="text-lg font-bold text-ivoire-text">Informations artiste</h3>
                             <svg class="w-5 h-5 text-ivoire-text transition-transform" :class="{ 'rotate-180': open }"
                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
                         <div x-show="open" x-collapse class="px-6 pb-4">
@@ -603,9 +647,15 @@
             isMinor: {{ $isMinor ? 'true' : 'false' }},
             showInfoSheet: false,
             medicalFlags: {
-                allergies: false, anticoagulant: false, diabetes: false,
-                cicatrisation: false, skin_disease: false, vih_hepatite: false,
-                pregnant: false, roaccutane: false, cheloide: false
+                allergies: false,
+                anticoagulant: false,
+                diabetes: false,
+                cicatrisation: false,
+                skin_disease: false,
+                vih_hepatite: false,
+                pregnant: false,
+                roaccutane: false,
+                cheloide: false
             }
         }">
 
@@ -613,38 +663,44 @@
             <div class="bg-gris-fonde w-full sm:max-w-2xl sm:rounded-2xl rounded-t-2xl max-h-[95vh] overflow-y-auto">
 
                 {{-- Header --}}
-                <div class="sticky top-0 bg-gris-fonde z-10 p-4 border-b border-titane/20 flex items-center justify-between">
+                <div
+                    class="sticky top-0 bg-gris-fonde z-10 p-4 border-b border-titane/20 flex items-center justify-between">
                     <div>
                         <h2 class="text-lg font-bold text-ivoire-text">📝 Consentement éclairé</h2>
-                        <p class="text-xs text-titane">Étape <span x-text="step"></span> / <span x-text="totalSteps"></span> — SNAT 2026</p>
+                        <p class="text-xs text-titane">Étape <span x-text="step"></span> / <span
+                                x-text="totalSteps"></span> — SNAT 2026</p>
                     </div>
                     <button type="button"
                         onclick="this.closest('[id^=consent-modal]').classList.add('hidden'); document.body.style.overflow='';"
                         class="p-2 text-titane hover:text-ivoire-text">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
 
                 {{-- Progress bar --}}
                 <div class="w-full bg-noir-profond h-1">
-                    <div class="bg-beige-peau h-1 transition-all duration-300" :style="'width:' + (step/totalSteps*100) + '%'"></div>
+                    <div class="bg-beige-peau h-1 transition-all duration-300"
+                        :style="'width:' + (step / totalSteps * 100) + '%'"></div>
                 </div>
 
                 <form action="{{ route('client.consent.store', $bookingRequest) }}" method="POST"
-                    enctype="multipart/form-data" class="p-4 space-y-4"
-                    id="consent-form-{{ $bookingRequest->id }}"
+                    enctype="multipart/form-data" class="p-4 space-y-4" id="consent-form-{{ $bookingRequest->id }}"
                     novalidate
                     onsubmit="return prepareAndValidateConsent({{ $bookingRequest->id }}, {{ $isMinor ? 'true' : 'false' }})">
                     @csrf
 
                     {{-- Champs pré-remplis depuis BookingRequest (hidden, requis par le controller) --}}
-                    <input type="hidden" name="act_type" value="{{ strtolower($bookingRequest->tattoo_type ?? 'tatouage') }}">
-                    <input type="hidden" name="body_zone" value="{{ $bookingRequest->body_zone ?? '' }}">
-                    <input type="hidden" name="act_description" value="{{ $bookingRequest->tattoo_description ?? $bookingRequest->description ?? '' }}">
-                    <input type="hidden" name="total_price" value="{{ $bookingRequest->total_price ?? $bookingRequest->estimated_total_price ?? 0 }}">
-                    <input type="hidden" name="deposit_amount" value="{{ $bookingRequest->deposit_amount ?? $bookingRequest->total_deposit_amount ?? 0 }}">
+                    <input type="hidden" name="act_type" value="tatouage">
+                    <input type="hidden" name="body_zone" value="{{ $bookingRequest->body_zone ?? 'Non précisé' }}">
+                    <input type="hidden" name="act_description"
+                        value="{{ $bookingRequest->description ?? 'Non précisé' }}">
+                    <input type="hidden" name="total_price"
+                        value="{{ $bookingRequest->total_price ?? ($bookingRequest->estimated_total_price ?? 0) }}">
+                    <input type="hidden" name="deposit_amount"
+                        value="{{ $bookingRequest->deposit_amount ?? ($bookingRequest->total_deposit_amount ?? 0) }}">
 
                     {{-- Erreurs de validation (visibles si le controller rejette) --}}
                     @if ($errors->any())
@@ -667,11 +723,14 @@
                             <div class="flex items-center gap-2">
                                 <span>📄</span>
                                 <div class="flex-1">
-                                    <p class="text-sm text-ivoire-text font-semibold">Fiche d'information préalable à l'acte</p>
-                                    <p class="text-xs text-titane">Cliquez pour lire (obligatoire)</p>
+                                    <p class="text-sm text-ivoire-text font-semibold">Fiche d'information préalable à
+                                        l'acte</p>
+                                    <p class="text-xs text-titane">Cliquez pour lire</p>
                                 </div>
-                                <svg class="w-5 h-5 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                <svg class="w-5 h-5 text-beige-peau" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5l7 7-7 7" />
                                 </svg>
                             </div>
                         </div>
@@ -707,7 +766,8 @@
                             </div>
                             <div>
                                 <label class="text-xs text-titane block mb-1">Email *</label>
-                                <input type="email" name="client_email" required value="{{ $client->user?->email ?? $client->email ?? '' }}"
+                                <input type="email" name="client_email" required
+                                    value="{{ $client->user?->email ?? ($client->email ?? '') }}"
                                     class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
                             </div>
                         </div>
@@ -716,7 +776,8 @@
                         @if ($isMinor)
                             <div class="bg-ambre-warning/10 border border-ambre-warning/30 rounded-lg p-4 space-y-3">
                                 <input type="hidden" name="is_minor" value="1">
-                                <p class="text-sm font-bold text-ambre-warning">⚠️ Client mineur — Autorisation parentale obligatoire</p>
+                                <p class="text-sm font-bold text-ambre-warning">⚠️ Client mineur — Autorisation parentale
+                                    obligatoire</p>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div>
                                         <label class="text-xs text-titane block mb-1">Nom du représentant légal *</label>
@@ -735,12 +796,14 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <label class="text-xs text-titane block mb-1">N° pièce d'identité du représentant *</label>
+                                    <label class="text-xs text-titane block mb-1">N° pièce d'identité du représentant
+                                        *</label>
                                     <input type="text" name="parent_id_number" required
                                         class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm">
                                 </div>
                                 <div>
-                                    <label class="text-xs text-titane block mb-1">📎 Copie pièce d'identité du représentant *</label>
+                                    <label class="text-xs text-titane block mb-1">📎 Copie pièce d'identité du représentant
+                                        *</label>
                                     <input type="file" name="parent_id_document" required accept="image/*,.pdf"
                                         class="w-full text-sm text-ivoire-text file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-ambre-warning/20 file:text-ambre-warning file:font-semibold file:text-xs">
                                 </div>
@@ -762,16 +825,21 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <label class="text-xs text-titane block mb-1">📎 Copie pièce d'identité du client *</label>
+                                    <label class="text-xs text-titane block mb-1">📎 Copie pièce d'identité du client
+                                        *</label>
                                     <input type="file" name="client_id_document" required accept="image/*,.pdf"
                                         class="w-full text-sm text-ivoire-text file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-ambre-warning/20 file:text-ambre-warning file:font-semibold file:text-xs">
                                 </div>
                                 <div>
                                     <label class="text-xs text-titane block mb-1">✍️ Signature du représentant *</label>
-                                    <canvas class="sig-canvas w-full bg-white rounded-lg border-2 border-ambre-warning/30 cursor-crosshair"
-                                        data-signature="parent-{{ $bookingRequest->id }}" style="touch-action: none; height: 100px;"></canvas>
-                                    <input type="hidden" name="parent_signature_data" class="parent-sig-data-{{ $bookingRequest->id }}">
-                                    <button type="button" onclick="clearSigCanvas(document.querySelector('[data-signature=\'parent-{{ $bookingRequest->id }}\']'))"
+                                    <canvas
+                                        class="sig-canvas w-full bg-white rounded-lg border-2 border-ambre-warning/30 cursor-crosshair"
+                                        data-signature="parent-{{ $bookingRequest->id }}"
+                                        style="touch-action: none; height: 100px;"></canvas>
+                                    <input type="hidden" name="parent_signature_data"
+                                        class="parent-sig-data-{{ $bookingRequest->id }}">
+                                    <button type="button"
+                                        onclick="clearSigCanvas(document.querySelector('[data-signature=\'parent-{{ $bookingRequest->id }}\']'))"
                                         class="text-xs text-titane hover:text-rouge-alerte mt-1">Effacer</button>
                                 </div>
                             </div>
@@ -779,10 +847,14 @@
                             <input type="hidden" name="is_minor" value="0">
                         @endif
 
-                        <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider pt-2">2. Description de l'acte</h3>
+                        <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider pt-2">2. Description de
+                            l'acte</h3>
                         <div class="bg-noir-profond/50 rounded-lg p-3 space-y-1">
-                            <p class="text-sm text-ivoire-text"><strong>Type :</strong> {{ ucfirst($bookingRequest->tattoo_type ?? 'Tatouage') }}</p>
-                            <p class="text-xs text-titane"><strong>Zone :</strong> {{ $bookingRequest->body_zone ?? 'Non précisé' }} · <strong>Style :</strong> {{ $bookingRequest->tattoo_style ?? 'Non précisé' }}</p>
+                            <p class="text-sm text-ivoire-text"><strong>Type :</strong>
+                                Tatouage</p>
+                            <p class="text-xs text-titane"><strong>Zone :</strong>
+                                {{ $bookingRequest->body_zone ?? 'Non précisé' }} · <strong>Style :</strong>
+                                Tatouage</p>
                             @if ($bookingRequest->description)
                                 <p class="text-xs text-titane">{{ $bookingRequest->description }}</p>
                             @endif
@@ -796,20 +868,41 @@
 
                     {{-- ═══ ÉTAPE 2 : QUESTIONNAIRE MÉDICAL ═══ --}}
                     <div x-show="step === 2" class="space-y-4">
-                        <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider">3. Questionnaire médical</h3>
+                        <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider">3. Questionnaire médical
+                        </h3>
                         <p class="text-xs text-titane">Cochez les conditions qui vous concernent :</p>
 
                         @php
                             $medicalItems = [
-                                'allergies' => ['label' => 'Allergies connues (métaux, latex, encres…)', 'icon' => '🤧', 'detail' => true],
-                                'anticoagulant' => ['label' => 'Traitement anticoagulant', 'icon' => '💉', 'detail' => false],
+                                'allergies' => [
+                                    'label' => 'Allergies connues (métaux, latex, encres…)',
+                                    'icon' => '🤧',
+                                    'detail' => true,
+                                ],
+                                'anticoagulant' => [
+                                    'label' => 'Traitement anticoagulant',
+                                    'icon' => '💉',
+                                    'detail' => false,
+                                ],
                                 'diabetes' => ['label' => 'Diabète', 'icon' => '🩸', 'detail' => false],
-                                'cicatrisation' => ['label' => 'Troubles de cicatrisation', 'icon' => '🩹', 'detail' => false],
-                                'skin_disease' => ['label' => 'Maladie de peau (eczéma, psoriasis…)', 'icon' => '🩹', 'detail' => true],
+                                'cicatrisation' => [
+                                    'label' => 'Troubles de cicatrisation',
+                                    'icon' => '🩹',
+                                    'detail' => false,
+                                ],
+                                'skin_disease' => [
+                                    'label' => 'Maladie de peau (eczéma, psoriasis…)',
+                                    'icon' => '🩹',
+                                    'detail' => true,
+                                ],
                                 'vih_hepatite' => ['label' => 'VIH / Hépatite', 'icon' => '🔬', 'detail' => false],
                                 'pregnant' => ['label' => 'Grossesse / allaitement', 'icon' => '🤰', 'detail' => false],
                                 'roaccutane' => ['label' => 'Roaccutane (< 6 mois)', 'icon' => '💊', 'detail' => false],
-                                'cheloide' => ['label' => 'Antécédents de chéloïdes', 'icon' => '⚕️', 'detail' => false],
+                                'cheloide' => [
+                                    'label' => 'Antécédents de chéloïdes',
+                                    'icon' => '⚕️',
+                                    'detail' => false,
+                                ],
                             ];
                         @endphp
 
@@ -819,11 +912,13 @@
                                     <input type="checkbox" name="medical_{{ $key }}" value="1"
                                         x-model="medicalFlags.{{ $key }}"
                                         class="rounded border-titane/30 bg-noir-profond text-beige-peau focus:ring-beige-peau w-5 h-5">
-                                    <span class="text-sm text-ivoire-text">{{ $item['icon'] }} {{ $item['label'] }}</span>
+                                    <span class="text-sm text-ivoire-text">{{ $item['icon'] }}
+                                        {{ $item['label'] }}</span>
                                 </label>
                                 @if ($item['detail'])
                                     <div x-show="medicalFlags.{{ $key }}" x-collapse class="mt-2 ml-8">
-                                        <input type="text" name="medical_{{ $key }}_detail" placeholder="Précisez..."
+                                        <input type="text" name="medical_{{ $key }}_detail"
+                                            placeholder="Précisez..."
                                             class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm">
                                     </div>
                                 @endif
@@ -837,28 +932,39 @@
                         </div>
 
                         <div class="flex gap-2">
-                            <button type="button" @click="step = 1" class="flex-1 px-4 py-3 bg-noir-profond text-titane font-semibold rounded-lg text-sm">← Retour</button>
-                            <button type="button" @click="step = 3" class="flex-1 px-4 py-3 bg-beige-peau text-noir-profond font-bold rounded-lg text-sm">Continuer →</button>
+                            <button type="button" @click="step = 1"
+                                class="flex-1 px-4 py-3 bg-noir-profond text-titane font-semibold rounded-lg text-sm">←
+                                Retour</button>
+                            <button type="button" @click="step = 3"
+                                class="flex-1 px-4 py-3 bg-beige-peau text-noir-profond font-bold rounded-lg text-sm">Continuer
+                                →</button>
                         </div>
                     </div>
 
                     {{-- ═══ ÉTAPE 3 : FINANCIER + IMAGE ═══ --}}
                     <div x-show="step === 3" class="space-y-4">
-                        <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider">4. Clause financière</h3>
+                        <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider">4. Clause financière
+                        </h3>
 
                         <div class="bg-noir-profond/50 rounded-lg p-3 space-y-2 text-sm text-ivoire-text">
                             @if ($bookingRequest->price_estimate_max ?? $bookingRequest->estimated_total_price)
                                 <p>💰 <strong>Prix estimé :</strong>
-                                    @if (($bookingRequest->price_estimate_min ?? null) && ($bookingRequest->price_estimate_min != ($bookingRequest->price_estimate_max ?? null)))
-                                        {{ number_format($bookingRequest->price_estimate_min, 0) }}€ - {{ number_format($bookingRequest->price_estimate_max, 0) }}€
+                                    @if (
+                                        ($bookingRequest->price_estimate_min ?? null) &&
+                                            $bookingRequest->price_estimate_min != ($bookingRequest->price_estimate_max ?? null))
+                                        {{ number_format($bookingRequest->price_estimate_min, 0) }}€ -
+                                        {{ number_format($bookingRequest->price_estimate_max, 0) }}€
                                     @else
                                         {{ number_format($bookingRequest->price_estimate_max ?? $bookingRequest->estimated_total_price, 0) }}€
                                     @endif
                                 </p>
                             @endif
                             @if ($bookingRequest->total_deposit_amount)
-                                <p>🔒 <strong>Acompte versé :</strong> {{ number_format($bookingRequest->total_deposit_amount, 0) }}€
-                                    @if ($bookingRequest->deposit_paid_at) <span class="text-vert-succes">(payé)</span> @endif
+                                <p>🔒 <strong>Acompte versé :</strong>
+                                    {{ number_format($bookingRequest->total_deposit_amount, 0) }}€
+                                    @if ($bookingRequest->deposit_paid_at)
+                                        <span class="text-vert-succes">(payé)</span>
+                                    @endif
                                 </p>
                             @endif
                         </div>
@@ -869,9 +975,7 @@
                             <input type="hidden" name="retouche_included" value="1">
 
                             <!-- Case visible -->
-                            <input type="checkbox"
-                                checked
-                                disabled
+                            <input type="checkbox" checked disabled
                                 class="rounded border-titane/30 bg-noir-profond text-beige-peau w-5 h-5 mt-0.5">
 
                             <span class="text-sm text-ivoire-text">
@@ -879,53 +983,69 @@
                             </span>
                         </label>
 
-                        <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider pt-2">5. Autorisation image</h3>
+                        <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider pt-2">5. Autorisation
+                            image</h3>
                         <div class="space-y-2">
                             <label class="flex items-center gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
-                                <input type="radio" name="image_authorization" value="1" class="border-titane/30 bg-noir-profond text-beige-peau">
-                                <span class="text-sm text-ivoire-text">📸 J'autorise l'utilisation de photos à des fins promotionnelles</span>
+                                <input type="radio" name="image_authorization" value="1"
+                                    class="border-titane/30 bg-noir-profond text-beige-peau">
+                                <span class="text-sm text-ivoire-text">📸 J'autorise l'utilisation de photos à des fins
+                                    promotionnelles</span>
                             </label>
                             <label class="flex items-center gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
-                                <input type="radio" name="image_authorization" value="0" class="border-titane/30 bg-noir-profond text-beige-peau">
+                                <input type="radio" name="image_authorization" value="0"
+                                    class="border-titane/30 bg-noir-profond text-beige-peau">
                                 <span class="text-sm text-ivoire-text">🚫 Je refuse toute utilisation</span>
                             </label>
                         </div>
 
                         <div class="flex gap-2">
-                            <button type="button" @click="step = 2" class="flex-1 px-4 py-3 bg-noir-profond text-titane font-semibold rounded-lg text-sm">← Retour</button>
-                            <button type="button" @click="step = 4" class="flex-1 px-4 py-3 bg-beige-peau text-noir-profond font-bold rounded-lg text-sm">Continuer →</button>
+                            <button type="button" @click="step = 2"
+                                class="flex-1 px-4 py-3 bg-noir-profond text-titane font-semibold rounded-lg text-sm">←
+                                Retour</button>
+                            <button type="button" @click="step = 4"
+                                class="flex-1 px-4 py-3 bg-beige-peau text-noir-profond font-bold rounded-lg text-sm">Continuer
+                                →</button>
                         </div>
                     </div>
 
                     {{-- ═══ ÉTAPE 4 : CONFIRMATIONS + SIGNATURE ═══ --}}
                     <div x-show="step === 4" class="space-y-4">
-                        <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider">6. Confirmations obligatoires</h3>
+                        <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider">6. Confirmations
+                            obligatoires</h3>
 
                         <div class="space-y-2">
                             <label class="flex items-start gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
                                 <input type="checkbox" name="confirm_medical_sincere" value="1" required
                                     class="rounded border-titane/30 bg-noir-profond text-beige-peau w-5 h-5 mt-0.5">
-                                <span class="text-sm text-ivoire-text">Je certifie avoir répondu de manière sincère et complète au questionnaire médical.</span>
+                                <span class="text-sm text-ivoire-text">Je certifie avoir répondu de manière sincère et
+                                    complète au questionnaire médical.</span>
                             </label>
                             <label class="flex items-start gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
                                 <input type="checkbox" name="confirm_risks_informed" value="1" required
                                     class="rounded border-titane/30 bg-noir-profond text-beige-peau w-5 h-5 mt-0.5">
-                                <span class="text-sm text-ivoire-text">Je reconnais avoir reçu toutes les informations concernant la nature de l'acte, ses risques, ses suites normales et ses complications éventuelles.</span>
+                                <span class="text-sm text-ivoire-text">Je reconnais avoir reçu toutes les informations
+                                    concernant la nature de l'acte, ses risques, ses suites normales et ses complications
+                                    éventuelles.</span>
                             </label>
                             <label class="flex items-start gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
                                 <input type="checkbox" name="confirm_info_sheet_read" value="1" required
                                     class="rounded border-titane/30 bg-noir-profond text-beige-peau w-5 h-5 mt-0.5">
-                                <span class="text-sm text-ivoire-text">J'ai lu et compris la <span class="text-beige-peau underline cursor-pointer" @click.stop="showInfoSheet = true">fiche d'information préalable</span>.</span>
+                                <span class="text-sm text-ivoire-text">J'ai lu et compris la <span
+                                        class="text-beige-peau underline cursor-pointer"
+                                        @click.stop="showInfoSheet = true">fiche d'information préalable</span>.</span>
                             </label>
                             <label class="flex items-start gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
                                 <input type="checkbox" name="confirm_aftercare_received" value="1" required
                                     class="rounded border-titane/30 bg-noir-profond text-beige-peau w-5 h-5 mt-0.5">
-                                <span class="text-sm text-ivoire-text">Une fiche de soins post-acte m'a été remise et expliquée.</span>
+                                <span class="text-sm text-ivoire-text">Une fiche de soins post-acte m'a été remise et
+                                    expliquée.</span>
                             </label>
                             <label class="flex items-start gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
                                 <input type="checkbox" name="confirm_not_intoxicated" value="1" required
                                     class="rounded border-titane/30 bg-noir-profond text-beige-peau w-5 h-5 mt-0.5">
-                                <span class="text-sm text-ivoire-text">Je confirme ne pas être sous l'emprise d'alcool ou de stupéfiants.</span>
+                                <span class="text-sm text-ivoire-text">Je confirme ne pas être sous l'emprise d'alcool ou
+                                    de stupéfiants.</span>
                             </label>
                             <label class="flex items-start gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
                                 <input type="checkbox" name="confirm_over_18_or_authorized" value="1" required
@@ -941,20 +1061,24 @@
                             <label class="flex items-start gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
                                 <input type="checkbox" name="confirm_rgpd" value="1" required
                                     class="rounded border-titane/30 bg-noir-profond text-beige-peau w-5 h-5 mt-0.5">
-                                <span class="text-sm text-ivoire-text">J'accepte la conservation de mes données conformément au RGPD.</span>
+                                <span class="text-sm text-ivoire-text">J'accepte la conservation de mes données
+                                    conformément au RGPD.</span>
                             </label>
                         </div>
 
                         {{-- Décharge --}}
                         <div class="bg-noir-profond/50 rounded-lg p-3">
                             <p class="text-xs text-ivoire-text/80 italic">
-                                « Je déclare accepter l'acte en pleine connaissance de cause et ne pourrai engager la responsabilité du professionnel en cas de complication liée au non-respect des soins post-acte ou à une omission dans mes déclarations médicales. »
+                                « Je déclare accepter l'acte en pleine connaissance de cause et ne pourrai engager la
+                                responsabilité du professionnel en cas de complication liée au non-respect des soins
+                                post-acte ou à une omission dans mes déclarations médicales. »
                             </p>
                         </div>
 
                         {{-- Mention manuscrite --}}
                         <div>
-                            <label class="text-xs text-titane block mb-1">✏️ Écrivez : « Lu et approuvé, bon pour consentement » *</label>
+                            <label class="text-xs text-titane block mb-1">✏️ Écrivez : « Lu et approuvé, bon pour
+                                consentement » *</label>
                             <input type="text" name="handwritten_mention" required
                                 placeholder="Lu et approuvé, bon pour consentement"
                                 class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
@@ -963,16 +1087,23 @@
                         {{-- Signature --}}
                         <div>
                             <label class="text-xs text-titane block mb-2">✍️ Votre signature *</label>
-                            <canvas class="sig-canvas w-full bg-white rounded-lg border-2 border-beige-peau/30 cursor-crosshair"
-                                data-signature="client-{{ $bookingRequest->id }}" style="touch-action: none; height: 120px;"></canvas>
-                            <input type="hidden" name="signature_data" class="client-sig-data-{{ $bookingRequest->id }}">
-                            <button type="button" onclick="clearSigCanvas(document.querySelector('[data-signature=\'client-{{ $bookingRequest->id }}\']'))"
+                            <canvas
+                                class="sig-canvas w-full bg-white rounded-lg border-2 border-beige-peau/30 cursor-crosshair"
+                                data-signature="client-{{ $bookingRequest->id }}"
+                                style="touch-action: none; height: 120px;"></canvas>
+                            <input type="hidden" name="signature_data"
+                                class="client-sig-data-{{ $bookingRequest->id }}">
+                            <button type="button"
+                                onclick="clearSigCanvas(document.querySelector('[data-signature=\'client-{{ $bookingRequest->id }}\']'))"
                                 class="text-xs text-titane hover:text-rouge-alerte mt-1">Effacer la signature</button>
                         </div>
 
                         <div class="flex gap-2">
-                            <button type="button" @click="step = 3" class="flex-1 px-4 py-3 bg-noir-profond text-titane font-semibold rounded-lg text-sm">← Retour</button>
-                            <button type="submit" class="flex-1 px-4 py-3 bg-vert-succes text-white font-bold rounded-lg text-sm hover:bg-vert-succes/90">
+                            <button type="button" @click="step = 3"
+                                class="flex-1 px-4 py-3 bg-noir-profond text-titane font-semibold rounded-lg text-sm">←
+                                Retour</button>
+                            <button type="submit"
+                                class="flex-1 px-4 py-3 bg-vert-succes text-white font-bold rounded-lg text-sm hover:bg-vert-succes/90">
                                 ✅ Signer le consentement
                             </button>
                         </div>
@@ -982,18 +1113,20 @@
         </div>
 
         {{-- ═══ SOUS-MODAL : FICHE D'INFORMATION PRÉALABLE SNAT 2026 ═══ --}}
-        <div x-show="showInfoSheet" x-cloak x-transition
-            class="fixed inset-0 z-[70] overflow-y-auto bg-black/90"
+        <div x-show="showInfoSheet" x-cloak x-transition class="fixed inset-0 z-[70] overflow-y-auto bg-black/90"
             @keydown.escape.window="showInfoSheet = false">
 
             <div class="flex items-end sm:items-center justify-center min-h-screen p-0 sm:p-4">
                 <div class="bg-gris-fonde w-full sm:max-w-2xl sm:rounded-2xl rounded-t-2xl max-h-[95vh] overflow-y-auto">
 
-                    <div class="sticky top-0 bg-gris-fonde z-10 p-4 border-b border-titane/20 flex items-center justify-between">
+                    <div
+                        class="sticky top-0 bg-gris-fonde z-10 p-4 border-b border-titane/20 flex items-center justify-between">
                         <h2 class="text-lg font-bold text-ivoire-text">📄 Fiche d'information préalable</h2>
-                        <button type="button" @click="showInfoSheet = false" class="p-2 text-titane hover:text-ivoire-text">
+                        <button type="button" @click="showInfoSheet = false"
+                            class="p-2 text-titane hover:text-ivoire-text">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                     </div>
@@ -1002,59 +1135,93 @@
 
                         {{-- Infos pro --}}
                         <div class="bg-noir-profond/50 rounded-lg p-3">
-                            <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-2">1. Identification du professionnel</p>
-                            <p class="text-ivoire-text">{{ $tattooer?->studio_name ?? $tattooer?->user?->name ?? 'Professionnel' }}</p>
+                            <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-2">1. Identification du
+                                professionnel</p>
+                            <p class="text-ivoire-text">
+                                {{ $tattooer?->studio_name ?? ($tattooer?->user?->name ?? 'Professionnel') }}</p>
                             @if ($tattooer?->user?->name && $tattooer?->studio_name)
                                 <p class="text-xs text-titane">Praticien : {{ $tattooer->user->name }}</p>
                             @endif
-                            @if ($tattooer?->address) <p class="text-xs text-titane">{{ $tattooer->address }}</p> @endif
-                            @if ($tattooer?->siret) <p class="text-xs text-titane">SIRET : {{ $tattooer->siret }}</p> @endif
-                            @if ($tattooer?->ars_number) <p class="text-xs text-titane">ARS : {{ $tattooer->ars_number }}</p> @endif
-                            @if ($tattooer?->insurance_number) <p class="text-xs text-titane">RC Pro : {{ $tattooer->insurance_number }}</p> @endif
+                            @if ($tattooer?->address)
+                                <p class="text-xs text-titane">{{ $tattooer->address }}</p>
+                            @endif
+                            @if ($tattooer?->siret)
+                                <p class="text-xs text-titane">SIRET : {{ $tattooer->siret }}</p>
+                            @endif
+                            @if ($tattooer?->ars_number)
+                                <p class="text-xs text-titane">ARS : {{ $tattooer->ars_number }}</p>
+                            @endif
+                            @if ($tattooer?->insurance_number)
+                                <p class="text-xs text-titane">RC Pro : {{ $tattooer->insurance_number }}</p>
+                            @endif
                         </div>
 
                         <h4 class="font-bold text-ivoire-text">2. Objet du document</h4>
-                        <p>La présente fiche a pour objet de délivrer une information claire, loyale et appropriée sur la nature de l'acte envisagé, ses bénéfices attendus, ses contraintes, ses risques et ses complications possibles.</p>
-                        <p>Elle est remise avant toute réalisation de l'acte, afin de permettre une décision libre et éclairée.</p>
+                        <p>La présente fiche a pour objet de délivrer une information claire, loyale et appropriée sur la
+                            nature de l'acte envisagé, ses bénéfices attendus, ses contraintes, ses risques et ses
+                            complications possibles.</p>
+                        <p>Elle est remise avant toute réalisation de l'acte, afin de permettre une décision libre et
+                            éclairée.</p>
 
                         <h4 class="font-bold text-ivoire-text">3. Nature de l'acte</h4>
-                        <p><strong>Tatouage :</strong> Injection de pigments dans le derme au moyen d'aiguilles stériles à usage unique, entraînant une modification permanente de la peau.</p>
+                        <p><strong>Tatouage :</strong> Injection de pigments dans le derme au moyen d'aiguilles stériles à
+                            usage unique, entraînant une modification permanente de la peau.</p>
                         <p><strong>Piercing :</strong> Perforation cutanée ou muqueuse afin d'y insérer un bijou.</p>
-                        <p><strong>Body modification :</strong> Acte modifiant l'intégrité corporelle (scarification, surface piercing, etc.).</p>
+                        <p><strong>Body modification :</strong> Acte modifiant l'intégrité corporelle (scarification,
+                            surface piercing, etc.).</p>
 
                         <h4 class="font-bold text-ivoire-text">4. Caractère volontaire et esthétique</h4>
-                        <p>L'acte est réalisé à visée esthétique et n'a aucune finalité thérapeutique. Le résultat dépend de la morphologie, de la qualité de cicatrisation, du respect des soins post-acte, et de facteurs biologiques individuels. <strong>Aucun résultat esthétique précis ne peut être garanti.</strong></p>
+                        <p>L'acte est réalisé à visée esthétique et n'a aucune finalité thérapeutique. Le résultat dépend de
+                            la morphologie, de la qualité de cicatrisation, du respect des soins post-acte, et de facteurs
+                            biologiques individuels. <strong>Aucun résultat esthétique précis ne peut être garanti.</strong>
+                        </p>
 
                         <h4 class="font-bold text-ivoire-text">5. Risques généraux connus</h4>
-                        <p>Même lorsque l'acte est pratiqué dans le respect strict des règles d'hygiène : douleur, saignement, œdème, rougeur, infection locale, réaction allergique, inflammation prolongée, retard de cicatrisation, cicatrice hypertrophique ou chéloïde, rejet ou migration (piercing), résultat esthétique différent des attentes subjectives.</p>
-                        <p>Dans de rares cas : infection systémique, complications nécessitant traitement médical, séquelles cicatricielles permanentes.</p>
-                        <p class="text-ambre-warning font-semibold">Toute complication doit entraîner une consultation médicale immédiate.</p>
+                        <p>Même lorsque l'acte est pratiqué dans le respect strict des règles d'hygiène : douleur,
+                            saignement, œdème, rougeur, infection locale, réaction allergique, inflammation prolongée,
+                            retard de cicatrisation, cicatrice hypertrophique ou chéloïde, rejet ou migration (piercing),
+                            résultat esthétique différent des attentes subjectives.</p>
+                        <p>Dans de rares cas : infection systémique, complications nécessitant traitement médical, séquelles
+                            cicatricielles permanentes.</p>
+                        <p class="text-ambre-warning font-semibold">Toute complication doit entraîner une consultation
+                            médicale immédiate.</p>
 
                         <h4 class="font-bold text-ivoire-text">6. Contre-indications médicales</h4>
-                        <p>L'acte est déconseillé ou contre-indiqué notamment en cas de : grossesse/allaitement, diabète non stabilisé, troubles de la coagulation, traitement anticoagulant, immunodépression, dermatose active, prise d'isotrétinoïne récente, antécédents de chéloïdes.</p>
+                        <p>L'acte est déconseillé ou contre-indiqué notamment en cas de : grossesse/allaitement, diabète non
+                            stabilisé, troubles de la coagulation, traitement anticoagulant, immunodépression, dermatose
+                            active, prise d'isotrétinoïne récente, antécédents de chéloïdes.</p>
                         <p>En cas de doute médical, un avis médical préalable est recommandé.</p>
 
                         <h4 class="font-bold text-ivoire-text">7. Conditions d'hygiène</h4>
-                        <p>Le professionnel déclare utiliser du matériel stérile à usage unique, respecter les protocoles d'asepsie, porter des équipements de protection, appliquer les règles de gestion des déchets DASRI, et utiliser des encres conformes à la réglementation européenne REACH.</p>
+                        <p>Le professionnel déclare utiliser du matériel stérile à usage unique, respecter les protocoles
+                            d'asepsie, porter des équipements de protection, appliquer les règles de gestion des déchets
+                            DASRI, et utiliser des encres conformes à la réglementation européenne REACH.</p>
 
                         <h4 class="font-bold text-ivoire-text">8. Suites normales</h4>
-                        <p>Sensibilité locale, rougeur temporaire, suintement léger, formation de croûtes fines (tatouage), démangeaisons. Durée de cicatrisation variable selon la zone et l'individu.</p>
+                        <p>Sensibilité locale, rougeur temporaire, suintement léger, formation de croûtes fines (tatouage),
+                            démangeaisons. Durée de cicatrisation variable selon la zone et l'individu.</p>
 
                         <h4 class="font-bold text-ivoire-text">9. Soins post-acte</h4>
-                        <p>Le respect strict des soins post-acte conditionne le résultat final. Le non-respect augmente significativement le risque d'infection, peut altérer le résultat esthétique, et peut engager la responsabilité exclusive du client. Une fiche de soins détaillée est remise séparément.</p>
+                        <p>Le respect strict des soins post-acte conditionne le résultat final. Le non-respect augmente
+                            significativement le risque d'infection, peut altérer le résultat esthétique, et peut engager la
+                            responsabilité exclusive du client. Une fiche de soins détaillée est remise séparément.</p>
 
                         <h4 class="font-bold text-ivoire-text">10. Caractère permanent (Tatouage)</h4>
-                        <p>Le tatouage est un acte permanent. Le détatouage est long, coûteux, peut nécessiter plusieurs séances, peut laisser des cicatrices, et n'assure pas un effacement total.</p>
+                        <p>Le tatouage est un acte permanent. Le détatouage est long, coûteux, peut nécessiter plusieurs
+                            séances, peut laisser des cicatrices, et n'assure pas un effacement total.</p>
 
                         <h4 class="font-bold text-ivoire-text">11. Liberté de décision</h4>
-                        <p>Le client dispose d'un délai de réflexion libre, du droit de poser toutes questions, et du droit de renoncer à l'acte. Aucune pression commerciale n'est exercée.</p>
+                        <p>Le client dispose d'un délai de réflexion libre, du droit de poser toutes questions, et du droit
+                            de renoncer à l'acte. Aucune pression commerciale n'est exercée.</p>
 
                         <h4 class="font-bold text-ivoire-text">12. Traçabilité</h4>
-                        <p>Les références des encres / bijoux utilisés sont enregistrées et conservées conformément aux obligations légales.</p>
+                        <p>Les références des encres / bijoux utilisés sont enregistrées et conservées conformément aux
+                            obligations légales.</p>
 
                         <div class="bg-noir-profond/50 rounded-lg p-3 mt-4">
                             <p class="text-xs text-titane">
-                                ⚖️ Références : ARS (déclaration d'activité obligatoire), Code de la santé publique (art. R1311-1 à R1311-11), Normes européennes REACH 2022.
+                                ⚖️ Références : ARS (déclaration d'activité obligatoire), Code de la santé publique (art.
+                                R1311-1 à R1311-11), Normes européennes REACH 2022.
                             </p>
                         </div>
 
@@ -1096,7 +1263,10 @@
             var container = document.getElementById('previewContainer');
             if (!preview || !container) return;
             container.innerHTML = '';
-            if (e.target.files.length === 0) { preview.classList.add('hidden'); return; }
+            if (e.target.files.length === 0) {
+                preview.classList.add('hidden');
+                return;
+            }
             preview.classList.remove('hidden');
 
             Array.from(e.target.files).forEach(function(file, index) {
@@ -1111,20 +1281,26 @@
                 } else {
                     var icon = document.createElement('div');
                     icon.className = 'w-12 h-12 bg-titane/30 rounded mr-3 flex items-center justify-center';
-                    icon.innerHTML = '<svg class="w-6 h-6 text-ivoire-text/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>';
+                    icon.innerHTML =
+                        '<svg class="w-6 h-6 text-ivoire-text/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>';
                     div.appendChild(icon);
                 }
 
                 var info = document.createElement('div');
                 info.className = 'flex-1';
-                info.innerHTML = '<div class="text-ivoire-text font-medium">' + file.name + '</div><div class="text-ivoire-text/50 text-xs">' + (file.size / 1024).toFixed(1) + ' KB</div>';
+                info.innerHTML = '<div class="text-ivoire-text font-medium">' + file.name +
+                    '</div><div class="text-ivoire-text/50 text-xs">' + (file.size / 1024).toFixed(1) +
+                    ' KB</div>';
                 div.appendChild(info);
 
                 var removeBtn = document.createElement('button');
                 removeBtn.type = 'button';
                 removeBtn.className = 'text-rouge-alerte hover:text-rouge-alerte/80 ml-2';
-                removeBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
-                removeBtn.onclick = function() { removeFile(index); };
+                removeBtn.innerHTML =
+                    '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+                removeBtn.onclick = function() {
+                    removeFile(index);
+                };
                 div.appendChild(removeBtn);
 
                 container.appendChild(div);
@@ -1136,7 +1312,9 @@
             var dt = new DataTransfer();
             var files = Array.from(input.files);
             files.splice(index, 1);
-            files.forEach(function(file) { dt.items.add(file); });
+            files.forEach(function(file) {
+                dt.items.add(file);
+            });
             input.files = dt.files;
             input.dispatchEvent(new Event('change'));
         }
@@ -1144,12 +1322,18 @@
         // ═══ RACCOURCIS MESSAGE ═══
         function setModificationMessage() {
             var textarea = document.querySelector('textarea[name="content"]');
-            if (textarea) { textarea.value = 'Pourriez-vous apporter les modifications suivantes :'; textarea.focus(); }
+            if (textarea) {
+                textarea.value = 'Pourriez-vous apporter les modifications suivantes :';
+                textarea.focus();
+            }
         }
 
         function setNewDesignMessage() {
             var textarea = document.querySelector('textarea[name="content"]');
-            if (textarea) { textarea.value = 'Pourriez-vous me proposer un nouveau dessin pour :'; textarea.focus(); }
+            if (textarea) {
+                textarea.value = 'Pourriez-vous me proposer un nouveau dessin pour :';
+                textarea.focus();
+            }
         }
 
         // ═══ CANVAS SIGNATURE ═══
@@ -1173,18 +1357,42 @@
                 function getPos(e) {
                     var r = canvas.getBoundingClientRect();
                     var touch = e.touches ? e.touches[0] : e;
-                    return { x: touch.clientX - r.left, y: touch.clientY - r.top };
+                    return {
+                        x: touch.clientX - r.left,
+                        y: touch.clientY - r.top
+                    };
                 }
-                function startDraw(e) { e.preventDefault(); drawing = true; var pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); }
-                function draw(e) { if (!drawing) return; e.preventDefault(); var pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); }
-                function stopDraw() { drawing = false; }
+
+                function startDraw(e) {
+                    e.preventDefault();
+                    drawing = true;
+                    var pos = getPos(e);
+                    ctx.beginPath();
+                    ctx.moveTo(pos.x, pos.y);
+                }
+
+                function draw(e) {
+                    if (!drawing) return;
+                    e.preventDefault();
+                    var pos = getPos(e);
+                    ctx.lineTo(pos.x, pos.y);
+                    ctx.stroke();
+                }
+
+                function stopDraw() {
+                    drawing = false;
+                }
 
                 canvas.addEventListener('mousedown', startDraw);
                 canvas.addEventListener('mousemove', draw);
                 canvas.addEventListener('mouseup', stopDraw);
                 canvas.addEventListener('mouseleave', stopDraw);
-                canvas.addEventListener('touchstart', startDraw, { passive: false });
-                canvas.addEventListener('touchmove', draw, { passive: false });
+                canvas.addEventListener('touchstart', startDraw, {
+                    passive: false
+                });
+                canvas.addEventListener('touchmove', draw, {
+                    passive: false
+                });
                 canvas.addEventListener('touchend', stopDraw);
                 canvas.dataset.initialized = 'true';
             });
@@ -1250,11 +1458,15 @@
         document.querySelectorAll('[id^="consent-modal-"]').forEach(function(modal) {
             new MutationObserver(function(mutations) {
                 mutations.forEach(function(m) {
-                    if (m.type === 'attributes' && m.attributeName === 'class' && !m.target.classList.contains('hidden')) {
+                    if (m.type === 'attributes' && m.attributeName === 'class' && !m.target
+                        .classList.contains('hidden')) {
                         setTimeout(initAllSignatureCanvases, 150);
                     }
                 });
-            }).observe(modal, { attributes: true, attributeFilter: ['class'] });
+            }).observe(modal, {
+                attributes: true,
+                attributeFilter: ['class']
+            });
         });
     </script>
 @endsection

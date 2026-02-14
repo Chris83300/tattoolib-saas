@@ -66,8 +66,8 @@ class RequestDeposit extends Component
                 'deposit_requested_at' => now(),
             ]);
 
-            // Notification client (à implémenter)
-            // $this->project->client->user->notify(new DepositRequestedNotification($this->project));
+            // Notification client
+            $this->project->client->user->notify(new \App\Notifications\DepositRequestedNotification($this->project));
 
             session()->flash('success', 'Demande d\'acompte envoyée au client !');
 

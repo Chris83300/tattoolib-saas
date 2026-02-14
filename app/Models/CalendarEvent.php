@@ -52,6 +52,11 @@ class CalendarEvent extends Model
         return $this->morphTo();
     }
 
+    public function appointment(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Appointment::class);
+    }
+
     // Helper rétrocompatibilité
     public function getTattooerAttribute()
     {
