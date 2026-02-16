@@ -36,6 +36,7 @@ Route::middleware(['auth'])->prefix('tattooer')->name('tattooer.')->group(functi
     })->name('request.accept.get');
     Route::post('/requests/{bookingRequest}/accept', [TattooerController::class, 'acceptRequest'])->name('request.accept');
     Route::post('/requests/{bookingRequest}/reject', [TattooerController::class, 'requestReject'])->name('request-reject');
+    Route::post('/booking-requests/{bookingRequest}/repropose-dates', [TattooerController::class, 'reproposeDates'])->name('booking-requests.repropose-dates');
     Route::get('/calendar', [TattooerController::class, 'calendar'])->name('calendar');
     Route::get('/calendar/events', [TattooerController::class, 'calendarEvents'])->name('calendar.events');
     Route::post('/calendar', [TattooerController::class, 'calendarStore'])->name('calendar.store');

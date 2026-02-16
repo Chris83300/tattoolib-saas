@@ -498,8 +498,8 @@ class ClientController extends Controller
             'client_address' => 'required|string|max:500',
             'client_phone' => 'required|string|max:20',
             'client_email' => 'required|email|max:255',
-            'client_id_type' => 'required|in:cni,passeport,titre_sejour',
-            'client_id_number' => 'required|string|max:50',
+            'client_id_type' => 'required_if:is_minor,true|nullable|in:cni,passeport,titre_sejour',
+            'client_id_number' => 'required_if:is_minor,true|nullable|string|max:50',
 
             // Mineur
             'is_minor' => 'boolean',
@@ -548,9 +548,32 @@ class ClientController extends Controller
             'signature_data' => 'required|string',
             'handwritten_mention' => 'required|string|max:255',
         ], [
-            'confirm_info_sheet_read.accepted' => 'Vous devez confirmer avoir lu la fiche d\'information préalable.',
+            // Messages d'erreur personnalisés
+            'client_full_name.required' => 'Le nom complet est obligatoire.',
+            'client_birth_date.required' => 'La date de naissance est obligatoire.',
+            'client_address.required' => 'L\'adresse complète est obligatoire.',
+            'client_phone.required' => 'Le numéro de téléphone est obligatoire.',
+            'client_email.required' => 'L\'adresse email est obligatoire.',
+            'client_id_type.required' => 'Le type de pièce d\'identité est obligatoire pour les mineurs.',
+            'client_id_number.required' => 'Le numéro de pièce d\'identité est obligatoire pour les mineurs.',
+
+            'act_type.required' => 'Le type d\'acte est obligatoire.',
+            'body_zone.required' => 'La zone du corps est obligatoire.',
+            'act_description.required' => 'La description de l\'acte est obligatoire.',
+
             'confirm_medical_sincere.accepted' => 'Vous devez certifier avoir répondu de manière sincère au questionnaire médical.',
+            'confirm_risks_informed.accepted' => 'Vous devez confirmer avoir été informé des risques.',
+            'confirm_info_sheet_read.accepted' => 'Vous devez confirmer avoir lu la fiche d\'information préalable.',
+            'confirm_aftercare_received.accepted' => 'Vous devez confirmer avoir reçu les conseils de soins post-séance.',
+            'confirm_not_intoxicated.accepted' => 'Vous devez confirmer ne pas être sous l\'emprise de substances.',
+            'confirm_over_18_or_authorized.accepted' => 'Vous devez confirmer être majeur ou avoir l\'autorisation parentale.',
+            'confirm_rgpd.accepted' => 'Vous devez accepter le traitement de vos données personnelles.',
+
             'signature_data.required' => 'La signature est obligatoire.',
+            'handwritten_mention.required' => 'La mention manuscrite est obligatoire.',
+            'image_authorization.required' => 'L\'autorisation de prise de photos est obligatoire.',
+            'total_price.required' => 'Le prix total est obligatoire.',
+            'deposit_amount.required' => 'Le montant de l\'acompte est obligatoire.',
         ]);
 
         $tattooer = $bookingRequest->bookable;
@@ -559,7 +582,7 @@ class ClientController extends Controller
         $consentData = array_merge($validated, [
             'client_id' => $client->id,
             'tattooer_id' => $tattooer->id,
-            'appointment_id' => $bookingRequest->appointment?->id,
+            'appointment_id' => $bookingRequest->appointment?->id ?? null,
             'booking_request_id' => $bookingRequest->id,
             'signed_at' => now(),
             'signed_ip' => $request->ip(),

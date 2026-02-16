@@ -61,7 +61,7 @@ class TraceabilityController extends Controller
 
         $validated = $request->validate([
             'appointment_id' => 'required|exists:appointments,id',
-            'full_name' => 'required|string|max:255',
+            'client_full_name' => 'required|string|max:255',
             'birth_date' => 'required|date|before:today',
             'id_document_type' => 'required|in:' . implode(',', array_keys(ClientConsentForm::ID_DOCUMENT_TYPES)),
             'id_document_number' => 'required|string|max:255',
@@ -115,7 +115,20 @@ class TraceabilityController extends Controller
             'user_id' => $appointment->bookable->user_id,
             'appointment_id' => $appointment->id,
             'is_adult' => $isAdult,
-            ...$validated,
+            'client_full_name' => $validated['client_full_name'],
+            'client_birth_date' => $validated['birth_date'],
+            'client_phone' => $validated['phone'],
+            'client_email' => $validated['email'],
+            'client_address' => $validated['address'],
+            'id_document_type' => $validated['id_document_type'],
+            'id_document_number' => $validated['id_document_number'],
+            'id_document_expiry' => $validated['id_document_expiry'],
+            'has_allergies' => $validated['has_allergies'],
+            'allergies_details' => $validated['allergies_details'],
+            'has_skin_conditions' => $validated['has_skin_conditions'],
+            'skin_conditions_details' => $validated['skin_conditions_details'],
+            'has_blood_disorders' => $validated['has_blood_disorders'],
+            'blood_disorders_details' => $validated['blood_disorders_details'],
         ]);
 
         // Marquer comme signé

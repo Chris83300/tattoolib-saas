@@ -463,7 +463,7 @@ class TattooerController extends Controller
                 'event' => $event->toFullCalendarEvent(),
             ]);
         } catch (\Exception $e) {
-            \Log::error('Erreur création CalendarEvent', [
+            Log::error('Erreur création CalendarEvent', [
                 'error' => $e->getMessage(),
                 'data' => $validated,
             ]);
@@ -1649,6 +1649,103 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
 
         return redirect()->route('tattooer.request.show', $bookingRequest)
             ->with('success', 'Demande refusée avec succès !');
+    }
+
+    /**
+     * Re-proposer de nouvelles dates après refus client
+     */
+    public function reproposeDates(Request $request, BookingRequest $bookingRequest)
+    {
+        // Vérifier que la demande appartient bien au tattooer connecté
+        $tattooer = auth()->user()->tattooer;
+
+        if ($bookingRequest->bookable_id !== $tattooer->id ||
+            $bookingRequest->bookable_type !== 'App\Models\Tattooer') {
+            abort(403, 'Non autorisé');
+        }
+
+        // Valider les dates proposées
+        $validated = $request->validate([
+            'proposed_dates' => 'required|json',
+        ]);
+
+        $datesData = json_decode($validated['proposed_dates'], true);
+
+        // Gérer différents formats possibles
+        if (isset($datesData['selectedDates'])) {
+            // Format avec selectedDates (notre JavaScript)
+            $dates = $datesData['selectedDates'];
+        } else {
+            // Format direct (Livewire standard)
+            $dates = $datesData;
+        }
+
+        abort_unless(is_array($dates) && count($dates) >= 1 && count($dates) <= 3, 422, 'Sélectionnez 1 à 3 dates.');
+
+        // Nettoyer et valider chaque date
+        $cleanDates = [];
+        foreach ($dates as $date) {
+            if (isset($date['date'])) {
+                $cleanDates[] = [
+                    'date' => $date['date'],
+                    'period' => !empty($date['period']) ? $date['period'] : null
+                ];
+            }
+        }
+
+        if (empty($cleanDates)) {
+            abort(422, 'Sélectionnez au moins une date valide.');
+        }
+
+        // Mettre à jour la booking request avec les nouvelles dates
+        $bookingRequest->update([
+            'proposed_dates' => $cleanDates,
+            'client_selected_dates' => null,
+            'client_dates_selected_at' => null,
+            'date_selection_deadline' => now()->addHours(48),
+        ]);
+
+        // Envoyer un message système dans le chat
+        $conversation = $bookingRequest->conversation;
+        if ($conversation) {
+            $datesFormatted = collect($cleanDates)->map(function ($d) {
+                $date = \Carbon\Carbon::parse($d['date'])->translatedFormat('l d F Y');
+                $period = match ($d['period'] ?? '') {
+                    'morning' => 'matin',
+                    'afternoon' => 'après-midi',
+                    '' => '',  // Période vide = journée entière
+                    default => $d['period'] ?? '',
+                };
+                return $date . ($period ? " ($period)" : '');
+            })->join(', ');
+
+            $conversation->messages()->create([
+                'sender_id' => auth()->id(),
+                'sender_type' => 'App\\Models\\User',
+                'content' => "📅 Nouvelles dates proposées : {$datesFormatted}. Merci de sélectionner votre préférence.",
+                'read_by_tattooer_at' => now(),
+            ]);
+
+            $conversation->update([
+                'last_message_at' => now(),
+            ]);
+        }
+
+        // Notifier le client
+        $client = $bookingRequest->client?->user;
+        if ($client) {
+            $client->notifications()->create([
+                'id' => \Illuminate\Support\Str::uuid(),
+                'type' => 'App\\Notifications\\NewDatesProposedNotification',
+                'data' => [
+                    'title' => 'Nouvelles dates proposées',
+                    'message' => "L'artiste vous propose de nouvelles dates pour votre projet.",
+                    'booking_request_id' => $bookingRequest->id,
+                ],
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Nouvelles dates proposées au client !');
     }
 
     /**

@@ -11,10 +11,9 @@ class CalendarEvent extends Model
     use HasFactory;
 
     protected $fillable = [
-        'bookable_id', 'bookable_type', 'type', 'title', 'project_id',
-        'start_datetime', 'end_datetime',
-        'is_recurring', 'recurrence_rule',
-        'notes', 'color', 'appointment_id'
+        'bookable_id', 'bookable_type', 'type', 'appointment_id',
+        'start_datetime', 'end_datetime', 'is_recurring', 'recurrence_rule',
+        'notes', 'color', 'project_id'
     ];
 
     protected $casts = [
@@ -119,7 +118,7 @@ class CalendarEvent extends Model
     public function getTitle(): string
     {
         return match($this->type) {
-            self::TYPE_APPOINTMENT => $this->project
+            self::TYPE_APPOINTMENT => $this->project_id && $this->project
                 ? "RDV - {$this->project->client->first_name} {$this->project->client->last_name}"
                 : 'Rendez-vous',
             self::TYPE_BREAK => 'Pause',
@@ -191,7 +190,6 @@ class CalendarEvent extends Model
             'textColor' => '#FFFFFF',
             'extendedProps' => [
                 'type' => $this->type,
-                'project_id' => $this->project_id,
                 'notes' => $this->notes,
                 'duration' => $this->getFormattedDuration(),
                 'can_be_deleted' => $this->canBeDeleted(),
@@ -239,7 +237,7 @@ class CalendarEvent extends Model
             'id' => $this->id,
             'title' => $this->getTitle(),
             'type' => $this->type,
-            'type_label' => self::TYPES[$this->type] ?? $this->type,
+            'type_label' => $this->type,
             'start_datetime' => $this->start_datetime->format('d/m/Y H:i'),
             'end_datetime' => $this->end_datetime->format('d/m/Y H:i'),
             'duration' => $this->getFormattedDuration(),

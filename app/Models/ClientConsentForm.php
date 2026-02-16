@@ -46,6 +46,17 @@ class ClientConsentForm extends Model implements HasMedia
         'handwritten_mention',
         // Workflow
         'status', 'verified_by', 'verified_at',
+        // Anciens champs (compatibilité)
+        'full_name', 'birth_date', 'id_document_type', 'id_document_number',
+        'phone', 'email', 'address', 'consent_date', 'consent_time',
+        'has_allergies', 'allergies_details', 'has_skin_conditions',
+        'skin_conditions_details', 'has_blood_disorders', 'blood_disorders_details',
+        'has_diabetes', 'has_heart_conditions', 'is_pregnant',
+        'is_breastfeeding', 'taking_medications', 'has_recent_surgery',
+        'recent_surgery_details', 'has_existing_tattoos', 'existing_tattoos_location',
+        'consents_to_tattoo', 'understands_risks', 'understands_aftercare',
+        'consents_to_photos', 'consents_to_data_processing',
+        'id_document_photos', 'consent_signature', 'ip_address', 'user_agent',
     ];
 
     protected $casts = [
