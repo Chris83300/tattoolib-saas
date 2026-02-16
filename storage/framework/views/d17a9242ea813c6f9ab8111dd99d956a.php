@@ -20,9 +20,9 @@
     <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
 </head>
 
-<body class="bg-noir-profond">
+<body class="bg-noir-profond overflow-hidden">
 
-    <div class="flex min-h-screen">
+    <div class="flex min-h-screen max-w-full overflow-x-hidden">
 
         <!-- Sidebar Desktop (cachée sur mobile) -->
         <aside
@@ -32,7 +32,7 @@
             <div class="p-6 border-b border-titane/20">
                 <a href="<?php echo e(route('tattooer.dashboard')); ?>" class="flex items-center gap-3">
                     <div class="w-10 h-10 bg-beige-peau rounded-lg flex items-center justify-center">
-                        <span class="text-noir-profond font-bold text-xl">I&P</span>
+                        <img src="<?php echo e(asset('images/logo.png')); ?>" alt="Ink&Pik">
                     </div>
                     <span class="text-ivoire-text font-bold text-lg">Ink&Pik</span>
                 </a>
@@ -211,14 +211,14 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 lg:ml-64">
+        <main class="flex-1 lg:ml-64 overflow-x-hidden min-w-0 w-full">
 
             <!-- Header Mobile (visible uniquement sur mobile) -->
             <header class="lg:hidden bg-gris-fonde border-b border-titane/20 p-4 sticky top-0 z-40">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 bg-beige-peau rounded-lg flex items-center justify-center">
-                            <span class="text-noir-profond font-bold">I&P</span>
+                        <div class="rounded-lg flex items-center justify-center">
+                            <img src="<?php echo e(asset('images/logo.png')); ?>" alt="Ink&Pik">
                         </div>
                         <span class="text-ivoire-text font-bold">Ink&Pik</span>
                     </div>
@@ -242,7 +242,7 @@
             </header>
 
             <!-- Content -->
-            <div class="p-4 lg:p-8 pb-24 lg:pb-8">
+            <div class="p-4 lg:p-8 pb-24 lg:pb-8 max-w-full overflow-hidden">
                 <?php echo $__env->yieldContent('content'); ?>
             </div>
         </main>

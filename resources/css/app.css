@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@source "../../resources/views";
+@source "../../app/Livewire";
 
 @theme {
     /* ============================================
@@ -160,7 +162,7 @@ img-comparison-slider {
    COMPOSANTS DE BASE
    ============================================ */
 /* Background color */
-.bg-noir-profond {
+/* .bg-noir-profond {
     background-color: var(--color-noir-profond);
 }
 .bg-beige-peau {
@@ -189,7 +191,7 @@ img-comparison-slider {
 }
 .bg-titane {
     background-color: var(--color-titane);
-}
+} */
 
 /* Backdrop blur pour modals/headers */
 .backdrop-blur-dark {
@@ -293,7 +295,7 @@ select:focus[data-flux-control] {
 }
 
 /* Text colors for status badges */
-.text-jaune-alerte {
+/* .text-jaune-alerte {
     color: var(--color-jaune-alerte);
 }
 .text-beige-peau {
@@ -310,7 +312,7 @@ select:focus[data-flux-control] {
 }
 .text-orange-attention {
     color: var(--color-orange-attention);
-}
+} */
 
 @media (max-width: 768px) {
     .text-titre {
@@ -319,57 +321,3 @@ select:focus[data-flux-control] {
     }
 }
 
-/* ═══ BREAKPOINTS MANQUANTS - FORCÉS MANUELLEMENT ═══ */
-/* sm: 640px */
-@media (min-width: 640px) {
-    .sm\:flex-row {
-        flex-direction: row;
-    }
-    .sm\:flex-col {
-        flex-direction: column;
-    }
-    .sm\:grid-cols-2 {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-    .sm\:grid-cols-3 {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-    .sm\:grid-cols-4 {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-    .sm\:block {
-        display: block;
-    }
-    .sm\:hidden {
-        display: none;
-    }
-    .sm\:text-sm {
-        font-size: 0.875rem;
-        line-height: 1.25rem;
-    }
-    .sm\:px-6 {
-        padding-left: 1.5rem;
-        padding-right: 1.5rem;
-    }
-    .sm\:gap-4 {
-        gap: 1rem;
-    }
-}
-
-/* lg: 1024px */
-@media (min-width: 1024px) {
-    .lg\:grid-cols-4 {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-    .lg\:grid-cols-6 {
-        grid-template-columns: repeat(6, minmax(0, 1fr));
-    }
-    .lg\:text-xl {
-        font-size: 1.25rem;
-        line-height: 1.75rem;
-    }
-    .lg\:px-8 {
-        padding-left: 2rem;
-        padding-right: 2rem;
-    }
-}

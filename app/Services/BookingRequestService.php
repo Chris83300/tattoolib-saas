@@ -62,6 +62,9 @@ class BookingRequestService
             // Notifier client
             $this->notifyClient($bookingRequest, 'accepted');
 
+            // Notifier client que l'acompte est demandé
+            $this->notifyClient($bookingRequest, 'deposit_requested');
+
             // Logger l'acceptation
             Log::info('Booking request accepted', [
                 'booking_request_id' => $bookingRequest->id,

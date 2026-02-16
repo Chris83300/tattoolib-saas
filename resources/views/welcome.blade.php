@@ -4,6 +4,7 @@
     <!-- Hero Section -->
     <section class="min-h-screen bg-noir-profond flex items-center justify-center px-4">
         <div class="text-center max-w-2xl">
+            <img src="{{ asset('images/logo.png') }}" alt="Ink&Pik"
             <!-- Titre principal -->
             <h1 class="text-titre md:text-10xl font-Satoshi font-bold text-titane mb-10">
                 Ink <span class="text-beige-peau">& Pik</span>

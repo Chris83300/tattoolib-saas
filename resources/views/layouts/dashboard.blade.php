@@ -33,10 +33,7 @@
 
             <!-- Logo -->
             <a href="/dashboard" class="flex items-center gap-2 text-beige-peau font-Satoshi text-xl font-bold">
-                <svg class="w-6 h-6" viewBox="0 0 32 32" fill="currentColor">
-                    <path d="M8 4C8 4 8 8 12 8C16 8 16 4 16 4C16 4 16 8 20 8C24 8 24 4 24 4L24 12C24 16 20 20 16 20C12 20 8 16 8 12Z"/>
-                    <circle cx="16" cy="24" r="2" fill="currentColor"/>
-                </svg>
+                <img src="{{ asset('images/logo.png') }}" alt="Ink&Pik">
                 Ink&Pik
             </a>
 

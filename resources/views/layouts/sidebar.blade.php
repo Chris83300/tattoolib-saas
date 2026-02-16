@@ -27,10 +27,7 @@
         <div class="p-6 border-b border-ivoire-text/10">
             <a href="{{ getDashboardRoute() }}"
                 class="flex items-center space-x-3 text-beige-peau hover:text-beige-peau/80 transition-colors">
-                <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-                    <path
-                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-                </svg>
+                <img src="{{ asset('images/logo.png') }}" alt="Ink&Pik">
                 <span class="text-xl font-bold font-display">Ink&Pik</span>
             </a>
         </div>
@@ -192,6 +189,7 @@
         <!-- Mobile Header -->
         <div class="lg:hidden px-4 py-4 bg-noir-profonde border-b border-ivoire-text/10">
             <div class="flex items-center justify-between">
+                <img src="{{ asset('images/logo.png') }}" alt="Ink&Pik">
                 <h1 class="text-xl font-bold text-beige-peau font-display">Ink&Pik</h1>
                 <div class="text-ivoire-text/70 text-sm">
                     {{ auth()->user()->name }}

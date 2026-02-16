@@ -78,8 +78,8 @@
         {{-- ═══════════════════════════════════════════════════════════════
              TABS NAVIGATION (scrollable mobile)
              ═══════════════════════════════════════════════════════════════ --}}
-        <div class="bg-gris-fonde rounded-xl p-1.5 sticky top-0 z-10">
-            <div class="flex gap-1 overflow-x-auto pb-1" style="-webkit-overflow-scrolling: touch;">
+        <div class="bg-gris-fonde rounded-xl p-1.5 sticky top-0 z-10 min-w-0">
+        <div class="flex gap-1 overflow-x-auto pb-1 min-w-0" style="-webkit-overflow-scrolling: touch;">
                 @php
                     $tabs = [
                         'info' => ['label' => 'Infos', 'icon' => '👤'],

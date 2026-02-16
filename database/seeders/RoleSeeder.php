@@ -1,0 +1,20 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Role;
+
+class RoleSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $roles = ['admin', 'tattooer', 'client', 'studio_owner', 'studio_artist'];
+
+        foreach ($roles as $role) {
+            Role::firstOrCreate(['name' => $role, 'guard_name' => 'web']);
+        }
+
+        $this->command->info('✅ ' . count($roles) . ' rôles Spatie créés');
+    }
+}
