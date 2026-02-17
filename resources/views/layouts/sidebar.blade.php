@@ -27,7 +27,7 @@
         <div class="p-6 border-b border-ivoire-text/10">
             <a href="{{ getDashboardRoute() }}"
                 class="flex items-center space-x-3 text-beige-peau hover:text-beige-peau/80 transition-colors">
-                <img src="{{ asset('images/logo.png') }}" alt="Ink&Pik">
+                <img src="{{ asset('images/logo.png') }}" alt="Ink&Pik" class="w-12 h-12">
                 <span class="text-xl font-bold font-display">Ink&Pik</span>
             </a>
         </div>
@@ -122,7 +122,7 @@
                 </a>
 
                 <!-- Clients (si PRO) -->
-                @if (auth()->user()->tattooer && auth()->user()->tattooer->subscription_plan === 'pro')
+                @if (auth()->user()->tattooer && auth()->user()->tattooer->isPro())
                     <a href="{{ route('tattooer.clients') }}"
                         class="flex items-center space-x-3 px-4 py-3 rounded-lg text-ivoire-text hover:bg-beige-peau/10 transition-colors {{ request()->routeIs('tattooer.clients') ? 'bg-beige-peau/20 text-beige-peau' : '' }}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -189,7 +189,7 @@
         <!-- Mobile Header -->
         <div class="lg:hidden px-4 py-4 bg-noir-profonde border-b border-ivoire-text/10">
             <div class="flex items-center justify-between">
-                <img src="{{ asset('images/logo.png') }}" alt="Ink&Pik">
+                <img src="{{ asset('images/logo.png') }}" alt="Ink&Pik" class="w-12 h-12">
                 <h1 class="text-xl font-bold text-beige-peau font-display">Ink&Pik</h1>
                 <div class="text-ivoire-text/70 text-sm">
                     {{ auth()->user()->name }}

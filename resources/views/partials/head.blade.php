@@ -4,21 +4,20 @@
 
 <title>{{ $title ?? config('app.name') }}</title>
 
- <!-- PWA -->
-    <link rel="manifest" href="/manifest.json">
+<!-- PWA -->
+<link rel="manifest" href="/manifest.json">
 
-    <!-- iOS Meta Tags -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="apple-mobile-web-app-title" content="TattooLib">
+<!-- iOS Meta Tags -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="TattooLib">
 
-<link rel="icon" href="/favicon.ico" sizes="any">
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" href="{{ asset('logo.ico') }}" sizes="any">
+<link rel="icon" href="{{ asset('logo.ico') }}" type="image/x-icon">
+<link rel="apple-touch-icon" href="{{ asset('logo.ico') }}">
 
 <link rel="preconnect" href="https://fonts.bunny.net">
 <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 @fluxAppearance
- 

@@ -79,7 +79,7 @@
              TABS NAVIGATION (scrollable mobile)
              ═══════════════════════════════════════════════════════════════ --}}
         <div class="bg-gris-fonde rounded-xl p-1.5 sticky top-0 z-10 min-w-0">
-        <div class="flex gap-1 overflow-x-auto pb-1 min-w-0" style="-webkit-overflow-scrolling: touch;">
+            <div class="flex gap-1 overflow-x-auto pb-1 min-w-0" style="-webkit-overflow-scrolling: touch;">
                 @php
                     $tabs = [
                         'info' => ['label' => 'Infos', 'icon' => '👤'],
@@ -320,20 +320,58 @@
              TAB: CONSENTEMENT (lecture seule côté tattooer)
              ═══════════════════════════════════════════════════════════════ --}}
         <div x-show="activeTab === 'consent'" x-cloak class="space-y-4">
+            <x-pro-gate feature="la gestion des consentements SNAT">
+                @forelse ($bookingRequests as $br)
+                    @php $consent = $consents[$br->id] ?? null; @endphp
 
-            @forelse ($bookingRequests as $br)
-                @php $consent = $consents[$br->id] ?? null; @endphp
+                    <div class="bg-gris-fonde rounded-xl p-4" x-data="{ expanded: {{ $loop->first ? 'true' : 'false' }} }">
+                        {{-- Header --}}
+                        <div class="flex items-center justify-between cursor-pointer" @click="expanded = !expanded">
+                            <div class="flex items-center gap-3">
+                                @if ($consent && $consent->isValid())
+                                    <span
+                                        class="w-8 h-8 bg-vert-succes/20 text-vert-succes rounded-full flex items-center justify-center text-sm">✅</span>
+                                @else
+                                    <span
+                                        class="w-8 h-8 bg-ambre-warning/20 text-ambre-warning rounded-full flex items-center justify-center text-sm">⚠️</span>
+                                @endif
+                                <div>
+                                    <p class="text-sm font-semibold text-ivoire-text">
+                                        {{ $br->tattoo_style ?? 'Tattoo' }} — {{ $br->body_zone ?? 'Non précisé' }}
+                                        · @if ($consent && $consent->isValid())
+                                            <span class="text-vert-succes">Signé</span>
+                                        @else
+                                            <span class="text-ambre-warning">En attente</span>
+                                        @endif
+                                    </p>
+                                    <p class="text-xs text-titane">
+                                        {{ $br->created_at->format('d/m/Y') }}
+                                        @if ($consent && $consent->signed_at)
+                                            · Signé le {{ $consent->signed_at->format('d/m/Y') }}
+                                        @endif
+                                    </p>
+                                </div>
+                            </div>
+                            <svg class="w-5 h-5 text-titane transition-transform" :class="expanded ? 'rotate-180' : ''"
+                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
 
-                <div class="bg-gris-fonde rounded-xl p-4" x-data="{ expanded: {{ $loop->first ? 'true' : 'false' }} }">
-                    {{-- Header --}}
-                    <div class="flex items-center justify-between cursor-pointer" @click="expanded = !expanded">
-                        <div class="flex items-center gap-3">
+                        {{-- Contenu --}}
+                        <div x-show="expanded" x-collapse class="mt-4 pt-4 border-t border-titane/20">
                             @if ($consent && $consent->isValid())
-                                <span
-                                    class="w-8 h-8 bg-vert-succes/20 text-vert-succes rounded-full flex items-center justify-center text-sm">✅</span>
-                            @else
-                                <span
-                                    class="w-8 h-8 bg-ambre-warning/20 text-ambre-warning rounded-full flex items-center justify-center text-sm">⚠️</span>
+                                {{-- LECTURE SEULE SNAT 2026 --}}
+                                <div class="space-y-3">
+                                    <!-- Identité client -->
+                                    <div class="bg-noir-profond/50 rounded-lg p-3">
+                                        <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-2">📋 Identité client
+                                        </p>
+                                        class="w-8 h-8 bg-vert-succes/20 text-vert-succes rounded-full flex items-center justify-center text-sm">✅</span>
+                                    @else
+                                        <span
+                                            class="w-8 h-8 bg-ambre-warning/20 text-ambre-warning rounded-full flex items-center justify-center text-sm">⚠️</span>
                             @endif
                             <div>
                                 <p class="text-sm font-semibold text-ivoire-text">
@@ -591,18 +629,20 @@
                             </div>
                         @endif
                     </div>
-                </div>
-            @empty
-                <div class="bg-gris-fonde rounded-xl p-8 text-center">
-                    <p class="text-titane">Aucune demande nécessitant un consentement</p>
-                </div>
-            @endforelse
         </div>
+    @empty
+        <div class="bg-gris-fonde rounded-xl p-8 text-center">
+            <p class="text-titane">Aucune demande nécessitant un consentement</p>
+        </div>
+        @endforelse
+        </x-pro-gate>
+    </div>
 
-        {{-- ═══════════════════════════════════════════════════════════════
+    {{-- ═══════════════════════════════════════════════════════════════
              TAB: TRAÇABILITÉ
              ═══════════════════════════════════════════════════════════════ --}}
-        <div x-show="activeTab === 'trace'" x-cloak class="space-y-4">
+    <div x-show="activeTab === 'trace'" x-cloak class="space-y-4">
+        <x-pro-gate feature="la traçabilité réglementaire">
 
             @php
                 $relevantAppointments = $appointments->filter(fn($apt) => $apt->bookingRequest);
@@ -799,12 +839,14 @@
                     <p class="text-titane">Aucun rendez-vous nécessitant une traçabilité</p>
                 </div>
             @endforelse
-        </div>
+        </x-pro-gate>
+    </div>
 
-        {{-- ═══════════════════════════════════════════════════════════════
+    {{-- ═══════════════════════════════════════════════════════════════
              TAB: MÉDIAS
              ═══════════════════════════════════════════════════════════════ --}}
-        <div x-show="activeTab === 'media'" x-cloak class="space-y-4">
+    <div x-show="activeTab === 'media'" x-cloak class="space-y-4">
+        <x-pro-gate feature="la galerie médias client">
 
             {{-- Photos conversations --}}
             <div class="bg-gris-fonde rounded-xl p-4">
@@ -848,7 +890,8 @@
                 <div class="bg-gris-fonde rounded-xl p-4">
                     <h4 class="text-sm font-bold text-ivoire-text mb-3">
                         📸 {{ $br->tattoo_style ?? 'Tattoo' }} — {{ $br->body_zone ?? '' }}
-                        <span class="text-xs text-titane font-normal ml-1">({{ $br->created_at->format('d/m/Y') }})</span>
+                        <span
+                            class="text-xs text-titane font-normal ml-1">({{ $br->created_at->format('d/m/Y') }})</span>
                     </h4>
 
                     @php $tattooPhotos = $br->getMedia('tattoo_results'); @endphp
@@ -894,12 +937,15 @@
                     <div class="upload-preview flex gap-2 mt-2 flex-wrap"></div>
                 </div>
             @endforeach
-        </div>
+    </div>
+    </x-pro-gate>
+    </div>
 
-        {{-- ═══════════════════════════════════════════════════════════════
+    {{-- ═══════════════════════════════════════════════════════════════
              TAB: NOTES PRIVÉES
              ═══════════════════════════════════════════════════════════════ --}}
-        <div x-show="activeTab === 'notes'" x-cloak>
+    <div x-show="activeTab === 'notes'" x-cloak>
+        <x-pro-gate feature="les notes privées client">
             <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
                 <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider mb-3">Notes privées</h3>
                 <p class="text-xs text-titane mb-3">Visibles uniquement par vous. Allergies, préférences, comportement...
@@ -916,7 +962,8 @@
                     </button>
                 </form>
             </div>
-        </div>
+        </x-pro-gate>
+    </div>
 
     </div>{{-- Fin du x-data principal --}}
 

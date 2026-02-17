@@ -25,11 +25,22 @@ class TattooerForm
                     ->description('Informations privées (visibles admin uniquement)')
                     ->schema([
 
-                        TextInput::make('name')
-                            ->label('Nom Réel')
+                        TextInput::make('first_name')
+                            ->label('Prénom')
                             ->required()
                             ->maxLength(255)
-                            ->helperText('Le nom réel du tatoueur'),
+                            ->helperText('Le prénom du tatoueur'),
+
+                        TextInput::make('last_name')
+                            ->label('Nom')
+                            ->required()
+                            ->maxLength(255)
+                            ->helperText('Le nom de famille du tatoueur'),
+
+                        TextInput::make('pseudo')
+                            ->label('Pseudo public')
+                            ->maxLength(255)
+                            ->helperText('Le pseudo affiché publiquement (optionnel)'),
 
                         TextInput::make('siret')
                             ->label('Numéro SIRET')
@@ -121,34 +132,6 @@ class TattooerForm
 
                     ])
                     ->columns(2),
-
-                // SECTION 3 : Portfolio (NON OBLIGATOIRE)
-                Section::make('Portfolio')
-                    ->description('Photos et images du tatoueur')
-                    ->schema([
-
-                        FileUpload::make('avatar')
-                            ->label('Avatar')
-                            ->image()
-                            ->imageEditor()
-                            ->imageEditorAspectRatios(['1:1'])
-                            ->maxSize(5120)
-                            ->helperText('Avatar principal du tatoueur (format carré recommandé)')
-                            ->required(false), // ← NON OBLIGATOIRE
-
-                        FileUpload::make('portfolio')
-                            ->label('Portfolio')
-                            ->multiple()
-                            ->image()
-                            ->imageEditor()
-                            ->maxSize(5120)
-                            ->maxFiles(20)
-                            ->reorderable()
-                            ->helperText('Photos des réalisations (max 20 images)')
-                            ->required(false) // ← NON OBLIGATOIRE
-                            ->columnSpanFull(),
-
-                    ]),
 
                 // SECTION 4 : Configuration Paiement
                 Section::make('Configuration Paiement')

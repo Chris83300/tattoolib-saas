@@ -266,6 +266,29 @@ class Tattooer extends Model implements HasMedia
         return $this->user->status ?? 'pending_verification';
     }
 
+    // ===== MUTATORS FOR SYNC =====
+
+    public function setFirstNameAttribute($value)
+    {
+        $this->attributes['first_name'] = $value;
+        $this->syncNameField();
+    }
+
+    public function setLastNameAttribute($value)
+    {
+        $this->attributes['last_name'] = $value;
+        $this->syncNameField();
+    }
+
+    private function syncNameField()
+    {
+        if (isset($this->attributes['first_name']) || isset($this->attributes['last_name'])) {
+            $firstName = $this->attributes['first_name'] ?? $this->first_name ?? '';
+            $lastName = $this->attributes['last_name'] ?? $this->last_name ?? '';
+            $this->attributes['name'] = trim($firstName . ' ' . $lastName);
+        }
+    }
+
     // ===== FILAMENT SYNC METHODS =====
 
     public function bookingRequests(): MorphMany
@@ -374,5 +397,39 @@ class Tattooer extends Model implements HasMedia
             'BE' => 21.0,
             default => 0.0,
         };
+    }
+
+    // ═══ Subscription Relations ═══
+
+    public function subscriptions()
+    {
+        return $this->morphMany(TattooerSubscription::class, 'subscribable');
+    }
+
+    public function activeSubscription()
+    {
+        return $this->morphOne(TattooerSubscription::class, 'subscribable')
+                    ->where('status', 'active')
+                    ->where(function ($q) {
+                        $q->whereNull('ends_at')
+                          ->orWhere('ends_at', '>', now());
+                    })
+                    ->latest();
+    }
+
+    public function isPro(): bool
+    {
+        return $this->activeSubscription !== null
+            && $this->activeSubscription->plan === 'pro';
+    }
+
+    public function isFree(): bool
+    {
+        return !$this->isPro();
+    }
+
+    public function commissionRate(): float
+    {
+        return $this->isPro() ? 0.0 : 7.0;
     }
 }

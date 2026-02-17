@@ -303,7 +303,7 @@
         </div>
 
         <!-- Upgrade PRO (si FREE) -->
-        @if ($tattooer->subscription_plan === 'free')
+        @if ($tattooer->isFree())
             <div class="bg-gradient-to-r from-beige-peau/20 to-beige-peau/5 border-2 border-beige-peau/30 rounded-xl p-6">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div class="flex-1">
@@ -344,7 +344,7 @@
                     <div class="text-center">
                         <div class="text-4xl font-bold text-beige-peau mb-2">49,99€</div>
                         <div class="text-ivoire-text/60 text-sm mb-4">/mois</div>
-                        <a href="{{ route('tattooer.upgrade') }}"
+                        <a href="{{ route('tattooer.subscription.plans') }}"
                             class="inline-block px-8 py-3 bg-beige-peau text-noir-profond rounded-lg font-bold hover:bg-beige-peau/90 transition-colors">
                             Passer PRO maintenant
                         </a>

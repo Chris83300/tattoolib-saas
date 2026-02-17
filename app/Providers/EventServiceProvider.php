@@ -8,6 +8,8 @@ use App\Models\Tattooer;
 use App\Observers\ConversationObserver;
 use App\Observers\BookingRequestObserver;
 use App\Observers\TattooerObserver;
+use Laravel\Cashier\Events\WebhookReceived;
+use App\Listeners\StripeSubscriptionListener;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
@@ -19,6 +21,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         \App\Events\MessageDeleted::class => [
             \App\Listeners\CleanupMessageMedia::class,
+        ],
+        WebhookReceived::class => [
+            StripeSubscriptionListener::class,
         ],
     ];
 

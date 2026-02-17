@@ -1,13 +1,5 @@
 <div class="container mx-auto max-w-6xl">
-    <!-- DEBUG: Afficher les données -->
-    <div class="bg-yellow-500/20 border border-yellow-500 rounded-lg p-4 mb-8">
-        <h3 class="text-yellow-400 font-bold mb-2">DEBUG INFO:</h3>
-        <p class="text-yellow-300">User: {{ $user?->name ?? 'NULL' }}</p>
-        <p class="text-yellow-300">Role: {{ $user?->role ?? 'NULL' }}</p>
-        <p class="text-yellow-300">Tattooer: {{ $tattooer?->name ?? 'NULL' }}</p>
-        <p class="text-yellow-300">Pending Requests: {{ $pendingRequests ?? 'NULL' }}</p>
-        <p class="text-yellow-300">Upcoming: {{ $upcomingAppointments ?? 'NULL' }}</p>
-    </div>
+
 
     <!-- Header profil artiste -->
     <div class="bg-gris-fonde rounded-xl p-6 mb-8">

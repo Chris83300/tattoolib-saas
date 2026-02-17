@@ -7,6 +7,7 @@ use App\Http\Controllers\DepositController;
 use App\Http\Controllers\MarketplaceController;
 use App\Http\Controllers\TattooerController;
 use App\Http\Controllers\TattooerProfileController;
+use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\RegisterController;
 use App\Models\BookingRequest;
 use App\Http\Controllers\Auth\LoginController;
@@ -46,6 +47,8 @@ Route::middleware(['auth'])->prefix('tattooer')->name('tattooer.')->group(functi
     Route::get('/messages/{bookingRequest}', [TattooerController::class, 'messageShow'])->name('message.show');
     Route::post('/message/{bookingRequest}/send', [TattooerController::class, 'messageSend'])->name('message.send');
     Route::get('/clients', [TattooerController::class, 'clients'])->name('clients');
+    Route::get('/clients/create', [TattooerController::class, 'createClient'])->name('clients.create')->middleware('pro');
+    Route::post('/clients', [TattooerController::class, 'storeClient'])->name('clients.store')->middleware('pro');
     Route::get('/clients/{client}', [TattooerController::class, 'clientShow'])->name('client.show');
     Route::post('/clients/{client}/notes', [TattooerController::class, 'updateClientNotes'])->name('client.update-notes');
 
@@ -88,7 +91,21 @@ Route::middleware(['auth'])->prefix('tattooer')->name('tattooer.')->group(functi
     Route::post('/settings/password', [TattooerController::class, 'settingsUpdatePassword'])->name('settings.update-password');
     Route::post('/settings/hours', [TattooerController::class, 'updateHours'])->name('tattooer.settings.hours.update');
     Route::get('/payments', [TattooerController::class, 'payments'])->name('payments');
-    Route::get('/upgrade', [TattooerController::class, 'upgrade'])->name('upgrade');
+
+    // ═══ Subscription ═══
+    Route::get('/subscription-plans', [SubscriptionController::class, 'plans'])
+        ->name('subscription.plans');
+    Route::post('/subscribe', [SubscriptionController::class, 'subscribe'])
+        ->name('subscription.subscribe');
+    Route::get('/subscription/success', [SubscriptionController::class, 'success'])
+        ->name('subscription.success');
+    Route::post('/subscription/cancel', [SubscriptionController::class, 'cancel'])
+        ->name('subscription.cancel');
+    Route::post('/subscription/resume', [SubscriptionController::class, 'resume'])
+        ->name('subscription.resume');
+    Route::get('/subscription/manage', [SubscriptionController::class, 'manage'])
+        ->name('subscription.manage');
+
     Route::get('/compliance', [TattooerController::class, 'compliance'])->name('compliance');
 
     // Anciennes routes Livewire (gardées pour compatibilité)
@@ -132,7 +149,7 @@ Route::get('/login', function () {
                 return redirect()->route('home');
         }
     }
-    return view('auth.login');
+    return view('livewire.auth.login-simple');
 })->name('login');
 
 Route::get('/register', function () {

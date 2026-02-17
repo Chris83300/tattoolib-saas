@@ -4,7 +4,7 @@
     <div class="space-y-6">
 
         <!-- Header -->
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h1 class="text-2xl md:text-3xl font-bold text-ivoire-text mb-2">
                     Clients
@@ -14,22 +14,38 @@
                 </p>
             </div>
 
-            <!-- Recherche -->
-            <form action="{{ route('tattooer.clients') }}" method="GET" class="flex gap-3">
-                <div class="relative flex-1 max-w-md">
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Rechercher un client..."
-                        class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-ivoire-text/50 focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
-                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-ivoire-text/50" fill="none"
-                        stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
-                </div>
-                <button type="submit"
-                    class="px-4 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
-                    🔍 Rechercher
-                </button>
-            </form>
+            <div class="flex gap-3">
+                <!-- Recherche -->
+                <form action="{{ route('tattooer.clients') }}" method="GET" class="flex gap-3">
+                    <div class="relative flex-1 max-w-md">
+                        <input type="text" name="search" value="{{ request('search') }}"
+                            placeholder="Rechercher un client..."
+                            class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-ivoire-text/50 focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
+                        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-ivoire-text/50" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <button type="submit"
+                        class="px-4 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
+                        🔍 Rechercher
+                    </button>
+                </form>
+
+                <!-- Bouton création client -->
+                @if (auth()->user()->tattooer->isPro())
+                    <a href="{{ route('tattooer.clients.create') }}"
+                        class="px-4 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold text-sm hover:bg-beige-peau/90 transition-colors">
+                        ➕ Créer une fiche client
+                    </a>
+                @else
+                    <a href="{{ route('tattooer.subscription.plans') }}"
+                        class="px-4 py-3 bg-beige-peau/30 text-beige-peau rounded-lg font-semibold text-sm hover:bg-beige-peau/40 transition-colors">
+                        🔒 Créer une fiche client (PRO)
+                    </a>
+                @endif
+            </div>
         </div>
 
         <!-- Liste des clients -->

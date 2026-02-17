@@ -15,35 +15,73 @@ class PaymentsTable
     {
         return $table
             ->columns([
+                TextColumn::make('id')
+                    ->label('ID')
+                    ->numeric()
+                    ->sortable(),
                 TextColumn::make('booking_request_id')
+                    ->label('Réservation')
                     ->numeric()
-                    ->sortable(),
-                TextColumn::make('stripe_payment_intent_id')
-                    ->searchable(),
-                TextColumn::make('stripe_charge_id')
-                    ->searchable(),
-                TextColumn::make('amount')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('currency')
-                    ->searchable(),
-                TextColumn::make('status')
-                    ->badge(),
-                TextColumn::make('payment_type')
-                    ->badge(),
-                TextColumn::make('recipient_type')
-                    ->badge(),
-                TextColumn::make('recipient_name')
-                    ->searchable(),
-                TextColumn::make('paid_at')
-                    ->dateTime()
-                    ->sortable(),
-                TextColumn::make('created_at')
-                    ->dateTime()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
+                    ->url(fn ($record) => '/admin/booking-requests/'.$record->booking_request_id)
+                    ->openUrlInNewTab(false),
+                TextColumn::make('user.name')
+                    ->label('Client')
+                    ->searchable()
+                    ->getStateUsing(fn ($record) => $record->user->name ?? 'N/A'),
+                TextColumn::make('type')
+                    ->label('Type')
+                    ->badge()
+                    ->colors([
+                        'primary' => 'deposit',
+                        'success' => 'final_payment',
+                    ])
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'deposit' => 'Acompte',
+                        'final_payment' => 'Paiement final',
+                        default => $state,
+                    }),
+                TextColumn::make('amount')
+                    ->label('Montant')
+                    ->numeric()
+                    ->sortable()
+                    ->prefix('€ ')
+                    ->formatStateUsing(fn ($state) => number_format($state, 2, ',', ' ')),
+                TextColumn::make('currency')
+                    ->label('Devise')
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => strtoupper($state)),
+                TextColumn::make('status')
+                    ->label('Statut')
+                    ->badge()
+                    ->colors([
+                        'success' => 'completed',
+                        'warning' => 'pending',
+                        'danger' => 'failed',
+                    ])
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'completed' => 'Complété',
+                        'pending' => 'En attente',
+                        'failed' => 'Échoué',
+                        default => $state,
+                    }),
+                TextColumn::make('payment_method')
+                    ->label('Méthode')
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'stripe' => 'Stripe',
+                        'cash' => 'Espèces',
+                        'other' => 'Autre',
+                        default => $state,
+                    }),
+                TextColumn::make('paid_at')
+                    ->label('Payé le')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable()
+                    ->placeholder('Non payé'),
+                TextColumn::make('created_at')
+                    ->label('Créé le')
+                    ->dateTime('d/m/Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])

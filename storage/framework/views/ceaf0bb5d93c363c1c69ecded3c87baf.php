@@ -1,13 +1,11 @@
-@extends('layouts.tattooer')
+<?php $__env->startSection('title', 'Chat - ' . $bookingRequest->client->full_name); ?>
 
-@section('title', 'Chat - ' . $bookingRequest->client->full_name)
-
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="min-h-screen bg-noir-profond">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <!-- En-tête avec alertes d'expiration -->
             <div class="mb-6">
-                <a href="{{ route('tattooer.requests') }}"
+                <a href="<?php echo e(route('tattooer.requests')); ?>"
                     class="inline-flex items-center text-ivoire-text/80 hover:text-ivoire-text mb-4">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -15,8 +13,8 @@
                     Retour aux demandes
                 </a>
 
-                @if ($bookingRequest->conversation)
-                    @php
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->conversation): ?>
+                    <?php
                         $conversation = $bookingRequest->conversation;
                         $expiryInfo = null;
                         if ($conversation) {
@@ -30,46 +28,47 @@
                                 'deposit_deadline_at' => $conversation->deposit_deadline_at,
                             ];
                         }
-                    @endphp
+                    ?>
 
-                    @if ($expiryInfo && $expiryInfo['warning_message'])
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($expiryInfo && $expiryInfo['warning_message']): ?>
                         <div
-                            class="mb-4 p-4 rounded-lg border {{ $expiryInfo['is_expired'] ? 'bg-rouge-alerte/10 border-rouge-alerte/30' : 'bg-jaune-alerte/10 border-jaune-alerte/30' }}">
+                            class="mb-4 p-4 rounded-lg border <?php echo e($expiryInfo['is_expired'] ? 'bg-rouge-alerte/10 border-rouge-alerte/30' : 'bg-jaune-alerte/10 border-jaune-alerte/30'); ?>">
                             <div class="flex items-start">
-                                <svg class="w-5 h-5 mt-0.5 mr-3 {{ $expiryInfo['is_expired'] ? 'text-rouge-alerte' : 'text-jaune-alerte' }}"
+                                <svg class="w-5 h-5 mt-0.5 mr-3 <?php echo e($expiryInfo['is_expired'] ? 'text-rouge-alerte' : 'text-jaune-alerte'); ?>"
                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    @if ($expiryInfo['is_expired'])
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($expiryInfo['is_expired']): ?>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    @else
+                                    <?php else: ?>
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    @endif
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 </svg>
                                 <div class="flex-1">
                                     <h3
-                                        class="font-semibold {{ $expiryInfo['is_expired'] ? 'text-rouge-alerte' : 'text-jaune-alerte' }} mb-1">
-                                        @if ($expiryInfo['is_expired'])
+                                        class="font-semibold <?php echo e($expiryInfo['is_expired'] ? 'text-rouge-alerte' : 'text-jaune-alerte'); ?> mb-1">
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($expiryInfo['is_expired']): ?>
                                             ❌ Conversation expirée
-                                        @elseif($expiryInfo['expiry_type'] === 'deposit_pending')
+                                        <?php elseif($expiryInfo['expiry_type'] === 'deposit_pending'): ?>
                                             ⏰ Délai d'acompte
-                                        @else
+                                        <?php else: ?>
                                             ℹ️ Information
-                                        @endif
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                     </h3>
                                     <p
-                                        class="{{ $expiryInfo['is_expired'] ? 'text-rouge-alerte' : 'text-jaune-alerte' }} text-sm">
-                                        {{ $expiryInfo['warning_message'] }}
+                                        class="<?php echo e($expiryInfo['is_expired'] ? 'text-rouge-alerte' : 'text-jaune-alerte'); ?> text-sm">
+                                        <?php echo e($expiryInfo['warning_message']); ?>
+
                                     </p>
-                                    @if (!$expiryInfo['is_expired'] && $expiryInfo['time_remaining'] !== '')
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!$expiryInfo['is_expired'] && $expiryInfo['time_remaining'] !== ''): ?>
                                         <div class="mt-2">
                                             <div class="flex items-center justify-between text-sm">
                                                 <span
-                                                    class="{{ $expiryInfo['days_remaining'] <= 2 ? 'text-rouge-alerte font-semibold' : 'text-jaune-alerte' }}">
-                                                    {{ $expiryInfo['time_remaining'] }} restant(es)
+                                                    class="<?php echo e($expiryInfo['days_remaining'] <= 2 ? 'text-rouge-alerte font-semibold' : 'text-jaune-alerte'); ?>">
+                                                    <?php echo e($expiryInfo['time_remaining']); ?> restant(es)
                                                 </span>
-                                                @if ($bookingRequest->status->value === 'deposit_requested')
-                                                    <a href="{{ route('deposit.payment', $bookingRequest->id) }}"
+                                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->status->value === 'deposit_requested'): ?>
+                                                    <a href="<?php echo e(route('deposit.payment', $bookingRequest->id)); ?>"
                                                         class="inline-flex items-center px-3 py-1 bg-beige-peau text-noir-profond rounded text-sm font-medium hover:bg-beige-peau/90 transition-colors">
                                                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor"
                                                             viewBox="0 0 24 24">
@@ -79,72 +78,73 @@
                                                         </svg>
                                                         Payer l'acompte
                                                     </a>
-                                                @endif
+                                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                             </div>
-                                    @endif
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 </div>
                             </div>
                         </div>
             </div>
-            @endif
-            @endif
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-3xl font-bold text-ivoire-text">Chat avec {{ $bookingRequest->client->user->pseudo ?? $bookingRequest->client->user->first_name . ' ' . $bookingRequest->client->user->last_name ?? $bookingRequest->client->full_name }}
+                    <h1 class="text-3xl font-bold text-ivoire-text">Chat avec <?php echo e($bookingRequest->client->user->pseudo ?? $bookingRequest->client->user->first_name . ' ' . $bookingRequest->client->user->last_name ?? $bookingRequest->client->full_name); ?>
+
                     </h1>
-                    <p class="text-ivoire-text/70 mt-1">Projet: {{ $bookingRequest->tattoo_description }}</p>
+                    <p class="text-ivoire-text/70 mt-1">Projet: <?php echo e($bookingRequest->tattoo_description); ?></p>
                 </div>
 
-                @if ($bookingRequest->status->value === 'accepted' && !$bookingRequest->deposit_paid_at)
-                    @if ($bookingRequest->deposit_deadline)
-                        @php
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->status->value === 'accepted' && !$bookingRequest->deposit_paid_at): ?>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->deposit_deadline): ?>
+                        <?php
                             $deadline = is_string($bookingRequest->deposit_deadline)
                                 ? \Carbon\Carbon::parse($bookingRequest->deposit_deadline)
                                 : $bookingRequest->deposit_deadline;
                             $daysRemaining = (int)ceil(now()->diffInHours($deadline) / 24);
-                        @endphp
+                        ?>
                         <div class="px-4 py-2 bg-orange-attention/10 border border-orange-attention/30 rounded-lg">
                             <p class="text-orange-attention text-sm">
                                 <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
-                                Délai : <span class="text-ivoire-text">{{ $daysRemaining > 0 ? $daysRemaining . ' jour(s) restant(s)' : 'Dernier jour' }}</span>
-                                @if ($daysRemaining < 0)
+                                Délai : <span class="text-ivoire-text"><?php echo e($daysRemaining > 0 ? $daysRemaining . ' jour(s) restant(s)' : 'Dernier jour'); ?></span>
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($daysRemaining < 0): ?>
                                     <span class="block mt-1 text-rouge-alerte font-semibold">⚠️ Délai expiré</span>
-                                @elseif ($daysRemaining <= 1)
+                                <?php elseif($daysRemaining <= 1): ?>
                                     <span class="block mt-1 text-rouge-alerte font-semibold">⚠️ Urgent</span>
-                                @endif
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </p>
                         </div>
-                    @elseif ($bookingRequest->conversation && $bookingRequest->conversation->deposit_deadline_at)
-                        @php
+                    <?php elseif($bookingRequest->conversation && $bookingRequest->conversation->deposit_deadline_at): ?>
+                        <?php
                             $deadline = is_string($bookingRequest->conversation->deposit_deadline_at)
                                 ? \Carbon\Carbon::parse($bookingRequest->conversation->deposit_deadline_at)
                                 : $bookingRequest->conversation->deposit_deadline_at;
                             $daysRemaining = (int)ceil(now()->diffInHours($deadline) / 24);
-                        @endphp
+                        ?>
                         <div class="px-4 py-2 bg-jaune-alerte/10 border border-jaune-alerte/30 rounded-lg">
                             <p class="text-jaune-alerte text-sm">
                                 <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
-                                Délai : <span class="text-ivoire-text">{{ $daysRemaining > 0 ? $daysRemaining . ' jour(s) restant(s)' : 'Dernier jour' }}</span>
-                                @if ($daysRemaining < 0)
+                                Délai : <span class="text-ivoire-text"><?php echo e($daysRemaining > 0 ? $daysRemaining . ' jour(s) restant(s)' : 'Dernier jour'); ?></span>
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($daysRemaining < 0): ?>
                                     <span class="block mt-1 text-rouge-alerte font-semibold">⚠️ Délai expiré</span>
-                                @elseif ($daysRemaining <= 1)
+                                <?php elseif($daysRemaining <= 1): ?>
                                     <span class="block mt-1 text-rouge-alerte font-semibold">⚠️ Urgent</span>
-                                @endif
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </p>
                         </div>
-                    @endif
-                @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             </div>
 
             <!-- Gestion des dessins et modifications -->
-            @if ($bookingRequest->deposit_paid_at)
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->deposit_paid_at): ?>
                 <div class="mt-4 bg-titane/20 rounded-xl p-4 border border-titane/30">
                     <h3 class="text-lg font-semibold text-ivoire-text mb-3 flex items-center">
                         <svg class="w-5 h-5 mr-2 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -154,7 +154,7 @@
                     </h3>
 
                     <!-- Délais avant fermeture du chat -->
-                    @if (!$bookingRequest->deposit_paid_at && isset($expiryInfo) && $expiryInfo['time_remaining'])
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!$bookingRequest->deposit_paid_at && isset($expiryInfo) && $expiryInfo['time_remaining']): ?>
                         <div class="mb-4 bg-jaune-alerte/10 border border-jaune-alerte/30 rounded-lg p-3">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center">
@@ -162,39 +162,40 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
                                     <span class="text-jaune-alerte font-medium">
-                                        Temps restant : {{ $expiryInfo['time_remaining'] }}
+                                        Temps restant : <?php echo e($expiryInfo['time_remaining']); ?>
+
                                     </span>
                                 </div>
-                                @if ($expiryInfo['expiry_type'] === 'deposit_pending')
-                                    <a href="{{ route('booking-request.deposit.request', $bookingRequest) }}"
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($expiryInfo['expiry_type'] === 'deposit_pending'): ?>
+                                    <a href="<?php echo e(route('booking-request.deposit.request', $bookingRequest)); ?>"
                                        class="px-3 py-1 bg-beige-peau text-noir-profond rounded-lg text-sm font-semibold hover:bg-beige-peau/90 transition-colors">
                                         Payer l'acompte
                                     </a>
-                                @endif
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </div>
-                            @if (isset($expiryInfo['warning_message']))
-                                <p class="text-jaune-alerte/80 text-sm mt-2">{{ $expiryInfo['warning_message'] }}</p>
-                            @endif
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(isset($expiryInfo['warning_message'])): ?>
+                                <p class="text-jaune-alerte/80 text-sm mt-2"><?php echo e($expiryInfo['warning_message']); ?></p>
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                    @php
+                    <?php
     $summary = $bookingRequest->designTrackingSummary();
-@endphp
+?>
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
     <!-- Dessins complets -->
     <div class="bg-noir-profond/30 rounded-lg p-3">
         <div class="flex items-center justify-between mb-2">
             <span class="text-ivoire-text/70 text-sm">Dessins utilisés</span>
-            <span class="text-beige-peau font-bold">{{ $summary['designs_sent'] }}</span>
+            <span class="text-beige-peau font-bold"><?php echo e($summary['designs_sent']); ?></span>
         </div>
         <div class="w-full bg-titane/30 rounded-full h-2">
             <div class="bg-beige-peau h-2 rounded-full transition-all"
-                 style="width: {{ $summary['designs_included'] > 0 ? min(100, ($summary['designs_sent'] / $summary['designs_included']) * 100) : 0 }}%"></div>
+                 style="width: <?php echo e($summary['designs_included'] > 0 ? min(100, ($summary['designs_sent'] / $summary['designs_included']) * 100) : 0); ?>%"></div>
         </div>
         <p class="text-ivoire-text/50 text-xs mt-1">
-            {{ $summary['designs_included'] }} inclus — {{ $summary['designs_remaining'] }} restant(s)
+            <?php echo e($summary['designs_included']); ?> inclus — <?php echo e($summary['designs_remaining']); ?> restant(s)
         </p>
     </div>
 
@@ -203,18 +204,18 @@
         <div class="flex items-center justify-between mb-2">
             <span class="text-ivoire-text/70 text-sm">
                 Modifications
-                @if($summary['designs_sent'] > 0)
-                    <span class="text-xs">(dessin #{{ $summary['current_design_number'] }})</span>
-                @endif
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($summary['designs_sent'] > 0): ?>
+                    <span class="text-xs">(dessin #<?php echo e($summary['current_design_number']); ?>)</span>
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             </span>
-            <span class="text-beige-peau font-bold">{{ $summary['modifications_used_current'] }}</span>
+            <span class="text-beige-peau font-bold"><?php echo e($summary['modifications_used_current']); ?></span>
         </div>
         <div class="w-full bg-titane/30 rounded-full h-2">
             <div class="bg-vert-succes h-2 rounded-full transition-all"
-                 style="width: {{ $summary['modifications_per_design'] > 0 ? min(100, ($summary['modifications_used_current'] / $summary['modifications_per_design']) * 100) : 0 }}%"></div>
+                 style="width: <?php echo e($summary['modifications_per_design'] > 0 ? min(100, ($summary['modifications_used_current'] / $summary['modifications_per_design']) * 100) : 0); ?>%"></div>
         </div>
         <p class="text-ivoire-text/50 text-xs mt-1">
-            {{ $summary['modifications_per_design'] }} par dessin — {{ $summary['modifications_remaining_current'] }} restante(s)
+            <?php echo e($summary['modifications_per_design']); ?> par dessin — <?php echo e($summary['modifications_remaining_current']); ?> restante(s)
         </p>
     </div>
 
@@ -227,26 +228,27 @@
             <span class="text-ivoire-text/70 text-sm">Forfait</span>
         </div>
         <p class="text-ivoire-text/50 text-xs">
-            {{ $summary['designs_included'] }} dessin(s) complet(s), {{ $summary['modifications_per_design'] }} modif(s) chacun
+            <?php echo e($summary['designs_included']); ?> dessin(s) complet(s), <?php echo e($summary['modifications_per_design']); ?> modif(s) chacun
         </p>
-        @if(!$summary['can_send_new_design'] && !$summary['can_send_modification'])
+        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!$summary['can_send_new_design'] && !$summary['can_send_modification']): ?>
             <p class="text-ambre-warning text-xs mt-1">⚠️ Forfait épuisé</p>
-        @endif
+        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
     </div>
 </div>
 
 
                                     </div>
-            @endif
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
         </div>
 
         <!-- Zone de chat -->
         <div class="bg-titane/20 rounded-xl border border-titane/30">
             <!-- Messages flash avec fermeture auto + manuelle -->
             <div x-data="{
-                showSuccess: {{ session('success') ? 'true' : 'false' }},
-                showError: {{ session('error') ? 'true' : 'false' }},
-                showWarning: {{ session('warning') ? 'true' : 'false' }}
+                showSuccess: <?php echo e(session('success') ? 'true' : 'false'); ?>,
+                showError: <?php echo e(session('error') ? 'true' : 'false'); ?>,
+                showWarning: <?php echo e(session('warning') ? 'true' : 'false'); ?>
+
             }" x-init="if (showSuccess || showError || showWarning) {
                 setTimeout(() => {
                     showSuccess = false;
@@ -268,7 +270,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        <span>{{ session('success') }}</span>
+                        <span><?php echo e(session('success')); ?></span>
                     </div>
                     <button @click="showSuccess = false" class="text-vert-succes/80 hover:text-vert-succes">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -291,7 +293,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        <span>{{ session('error') }}</span>
+                        <span><?php echo e(session('error')); ?></span>
                     </div>
                     <button @click="showError = false" class="text-rouge-alerte/80 hover:text-rouge-alerte">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -315,7 +317,7 @@
                                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
                             </path>
                         </svg>
-                        <span>{{ session('warning') }}</span>
+                        <span><?php echo e(session('warning')); ?></span>
                     </div>
                     <button @click="showWarning = false" class="text-jaune-alerte/80 hover:text-jaune-alerte">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -329,7 +331,7 @@
             <!-- Messages -->
             <div id="messages-container" class="h-96 overflow-y-auto p-4 sm:p-6 space-y-4">
 
-                @if ($messages->isEmpty())
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($messages->isEmpty()): ?>
                     <div class="text-center py-12">
                         <div class="inline-flex items-center justify-center w-16 h-16 bg-noir-profond rounded-full mb-4">
                             <svg class="w-8 h-8 text-ivoire-text/50" fill="none" stroke="currentColor"
@@ -339,69 +341,71 @@
                             </svg>
                         </div>
                         <h3 class="text-lg font-semibold text-ivoire-text mb-2">
-                            @if (
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(
                                 ($bookingRequest->status->value === 'accepted' || $bookingRequest->status->value === 'deposit_paid') &&
                                 $bookingRequest->conversation &&
-                                $bookingRequest->conversation->status->value === 'active')
+                                $bookingRequest->conversation->status->value === 'active'): ?>
                                 Chat ouvert
-                            @else
+                            <?php else: ?>
                                 Chat fermé
-                            @endif
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </h3>
                         <p class="text-ivoire-text/70 text-sm">
-                            @if ($bookingRequest->status->value !== 'accepted')
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->status->value !== 'accepted'): ?>
                                 Le chat sera disponible lorsque le projet sera accepté
-                            @elseif (!$bookingRequest->conversation)
+                            <?php elseif(!$bookingRequest->conversation): ?>
                                 La conversation n'a pas été créée
-                            @elseif ($bookingRequest->conversation->status->value !== 'active')
+                            <?php elseif($bookingRequest->conversation->status->value !== 'active'): ?>
                                 La conversation est fermée
-                            @else
+                            <?php else: ?>
                                 Le chat est ouvert pour discuter avec le client
-                            @endif
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </p>
                     </div>
-                @else
+                <?php else: ?>
                     <div class="text-xs text-ivoire-text/50 mb-2">
-                        Affichage de {{ $messages->count() }} message(s)
+                        Affichage de <?php echo e($messages->count()); ?> message(s)
                     </div>
-                    @foreach ($messages as $message)
-    @if($message->sender_type === 'system')
-        {{-- Messages système — centrés, style distinct --}}
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $messages; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $message): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($message->sender_type === 'system'): ?>
+        
         <div class="flex justify-center mb-4">
             <div class="max-w-sm">
                 <div class="bg-titane/20 border border-titane/30 text-ivoire-text/80 rounded-lg px-4 py-2 text-center">
-                    <p class="text-sm whitespace-pre-wrap">{{ $message->content }}</p>
+                    <p class="text-sm whitespace-pre-wrap"><?php echo e($message->content); ?></p>
 
-                    @if(str_contains($message->content, 'choisi la date'))
-                        @if(auth()->user()->isTattooer()
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(str_contains($message->content, 'choisi la date')): ?>
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->isTattooer()
                             && $bookingRequest->confirmed_date
-                            && !$bookingRequest->appointment_datetime)
-                            <a href="{{ route('tattooer.calendar') }}?book={{ $bookingRequest->id }}&date={{ \Carbon\Carbon::parse($bookingRequest->confirmed_date)->format('Y-m-d') }}&period={{ $bookingRequest->confirmed_period ?? 'morning' }}"
+                            && !$bookingRequest->appointment_datetime): ?>
+                            <a href="<?php echo e(route('tattooer.calendar')); ?>?book=<?php echo e($bookingRequest->id); ?>&date=<?php echo e(\Carbon\Carbon::parse($bookingRequest->confirmed_date)->format('Y-m-d')); ?>&period=<?php echo e($bookingRequest->confirmed_period ?? 'morning'); ?>"
                                class="inline-flex items-center gap-2 mt-3 px-4 py-2.5 bg-beige-peau text-noir-profond font-bold rounded-lg hover:bg-beige-peau/90 transition">
                                 📅 Fixer l'horaire du rendez-vous →
                             </a>
-                        @elseif($bookingRequest->appointment_datetime)
+                        <?php elseif($bookingRequest->appointment_datetime): ?>
                             <p class="text-xs text-vert-succes mt-2">
-                                ✅ RDV fixé : {{ \Carbon\Carbon::parse($bookingRequest->appointment_datetime)->translatedFormat('d/m/Y') }}
-                                de {{ $bookingRequest->scheduled_start_time }} à {{ $bookingRequest->scheduled_end_time }}
-                            </p>
-                        @endif
-                    @endif
+                                ✅ RDV fixé : <?php echo e(\Carbon\Carbon::parse($bookingRequest->appointment_datetime)->translatedFormat('d/m/Y')); ?>
 
-                    {{-- Bouton re-proposer des dates (visible uniquement si le client a refusé les dates) --}}
-                    @php
+                                de <?php echo e($bookingRequest->scheduled_start_time); ?> à <?php echo e($bookingRequest->scheduled_end_time); ?>
+
+                            </p>
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
+                    
+                    <?php
                         $hasRefusalMessage = str_contains($message->content ?? '', 'aucune des dates') ||
                                             str_contains($message->content ?? '', 'alternatives') ||
                                             str_contains($message->content ?? '', 'Le client ne peut à aucune des dates proposées') ||
                                             str_contains($message->content ?? '', '⚠️ Le client ne peut à aucune des dates proposées');
-                    @endphp
+                    ?>
 
-                    @if ($hasRefusalMessage)
-                        @php
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($hasRefusalMessage): ?>
+                        <?php
                             $canRepropose = $bookingRequest && !in_array($bookingRequest->status->value ?? '', ['cancelled', 'completed', 'expired', 'rejected']);
-                        @endphp
+                        ?>
 
-                        @if ($canRepropose)
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($canRepropose): ?>
                             <div class="mt-3">
                                 <button
                                     onclick="Livewire.dispatch('openModal')"
@@ -413,69 +417,72 @@
                                     📅 Proposer de nouvelles dates
                                 </button>
                             </div>
-                        @endif
-                    @endif
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
-                <p class="text-xs text-ivoire-text/40 mt-1 text-center">{{ $message->created_at->format('H:i') }}</p>
+                <p class="text-xs text-ivoire-text/40 mt-1 text-center"><?php echo e($message->created_at->format('H:i')); ?></p>
             </div>
         </div>
-    @else
-        {{-- Messages client / tattooer — layout existant inchangé --}}
-        <div class="flex {{ $message->sender_type === 'client' ? 'justify-start' : 'justify-end' }} mb-4">
+    <?php else: ?>
+        
+        <div class="flex <?php echo e($message->sender_type === 'client' ? 'justify-start' : 'justify-end'); ?> mb-4">
             <div class="max-w-xs sm:max-w-md lg:max-w-md">
-                @if ($message->sender_type === 'client')
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($message->sender_type === 'client'): ?>
                     <div class="flex items-start gap-3 mb-3">
-                        <img src="{{ $bookingRequest->client->user->getFirstMediaUrl('avatar') }}"
-                             alt="Avatar de {{ $bookingRequest->client->full_name }}"
+                        <img src="<?php echo e($bookingRequest->client->user->getFirstMediaUrl('avatar')); ?>"
+                             alt="Avatar de <?php echo e($bookingRequest->client->full_name); ?>"
                              class="w-10 h-10 rounded-full object-cover border-2 border-titane/30">
                         <div class="flex-1">
-                            <div class="font-semibold text-ivoire-text">{{ $bookingRequest->client->pseudo }}</div>
+                            <div class="font-semibold text-ivoire-text"><?php echo e($bookingRequest->client->pseudo); ?></div>
                         </div>
                     </div>
-                @endif
-                <div class="{{ $message->sender_type === 'client' ? 'bg-noir-profond text-ivoire-text' : 'bg-beige-peau text-noir-profond' }} rounded-lg px-3 py-2 sm:px-4">
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                <div class="<?php echo e($message->sender_type === 'client' ? 'bg-noir-profond text-ivoire-text' : 'bg-beige-peau text-noir-profond'); ?> rounded-lg px-3 py-2 sm:px-4">
                     <p class="text-sm whitespace-pre-wrap break-words">
-                        @if (!empty(trim($message->content)))
-                            {{ $message->content }}
-                        @elseif ($message->getMedia('attachments')->isNotEmpty())
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!empty(trim($message->content))): ?>
+                            <?php echo e($message->content); ?>
+
+                        <?php elseif($message->getMedia('attachments')->isNotEmpty()): ?>
                             <span class="text-ivoire-text/60 italic">Dessin envoyé</span>
-                        @else
+                        <?php else: ?>
                             <span class="text-ivoire-text/60 italic">Message vide</span>
-                        @endif
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </p>
 
-                    @if ($message->getMedia('attachments')->isNotEmpty())
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($message->getMedia('attachments')->isNotEmpty()): ?>
                         <div class="mt-2 space-y-1">
-                            @foreach ($message->getMedia('attachments') as $media)
-                                @if (str_starts_with($media->mime_type, 'image/'))
-                                    <img src="{{ $media->getUrl() }}" alt="Pièce jointe"
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $message->getMedia('attachments'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $media): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(str_starts_with($media->mime_type, 'image/')): ?>
+                                    <img src="<?php echo e($media->getUrl()); ?>" alt="Pièce jointe"
                                         class="rounded max-w-full h-auto cursor-pointer hover:opacity-90"
-                                        onclick="window.open('{{ $media->getUrl() }}', '_blank')">
-                                @else
-                                    <a href="{{ $media->getUrl() }}" target="_blank"
+                                        onclick="window.open('<?php echo e($media->getUrl()); ?>', '_blank')">
+                                <?php else: ?>
+                                    <a href="<?php echo e($media->getUrl()); ?>" target="_blank"
                                         class="block text-xs underline break-all">
-                                        📎 {{ $media->file_name }}
+                                        📎 <?php echo e($media->file_name); ?>
+
                                     </a>
-                                @endif
-                            @endforeach
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
                 <p class="text-xs text-ivoire-text/50 mt-1">
-                    {{ $message->created_at->format('H:i') }}
+                    <?php echo e($message->created_at->format('H:i')); ?>
+
                 </p>
             </div>
         </div>
-    @endif
-@endforeach
-                @endif
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             </div>
 
             <!-- Zone de saisie -->
             <div class="border-t border-titane/30 p-3 sm:p-4">
                 <div class="bg-titane/20 rounded-xl p-4 sm:p-6">
-                    @if (in_array($bookingRequest->status->value, ['accepted', 'deposit_paid', 'date_confirmed']) && $bookingRequest->conversation && $bookingRequest->conversation->status->value === 'active')
-                        @if (!$bookingRequest->deposit_paid_at)
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(in_array($bookingRequest->status->value, ['accepted', 'deposit_paid', 'date_confirmed']) && $bookingRequest->conversation && $bookingRequest->conversation->status->value === 'active'): ?>
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!$bookingRequest->deposit_paid_at): ?>
                             <div class="bg-jaune-alerte/10 border border-jaune-alerte/30 rounded-lg p-3 mb-4">
                                 <p class="text-jaune-alerte text-sm">
                                     <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor"
@@ -486,20 +493,20 @@
                                     Les pièces jointes sont désactivées jusqu'au paiement de l'acompte
                                 </p>
                             </div>
-                        @endif
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
 
-                        <form action="{{ route('tattooer.message.send', $bookingRequest) }}" method="POST"
+                        <form action="<?php echo e(route('tattooer.message.send', $bookingRequest)); ?>" method="POST"
     enctype="multipart/form-data" id="messageForm"
     x-data="messageForm()" @submit="handleSubmit($event)">
-    @csrf
+    <?php echo csrf_field(); ?>
 
-    {{-- Champs cachés pour le type de dessin --}}
+    
     <input type="hidden" name="design_type" x-model="designType">
     <input type="hidden" name="coverage_type" x-model="coverageType">
 
-    @if ($bookingRequest->deposit_paid_at)
-        {{-- Prévisualisation des fichiers sélectionnés --}}
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->deposit_paid_at): ?>
+        
         <div x-show="files.length > 0" x-cloak class="mb-3 flex flex-wrap gap-2 px-2">
             <template x-for="(file, index) in files" :key="index">
                 <div class="relative bg-noir-profond/50 rounded-lg px-3 py-1.5 flex items-center gap-2 text-sm text-ivoire-text/80">
@@ -509,7 +516,7 @@
             </template>
         </div>
 
-        {{-- Sélecteur de type (visible uniquement si fichiers attachés ET type pas encore choisi) --}}
+        
         <div x-show="files.length > 0 && !designType" x-cloak class="mb-3 px-2">
             <p class="text-ivoire-text/70 text-sm mb-2">Quel type d'envoi ?</p>
             <div class="flex flex-wrap gap-2">
@@ -521,7 +528,7 @@
                     🎨 Nouveau dessin
                     <span x-text="canSendDesign ? '(inclus)' : '(hors forfait)'" class="text-xs ml-1"></span>
                 </button>
-                @if($bookingRequest->designs_sent_count > 0)
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->designs_sent_count > 0): ?>
                 <button type="button" @click="selectDesignType('modification')"
                     class="px-4 py-2 rounded-lg text-sm font-medium transition-all border"
                     :class="canSendModif
@@ -530,11 +537,11 @@
                     ✏️ Modification
                     <span x-text="canSendModif ? '(inclus)' : '(hors forfait)'" class="text-xs ml-1"></span>
                 </button>
-                @endif
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             </div>
         </div>
 
-        {{-- Type sélectionné (confirmation avec possibilité de changer) --}}
+        
         <div x-show="designType && files.length > 0 && coverageType" x-cloak class="mb-3 px-2">
             <div class="flex items-center gap-2 text-sm">
                 <span class="text-vert-succes" x-show="coverageType === 'included'">✅</span>
@@ -546,7 +553,7 @@
             </div>
         </div>
 
-        {{-- Options hors forfait (simplifiée V1 : envoi gratuit uniquement) --}}
+        
 <div x-show="showOverage" x-cloak class="mb-3 px-2 bg-ambre-warning/5 border border-ambre-warning/20 rounded-lg p-3">
     <p class="text-ambre-warning text-sm mb-2">⚠️ Limite du forfait atteinte pour ce type d'envoi</p>
     <p class="text-ivoire-text/60 text-xs mb-3">Le dessin sera envoyé gratuitement (hors forfait).</p>
@@ -556,13 +563,13 @@
     </button>
 </div>
 
-        {{-- Zone de saisie --}}
+        
         <div class="flex flex-col sm:flex-row items-end gap-2">
             <input type="file" name="attachments[]" id="attachments" multiple
                 accept="image/*,application/pdf" class="hidden"
                 @change="handleFileSelect($event)">
 
-            @if (auth()->user()->tattooer->isPro())
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->tattooer->isPro()): ?>
                 <button type="button" onclick="document.getElementById('attachments').click()"
                     class="px-4 py-3 bg-noir-profond text-ivoire-text rounded-lg hover:bg-noir-profond/80 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -570,7 +577,7 @@
                             d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                     </svg>
                 </button>
-            @else
+            <?php else: ?>
                 <div class="relative group">
                     <button type="button" disabled
                         class="px-4 py-3 bg-noir-profond/50 text-titane/40 rounded-lg cursor-not-allowed transition-colors">
@@ -581,11 +588,11 @@
                     </button>
                     <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10">
                         <div class="bg-gris-fonde border border-beige-peau/30 rounded-lg px-3 py-2 text-xs text-ivoire-text whitespace-nowrap shadow-lg">
-                            🔒 Upload images — <a href="{{ route('tattooer.subscription.plans') }}" class="text-beige-peau font-semibold hover:underline">Plan PRO requis</a>
+                            🔒 Upload images — <a href="<?php echo e(route('tattooer.subscription.plans')); ?>" class="text-beige-peau font-semibold hover:underline">Plan PRO requis</a>
                         </div>
                     </div>
                 </div>
-            @endif
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
             <textarea name="content" rows="2"
                 placeholder="Votre message..."
@@ -598,8 +605,8 @@
                 Envoyer
             </button>
         </div>
-    @else
-        {{-- Avant paiement acompte : pas de pièce jointe --}}
+    <?php else: ?>
+        
         <div class="flex flex-col sm:flex-row items-end gap-2">
             <textarea name="content" rows="2" placeholder="Votre message..." required
                 class="flex-1 w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-ivoire-text/50 focus:border-beige-peau focus:ring-1 focus:ring-beige-peau resize-none text-sm"></textarea>
@@ -608,10 +615,10 @@
                 Envoyer
             </button>
         </div>
-    @endif
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 </form>
 
-@php $summary = $bookingRequest->designTrackingSummary(); @endphp
+<?php $summary = $bookingRequest->designTrackingSummary(); ?>
 <script>
 function messageForm() {
     return {
@@ -621,8 +628,8 @@ function messageForm() {
         surchargeAmount: null,
         showOverage: false,
         designTypeLabel: '',
-        canSendDesign: {{ $bookingRequest->canSendNewDesign() ? 'true' : 'false' }},
-        canSendModif: {{ $bookingRequest->canSendModification() ? 'true' : 'false' }},
+        canSendDesign: <?php echo e($bookingRequest->canSendNewDesign() ? 'true' : 'false'); ?>,
+        canSendModif: <?php echo e($bookingRequest->canSendModification() ? 'true' : 'false'); ?>,
 
         handleFileSelect(event) {
             this.files = Array.from(event.target.files);
@@ -700,7 +707,7 @@ function messageForm() {
     }
 }
 </script>
-                    @else
+                    <?php else: ?>
                         <form class="flex space-x-4 opacity-50 pointer-events-none">
                             <input type="text" placeholder="Chat fermé"
                                 class="flex-1 px-4 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-ivoire-text/50 focus:outline-none focus:ring-2 focus:ring-beige-peau focus:border-transparent"
@@ -710,7 +717,7 @@ function messageForm() {
                                 Fermé
                             </button>
                         </form>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
             </div>
 
@@ -738,29 +745,29 @@ function messageForm() {
                         <div class="space-y-2 text-sm">
                             <div class="flex justify-between">
                                 <span class="text-ivoire-text/70">Emplacement:</span>
-                                <span class="text-ivoire-text">{{ $bookingRequest->tattoo_location }}</span>
+                                <span class="text-ivoire-text"><?php echo e($bookingRequest->tattoo_location); ?></span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-ivoire-text/70">Style:</span>
-                                <span class="text-ivoire-text">{{ $bookingRequest->tattoo_style }}</span>
+                                <span class="text-ivoire-text"><?php echo e($bookingRequest->tattoo_style); ?></span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-ivoire-text/70">Estimation tattoo:</span>
                                 <span class="text-ivoire-text">
-                                    @if ($bookingRequest->price_range_min && $bookingRequest->price_range_max)
-                                        {{ number_format($bookingRequest->price_range_min, 0) }}€ - {{ number_format($bookingRequest->price_range_max, 0) }}€
-                                    @elseif($bookingRequest->estimated_total_price)
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->price_range_min && $bookingRequest->price_range_max): ?>
+                                        <?php echo e(number_format($bookingRequest->price_range_min, 0)); ?>€ - <?php echo e(number_format($bookingRequest->price_range_max, 0)); ?>€
+                                    <?php elseif($bookingRequest->estimated_total_price): ?>
                                         {{ number_format($bookingRequest->estimated_total_price, 2, ',', ' ') . ' €'
-                                    @else
+                                    <?php else: ?>
                                         Non défini
-                                    @endif
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 </span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-ivoire-text/70">Statut:</span>
                                 <span
                                     class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
-                                {{ match ($bookingRequest->status) {
+                                <?php echo e(match ($bookingRequest->status) {
                                     'pending' => 'bg-jaune-alerte/20 text-jaune-alerte',
                                     'accepted' => 'bg-vert-succes/20 text-vert-succes',
                                     'awaiting_deposit' => 'bg-jaune-alerte/20 text-jaune-alerte',
@@ -769,8 +776,8 @@ function messageForm() {
                                     'completed' => 'bg-vert-succes/20 text-vert-succes',
                                     'cancelled' => 'bg-rouge-alerte/20 text-rouge-alerte',
                                     default => 'bg-gris-fonde/20 text-ivoire-text',
-                                } }}">
-                                    {{ match ($bookingRequest->status) {
+                                }); ?>">
+                                    <?php echo e(match ($bookingRequest->status) {
                                         'pending' => '⏳ En attente',
                                         'accepted' => '✅ Acceptée',
                                         'awaiting_deposit' => '⏳ Acompte attendu',
@@ -779,7 +786,8 @@ function messageForm() {
                                         'completed' => '✅ Terminé',
                                         'cancelled' => '❌ Annulée',
                                         default => ucfirst($bookingRequest->status->value),
-                                    } }}
+                                    }); ?>
+
                                 </span>
                             </div>
                         </div>
@@ -808,15 +816,15 @@ function messageForm() {
                         <div class="space-y-2 text-sm">
                             <div class="flex justify-between">
                                 <span class="text-ivoire-text/70">Email:</span>
-                                <span class="text-ivoire-text">{{ $bookingRequest->client->user->email }}</span>
+                                <span class="text-ivoire-text"><?php echo e($bookingRequest->client->user->email); ?></span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-ivoire-text/70">Téléphone:</span>
-                                <span class="text-ivoire-text">{{ $bookingRequest->client->phone ?: 'Non renseigné' }}</span>
+                                <span class="text-ivoire-text"><?php echo e($bookingRequest->client->phone ?: 'Non renseigné'); ?></span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-ivoire-text/70">Âge:</span>
-                                <span class="text-ivoire-text">{{ $bookingRequest->client->birth_date->age }} ans</span>
+                                <span class="text-ivoire-text"><?php echo e($bookingRequest->client->birth_date->age); ?> ans</span>
                             </div>
                         </div>
                     </div>
@@ -831,34 +839,34 @@ function messageForm() {
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <h4 class="font-semibold text-ivoire-text/80 mb-2">Zone du tatouage</h4>
-                            <p class="text-ivoire-text">{{ $bookingRequest->body_zone }}</p>
+                            <p class="text-ivoire-text"><?php echo e($bookingRequest->body_zone); ?></p>
                         </div>
 
-                        @if ($bookingRequest->description)
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->description): ?>
                             <div>
                                 <h4 class="font-semibold text-ivoire-text/80 mb-2">Description</h4>
-                                <p class="text-ivoire-text">{{ $bookingRequest->description }}</p>
+                                <p class="text-ivoire-text"><?php echo e($bookingRequest->description); ?></p>
                             </div>
-                        @endif
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                        @if ($bookingRequest->price_range_min)
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->price_range_min): ?>
                             <div>
                                 <h4 class="font-semibold text-ivoire-text/80 mb-2">Prix proposé</h4>
                                 <p class="text-ivoire-text">
-                                    {{ $bookingRequest->price_range_min }}€
-                                    @if ($bookingRequest->price_range_max) - {{ $bookingRequest->price_range_max }}€ @endif
+                                    <?php echo e($bookingRequest->price_range_min); ?>€
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->price_range_max): ?> - <?php echo e($bookingRequest->price_range_max); ?>€ <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 </p>
                             </div>
-                        @endif
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                         <div>
                             <h4 class="font-semibold text-ivoire-text/80 mb-2">Date de la demande</h4>
-                            <p class="text-ivoire-text">{{ $bookingRequest->created_at->format('d/m/Y à H:i') }}</p>
+                            <p class="text-ivoire-text"><?php echo e($bookingRequest->created_at->format('d/m/Y à H:i')); ?></p>
                         </div>
                             <span class="text-ivoire-text/70">Statut:</span>
                             <span
                                 class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
-                            {{ match ($bookingRequest->status) {
+                            <?php echo e(match ($bookingRequest->status) {
                                 'pending' => 'bg-jaune-alerte/20 text-jaune-alerte',
                                 'accepted' => 'bg-vert-succes/20 text-vert-succes',
                                 'awaiting_deposit' => 'bg-jaune-alerte/20 text-jaune-alerte',
@@ -867,8 +875,8 @@ function messageForm() {
                                 'completed' => 'bg-vert-succes/20 text-vert-succes',
                                 'cancelled' => 'bg-rouge-alerte/20 text-rouge-alerte',
                                 default => 'bg-gris-fonde/20 text-ivoire-text',
-                            } }}">
-                                {{ match ($bookingRequest->status) {
+                            }); ?>">
+                                <?php echo e(match ($bookingRequest->status) {
                                     'pending' => '⏳ En attente',
                                     'accepted' => '✅ Acceptée',
                                     'awaiting_deposit' => '⏳ Acompte attendu',
@@ -877,7 +885,8 @@ function messageForm() {
                                     'completed' => '✅ Terminé',
                                     'cancelled' => '❌ Annulée',
                                     default => ucfirst($bookingRequest->status->value),
-                                } }}
+                                }); ?>
+
                             </span>
                         </div>
                     </div>
@@ -888,15 +897,15 @@ function messageForm() {
                     <div class="space-y-2 text-sm">
                         <div class="flex justify-between">
                             <span class="text-ivoire-text/70">Email:</span>
-                            <span class="text-ivoire-text">{{ $bookingRequest->client->user->email }}</span>
+                            <span class="text-ivoire-text"><?php echo e($bookingRequest->client->user->email); ?></span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-ivoire-text/70">Téléphone:</span>
-                            <span class="text-ivoire-text">{{ $bookingRequest->client->phone ?: 'Non renseigné' }}</span>
+                            <span class="text-ivoire-text"><?php echo e($bookingRequest->client->phone ?: 'Non renseigné'); ?></span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-ivoire-text/70">Âge:</span>
-                            <span class="text-ivoire-text">{{ $bookingRequest->client->birth_date->age }} ans</span>
+                            <span class="text-ivoire-text"><?php echo e($bookingRequest->client->birth_date->age); ?> ans</span>
                         </div>
                     </div>
                 </div>
@@ -1027,7 +1036,7 @@ function messageForm() {
         });
     </script>
 
-    {{-- Modal re-proposition dates (JavaScript pur) --}}
+    
     <div id="repropose-dates-modal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-noir-profond/70" onclick="closeReproposeDatesModal()"></div>
 
@@ -1050,16 +1059,31 @@ function messageForm() {
                 </p>
             </div>
 
-            {{-- Calendrier Livewire --}}
-            @if (isset($bookingRequest))
-                <livewire:components.availability-calendar
-                    :tattooer-id="$bookingRequest->bookable_id"
-                    mode="multi-max-3"
-                    :show-period-selector="true"
-                    :key="'calendar-repropose-' . $bookingRequest->id" />
-            @endif
+            
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(isset($bookingRequest)): ?>
+                <?php
+$__split = function ($name, $params = []) {
+    return [$name, $params];
+};
+[$__name, $__params] = $__split('components.availability-calendar', ['tattooerId' => $bookingRequest->bookable_id,'mode' => 'multi-max-3','showPeriodSelector' => true]);
 
-            {{-- Dates sélectionnées --}}
+$key = 'calendar-repropose-' . $bookingRequest->id;
+
+$key ??= \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::generateKey('lw-1418354511-0', 'calendar-repropose-' . $bookingRequest->id);
+
+$__html = app('livewire')->mount($__name, $__params, $key);
+
+echo $__html;
+
+unset($__html);
+unset($__name);
+unset($__params);
+unset($__split);
+if (isset($__slots)) unset($__slots);
+?>
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
+            
             <div id="selected-dates-display" class="hidden bg-vert-succes/10 rounded-xl p-4 mb-5 border border-vert-succes/20">
                 <p class="text-sm text-vert-succes font-semibold mb-2">
                     <span id="dates-count">0</span> date<span id="dates-plural">s</span> sélectionnée<span id="dates-plural-2">s</span> :
@@ -1069,11 +1093,11 @@ function messageForm() {
                 </div>
             </div>
 
-            {{-- Form POST classique --}}
-            <form action="{{ route('tattooer.booking-requests.repropose-dates', $bookingRequest ?? 0) }}"
+            
+            <form action="<?php echo e(route('tattooer.booking-requests.repropose-dates', $bookingRequest ?? 0)); ?>"
                   method="POST"
                   id="repropose-dates-form">
-                @csrf
+                <?php echo csrf_field(); ?>
                 <input type="hidden" name="proposed_dates" id="repropose-dates-input" value="[]">
 
                 <div class="flex justify-end gap-3 pt-4 border-t border-titane/20">
@@ -1092,8 +1116,29 @@ function messageForm() {
         </div>
     </div>
 
-{{-- Composant Livewire repropose dates --}}
-    @if (isset($bookingRequest) && $bookingRequest)
-        <livewire:tattooer.repropose-dates-modal :booking-request-id="$bookingRequest->id" />
-    @endif
-@endsection
+
+    <?php if(isset($bookingRequest) && $bookingRequest): ?>
+        <?php
+$__split = function ($name, $params = []) {
+    return [$name, $params];
+};
+[$__name, $__params] = $__split('tattooer.repropose-dates-modal', ['bookingRequestId' => $bookingRequest->id]);
+
+$key = null;
+
+$key ??= \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::generateKey('lw-1418354511-1', null);
+
+$__html = app('livewire')->mount($__name, $__params, $key);
+
+echo $__html;
+
+unset($__html);
+unset($__name);
+unset($__params);
+unset($__split);
+if (isset($__slots)) unset($__slots);
+?>
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.tattooer', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\tattoolib-saas\resources\views/tattooer/message-show.blade.php ENDPATH**/ ?>

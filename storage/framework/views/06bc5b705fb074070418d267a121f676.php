@@ -1,6 +1,4 @@
-@extends('layouts.guest')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="min-h-screen bg-noir-profond flex items-center justify-center px-4">
         <div class="max-w-md w-full">
             <!-- Logo -->
@@ -19,21 +17,28 @@
             </p>
 
             <!-- Formulaire Laravel Fortify -->
-            <form method="POST" action="{{ route('login.authenticate') }}"
+            <form method="POST" action="<?php echo e(route('login.authenticate')); ?>"
                 class="bg-gris-fonde rounded-xl p-6 space-y-4 border boder-cuivre shadow-lg shadow-cuivre/30">
-                @csrf
+                <?php echo csrf_field(); ?>
 
                 <!-- Email -->
                 <div>
                     <label class="block text-ivoire-text text-sm font-semibold mb-2">
                         Email
                     </label>
-                    <input type="email" name="email" value="{{ old('email') }}"
+                    <input type="email" name="email" value="<?php echo e(old('email')); ?>"
                         class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors"
                         required placeholder="votre@email.com" autocomplete="email" autofocus>
-                    @error('email')
-                        <p class="text-rouge-alerte text-xs mt-1">{{ $message }}</p>
-                    @enderror
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['email'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                        <p class="text-rouge-alerte text-xs mt-1"><?php echo e($message); ?></p>
+                    <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
 
                 <!-- Password -->
@@ -44,14 +49,22 @@
                     <input type="password" name="password"
                         class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors"
                         required placeholder="••••••••••••" autocomplete="current-password">
-                    @error('password')
-                        <p class="text-rouge-alerte text-xs mt-1">{{ $message }}</p>
-                    @enderror
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['password'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                        <p class="text-rouge-alerte text-xs mt-1"><?php echo e($message); ?></p>
+                    <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
 
                 <!-- Remember me -->
                 <div class="flex items-center">
-                    <input type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}
+                    <input type="checkbox" name="remember" id="remember" <?php echo e(old('remember') ? 'checked' : ''); ?>
+
                         class="w-4 h-4 text-beige-peau bg-noir-profond border-titane/30 rounded focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50">
 
                     <label for="remember" class="text-ivoire-text/70 text-sm mx-4">
@@ -70,7 +83,7 @@
             <div class="text-center mt-6">
                 <p class="text-ivoire-text/70 text-sm">
                     Pas encore de compte ?
-                    <a href="{{ route('register') }}" class="text-beige-peau font-semibold hover:underline">
+                    <a href="<?php echo e(route('register')); ?>" class="text-beige-peau font-semibold hover:underline">
                         Créer un compte
                     </a>
                 </p>
@@ -78,13 +91,15 @@
 
             <!-- Lien mot de passe oublié -->
             <div class="text-center mt-4">
-                @if (Route::has('password.request'))
-                    <a href="{{ route('password.request') }}"
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(Route::has('password.request')): ?>
+                    <a href="<?php echo e(route('password.request')); ?>"
                         class="text-ivoire-text/50 text-sm hover:text-beige-peau hover:underline">
                         Mot de passe oublié ?
                     </a>
-                @endif
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             </div>
         </div>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.guest', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\tattoolib-saas\resources\views/livewire/auth/login-simple.blade.php ENDPATH**/ ?>

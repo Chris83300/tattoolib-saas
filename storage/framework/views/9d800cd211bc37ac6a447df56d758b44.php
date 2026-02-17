@@ -1,8 +1,6 @@
-@extends('layouts.tattooer')
+<?php $__env->startSection('title', 'Mon Profil'); ?>
 
-@section('title', 'Mon Profil')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="container mx-auto max-w-4xl">
 
         <!-- Header Profil Tattooer -->
@@ -13,56 +11,59 @@
                 <div class="flex items-center gap-4 flex-1">
                     <!-- Avatar Spatie -->
                     <div class="w-20 h-20 rounded-full overflow-hidden flex-shrink-0 bg-beige-peau/10">
-                        <img src="{{ auth()->user()->getFirstMediaUrl('avatar', 'thumb') ?: asset('images/default-tattooer-avatar.png') }}"
-                            alt="{{ $tattooer->user->name }}"
+                        <img src="<?php echo e(auth()->user()->getFirstMediaUrl('avatar', 'thumb') ?: asset('images/default-tattooer-avatar.png')); ?>"
+                            alt="<?php echo e($tattooer->user->name); ?>"
                             class="w-full h-full object-cover border border-cuivre/60 rounded-full shadow-md shadow-cuivre">
                     </div>
 
                     <div>
                         <!-- Pseudo affiché publiquement -->
                         <h1 class="text-3xl font-Satoshi font-bold text-ivoire-text mb-1">
-                            {{ $tattooer->user->pseudo ?? $tattooer->user->first_name . ' ' . $tattooer->user->last_name }}
+                            <?php echo e($tattooer->user->pseudo ?? $tattooer->user->first_name . ' ' . $tattooer->user->last_name); ?>
+
                         </h1>
 
                         <p class="text-ivoire-text/70 mb-2">
-                            {{ $tattooer->city ?? '' }}{{ $tattooer->postal_code ? ', ' . $tattooer->postal_code : '' }}
+                            <?php echo e($tattooer->city ?? ''); ?><?php echo e($tattooer->postal_code ? ', ' . $tattooer->postal_code : ''); ?>
+
                         </p>
 
                         <!-- Badges -->
                         <div class="flex gap-2 flex-wrap">
-                            @if ($tattooer->has_compliance_badge)
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tattooer->has_compliance_badge): ?>
                                 <span
                                     class="bg-vert-succes/20 text-vert-succes px-3 py-1 rounded-full text-xs font-semibold">
                                     ✓ Conforme Ink&Pik
                                 </span>
-                            @endif
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                             <span class="bg-beige-peau/20 text-beige-peau px-3 py-1 rounded-full text-xs font-semibold">
-                                {{ $tattooer->isPro() ? '⭐ Plan PRO' : '🆓 Plan FREE' }}
+                                <?php echo e($tattooer->isPro() ? '⭐ Plan PRO' : '🆓 Plan FREE'); ?>
+
                             </span>
 
-                            @if ($tattooer->user->status === 'pending_verification')
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tattooer->user->status === 'pending_verification'): ?>
                                 <span
                                     class="bg-orange-attention/20 text-orange-attention px-3 py-1 rounded-full text-xs font-semibold">
                                     ⏳ En attente validation
                                 </span>
-                            @endif
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
                     </div>
                 </div>
 
                 <!-- Actions -->
                 <div class="flex gap-3">
-                    <a href="{{ route('tattooer.settings') }}"
+                    <a href="<?php echo e(route('tattooer.settings')); ?>"
                         class="px-4 py-2 bg-beige-peau hover:bg-beige-peau/90 text-noir-profond font-semibold rounded-lg transition-colors">
                         Modifier
                     </a>
-                    @if ($tattooer->slug)
-                        <a href="{{ route('marketplace.tattooer.show', $tattooer->slug) }}" target="_blank"
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tattooer->slug): ?>
+                        <a href="<?php echo e(route('marketplace.tattooer.show', $tattooer->slug)); ?>" target="_blank"
                             class="px-4 py-2 border border-beige-peau text-beige-peau hover:bg-beige-peau/10 font-semibold rounded-lg transition-colors">
                             Voir profil public
                         </a>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
             </div>
         </div>
@@ -74,41 +75,41 @@
             <div class="lg:col-span-2 space-y-6">
 
                 <!-- Bio -->
-                @if ($tattooer->bio)
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tattooer->bio): ?>
                     <div class="bg-gris-fonde rounded-xl p-6">
                         <h2 class="text-xl font-Satoshi font-bold text-ivoire-text mb-4">Bio</h2>
-                        <p class="text-ivoire-text/80 leading-relaxed">{{ $tattooer->bio }}</p>
+                        <p class="text-ivoire-text/80 leading-relaxed"><?php echo e($tattooer->bio); ?></p>
                     </div>
-                @endif
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                 <!-- Portfolio (Spatie Media) -->
                 <div class="bg-gris-fonde rounded-xl p-6">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-xl font-Satoshi font-bold text-ivoire-text">Portfolio</h2>
-                        <a href="{{ route('tattooer.settings') }}"
+                        <a href="<?php echo e(route('tattooer.settings')); ?>"
                             class="text-beige-peau text-sm font-semibold hover:underline">
                             Gérer →
                         </a>
                     </div>
 
-                    @if (!empty($portfolio))
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!empty($portfolio)): ?>
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            @foreach ($portfolio as $media)
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $portfolio; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $media): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <div class="aspect-square rounded-lg overflow-hidden bg-noir-profond">
-                                    <img src="{{ $media['url'] }}" alt="Portfolio"
+                                    <img src="<?php echo e($media['url']); ?>" alt="Portfolio"
                                         class="w-full h-full object-cover hover:scale-110 transition-transform duration-300">
                                 </div>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
-                    @else
+                    <?php else: ?>
                         <div class="text-center py-8">
                             <p class="text-ivoire-text/50 mb-4">Aucune image dans votre portfolio</p>
-                            <a href="{{ route('tattooer.settings') }}"
+                            <a href="<?php echo e(route('tattooer.settings')); ?>"
                                 class="inline-block px-4 py-2 bg-beige-peau text-noir-profond font-semibold rounded-lg">
                                 Ajouter des images
                             </a>
                         </div>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
 
                 <!-- Infos Professionnelles (privées pour tattooer uniquement) -->
@@ -121,19 +122,19 @@
                         <div class="flex justify-between py-2 border-b border-titane/20">
                             <span class="text-ivoire-text/50">Nom réel</span>
                             <span
-                                class="text-ivoire-text">{{ $tattooer->user->first_name . ' ' . $tattooer->user->last_name }}</span>
+                                class="text-ivoire-text"><?php echo e($tattooer->user->first_name . ' ' . $tattooer->user->last_name); ?></span>
                         </div>
                         <div class="flex justify-between py-2 border-b border-titane/20">
                             <span class="text-ivoire-text/50">SIRET</span>
-                            <span class="text-ivoire-text font-mono">{{ $tattooer->siret ?? 'Non renseigné' }}</span>
+                            <span class="text-ivoire-text font-mono"><?php echo e($tattooer->siret ?? 'Non renseigné'); ?></span>
                         </div>
                         <div class="flex justify-between py-2 border-b border-titane/20">
                             <span class="text-ivoire-text/50">Email</span>
-                            <span class="text-ivoire-text">{{ $tattooer->user->email }}</span>
+                            <span class="text-ivoire-text"><?php echo e($tattooer->user->email); ?></span>
                         </div>
                         <div class="flex justify-between py-2">
                             <span class="text-ivoire-text/50">Téléphone</span>
-                            <span class="text-ivoire-text">{{ $tattooer->phone ?? 'Non renseigné' }}</span>
+                            <span class="text-ivoire-text"><?php echo e($tattooer->phone ?? 'Non renseigné'); ?></span>
                         </div>
                     </div>
                 </div>
@@ -149,19 +150,19 @@
                     <div class="space-y-4">
                         <div>
                             <p class="text-ivoire-text/50 text-xs mb-1">RDV ce mois</p>
-                            <p class="text-2xl font-bold text-beige-peau">{{ $stats['completed_projects'] ?? 0 }}</p>
+                            <p class="text-2xl font-bold text-beige-peau"><?php echo e($stats['completed_projects'] ?? 0); ?></p>
                         </div>
                         <div>
                             <p class="text-ivoire-text/50 text-xs mb-1">Clients totaux</p>
-                            <p class="text-2xl font-bold text-beige-peau">{{ $stats['total_clients'] ?? 0 }}</p>
+                            <p class="text-2xl font-bold text-beige-peau"><?php echo e($stats['total_clients'] ?? 0); ?></p>
                         </div>
                         <div>
                             <p class="text-ivoire-text/50 text-xs mb-1">Projets actifs</p>
-                            <p class="text-2xl font-bold text-beige-peau">{{ $stats['active_projects'] ?? 0 }}</p>
+                            <p class="text-2xl font-bold text-beige-peau"><?php echo e($stats['active_projects'] ?? 0); ?></p>
                         </div>
                         <div>
                             <p class="text-ivoire-text/50 text-xs mb-1">Portfolio</p>
-                            <p class="text-2xl font-bold text-beige-peau">{{ $stats['portfolio_count'] ?? 0 }}</p>
+                            <p class="text-2xl font-bold text-beige-peau"><?php echo e($stats['portfolio_count'] ?? 0); ?></p>
                         </div>
                     </div>
                 </div>
@@ -170,39 +171,40 @@
                 <div class="bg-gris-fonde rounded-xl p-6">
                     <h3 class="text-lg font-Satoshi font-bold text-ivoire-text mb-4">Actions rapides</h3>
                     <div class="space-y-3">
-                        <a href="{{ route('tattooer.dashboard') }}"
+                        <a href="<?php echo e(route('tattooer.dashboard')); ?>"
                             class="w-full flex items-center gap-3 px-4 py-3 bg-beige-peau/10 hover:bg-beige-peau/20 text-beige-peau rounded-lg transition-colors">
                             <span class="text-xl">📊</span>
                             <span class="font-semibold">Dashboard</span>
                         </a>
-                        <a href="{{ route('tattooer.requests') }}"
+                        <a href="<?php echo e(route('tattooer.requests')); ?>"
                             class="w-full flex items-center gap-3 px-4 py-3 bg-beige-peau/10 hover:bg-beige-peau/20 text-beige-peau rounded-lg transition-colors">
                             <span class="text-xl">📅</span>
                             <span class="font-semibold">Demandes RDV</span>
-                            @if (($stats['active_projects'] ?? 0) > 0)
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(($stats['active_projects'] ?? 0) > 0): ?>
                                 <span
                                     class="ml-auto bg-rouge-alerte text-noir-profond px-2 py-0.5 rounded-full text-xs font-bold">
-                                    {{ $stats['active_projects'] ?? 0 }}
+                                    <?php echo e($stats['active_projects'] ?? 0); ?>
+
                                 </span>
-                            @endif
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </a>
-                        <a href="{{ route('tattooer.calendar') }}"
+                        <a href="<?php echo e(route('tattooer.calendar')); ?>"
                             class="w-full flex items-center gap-3 px-4 py-3 bg-beige-peau/10 hover:bg-beige-peau/20 text-beige-peau rounded-lg transition-colors">
                             <span class="text-xl">🗓️</span>
                             <span class="font-semibold">Calendrier</span>
                         </a>
-                        @if (!$tattooer->has_compliance_badge)
-                            <a href="{{ route('compliance') }}"
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!$tattooer->has_compliance_badge): ?>
+                            <a href="<?php echo e(route('compliance')); ?>"
                                 class="w-full flex items-center gap-3 px-4 py-3 bg-vert-succes/20 hover:bg-vert-succes/30 text-vert-succes rounded-lg transition-colors">
                                 <span class="text-xl">✓</span>
                                 <span class="font-semibold">Obtenir badge conformité</span>
                             </a>
-                        @endif
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </div>
                 </div>
 
                 <!-- Upgrade PRO (si FREE) -->
-                @if ($tattooer->isFree())
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tattooer->isFree()): ?>
                     <div
                         class="bg-gradient-to-br from-beige-peau/20 to-beige-peau/5 border border-beige-peau/30 rounded-xl p-6">
                         <div class="flex items-start gap-3 mb-4">
@@ -214,14 +216,16 @@
                                 </p>
                             </div>
                         </div>
-                        <a href="{{ route('tattooer.subscription.plans') }}"
+                        <a href="<?php echo e(route('tattooer.subscription.plans')); ?>"
                             class="w-full block text-center px-4 py-3 bg-beige-peau hover:bg-beige-peau/90 text-noir-profond font-bold rounded-lg transition-colors">
                             Voir les abonnements
                         </a>
                     </div>
-                @endif
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
             </div>
         </div>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.tattooer', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\tattoolib-saas\resources\views/tattooer/profile.blade.php ENDPATH**/ ?>

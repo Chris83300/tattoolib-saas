@@ -27,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'security.headers' => \App\Http\Middleware\SecurityHeaders::class,
             'block.suspicious.ips' => \App\Http\Middleware\BlockSuspiciousIps::class,
             'custom.throttle' => \App\Http\Middleware\CustomThrottle::class,
+            'pro' => \App\Http\Middleware\EnsureProPlan::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -21,8 +21,8 @@ class SecurityHeaders
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
         // CSP adaptée à l'environnement
-        $csp = $this->buildCspHeader($request);
-        $response->headers->set('Content-Security-Policy', $csp);
+        // $csp = $this->buildCspHeader($request);
+        // $response->headers->set('Content-Security-Policy', $csp);
 
         // Permissions Policy
         $permissionsPolicy = implode(', ', [
@@ -75,7 +75,7 @@ class SecurityHeaders
                 "object-src 'none'",
                 // Base
                 "base-uri 'self'",
-                // Forms
+                // Forms - autoriser 'self' pour les formulaires normaux
                 "form-action 'self'",
                 // Frame ancestors
                 "frame-ancestors 'none'",
@@ -96,7 +96,7 @@ class SecurityHeaders
             "media-src 'self'",
             "object-src 'none'",
             "base-uri 'self'",
-            "form-action 'self'",
+            "form-action 'self' https://checkout.stripe.com https://billing.stripe.com",
             "frame-ancestors 'none'",
             "manifest-src 'self'",
         ]);

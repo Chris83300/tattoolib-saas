@@ -72,12 +72,12 @@
 
                         <!-- Badges rapides -->
                         <div class="flex flex-wrap justify-center gap-2 mt-3">
-                            @if ($artist->admin_verified_at)
+                            {{-- @if ($artist->admin_verified_at)
                                 <span
                                     class="px-3 py-1 bg-vert-succes/20 text-vert-succes rounded-full text-sm font-semibold">
                                     ✓ Vérifié
                                 </span>
-                            @endif
+                            @endif --}}
 
                             @if ($type === 'tattooer' && isset($artist->years_of_experience) && $artist->years_of_experience)
                                 <span class="px-3 py-1 bg-titane/30 text-ivoire-text/80 rounded-full text-sm">

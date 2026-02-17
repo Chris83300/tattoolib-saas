@@ -186,21 +186,26 @@
                                             </div>
                                         </div>
                                     @else
-                                        <div class="flex justify-center mb-4">
-                                            <div
-                                                class="bg-beige-peau/10 border border-beige-peau/30 rounded-xl p-4 text-center max-w-sm">
-                                                <span class="text-2xl">📝</span>
-                                                <p class="text-sm text-ivoire-text font-semibold mt-1">Consentement éclairé
-                                                    à remplir</p>
-                                                <p class="text-xs text-titane mt-1 mb-3">Obligatoire avant votre rendez-vous
-                                                </p>
-                                                <button
-                                                    onclick="document.getElementById('consent-modal-{{ $consentBrId }}').classList.remove('hidden'); document.body.style.overflow='hidden';"
-                                                    class="px-6 py-2.5 bg-beige-peau text-noir-profond rounded-lg font-bold text-sm hover:bg-beige-peau/90 transition-colors">
-                                                    Remplir le consentement
-                                                </button>
+                                        {{-- Afficher le consentement uniquement pour les utilisateurs PRO --}}
+                                        @if ($bookingRequest->bookable && $bookingRequest->bookable->isPro())
+                                            <div class="flex justify-center mb-4">
+                                                <div
+                                                    class="bg-beige-peau/10 border border-beige-peau/30 rounded-xl p-4 text-center max-w-sm">
+                                                    <span class="text-2xl">📝</span>
+                                                    <p class="text-sm text-ivoire-text font-semibold mt-1">Consentement
+                                                        éclairé
+                                                        à remplir</p>
+                                                    <p class="text-xs text-titane mt-1 mb-3">Obligatoire avant votre
+                                                        rendez-vous
+                                                    </p>
+                                                    <button
+                                                        onclick="document.getElementById('consent-modal-{{ $consentBrId }}').classList.remove('hidden'); document.body.style.overflow='hidden';"
+                                                        class="px-6 py-2.5 bg-beige-peau text-noir-profond rounded-lg font-bold text-sm hover:bg-beige-peau/90 transition-colors">
+                                                        Remplir le consentement
+                                                    </button>
+                                                </div>
                                             </div>
-                                        </div>
+                                        @endif
                                     @endif
                                 @else
                                     {{-- Message système normal --}}

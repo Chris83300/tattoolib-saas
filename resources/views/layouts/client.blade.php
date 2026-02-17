@@ -100,7 +100,7 @@
                     <div class="p-6 border-b border-titane/20">
                         <a href="/"
                             class="flex items-center gap-2 text-beige-peau font-bold text-xl hover:text-beige-peau/90 transition-colors">
-                            <img src="{{ asset('images/logo.png') }}" alt="Ink&Pik">
+                            <img src="{{ asset('images/logo.png') }}" alt="Ink&Pik" class="w-12 h-12">
                             Ink&Pik
                         </a>
                     </div>

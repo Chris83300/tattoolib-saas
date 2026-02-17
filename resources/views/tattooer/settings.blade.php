@@ -80,7 +80,7 @@
                             <div class="flex flex-col gap-2">
                                 <label
                                     class="min-h-11 px-4 py-3 md:py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold cursor-pointer hover:bg-beige-peau/90 transition-colors inline-block text-center text-sm md:text-base active:scale-95">
-                                    Changer photo
+                                    Changer photo (5MB max)
                                     <input type="file" name="avatar" accept="image/*" class="hidden"
                                         onchange="previewAvatar(this)">
                                 </label>
@@ -128,7 +128,7 @@
                                     <li>• Dimensions idéales : <span class="text-beige-peau font-medium">1200x400px</span>
                                         (ratio 3:1)</li>
                                     <li>• Format : <span class="text-beige-peau font-medium">JPG, PNG ou WebP</span></li>
-                                    <li>• Taille maximale : <span class="text-beige-peau font-medium">2MB</span></li>
+                                    <li>• Taille maximale : <span class="text-beige-peau font-medium">5MB</span></li>
                                     <li>• Qualité : <span class="text-beige-peau font-medium">Haute résolution pour un rendu
                                             optimal</span></li>
                                 </ul>

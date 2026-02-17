@@ -14,13 +14,13 @@
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/locales/fr.global.min.js'></script>
 
     <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
 
     <!-- CSRF Token for AJAX -->
     <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
 </head>
 
-<body class="bg-noir-profond overflow-hidden">
+<body class="bg-noir-profond">
 
     <div class="flex min-h-screen max-w-full overflow-x-hidden">
 
@@ -31,8 +31,8 @@
             <!-- Logo -->
             <div class="p-6 border-b border-titane/20">
                 <a href="<?php echo e(route('tattooer.dashboard')); ?>" class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-beige-peau rounded-lg flex items-center justify-center">
-                        <img src="<?php echo e(asset('images/logo.png')); ?>" alt="Ink&Pik">
+                    <div class="w-12 h-12 rounded-lg flex items-center justify-center">
+                        <img src="<?php echo e(asset('images/logo.png')); ?>" alt="Ink&Pik" class="w-12 h-12">
                     </div>
                     <span class="text-ivoire-text font-bold text-lg">Ink&Pik</span>
                 </a>
@@ -142,15 +142,17 @@
                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </a>
 
-                <a href="<?php echo e(route('tattooer.clients')); ?>"
-                    class="flex items-center gap-3 px-4 py-3 rounded-lg <?php echo e(request()->routeIs('tattooer.clients*') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text hover:bg-noir-profond'); ?> transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
-                        </path>
-                    </svg>
-                    <span class="font-semibold">Clients</span>
-                </a>
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->tattooer->isPro()): ?>
+                    <a href="<?php echo e(route('tattooer.clients')); ?>"
+                        class="flex items-center gap-3 px-4 py-3 rounded-lg <?php echo e(request()->routeIs('tattooer.clients*') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text hover:bg-noir-profond'); ?> transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                            </path>
+                        </svg>
+                        <span class="font-semibold">Clients</span>
+                    </a>
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                 <a href="<?php echo e(route('tattooer.portfolio')); ?>"
                     class="flex items-center gap-3 px-4 py-3 rounded-lg <?php echo e(request()->routeIs('tattooer.portfolio') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text hover:bg-noir-profond'); ?> transition-colors">
@@ -211,14 +213,14 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 lg:ml-64 overflow-x-hidden min-w-0 w-full">
+        <main class="flex-1 lg:ml-64 overflow-x-hidden overflow-y-auto min-w-0 w-full h-screen">
 
             <!-- Header Mobile (visible uniquement sur mobile) -->
             <header class="lg:hidden bg-gris-fonde border-b border-titane/20 p-4 sticky top-0 z-40">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
                         <div class="rounded-lg flex items-center justify-center">
-                            <img src="<?php echo e(asset('images/logo.png')); ?>" alt="Ink&Pik">
+                            <img src="<?php echo e(asset('images/logo.png')); ?>" alt="Ink&Pik" class="w-12 h-12">
                         </div>
                         <span class="text-ivoire-text font-bold">Ink&Pik</span>
                     </div>
@@ -242,7 +244,7 @@
             </header>
 
             <!-- Content -->
-            <div class="p-4 lg:p-8 pb-24 lg:pb-8 max-w-full overflow-hidden">
+            <div class="p-4 lg:p-8 pb-24 lg:pb-8 max-w-full overflow-y-auto">
                 <?php echo $__env->yieldContent('content'); ?>
             </div>
         </main>
@@ -327,10 +329,12 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
-                    <a href="<?php echo e(route('tattooer.clients')); ?>"
-                        class="p-4 rounded-xl bg-noir-profond text-ivoire-text border border-titane/20">
-                        <div class="font-semibold">Clients</div>
-                    </a>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->tattooer->isPro()): ?>
+                        <a href="<?php echo e(route('tattooer.clients')); ?>"
+                            class="p-4 rounded-xl bg-noir-profond text-ivoire-text border border-titane/20">
+                            <div class="font-semibold">Clients</div>
+                        </a>
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     <a href="<?php echo e(route('tattooer.portfolio')); ?>"
                         class="p-4 rounded-xl bg-noir-profond text-ivoire-text border border-titane/20">
                         <div class="font-semibold">Portfolio</div>

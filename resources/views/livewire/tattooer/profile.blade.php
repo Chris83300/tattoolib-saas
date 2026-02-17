@@ -9,7 +9,7 @@
                 <!-- Avatar Spatie -->
                 <div class="w-20 h-20 rounded-full overflow-hidden flex-shrink-0 bg-beige-peau/10">
                     <img src="{{ auth()->user()->getFirstMediaUrl('avatar', 'thumb') ?: $user->avatar_url }}"
-                        alt="{{ $user->displayName() }}" class="w-full h-full object-cover">
+                        alt="{{ $user->displayName() }}" class="w-full h-full object-cover border border-cuivre">
                 </div>
 
                 <div>

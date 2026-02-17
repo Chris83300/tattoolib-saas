@@ -34,8 +34,8 @@ class TattooersTable
                     ->label('Avatar')
                     ->circular()
                     ->size(50)
-                    ->getStateUsing(fn ($record) => $record->getFirstMediaUrl('avatar'))
-                    ->defaultImageUrl(url('/images/default-avatar.png')),
+                    ->getStateUsing(fn ($record) => $record->user->getFirstMediaUrl('avatar') ?? url('/images/default-tattooer-avatar.png'))
+                    ->defaultImageUrl(url('/images/default-tattooer-avatar.png')),
 
                 // COLONNE 3 : Nom (principal)
                 Tables\Columns\TextColumn::make('full_name')

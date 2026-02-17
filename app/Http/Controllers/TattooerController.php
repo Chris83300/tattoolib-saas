@@ -127,8 +127,8 @@ class TattooerController extends Controller
         // Valider les données du formulaire
         $validated = $request->validate([
             // Médias (fichiers)
-            'avatar' => 'nullable|image|mimes:jpeg,jpg,png,gif,webp|max:2048',
-            'banner' => 'nullable|image|mimes:jpeg,jpg,png,gif,webp|max:4096',
+            'avatar' => 'nullable|image|mimes:jpeg,jpg,png,gif,webp|max:5120',
+            'banner' => 'nullable|image|mimes:jpeg,jpg,png,gif,webp|max:5120',
 
             // Informations personnelles (user)
             'first_name' => 'required|string|max:255',
@@ -683,6 +683,11 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
     // Vérifier qu'il y a du contenu ou des pièces jointes
     if (empty($validated['content']) && !$request->hasFile('attachments')) {
         return redirect()->back()->with('error', 'Veuillez entrer un message ou ajouter une pièce jointe');
+    }
+
+    // Protection : bloquer l'upload d'images pour les utilisateurs FREE
+    if ($tattooer->isFree() && $request->hasFile('attachments')) {
+        return redirect()->back()->with('error', '🔒 L\'envoi d\'images est réservé au plan PRO. <a href="' . route('tattooer.subscription.plans') . '" class="text-beige-peau underline">Passer PRO</a> pour débloquer cette fonctionnalité.');
     }
 
     // Créer la conversation si elle n'existe pas
@@ -1804,5 +1809,64 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
             403,
             'Vous n\'êtes pas autorisé à modifier ce rendez-vous.'
         );
+    }
+
+    /**
+     * Afficher la page d'upgrade vers PRO
+     */
+    public function upgrade()
+    {
+        $tattooer = auth()->user()->tattooer;
+
+        if ($tattooer->isPro()) {
+            return redirect()->route('tattooer.profile')
+                ->with('info', 'Vous êtes déjà abonné au plan PRO.');
+        }
+
+        return view('tattooer.upgrade');
+    }
+
+    /**
+     * Afficher le formulaire de création de client manuel
+     */
+    public function createClient()
+    {
+        return view('tattooer.clients-create');
+    }
+
+    /**
+     * Stocker un nouveau client manuel
+     */
+    public function storeClient(Request $request)
+    {
+        $validated = $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'phone' => 'nullable|string|max:20',
+            'notes' => 'nullable|string|max:2000',
+        ]);
+
+        // Créer l'utilisateur client
+        $user = User::create([
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'],
+            'email' => $validated['email'],
+            'role' => 'client',
+            'password' => bcrypt(str()->random(32)), // Mot de passe aléatoire
+        ]);
+
+        // Créer le client
+        $client = \App\Models\Client::create([
+            'user_id' => $user->id,
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'],
+            'notes' => $validated['notes'],
+        ]);
+
+        return redirect()->route('tattooer.client.show', $client)
+            ->with('success', '✅ Fiche client créée avec succès !');
     }
 }
