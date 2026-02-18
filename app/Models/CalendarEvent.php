@@ -120,7 +120,7 @@ class CalendarEvent extends Model
         return match($this->type) {
             self::TYPE_APPOINTMENT => $this->project_id && $this->project
                 ? "RDV - {$this->project->client->first_name} {$this->project->client->last_name}"
-                : 'Rendez-vous',
+                : ($this->title ?? 'Rendez-vous'), // Utiliser le titre personnalisé ou défaut pour les rendez-vous manuels
             self::TYPE_BREAK => 'Pause',
             self::TYPE_VACATION => 'Vacances',
             self::TYPE_CLOSURE => 'Fermé',

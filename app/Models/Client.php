@@ -14,6 +14,7 @@ class Client extends Model implements HasMedia
 
     protected $fillable = [
         'user_id',
+        'tattooer_id', // Ajouté pour les clients créés manuellement
         'first_name',
         'last_name',
         'pseudo', // Changé de 'name' à 'pseudo'
@@ -82,6 +83,12 @@ class Client extends Model implements HasMedia
             ->singleFile()
             ->useFallbackUrl(asset('images/default-avatar.png'))
             ->useFallbackPath(public_path('/images/default-avatar.png'));
+
+        // Consentements scannés
+        $this->addMediaCollection('consent_documents');
+
+        // Photos client
+        $this->addMediaCollection('client_photos');
     }
 
     // Scopes

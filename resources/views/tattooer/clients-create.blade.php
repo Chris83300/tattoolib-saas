@@ -8,8 +8,7 @@
         <!-- Header -->
         <div class="bg-gris-fonde rounded-xl p-6">
             <div class="flex items-center gap-4">
-                <a href="{{ route('tattooer.clients') }}" 
-                   class="p-2 rounded-lg hover:bg-noir-profond transition-colors">
+                <a href="{{ route('tattooer.clients') }}" class="p-2 rounded-lg hover:bg-noir-profond transition-colors">
                     <svg class="w-5 h-5 text-titane" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
@@ -30,19 +29,27 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-semibold text-ivoire-text mb-2">
-                            Prénom <span class="text-rouge-alerte">*</span>
+                            Prénom
                         </label>
                         <input type="text" name="first_name" required
-                               class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane focus:border-beige-peau focus:ring-1 focus:ring-beige-peau"
-                               placeholder="Jean">
+                            class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane focus:border-beige-peau focus:ring-1 focus:ring-beige-peau"
+                            placeholder="Jean">
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-ivoire-text mb-2">
-                            Nom <span class="text-rouge-alerte">*</span>
+                            Nom
                         </label>
                         <input type="text" name="last_name" required
-                               class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane focus:border-beige-peau focus:ring-1 focus:ring-beige-peau"
-                               placeholder="Dupont">
+                            class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane focus:border-beige-peau focus:ring-1 focus:ring-beige-peau"
+                            placeholder="Dupont">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-ivoire-text mb-2">
+                            Pseudo
+                        </label>
+                        <input type="text" name="pseudo" required
+                            class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane focus:border-beige-peau focus:ring-1 focus:ring-beige-peau"
+                            placeholder="Dupont">
                     </div>
                 </div>
 
@@ -50,19 +57,38 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-semibold text-ivoire-text mb-2">
-                            Email <span class="text-rouge-alerte">*</span>
+                            Email
                         </label>
                         <input type="email" name="email" required
-                               class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane focus:border-beige-peau focus:ring-1 focus:ring-beige-peau"
-                               placeholder="jean.dupont@email.com">
+                            class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane focus:border-beige-peau focus:ring-1 focus:ring-beige-peau"
+                            placeholder="jean.dupont@email.com">
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-ivoire-text mb-2">
                             Téléphone
                         </label>
                         <input type="tel" name="phone"
-                               class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane focus:border-beige-peau focus:ring-1 focus:ring-beige-peau"
-                               placeholder="06 12 34 56 78">
+                            class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane focus:border-beige-peau focus:ring-1 focus:ring-beige-peau"
+                            placeholder="06 12 34 56 78">
+                    </div>
+                </div>
+
+                <!-- Informations complémentaires -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-ivoire-text mb-2">
+                            Date de naissance
+                        </label>
+                        <input type="date" name="birth_date"
+                            class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-ivoire-text mb-2">
+                            Adresse
+                        </label>
+                        <input type="text" name="address"
+                            class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane focus:border-beige-peau focus:ring-1 focus:ring-beige-peau"
+                            placeholder="123 Rue du Salon, 75011 Paris">
                     </div>
                 </div>
 
@@ -72,8 +98,8 @@
                         Notes privées
                     </label>
                     <textarea name="notes" rows="4"
-                              class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane focus:border-beige-peau focus:ring-1 focus:ring-beige-peau resize-y"
-                              placeholder="Allergies, préférences, comportement au salon, informations utiles..."></textarea>
+                        class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane focus:border-beige-peau focus:ring-1 focus:ring-beige-peau resize-y"
+                        placeholder="Allergies, préférences, comportement au salon, informations utiles..."></textarea>
                     <p class="text-xs text-titane mt-1">
                         Visibles uniquement par vous. Ces notes vous aideront à mieux connaître votre client.
                     </p>
@@ -82,11 +108,11 @@
                 <!-- Actions -->
                 <div class="flex gap-4 pt-4">
                     <a href="{{ route('tattooer.clients') }}"
-                       class="px-6 py-3 border border-titane/30 text-titane rounded-lg font-semibold hover:bg-noir-profond transition-colors">
+                        class="px-6 py-3 border border-titane/30 text-titane rounded-lg font-semibold hover:bg-noir-profond transition-colors">
                         Annuler
                     </a>
                     <button type="submit"
-                            class="flex-1 px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-bold hover:bg-beige-peau/90 transition-colors active:scale-95">
+                        class="flex-1 px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-bold hover:bg-beige-peau/90 transition-colors active:scale-95">
                         ✅ Créer la fiche client
                     </button>
                 </div>
@@ -96,13 +122,15 @@
         <!-- Info -->
         <div class="bg-titane/10 rounded-xl p-4 border border-titane/20">
             <div class="flex items-start gap-3">
-                <svg class="w-5 h-5 text-beige-peau flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 text-beige-peau flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <div class="text-sm text-ivoire-text/80">
                     <p class="font-semibold text-beige-peau mb-1">Fonctionnalité PRO</p>
-                    <p>La création manuelle de fiches clients vous permet d'ajouter des clients sans qu'ils aient passé par une demande de réservation.</p>
+                    <p>La création manuelle de fiches clients vous permet d'ajouter des clients sans qu'ils aient à passer
+                        par une demande de réservation.</p>
                 </div>
             </div>
         </div>

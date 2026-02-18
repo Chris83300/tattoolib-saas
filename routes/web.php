@@ -50,6 +50,12 @@ Route::middleware(['auth'])->prefix('tattooer')->name('tattooer.')->group(functi
     Route::get('/clients/create', [TattooerController::class, 'createClient'])->name('clients.create')->middleware('pro');
     Route::post('/clients', [TattooerController::class, 'storeClient'])->name('clients.store')->middleware('pro');
     Route::get('/clients/{client}', [TattooerController::class, 'clientShow'])->name('client.show');
+    Route::put('/clients/{client}', [TattooerController::class, 'updateClient'])->name('clients.update')->middleware('pro');
+    Route::post('/clients/{client}/consent/upload', [TattooerController::class, 'uploadConsent'])->name('clients.consent.upload')->middleware('pro');
+    Route::delete('/clients/{client}/consent/{media}', [TattooerController::class, 'deleteConsent'])->name('clients.consent.delete')->middleware('pro');
+    Route::post('/clients/{client}/traceability', [TattooerController::class, 'storeClientTraceability'])->name('clients.traceability.store')->middleware('pro');
+    Route::post('/clients/{client}/photos/upload', [TattooerController::class, 'uploadClientPhotos'])->name('clients.photos.upload')->middleware('pro');
+    Route::delete('/clients/{client}/photos/{media}', [TattooerController::class, 'deleteClientPhoto'])->name('clients.photos.delete')->middleware('pro');
     Route::post('/clients/{client}/notes', [TattooerController::class, 'updateClientNotes'])->name('client.update-notes');
 
     // Consentement tattooer

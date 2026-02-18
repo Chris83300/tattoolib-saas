@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Log;
 use App\Models\User;
+use App\Models\Client;
 use App\Models\BookingRequest;
 use App\Models\ClientConsentForm;
 use App\Models\TraceabilityRecord;
@@ -344,15 +345,15 @@ class TattooerController extends Controller
             ->whereNotIn('status', ['cancelled'])
             ->with(['bookingRequest.client.user'])
             ->get()
-            ->filter(fn($apt) => !CalendarEvent::where('appointment_id', $apt->id)->exists()) // Éviter doublons
+            ->filter(fn($apt) => !CalendarEvent::where('appointment_id', $apt->id)->exists()) // Réactiver anti-doublons
             ->map(function ($apt) {
-                $clientName = $apt->bookingRequest?->client?->user?->pseudo
-                    ?? $apt->bookingRequest?->client?->user?->name
+                $clientPseudo = $apt->bookingRequest?->client?->user?->pseudo
+                    ?? ($apt->bookingRequest?->client?->user?->first_name . ' ' . $apt->bookingRequest?->client?->user?->last_name)
                     ?? 'Client';
-                $bookingRequest = $apt->bookingRequest;
+
                 return [
                     'id' => 'apt_' . $apt->id,
-                    'title' => 'Tattoo → ' . $clientName,
+                    'title' => 'Tattoo - ' . $clientPseudo,
                     'start' => $apt->start_datetime->toIso8601String(),
                     'end' => $apt->end_datetime->toIso8601String(),
                     'backgroundColor' => '#06D6A0',
@@ -362,13 +363,13 @@ class TattooerController extends Controller
                         'type' => 'appointment',
                         'appointment_id' => $apt->id,
                         'booking_request_id' => $apt->booking_request_id,
-                        'client_name' => $clientName,
-                        'client_pseudo' => $apt->bookingRequest?->client?->user?->pseudo ?? $clientName,
-                        'body_zone' => $bookingRequest?->body_zone ?? '',
-                        'tattoo_size' => $bookingRequest?->tattoo_size ?? '',
-                        'deposit_paid' => $bookingRequest?->deposit_paid_at !== null,
-                        'deposit_amount' => (float) ($bookingRequest?->deposit_amount ?? 0),
-                        'total_price' => (float) ($bookingRequest?->total_price ?? $bookingRequest?->estimated_total_price ?? 0),
+                        'client_name' => $clientPseudo,
+                        'client_pseudo' => $apt->bookingRequest?->client?->user?->pseudo ?? $clientPseudo,
+                        'body_zone' => $apt->bookingRequest?->body_zone ?? '',
+                        'tattoo_size' => $apt->bookingRequest?->tattoo_size ?? '',
+                        'deposit_paid' => $apt->bookingRequest?->deposit_paid_at !== null,
+                        'deposit_amount' => (float) ($apt->bookingRequest?->deposit_amount ?? 0),
+                        'total_price' => (float) ($apt->bookingRequest?->total_price ?? $apt->bookingRequest?->estimated_total_price ?? 0),
                         'status' => $apt->status,
                         'notes' => $apt->notes ?? '',
                     ],
@@ -387,15 +388,15 @@ class TattooerController extends Controller
             ->with(['client.user'])
             ->get()
             ->map(function ($booking) {
-                $clientName = $booking->client?->user?->pseudo ?? $booking->client?->user?->name ?? 'Client';
-                $startDate = $booking->confirmed_date
-                    ? \Carbon\Carbon::parse($booking->confirmed_date)
-                    : $booking->created_at;
+                $clientPseudo = $booking->client?->user?->pseudo
+                    ?? ($booking->client?->user?->first_name . ' ' . $booking->client?->user?->last_name)
+                    ?? 'Client';
+
                 return [
                     'id' => 'booking_' . $booking->id,
-                    'title' => 'Tattoo → ' . $clientName,
-                    'start' => $startDate->format('Y-m-d\TH:i:s'),
-                    'end' => $startDate->copy()->addHours(2)->format('Y-m-d\TH:i:s'),
+                    'title' => 'Tattoo - ' . $clientPseudo,
+                    'start' => $booking->appointment_datetime->toIso8601String(),
+                    'end' => $booking->appointment_datetime->copy()->addMinutes($booking->appointment_duration_minutes ?? 120)->toIso8601String(),
                     'backgroundColor' => '#D4B59E',
                     'borderColor' => '#D4B59E',
                     'textColor' => '#0A0A0A',
@@ -403,8 +404,8 @@ class TattooerController extends Controller
                         'type' => 'appointment',
                         'booking_id' => $booking->id,
                         'booking_request_id' => $booking->id,
-                        'client_name' => $clientName,
-                        'client_pseudo' => $booking->client?->user?->pseudo ?? $clientName,
+                        'client_name' => $clientPseudo,
+                        'client_pseudo' => $booking->client?->user?->pseudo ?? $clientPseudo,
                         'body_zone' => $booking->body_zone ?? '',
                         'tattoo_size' => $booking->tattoo_size ?? '',
                         'deposit_paid' => $booking->deposit_paid_at !== null,
@@ -419,6 +420,13 @@ class TattooerController extends Controller
 
         // Fusionner tous les events
         $events = array_merge($calendarEvents, $appointments, $bookingEvents);
+
+        // Debug
+        Log::info('Calendar Events count: ' . count($calendarEvents));
+        Log::info('Appointments count: ' . count($appointments));
+        Log::info('Booking Events count: ' . count($bookingEvents));
+        Log::info('Total Events count: ' . count($events));
+        Log::info('Sample events: ' . json_encode(array_slice($events, 0, 2)));
 
         return view('tattooer.calendar', compact('tattooer', 'events'));
     }
@@ -509,7 +517,7 @@ class TattooerController extends Controller
     /**
      * Delete un événement calendrier
      */
-    public function calendarDestroy($event)
+    public function calendarDestroy($event, Request $request)
     {
         $tattooer = auth()->user()->tattooer;
         $calendarEvent = CalendarEvent::where('id', $event)
@@ -518,19 +526,30 @@ class TattooerController extends Controller
             ->first();
 
         if (!$calendarEvent) {
-            return response()->json(['success' => false, 'error' => 'Événement non trouvé'], 404);
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'error' => 'Événement non trouvé'], 404);
+            }
+            return redirect()->back()->with('error', 'Événement non trouvé');
         }
 
         if (!$calendarEvent->canBeDeleted()) {
-            return response()->json(['success' => false, 'error' => 'Cet événement ne peut pas être supprimé'], 422);
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'error' => 'Cet événement ne peut pas être supprimé'], 422);
+            }
+            return redirect()->back()->with('error', 'Cet événement ne peut pas être supprimé');
         }
 
         $calendarEvent->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Événement supprimé',
-        ]);
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Événement supprimé avec succès',
+                'redirect' => route('tattooer.calendar')
+            ]);
+        }
+
+        return redirect()->route('tattooer.calendar')->with('success', 'Événement supprimé avec succès');
     }
 
     /**
@@ -819,26 +838,34 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
         return view('tattooer.messages', compact('tattooer', 'conversations'));
     }
 
+
     /**
      * Clients du tattooer
      */
-    public function clients(Request $request)
+    public function clients()
     {
         $tattooer = auth()->user()->tattooer;
 
-        // Récupérer les IDs clients uniques qui ont PAYÉ L'ACOMPTE avec ce tattooer
-        $clientIds = BookingRequest::where('bookable_id', $tattooer->id)
-            ->where('bookable_type', $tattooer->getMorphClass())
-            ->whereNotNull('deposit_paid_at')  // ← UNIQUEMENT après acompte payé
-            ->distinct()
-            ->pluck('client_id');
-
-        // Construire la query sur le modèle Client (pas BookingRequest)
-        $query = \App\Models\Client::whereIn('id', $clientIds)
-            ->with(['user.media', 'media', 'tattooHistory']);
-
         // Recherche
-        if ($search = $request->input('search')) {
+        $search = request('search');
+
+        // Récupérer les clients : soit ceux avec acompte payé, soit ceux créés manuellement par ce tattooer
+        $clientIdsFromBookings = Client::whereHas('bookingRequests', function ($q) use ($tattooer) {
+            $q->where('bookable_id', $tattooer->id)
+              ->where('bookable_type', $tattooer->getMorphClass())
+              ->whereNotNull('deposit_paid_at');
+        })->pluck('id');
+
+        // Récupérer les clients créés manuellement par ce tattooer
+        $clientIdsFromManual = Client::where('tattooer_id', $tattooer->id)
+            ->pluck('id');
+
+        // Fusionner les deux listes d'IDs
+        $allClientIds = $clientIdsFromBookings->merge($clientIdsFromManual)->unique();
+
+        $query = Client::whereIn('id', $allClientIds);
+
+        if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('pseudo', 'LIKE', "%{$search}%")
                   ->orWhere('first_name', 'LIKE', "%{$search}%")
@@ -875,6 +902,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
         return view('tattooer.clients', compact('tattooer', 'clients'));
     }
 
+
     /**
      * Fiche client détaillée (PRO uniquement)
      */
@@ -882,14 +910,26 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
     {
         $tattooer = auth()->user()->tattooer;
 
-        // Vérifier que ce client a au moins une demande avec acompte payé chez ce tattooer
-        $hasRelation = BookingRequest::where('client_id', $client->id)
+        // Vérifier que ce client appartient bien au tattooer
+        // Soit via une demande avec acompte payé, soit créé manuellement par ce tattooer
+        $hasBookingRelation = BookingRequest::where('client_id', $client->id)
             ->where('bookable_id', $tattooer->id)
             ->where('bookable_type', $tattooer->getMorphClass())
             ->whereNotNull('deposit_paid_at')
             ->exists();
 
-        if (!$hasRelation) {
+        // Vérifier si le client a été créé manuellement par ce tattooer
+        // (vérifier si le client->tattooer_id correspond au tattooer actuel)
+        $isManuallyCreated = $client->tattooer_id === $tattooer->id;
+
+        if (!$hasBookingRelation && !$isManuallyCreated) {
+            Log::info('Client access denied', [
+                'client_id' => $client->id,
+                'tattooer_id' => $tattooer->id,
+                'client_tattooer_id' => $client->tattooer_id,
+                'has_booking_relation' => $hasBookingRelation,
+                'is_manually_created' => $isManuallyCreated
+            ]);
             abort(403, 'Ce client ne fait pas partie de votre clientèle.');
         }
 
@@ -959,10 +999,289 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
             }
         }
 
+        // Consentements manuels uploadés
+        $consentDocuments = $client->getMedia('consent_documents');
+
+        // Traçabilités standalone (client_id non null et appointment_id null)
+        $standaloneTraces = TraceabilityRecord::where('client_id', $client->id)
+            ->whereNull('appointment_id')
+            ->where('tattooer_id', $tattooer->id)
+            ->with('media')
+            ->orderBy('session_date', 'desc')
+            ->get();
+
+        // Photos client uploadées
+        $clientPhotos = $client->getMedia('client_photos');
+
         return view('tattooer.client-show', compact(
             'client', 'tattooer', 'bookingRequests', 'history',
-            'appointments', 'consents', 'traceabilities', 'stats', 'chatMedia'
+            'appointments', 'consents', 'traceabilities', 'stats', 'chatMedia',
+            'consentDocuments', 'standaloneTraces', 'clientPhotos'
         ));
+    }
+
+    /**
+     * Mettre à jour les informations d'un client (édition inline)
+     */
+    public function updateClient(Request $request, \App\Models\Client $client)
+    {
+        $tattooer = auth()->user()->tattooer;
+
+        // Vérifier que ce client appartient bien au tattooer
+        $hasBookingRelation = BookingRequest::where('client_id', $client->id)
+            ->where('bookable_id', $tattooer->id)
+            ->where('bookable_type', $tattooer->getMorphClass())
+            ->whereNotNull('deposit_paid_at')
+            ->exists();
+
+        $isManuallyCreated = $client->tattooer_id === $tattooer->id;
+
+        if (!$hasBookingRelation && !$isManuallyCreated) {
+            abort(403, 'Ce client ne fait pas partie de votre clientèle.');
+        }
+
+        $validated = $request->validate([
+            'first_name' => 'nullable|string|max:255',
+            'last_name' => 'nullable|string|max:255',
+            'pseudo' => 'nullable|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $client->user_id,
+            'phone' => 'nullable|string|max:20',
+            'birth_date' => 'nullable|date',
+            'address' => 'nullable|string|max:500',
+        ]);
+
+        // Mettre à jour le user
+        if ($client->user) {
+            $client->user->update([
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
+                'pseudo' => $validated['pseudo'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+            ]);
+        }
+
+        // Mettre à jour le client
+        $client->update([
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'],
+            'pseudo' => $validated['pseudo'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'],
+            'birth_date' => $validated['birth_date'],
+            'address' => $validated['address'],
+        ]);
+
+        return redirect()->back()->with('success', '✅ Informations client mises à jour avec succès !');
+    }
+
+    /**
+     * Uploader un consentement pour un client manuel
+     */
+    public function uploadConsent(Request $request, \App\Models\Client $client)
+    {
+        $tattooer = auth()->user()->tattooer;
+
+        // Vérifier que ce client appartient bien au tattooer
+        $hasBookingRelation = BookingRequest::where('client_id', $client->id)
+            ->where('bookable_id', $tattooer->id)
+            ->where('bookable_type', $tattooer->getMorphClass())
+            ->whereNotNull('deposit_paid_at')
+            ->exists();
+
+        $isManuallyCreated = $client->tattooer_id === $tattooer->id;
+
+        if (!$hasBookingRelation && !$isManuallyCreated) {
+            abort(403, 'Ce client ne fait pas partie de votre clientèle.');
+        }
+
+        $request->validate([
+            'consent_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'consent_date' => 'required|date',
+        ]);
+
+        $file = $request->file('consent_file');
+        $consentDate = $request->input('consent_date');
+
+        // Ajouter le fichier à la collection consent_documents
+        $media = $client->addMedia($file)
+            ->withCustomProperties([
+                'consent_date' => $consentDate,
+                'uploaded_by' => 'tattooer',
+                'tattooer_id' => $tattooer->id,
+            ])
+            ->toMediaCollection('consent_documents');
+
+        return redirect()->back()->with('success', '✅ Consentement uploadé avec succès !');
+    }
+
+    /**
+     * Supprimer un consentement
+     */
+    public function deleteConsent(\App\Models\Client $client, $media)
+    {
+        $tattooer = auth()->user()->tattooer;
+
+        // Vérifier que ce client appartient bien au tattooer
+        $hasBookingRelation = BookingRequest::where('client_id', $client->id)
+            ->where('bookable_id', $tattooer->id)
+            ->where('bookable_type', $tattooer->getMorphClass())
+            ->whereNotNull('deposit_paid_at')
+            ->exists();
+
+        $isManuallyCreated = $client->tattooer_id === $tattooer->id;
+
+        if (!$hasBookingRelation && !$isManuallyCreated) {
+            abort(403, 'Ce client ne fait pas partie de votre clientèle.');
+        }
+
+        $mediaItem = $client->getMedia('consent_documents')->where('id', $media)->first();
+
+        if (!$mediaItem) {
+            abort(404, 'Consentement non trouvé.');
+        }
+
+        $mediaItem->delete();
+
+        return redirect()->back()->with('success', '✅ Consentement supprimé avec succès !');
+    }
+
+    /**
+     * Créer une traçabilité standalone pour un client
+     */
+    public function storeClientTraceability(Request $request, \App\Models\Client $client)
+    {
+        $tattooer = auth()->user()->tattooer;
+
+        // Vérifier que ce client appartient bien au tattooer
+        $hasBookingRelation = BookingRequest::where('client_id', $client->id)
+            ->where('bookable_id', $tattooer->id)
+            ->where('bookable_type', $tattooer->getMorphClass())
+            ->whereNotNull('deposit_paid_at')
+            ->exists();
+
+        $isManuallyCreated = $client->tattooer_id === $tattooer->id;
+
+        if (!$hasBookingRelation && !$isManuallyCreated) {
+            abort(403, 'Ce client ne fait pas partie de votre clientèle.');
+        }
+
+        $validated = $request->validate([
+            'session_date' => 'required|date',
+            'tattoo_description' => 'required|string|max:500',
+            'body_zone' => 'required|string|max:100',
+            'procedure_start_time' => 'required|date_format:H:i',
+            'procedure_end_time' => 'required|date_format:H:i|after:procedure_start_time',
+            'needles_used' => 'nullable|array',
+            'inks_used' => 'nullable|array',
+            'sterile_equipment' => 'nullable|string',
+            'aftercare_products' => 'nullable|string',
+            'room_number' => 'nullable|string|max:50',
+            'autoclave_batch_number' => 'nullable|string|max:100',
+            'autoclave_test_date' => 'nullable|date',
+            'procedure_notes' => 'nullable|string|max:1000',
+            'client_condition_notes' => 'nullable|string|max:500',
+            'equipment_notes' => 'nullable|string|max:500',
+        ]);
+
+        // Créer la traçabilité standalone
+        $traceability = TraceabilityRecord::create([
+            'user_id' => $tattooer->user_id,
+            'tattooer_id' => $tattooer->id,
+            'client_id' => $client->id, // Lien direct avec le client
+            'appointment_id' => null, // Pas d'appointment lié
+            'session_date' => $validated['session_date'],
+            'tattoo_description' => $validated['tattoo_description'],
+            'body_zone' => $validated['body_zone'],
+            'procedure_date' => $validated['session_date'],
+            'procedure_start_time' => $validated['procedure_start_time'],
+            'procedure_end_time' => $validated['procedure_end_time'],
+            'needles_used' => $validated['needles_used'] ?? [],
+            'inks_used' => $validated['inks_used'] ?? [],
+            'sterile_equipment' => $validated['sterile_equipment'],
+            'aftercare_products' => $validated['aftercare_products'],
+            'room_number' => $validated['room_number'],
+            'autoclave_batch_number' => $validated['autoclave_batch_number'],
+            'autoclave_test_date' => $validated['autoclave_test_date'],
+            'procedure_notes' => $validated['procedure_notes'],
+            'client_condition_notes' => $validated['client_condition_notes'],
+            'equipment_notes' => $validated['equipment_notes'],
+            'tattooer_verified_traceability' => true,
+            'verified_at' => now(),
+        ]);
+
+        return redirect()->back()->with('success', '✅ Traçabilité enregistrée avec succès !');
+    }
+
+    /**
+     * Uploader des photos pour un client
+     */
+    public function uploadClientPhotos(Request $request, \App\Models\Client $client)
+    {
+        $tattooer = auth()->user()->tattooer;
+
+        // Vérifier que ce client appartient bien au tattooer
+        $hasBookingRelation = BookingRequest::where('client_id', $client->id)
+            ->where('bookable_id', $tattooer->id)
+            ->where('bookable_type', $tattooer->getMorphClass())
+            ->whereNotNull('deposit_paid_at')
+            ->exists();
+
+        $isManuallyCreated = $client->tattooer_id === $tattooer->id;
+
+        if (!$hasBookingRelation && !$isManuallyCreated) {
+            abort(403, 'Ce client ne fait pas partie de votre clientèle.');
+        }
+
+        $request->validate([
+            'photos' => 'required|array|min:1|max:10',
+            'photos.*' => 'required|file|mimes:jpg,jpeg,png,webp|max:5120',
+        ]);
+
+        $uploadedCount = 0;
+        foreach ($request->file('photos') as $photo) {
+            $client->addMedia($photo)
+                ->withCustomProperties([
+                    'uploaded_by' => 'tattooer',
+                    'tattooer_id' => $tattooer->id,
+                    'upload_date' => now()->format('Y-m-d H:i:s'),
+                ])
+                ->toMediaCollection('client_photos');
+            $uploadedCount++;
+        }
+
+        return redirect()->back()->with('success', "✅ {$uploadedCount} photo(s) uploadée(s) avec succès !");
+    }
+
+    /**
+     * Supprimer une photo client
+     */
+    public function deleteClientPhoto(\App\Models\Client $client, $media)
+    {
+        $tattooer = auth()->user()->tattooer;
+
+        // Vérifier que ce client appartient bien au tattooer
+        $hasBookingRelation = BookingRequest::where('client_id', $client->id)
+            ->where('bookable_id', $tattooer->id)
+            ->where('bookable_type', $tattooer->getMorphClass())
+            ->whereNotNull('deposit_paid_at')
+            ->exists();
+
+        $isManuallyCreated = $client->tattooer_id === $tattooer->id;
+
+        if (!$hasBookingRelation && !$isManuallyCreated) {
+            abort(403, 'Ce client ne fait pas partie de votre clientèle.');
+        }
+
+        $mediaItem = $client->getMedia('client_photos')->where('id', $media)->first();
+
+        if (!$mediaItem) {
+            abort(404, 'Photo non trouvée.');
+        }
+
+        $mediaItem->delete();
+
+        return redirect()->back()->with('success', '✅ Photo supprimée avec succès !');
     }
 
     /**
@@ -1839,34 +2158,72 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
      */
     public function storeClient(Request $request)
     {
-        $validated = $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'phone' => 'nullable|string|max:20',
-            'notes' => 'nullable|string|max:2000',
-        ]);
+        try {
+            // Debug
+            Log::info('storeClient called', [
+                'request_data' => $request->all(),
+                'tattooer_id' => auth()->user()->tattooer->id,
+                'is_pro' => auth()->user()->tattooer->isPro()
+            ]);
 
-        // Créer l'utilisateur client
-        $user = User::create([
-            'first_name' => $validated['first_name'],
-            'last_name' => $validated['last_name'],
-            'email' => $validated['email'],
-            'role' => 'client',
-            'password' => bcrypt(str()->random(32)), // Mot de passe aléatoire
-        ]);
+            $validated = $request->validate([
+                'first_name' => 'nullable|string|max:255',
+                'last_name' => 'nullable|string|max:255',
+                'pseudo' => 'nullable|string|max:255',
+                'email' => 'required|email|unique:users,email',
+                'phone' => 'nullable|string|max:20',
+                'birth_date' => 'nullable|date',
+                'address' => 'nullable|string|max:500',
+                'notes' => 'nullable|string|max:2000',
+            ]);
 
-        // Créer le client
-        $client = \App\Models\Client::create([
-            'user_id' => $user->id,
-            'first_name' => $validated['first_name'],
-            'last_name' => $validated['last_name'],
-            'email' => $validated['email'],
-            'phone' => $validated['phone'],
-            'notes' => $validated['notes'],
-        ]);
+            Log::info('Validation passed', ['validated' => $validated]);
 
-        return redirect()->route('tattooer.client.show', $client)
-            ->with('success', '✅ Fiche client créée avec succès !');
+            // Créer l'utilisateur client
+            $user = User::create([
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
+                'pseudo' => $validated['pseudo'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'role' => 'client',
+                'password' => bcrypt(str()->random(32)), // Mot de passe aléatoire
+            ]);
+
+            Log::info('User created', ['user_id' => $user->id]);
+
+            // Créer le client
+            $client = \App\Models\Client::create([
+                'user_id' => $user->id,
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
+                'pseudo' => $validated['pseudo'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'birth_date' => $validated['birth_date'],
+                'address' => $validated['address'],
+                'notes' => $validated['notes'],
+                'tattooer_id' => auth()->user()->tattooer->id, // Associer au tattooer actuel
+            ]);
+
+            Log::info('Client created', ['client_id' => $client->id]);
+
+            return redirect()->route('tattooer.client.show', $client)
+                ->with('success', '✅ Fiche client créée avec succès !');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation failed', ['errors' => $e->errors()]);
+            return redirect()->back()
+                ->withErrors($e->errors())
+                ->withInput();
+        } catch (\Exception $e) {
+            Log::error('Store client failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return redirect()->back()
+                ->with('error', '❌ Erreur lors de la création du client: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 }

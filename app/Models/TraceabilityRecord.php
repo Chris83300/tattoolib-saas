@@ -15,6 +15,7 @@ class TraceabilityRecord extends Model implements HasMedia
     protected $fillable = [
         'user_id',
         'tattooer_id',
+        'client_id', // Ajouté pour les clients manuels
         'appointment_id',
         'client_consent_form_id',
 
@@ -87,6 +88,11 @@ class TraceabilityRecord extends Model implements HasMedia
     public function clientConsentForm(): BelongsTo
     {
         return $this->belongsTo(ClientConsentForm::class);
+    }
+
+    public function client(): BelongsTo
+    {
+        return $this->belongsTo(Client::class);
     }
 
     // ===== SCOPES =====

@@ -61,12 +61,12 @@
                                 class="w-12 h-12 rounded-full overflow-hidden bg-titane/30 flex-shrink-0 flex items-center justify-center">
                                 @php
                                     // Avatar : d'abord sur User, sinon sur Client
-$avatarUrl = null;
-if ($client->user && $client->user->getFirstMediaUrl('avatar')) {
-    $avatarUrl = $client->user->getFirstMediaUrl('avatar');
-} elseif ($client->getFirstMediaUrl('avatar')) {
-    $avatarUrl = $client->getFirstMediaUrl('avatar');
-                                    }
+                                    $avatarUrl = null;
+                                    if ($client->user && $client->user->getFirstMediaUrl('avatar')) {
+                                        $avatarUrl = $client->user->getFirstMediaUrl('avatar');
+                                    } elseif ($client->getFirstMediaUrl('avatar')) {
+                                        $avatarUrl = $client->getFirstMediaUrl('avatar');
+                                                                        }
                                 @endphp
 
                                 @if ($avatarUrl)

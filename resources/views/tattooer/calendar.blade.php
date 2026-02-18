@@ -297,7 +297,8 @@
                                 clientPseudo: props.client_pseudo || '',
                                 bodyZone: props.body_zone || '',
                                 tattooSize: props.tattoo_size || '',
-                                depositPaid: props.deposit_paid || false,
+                                depositPaid: props.deposit_paid ||
+                                    false, // Corriger: deposit_paid -> depositPaid
                                 depositAmount: props.deposit_amount || 0,
                                 totalPrice: props.total_price || 0,
                                 status: props.status || 'scheduled',
@@ -451,7 +452,7 @@
 
             function deleteAppointment(bookingId) {
                 if (confirm('Êtes-vous sûr de vouloir supprimer ce rendez-vous ?')) {
-                    fetch(`/tattooer/calendar/booking/${bookingId}`, {
+                    fetch(`/tattooer/calendar/${bookingId}`, {
                         method: 'DELETE',
                         headers: {
                             'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -460,7 +461,7 @@
                     }).then(async (res) => {
                         if (!res.ok) {
                             const data = await res.json();
-                            alert('Erreur lors de la suppression: ' + (data.error || 'Erreur inconnue'));
+                            showNotification('❌ ' + (data.error || 'Erreur lors de la suppression'), 'error');
                             return;
                         }
                         const data = await res.json();
@@ -471,15 +472,52 @@
                                 event.remove();
                             }
                             closeAppointmentModal();
-                            alert('✅ ' + (data.message || 'Rendez-vous supprimé'));
+                            showNotification('✅ ' + (data.message || 'Rendez-vous supprimé avec succès'),
+                                'success');
                         } else {
-                            alert('❌ ' + (data.error || 'Échec de la suppression'));
+                            showNotification('❌ ' + (data.error || 'Échec de la suppression'), 'error');
                         }
                     }).catch(error => {
                         console.error('Erreur réseau:', error);
-                        alert('❌ Erreur réseau: ' + error.message);
+                        showNotification('❌ Erreur de connexion', 'error');
                     });
                 }
+                // Créer une notification élégante
+                const notification = document.createElement('div');
+                notification.className =
+                    `fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full`;
+
+                // Couleur selon le type
+                const colors = {
+                    success: 'bg-vert-succes text-white',
+                    error: 'bg-rouge-alerte text-white',
+                    info: 'bg-beige-peau text-noir-profond'
+                };
+
+                notification.className += ' ' + colors[type];
+                notification.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="font-medium">${message}</span>
+                        <button onclick="this.parentElement.parentElement.remove()" class="ml-4 hover:opacity-75">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+
+                document.body.appendChild(notification);
+
+                // Animation d'entrée
+                setTimeout(() => {
+                    notification.classList.remove('translate-x-full');
+                }, 100);
+
+                // Auto-suppression après 5 secondes
+                setTimeout(() => {
+                    notification.classList.add('translate-x-full');
+                    setTimeout(() => notification.remove(), 300);
+                }, 5000);
             }
 
             // ═══ SOUMISSION FORMULAIRE CRÉATION ÉVÉNEMENT ═══
