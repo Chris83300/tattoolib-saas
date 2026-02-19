@@ -105,6 +105,12 @@ class Tattooer extends Model implements HasMedia
         'weekend_wait_days', // ✅ Jours attente week-end
         'admin_verified_at', // ✅ Date validation admin
 
+        // Aftercare (soins post-tatouage)
+        'aftercare_sheet', // ✅ Contenu fiche de soins
+        'aftercare_reminder_2h', // ✅ Rappel 2h après RDV
+        'aftercare_reminder_7d', // ✅ Rappel 7 jours après RDV
+        'aftercare_reminder_14d', // ✅ Rappel 14 jours après RDV
+
         // Conformité réglementaire
         'is_decision_maker',
         'compliance_status',
@@ -131,6 +137,9 @@ class Tattooer extends Model implements HasMedia
         'payment_terms_accepted_at' => 'datetime',
         'upgraded_to_pro_at' => 'datetime',
         'last_compliance_check_at' => 'datetime',
+        'aftercare_reminder_2h' => 'boolean',
+        'aftercare_reminder_7d' => 'boolean',
+        'aftercare_reminder_14d' => 'boolean',
         'admin_verified_at' => 'datetime',
         'minimum_deposit' => 'decimal:2',
         'user_status' => 'string',

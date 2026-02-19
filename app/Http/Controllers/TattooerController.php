@@ -1551,21 +1551,26 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
                 'collection' => 'required|in:portfolio,drawings,before_after'
             ]);
 
-            $uploadedCount = 0;
-            $maxImages = 20; // Limite FREE
+            // Vérifier la limite d'images selon le plan
+            $tattooer = auth()->user()->tattooer;
 
-            // Vérifier le nombre total d'images déjà présentes
-            $currentCount = $tattooer->getMedia($collection)->count();
+            // Compter le TOTAL des images portfolio (toutes collections confondues)
+            $totalPortfolioCount = $tattooer->getMedia('portfolio')->count() +
+                                   $tattooer->getMedia('drawings')->count() +
+                                   $tattooer->getMedia('before_after')->count();
+
             $newImagesCount = count($request->file('images'));
 
-            if ($currentCount + $newImagesCount > $maxImages) {
+            // Définir la limite selon le plan (15 images AU TOTAL)
+            $maxImages = $tattooer->isPro() ? PHP_INT_MAX : 15;
+
+            if ($totalPortfolioCount + $newImagesCount > $maxImages) {
                 return response()->json([
                     'success' => false,
-                    'message' => "Limite d'images dépassée. Maximum {$maxImages} images autorisées ({$currentCount} déjà présentes)."
+                    'message' => "Limite de {$maxImages} images atteinte (plan Free). Passez au plan Pro pour un portfolio illimité."
                 ], 422);
             }
-
-            // Upload des images
+            $uploadedCount = 0;
             foreach ($request->file('images') as $image) {
                 $tattooer->addMedia($image)
                     ->withCustomProperties([
@@ -2399,5 +2404,42 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
         $bookingRequest->client->increment('no_show_count');
 
         return redirect()->back()->with('success', 'No-show déclaré avec succès.');
+    }
+
+    /**
+     * Page des plans d'abonnement (pricing)
+     */
+    public function pricing()
+    {
+        return redirect()->route('tattooer.subscription.plans');
+    }
+
+    /**
+     * Mettre à jour les paramètres de soins aftercare
+     */
+    public function settingsAftercareUpdate(Request $request)
+    {
+        $tattooer = auth()->user()->tattooer;
+
+        // Vérifier que c'est un plan Pro
+        if (!$tattooer->isPro()) {
+            return redirect()->back()->with('error', 'Cette fonctionnalité est réservée aux plans Pro.');
+        }
+
+        $validated = $request->validate([
+            'aftercare_sheet' => 'nullable|string|max:2000',
+            'aftercare_reminder_2h' => 'boolean',
+            'aftercare_reminder_7d' => 'boolean',
+            'aftercare_reminder_14d' => 'boolean',
+        ]);
+
+        // Convertir les checkboxes en booléens
+        $validated['aftercare_reminder_2h'] = $request->has('aftercare_reminder_2h');
+        $validated['aftercare_reminder_7d'] = $request->has('aftercare_reminder_7d');
+        $validated['aftercare_reminder_14d'] = $request->has('aftercare_reminder_14d');
+
+        $tattooer->update($validated);
+
+        return redirect()->back()->with('success', 'Fiche de soins mise à jour avec succès.');
     }
 }

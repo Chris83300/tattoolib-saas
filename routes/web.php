@@ -31,6 +31,7 @@ Route::middleware(['auth'])->prefix('tattooer')->name('tattooer.')->group(functi
     Route::get('/dashboard', [TattooerController::class, 'dashboard'])->name('dashboard');
     Route::get('/requests', [TattooerController::class, 'requests'])->name('requests');
     Route::get('/requests/{bookingRequest}', [TattooerController::class, 'requestShow'])->name('request.show');
+    Route::get('/pricing', [TattooerController::class, 'pricing'])->name('tattooer.pricing');
     Route::get('/requests/{bookingRequest}/accept', function (BookingRequest $bookingRequest) {
         return redirect()->route('tattooer.request.show', $bookingRequest)
             ->with('info', 'Veuillez utiliser la modale d\'acceptation sur cette page.');
@@ -94,6 +95,7 @@ Route::middleware(['auth'])->prefix('tattooer')->name('tattooer.')->group(functi
     Route::delete('/portfolio/before-after/{beforeId}/{afterId}', [TattooerController::class, 'portfolioBeforeAfterDestroy'])->name('portfolio.before-after.destroy');
     Route::get('/settings', [TattooerController::class, 'settings'])->name('settings');
     Route::post('/settings', [TattooerController::class, 'settingsUpdate'])->name('settings.update');
+    Route::post('/settings/aftercare', [TattooerController::class, 'settingsAftercareUpdate'])->name('settings.aftercare');
     Route::delete('/settings/avatar', [TattooerController::class, 'deleteAvatar'])->name('settings.delete-avatar');
     Route::delete('/settings/banner', [TattooerController::class, 'deleteBanner'])->name('settings.delete-banner');
     Route::post('/settings/schedule', [TattooerController::class, 'settingsUpdateSchedule'])->name('settings.update-schedule');
