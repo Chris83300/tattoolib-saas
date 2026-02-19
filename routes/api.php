@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\PierceurController;
 use App\Http\Controllers\Api\TattooerController;
 use App\Http\Controllers\Api\TattooerPlanningController;
 use App\Http\Controllers\Api\TraceabilityController;
+use App\Http\Controllers\Api\UnreadMessagesController;
 use App\Http\Controllers\StripeWebhookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -254,6 +255,11 @@ Route::middleware('auth:sanctum')->prefix('piercers/{pierceur}')->group(function
             Route::post('/', [AccountingController::class, 'storeTransaction']);
             Route::post('/{transaction}/mark-paid', [AccountingController::class, 'markAsPaid']);
         });
+    });
+
+    // ===== MESSAGES =====
+    Route::prefix('messages')->group(function () {
+        Route::get('/unread-count', [UnreadMessagesController::class, 'index']);
     });
 
     // ===== TRACEABILITY (TATTOOER UNIQUMENT) =====

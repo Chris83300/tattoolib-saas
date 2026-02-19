@@ -233,4 +233,33 @@ class ClientConsentForm extends Model implements HasMedia
             'verified_at' => now(),
         ]);
     }
+
+    /**
+     * Marque le formulaire comme signé (client signe)
+     */
+    public function markAsSigned(): void
+    {
+        $this->update([
+            'status' => self::STATUS_SIGNED,
+            'signed_at' => now(),
+            'signed_ip' => request()->ip(),
+            'signed_user_agent' => request()->userAgent(),
+        ]);
+    }
+
+    /**
+     * Vérifie si le consentement parental est requis
+     */
+    public function requiresParentalConsent(): bool
+    {
+        return $this->is_minor === true;
+    }
+
+    /**
+     * Vérifie si le client est majeur
+     */
+    public function isAdult(): bool
+    {
+        return !$this->is_minor;
+    }
 }

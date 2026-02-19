@@ -67,15 +67,10 @@
                         </path>
                     </svg>
                     <span class="font-semibold">Demandes</span>
-                    @php
-                        $pendingCount = \App\Models\BookingRequest::where('bookable_id', auth()->user()->profile->id)
-                            ->where('bookable_type', get_class(auth()->user()->profile))
-                            ->where('status', 'pending')
-                            ->count();
-                    @endphp
                     @if ($pendingCount > 0)
                         <span
-                            class="ml-auto bg-rouge-alerte text-noir-profond px-2 py-0.5 rounded-full text-xs font-bold">
+                            class="ml-auto bg-rouge-alerte text-noir-profond px-2 py-0.5 rounded-full text-xs font-bold"
+                            id="pending-requests-count">
                             {{ $pendingCount }}
                         </span>
                     @endif
@@ -99,41 +94,10 @@
                         </path>
                     </svg>
                     <span class="font-semibold">Messages</span>
-                    @php
-                        $tattooer = auth()->user()->tattooer;
-
-                        // Récupérer toutes les conversations du tattooer
-                        $conversationIds = \App\Models\Conversation::whereHas('bookingRequest', function ($q) use (
-                            $tattooer,
-                        ) {
-                            $q->where('bookable_type', 'App\\Models\\Tattooer')->where('bookable_id', $tattooer->id);
-                        })->pluck('id');
-
-                        // Compter messages non-lus
-                        $unreadCount = 0;
-
-                        foreach ($conversationIds as $conversationId) {
-                            $conversation = \App\Models\Conversation::find($conversationId);
-
-                            if ($conversation) {
-                                $pivot = $conversation
-                                    ->participants()
-                                    ->where('user_id', auth()->id())
-                                    ->first()?->pivot;
-
-                                $lastReadAt = $pivot?->last_read_at ?? now()->subYears(10);
-
-                                $unreadCount += $conversation
-                                    ->messages()
-                                    ->where('sender_id', '!=', auth()->id())
-                                    ->where('created_at', '>', $lastReadAt)
-                                    ->count();
-                            }
-                        }
-                    @endphp
                     @if ($unreadCount > 0)
                         <span
-                            class="ml-auto bg-rouge-alerte text-noir-profond px-2 py-0.5 rounded-full text-xs font-bold">
+                            class="ml-auto bg-rouge-alerte text-noir-profond px-2 py-0.5 rounded-full text-xs font-bold"
+                            id="unread-messages-count">
                             {{ $unreadCount }}
                         </span>
                     @endif
@@ -269,7 +233,8 @@
                     <span class="text-[10px] font-semibold">Demandes</span>
                     @if ($pendingCount > 0)
                         <span
-                            class="absolute top-0 right-0 w-4 h-4 bg-rouge-alerte text-noir-profond rounded-full text-[8px] font-bold flex items-center justify-center">
+                            class="absolute top-0 right-0 w-4 h-4 bg-rouge-alerte text-noir-profond rounded-full text-[8px] font-bold flex items-center justify-center"
+                            id="pending-requests-count-mobile">
                             {{ $pendingCount }}
                         </span>
                     @endif

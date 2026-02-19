@@ -670,6 +670,9 @@ class TattooerController extends Controller
             ->whereNull('read_by_tattooer_at')
             ->update(['read_by_tattooer_at' => now()]);
 
+        // Marquer la conversation comme lue pour le tattooer (mettre à jour le pivot)
+        $conversation->markAsRead($tattooer->user_id);
+
         // Récupérer les messages pour la vue
         $messages = $conversation->messages;
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Tattooer;
 use App\Models\Pierceur;
+use App\Models\Subscription;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -73,5 +74,46 @@ class MarketplaceController extends Controller
         $beforeAfter = $artist->getMedia('before_after');
 
         return view('marketplace.show', compact('artist', 'type', 'stats', 'portfolio', 'drawings', 'beforeAfter'));
+    }
+
+    /**
+     * Artistes mis en avant pour la welcome page
+     */
+    public function getFeaturedArtists()
+    {
+        // Récupérer les tatoueurs PRO actifs en priorité
+        $proTattooers = Tattooer::whereHas('user', fn($q) => $q->where('status', 'active'))
+            ->whereHas('subscription', fn($q) => $q->where('plan', Subscription::PLAN_PRO)->where('status', 'active'))
+            ->with(['user', 'media'])
+            ->inRandomOrder()
+            ->limit(6)
+            ->get();
+
+        // Compléter avec des tatoueurs FREE si moins de 6
+        if ($proTattooers->count() < 6) {
+            $remaining = 6 - $proTattooers->count();
+            $freeTattooers = Tattooer::whereHas('user', fn($q) => $q->where('status', 'active'))
+                ->whereDoesntHave('subscription')
+                ->orWhereHas('subscription', fn($q) => $q->where('plan', Subscription::PLAN_FREE))
+                ->whereNotIn('id', $proTattooers->pluck('id'))
+                ->with(['user', 'media'])
+                ->inRandomOrder()
+                ->limit($remaining)
+                ->get();
+
+            $proTattooers = $proTattooers->concat($freeTattooers);
+        }
+
+        // Ajouter quelques pierceurs PRO si disponible
+        $proPierceurs = Pierceur::whereHas('user', fn($q) => $q->where('status', 'active'))
+            ->whereHas('subscription', fn($q) => $q->where('plan', Subscription::PLAN_PRO)->where('status', 'active'))
+            ->with(['user', 'media'])
+            ->inRandomOrder()
+            ->limit(2)
+            ->get();
+
+        $allArtists = $proTattooers->concat($proPierceurs);
+
+        return $allArtists->take(8); // Maximum 8 artistes
     }
 }

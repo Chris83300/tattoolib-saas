@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\View\View;
+use App\ViewComposers\UnreadMessagesComposer;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -48,5 +50,8 @@ class AppServiceProvider extends ServiceProvider
         Blade::if('canManageSchedule', function ($tattooer) {
             return auth()->check() && auth()->user()->can('manageWorkingHours', $tattooer);
         });
+
+        // View Composer pour les messages non-lus
+        view()->composer('layouts.tattooer', UnreadMessagesComposer::class);
     }
 }

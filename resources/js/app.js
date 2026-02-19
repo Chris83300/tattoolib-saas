@@ -1,4 +1,5 @@
 import './bootstrap';
+import './unread-messages';
 import { registerSW } from 'virtual:pwa-register';
 
 const VAPID_KEY = 'BHJrySPatoJLDgi11i6Lcd4JJxtv2ZWFb1Gqd3KqWZcukSzkZNm1S46BoYwWsktrbFQ0Ktw6cRcnSbIqXknY5EY';

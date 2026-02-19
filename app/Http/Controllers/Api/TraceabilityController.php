@@ -63,7 +63,7 @@ class TraceabilityController extends Controller
             'appointment_id' => 'required|exists:appointments,id',
             'client_full_name' => 'required|string|max:255',
             'birth_date' => 'required|date|before:today',
-            'id_document_type' => 'required|in:' . implode(',', array_keys(ClientConsentForm::ID_DOCUMENT_TYPES)),
+            'id_document_type' => 'required|in:' . implode(',', array_keys(ClientConsentForm::SNAT_ID_TYPES)),
             'id_document_number' => 'required|string|max:255',
             'id_document_expiry' => 'required|date|after:today',
             'phone' => 'required|string|max:20',
@@ -109,12 +109,14 @@ class TraceabilityController extends Controller
         // Vérifier l'âge
         $birthDate = \Carbon\Carbon::parse($validated['birth_date']);
         $isAdult = $birthDate->age >= 18;
+        $isMinor = !$isAdult;
 
         $consentForm = ClientConsentForm::create([
             'client_id' => $user->client->id,
             'user_id' => $appointment->bookable->user_id,
+            'tattooer_id' => $appointment->bookable->id,
             'appointment_id' => $appointment->id,
-            'is_adult' => $isAdult,
+            'is_minor' => $isMinor,
             'client_full_name' => $validated['client_full_name'],
             'client_birth_date' => $validated['birth_date'],
             'client_phone' => $validated['phone'],
@@ -130,6 +132,16 @@ class TraceabilityController extends Controller
             'has_blood_disorders' => $validated['has_blood_disorders'],
             'blood_disorders_details' => $validated['blood_disorders_details'],
         ]);
+
+        // Sauvegarder la signature numérique si fournie
+        if (isset($validated['consent_signature'])) {
+            $consentForm->update([
+                'signature_data' => $validated['consent_signature'],
+                'signed_at' => now(),
+                'signed_ip' => $request->ip(),
+                'signed_user_agent' => $request->userAgent(),
+            ]);
+        }
 
         // Marquer comme signé
         $consentForm->markAsSigned();
@@ -151,7 +163,7 @@ class TraceabilityController extends Controller
         $validated = $request->validate([
             'parent_full_name' => 'required|string|max:255',
             'parent_relationship' => 'required|in:' . implode(',', array_keys(ParentalConsentForm::RELATIONSHIPS)),
-            'parent_id_document_type' => 'required|in:' . implode(',', array_keys(ClientConsentForm::ID_DOCUMENT_TYPES)),
+            'parent_id_document_type' => 'required|in:' . implode(',', array_keys(ClientConsentForm::SNAT_ID_TYPES)),
             'parent_id_document_number' => 'required|string|max:255',
             'parent_id_document_expiry' => 'required|date|after:today',
             'parent_phone' => 'required|string|max:20',
@@ -279,6 +291,7 @@ class TraceabilityController extends Controller
 
         $traceabilityRecord = TraceabilityRecord::create([
             'user_id' => $user->id,
+            'tattooer_id' => $user->tattooer->id,
             'appointment_id' => $appointment->id,
             'client_consent_form_id' => $consentForm->id,
             ...$validated,
