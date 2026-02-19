@@ -23,6 +23,7 @@
             'accepted' => 'Acceptées',
             'confirmed' => 'Confirmées',
             'completed' => 'Terminées',
+            'expired' => 'Expirées',
             'cancelled' => 'Annulées',
         ] as $key => $label)
                     <a href="{{ route('tattooer.requests') }}?status={{ $key }}"
@@ -50,6 +51,7 @@
                     <option value="pending">En attente</option>
                     <option value="accepted">Acceptées</option>
                     <option value="rejected">Refusées</option>
+                    <option value="expired">Expirées</option>
                     <option value="cancelled">Annulées</option>
                 </select>
             </div>

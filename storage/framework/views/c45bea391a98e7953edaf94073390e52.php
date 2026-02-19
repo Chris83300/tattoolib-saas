@@ -40,6 +40,7 @@ if (isset($__slots)) unset($__slots);
             'accepted' => 'Acceptées',
             'confirmed' => 'Confirmées',
             'completed' => 'Terminées',
+            'expired' => 'Expirées',
             'cancelled' => 'Annulées',
         ]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <a href="<?php echo e(route('tattooer.requests')); ?>?status=<?php echo e($key); ?>"
@@ -68,6 +69,7 @@ if (isset($__slots)) unset($__slots);
                     <option value="pending">En attente</option>
                     <option value="accepted">Acceptées</option>
                     <option value="rejected">Refusées</option>
+                    <option value="expired">Expirées</option>
                     <option value="cancelled">Annulées</option>
                 </select>
             </div>

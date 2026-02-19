@@ -24,6 +24,18 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->runInBackground();
 
+        // ⭐ Expirer les acomptes non payés toutes les heures
+        $schedule->command('bookings:expire-unpaid')
+            ->hourly()
+            ->withoutOverlapping()
+            ->runInBackground();
+
+        // ⭐ Auto-compléter les RDV après 24h sans action
+        $schedule->command('appointments:auto-complete')
+            ->hourly()
+            ->withoutOverlapping()
+            ->runInBackground();
+
         // 🆕 Envoyer les rappels de consentement (J-4) à 10h
         $schedule->command('consents:send-reminders')
             ->dailyAt('10:00')

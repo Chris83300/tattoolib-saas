@@ -1174,6 +1174,17 @@ class BookingRequest extends Model implements HasMedia
     }
 
     /**
+     * Vérifier si la deadline d'acompte est dépassée
+     */
+    public function isDepositExpired(): bool
+    {
+        return $this->status === BookingRequestStatus::ACCEPTED
+            && $this->deposit_deadline
+            && $this->deposit_deadline->isPast()
+            && !$this->deposit_paid_at;
+    }
+
+    /**
      * Vérifier si la deadline de design est dépassée
      */
     public function isDesignOverdue(): bool

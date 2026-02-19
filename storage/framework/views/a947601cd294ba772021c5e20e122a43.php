@@ -172,7 +172,14 @@
                                 <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </div>
                         </div>
-                    <?php elseif(in_array($bookingRequest->status, ['accepted', 'awaiting_deposit', 'deposit_paid', 'design_sent', 'confirmed'])): ?>
+                    <?php elseif(in_array($bookingRequest->status->value, [
+                            'accepted',
+                            'awaiting_deposit',
+                            'deposit_paid',
+                            'design_sent',
+                            'confirmed',
+                            'date_confirmed',
+                        ])): ?>
                         <!-- Ici : AFFICHER les détails de la demande (infos remplies dans modal) -->
                         <div class="bg-vert-succes/10 border border-vert-succes/30 rounded-xl p-6">
                             <h3 class="text-lg font-bold text-ivoire-text mb-4">📋 Détails de votre proposition</h3>
@@ -206,7 +213,7 @@
                                             <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $bookingRequest->proposed_dates; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $date): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                 <span
                                                     class="px-3 py-1 bg-beige-peau/20 text-beige-peau rounded-full text-sm font-medium">
-                                                    <?php echo e(\Carbon\Carbon::parse($date)->format('l d/m/Y')); ?>
+                                                    <?php echo e(\Carbon\Carbon::parse($date['date'])->format('l d/m/Y')); ?>
 
                                                 </span>
                                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
@@ -241,9 +248,30 @@
                                     <button type="submit"
                                         class="w-full px-4 py-3 bg-rouge-alerte/20 border border-rouge-alerte/30 text-rouge-alerte rounded-xl font-semibold text-center hover:bg-rouge-alerte/30 transition-all"
                                         onclick="return confirm('Annuler ce projet ? Cette action est irréversible.')">
-                                        ✕ Annuler le projet
                                     </button>
                                 </form>
+
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->status->value === 'date_confirmed'): ?>
+                                    <form action="<?php echo e(route('tattooer.booking-requests.complete', $bookingRequest)); ?>"
+                                        method="POST">
+                                        <?php echo csrf_field(); ?>
+                                        <button type="submit"
+                                            class="w-full px-4 py-3 bg-vert-succes text-white rounded-xl font-bold text-center hover:bg-vert-succes/90 transition-all">
+                                            ✅ RDV Validé
+                                        </button>
+                                    </form>
+
+                                    <form action="<?php echo e(route('tattooer.booking-requests.no-show', $bookingRequest)); ?>"
+                                        method="POST"
+                                        onsubmit="return confirm('Êtes-vous sûr de vouloir déclarer ce client comme absent ? Cette action est irréversible et incrémentera son compteur de no-show.')">
+                                        <?php echo csrf_field(); ?>
+                                        <button type="submit"
+                                            class="w-full px-4 py-3 bg-rouge-alerte text-white rounded-xl font-bold text-center hover:bg-rouge-alerte/90 transition-all">
+                                            ❌ Déclarer No-show
+                                        </button>
+                                    </form>
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
                             </div>
                         </div>
                     <?php elseif($bookingRequest->status->value === 'completed'): ?>

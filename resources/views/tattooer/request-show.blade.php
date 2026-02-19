@@ -170,7 +170,14 @@
                                 @endif
                             </div>
                         </div>
-                    @elseif (in_array($bookingRequest->status, ['accepted', 'awaiting_deposit', 'deposit_paid', 'design_sent', 'confirmed']))
+                    @elseif (in_array($bookingRequest->status->value, [
+                            'accepted',
+                            'awaiting_deposit',
+                            'deposit_paid',
+                            'design_sent',
+                            'confirmed',
+                            'date_confirmed',
+                        ]))
                         <!-- Ici : AFFICHER les détails de la demande (infos remplies dans modal) -->
                         <div class="bg-vert-succes/10 border border-vert-succes/30 rounded-xl p-6">
                             <h3 class="text-lg font-bold text-ivoire-text mb-4">📋 Détails de votre proposition</h3>
@@ -202,7 +209,7 @@
                                             @foreach ($bookingRequest->proposed_dates as $date)
                                                 <span
                                                     class="px-3 py-1 bg-beige-peau/20 text-beige-peau rounded-full text-sm font-medium">
-                                                    {{ \Carbon\Carbon::parse($date)->format('l d/m/Y') }}
+                                                    {{ \Carbon\Carbon::parse($date['date'])->format('l d/m/Y') }}
                                                 </span>
                                             @endforeach
                                         </div>
@@ -236,9 +243,30 @@
                                     <button type="submit"
                                         class="w-full px-4 py-3 bg-rouge-alerte/20 border border-rouge-alerte/30 text-rouge-alerte rounded-xl font-semibold text-center hover:bg-rouge-alerte/30 transition-all"
                                         onclick="return confirm('Annuler ce projet ? Cette action est irréversible.')">
-                                        ✕ Annuler le projet
                                     </button>
                                 </form>
+
+                                @if ($bookingRequest->status->value === 'date_confirmed')
+                                    <form action="{{ route('tattooer.booking-requests.complete', $bookingRequest) }}"
+                                        method="POST">
+                                        @csrf
+                                        <button type="submit"
+                                            class="w-full px-4 py-3 bg-vert-succes text-white rounded-xl font-bold text-center hover:bg-vert-succes/90 transition-all">
+                                            ✅ RDV Validé
+                                        </button>
+                                    </form>
+
+                                    <form action="{{ route('tattooer.booking-requests.no-show', $bookingRequest) }}"
+                                        method="POST"
+                                        onsubmit="return confirm('Êtes-vous sûr de vouloir déclarer ce client comme absent ? Cette action est irréversible et incrémentera son compteur de no-show.')">
+                                        @csrf
+                                        <button type="submit"
+                                            class="w-full px-4 py-3 bg-rouge-alerte text-white rounded-xl font-bold text-center hover:bg-rouge-alerte/90 transition-all">
+                                            ❌ Déclarer No-show
+                                        </button>
+                                    </form>
+                                @endif
+
                             </div>
                         </div>
                     @elseif ($bookingRequest->status->value === 'completed')

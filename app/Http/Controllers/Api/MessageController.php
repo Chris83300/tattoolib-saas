@@ -50,6 +50,13 @@ class MessageController extends Controller
             ], 422);
         }
 
+        // Vérifier si l'acompte est expiré
+        if ($conversation->bookingRequest && $conversation->bookingRequest->isDepositExpired()) {
+            return response()->json([
+                'message' => 'Le délai d\'acompte est expiré. Impossible d\'envoyer des messages.'
+            ], 422);
+        }
+
         $user = $request->user();
         $userType = $user->getUserType();
 

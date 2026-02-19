@@ -46,6 +46,8 @@ Route::middleware(['auth'])->prefix('tattooer')->name('tattooer.')->group(functi
     Route::get('/messages', [TattooerController::class, 'messages'])->name('messages');
     Route::get('/messages/{bookingRequest}', [TattooerController::class, 'messageShow'])->name('message.show');
     Route::post('/message/{bookingRequest}/send', [TattooerController::class, 'messageSend'])->name('message.send');
+    Route::post('/booking-requests/{bookingRequest}/complete', [TattooerController::class, 'completeBooking'])->name('booking-requests.complete');
+    Route::post('/booking-requests/{bookingRequest}/no-show', [TattooerController::class, 'markNoShow'])->name('booking-requests.no-show');
     Route::get('/clients', [TattooerController::class, 'clients'])->name('clients');
     Route::get('/clients/create', [TattooerController::class, 'createClient'])->name('clients.create')->middleware('pro');
     Route::post('/clients', [TattooerController::class, 'storeClient'])->name('clients.store')->middleware('pro');

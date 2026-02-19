@@ -2349,4 +2349,55 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
 
         return redirect()->back()->with('success', '✅ Consentement numérique enregistré avec succès !');
     }
+
+    /**
+     * Marquer une demande comme terminée (RDV validé)
+     */
+    public function completeBooking(Request $request, BookingRequest $bookingRequest)
+    {
+        $tattooer = auth()->user()->tattooer;
+
+        // Vérifier que la demande appartient bien au tattooer
+        if ($bookingRequest->bookable_id !== $tattooer->id || $bookingRequest->bookable_type !== 'App\\Models\\Tattooer') {
+            abort(403, 'Non autorisé');
+        }
+
+        // Vérifier que la transition est autorisée
+        if (!$bookingRequest->status->canTransitionTo(BookingRequestStatus::COMPLETED)) {
+            return redirect()->back()->with('error', 'Impossible de terminer cette demande.');
+        }
+
+        // Marquer comme terminé
+        $bookingRequest->update(['completed_at' => now()]);
+        $bookingRequest->transitionTo(BookingRequestStatus::COMPLETED);
+
+        return redirect()->back()->with('success', 'RDV validé avec succès.');
+    }
+
+    /**
+     * Déclarer un client comme absent (no-show)
+     */
+    public function markNoShow(Request $request, BookingRequest $bookingRequest)
+    {
+        $tattooer = auth()->user()->tattooer;
+
+        // Vérifier que la demande appartient bien au tattooer
+        if ($bookingRequest->bookable_id !== $tattooer->id || $bookingRequest->bookable_type !== 'App\\Models\\Tattooer') {
+            abort(403, 'Non autorisé');
+        }
+
+        // Vérifier que la transition est autorisée
+        if (!$bookingRequest->status->canTransitionTo(BookingRequestStatus::NO_SHOW)) {
+            return redirect()->back()->with('error', 'Impossible de déclarer no-show pour cette demande.');
+        }
+
+        // Marquer comme no-show
+        $bookingRequest->update(['no_show_at' => now()]);
+        $bookingRequest->transitionTo(BookingRequestStatus::NO_SHOW);
+
+        // Incrémenter le compteur no-show du client
+        $bookingRequest->client->increment('no_show_count');
+
+        return redirect()->back()->with('success', 'No-show déclaré avec succès.');
+    }
 }
