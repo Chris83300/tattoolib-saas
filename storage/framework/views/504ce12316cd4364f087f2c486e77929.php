@@ -110,6 +110,90 @@
     </a>
 </div>
 
+<!-- Demandes en cours -->
+<?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($this->client->bookingRequests()->whereIn('status', ['pending', 'accepted'])->count() > 0): ?>
+    <div class="bg-beige-peau/10 border border-beige-peau/30 rounded-xl p-4 mb-6">
+        <div class="flex items-center gap-2 mb-2">
+            <span class="relative flex h-3 w-3">
+                <span
+                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-beige-peau opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-beige-peau"></span>
+            </span>
+            <h3 class="font-bold text-ivoire-text">
+                <?php echo e($this->client->bookingRequests()->whereIn('status', ['pending', 'accepted'])->count()); ?> demande(s)
+                en cours</h3>
+        </div>
+        <!-- Liste des demandes actives -->
+        <div class="space-y-4">
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $this->client->bookingRequests()->whereIn('status', ['pending', 'accepted'])->take(3)->get(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $bookingRequest): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <div class="bg-gris-fonde rounded-lg p-4 border border-titane/30">
+                    <div class="flex items-start justify-between mb-2">
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-semibold text-ivoire-text mb-1">
+                                <?php echo e(Str::limit($bookingRequest->tattoo_description, 60)); ?>
+
+                            </h3>
+                            <div class="flex items-center gap-2 text-sm text-ivoire-text/70 mb-1">
+                                <span>📍 <?php echo e($bookingRequest->tattoo_location); ?></span>
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->tattoo_style): ?>
+                                    <span>• 🎨 <?php echo e($bookingRequest->tattoo_style); ?></span>
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->estimated_price): ?>
+                                    <span>• 💰
+                                        <?php echo e(number_format($bookingRequest->estimated_price, 0, ',', ' ')); ?>€</span>
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                            </div>
+                            <div class="flex items-center gap-2 text-sm text-ivoire-text/70 mb-2">
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->bookable): ?>
+                                    <span class="flex items-center gap-1">
+                                        <img src="<?php echo e($bookingRequest->bookable->user->getFirstMediaUrl('avatar')); ?>"
+                                            alt="<?php echo e($bookingRequest->bookable->user->name); ?>"
+                                            class="w-8 h-8 rounded-full object-cover">
+                                    </span>
+                                    <span>
+                                        <span class="font-medium"><?php echo e($bookingRequest->bookable->user->name); ?></span>
+                                        <span class="text-ivoire-text/60">•
+                                            <?php echo e($bookingRequest->bookable_type_label); ?></span>
+                                    </span>
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                <div class="flex items-center gap-2">
+                                    <span class="inline-flex items-center gap-1">
+                                        <span
+                                            class="inline-flex items-center gap-1 px-2 py-1 rounded-full <?php echo e($bookingRequest->status->color()); ?>20 text-white text-xs font-medium">
+                                            <?php echo e($bookingRequest->status->label()); ?>
+
+                                        </span>
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->unread_messages > 0): ?>
+                                            <span
+                                                class="ml-2 inline-flex items-center justify-center w-5 h-5 bg-rouge-alerte rounded-full text-noir-profond text-xs font-bold">
+                                                <?php echo e($bookingRequest->unread_messages); ?>
+
+                                            </span>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->status === 'accepted'): ?>
+                                    <a href="<?php echo e(route('client.chat', $bookingRequest)); ?>"
+                                        class="inline-flex items-center px-3 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M8 12h.01M2 9a1 1 0 01.01 1.414A1 1 0 01.01 4.141V8a2 2 0 01.01 2 2A2 2 0 01.01zm0 6a2 2 0 00-2 2v2a2 2 0 00-2 2z" />
+                                        </svg>
+                                        <span>Discuter</span>
+                                    </a>
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+        </div>
+    </div>
+<?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
 <!-- Actions rapides -->
 <div class="bg-gris-fonde rounded-xl border border-beige-peau/20 shadow-lg p-6 mb-6">
     <h2 class="text-xl font-bold text-ivoire-text mb-4">Actions rapides</h2>

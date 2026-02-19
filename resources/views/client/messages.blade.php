@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.client')
 
 @section('title', 'Mes conversations')
 
@@ -145,7 +145,7 @@
 
                                                     @case('accepted')
                                                         Acceptée
-                                                    @break 
+                                                    @break
 
                                                     @case('awaiting_deposit')
                                                         Acompte attendu

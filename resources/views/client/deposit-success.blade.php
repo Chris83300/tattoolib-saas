@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.client')
 
 @section('title', 'Paiement réussi - Ink&Pik')
 
@@ -109,7 +109,8 @@
                                 <p class="text-ivoire-text font-medium">Chat permanent activé</p>
                                 <p class="text-ivoire-text/70 text-sm">
                                     Vous pouvez communiquer directement avec l'artiste via le chat.
-                                    N'hésitez pas à envoyer au besoin des références supplémentaires, demander des ajustements ou
+                                    N'hésitez pas à envoyer au besoin des références supplémentaires, demander des
+                                    ajustements ou
                                     partager vos idées pour finaliser votre projet.
                                 </p>
                             </div>

@@ -1,4 +1,6 @@
-<x-app-layout>
+@extends('layouts.client')
+
+@section('content')
     <div class="max-w-lg mx-auto py-8 px-4">
         <div class="text-center mb-8">
             <div class="w-16 h-16 bg-vert-succes rounded-full flex items-center justify-center mx-auto mb-4">
@@ -25,14 +27,14 @@
         </div>
 
         <div class="space-y-3">
-            <a href="{{ route('client.dashboard') }}" 
-               class="block w-full py-3 bg-noir-profond text-white rounded-xl font-semibold text-center hover:bg-noir-profond/90 transition">
+            <a href="{{ route('client.dashboard') }}"
+                class="block w-full py-3 bg-noir-profond text-white rounded-xl font-semibold text-center hover:bg-noir-profond/90 transition">
                 Retour au tableau de bord
             </a>
-            <a href="{{ route('client.booking-request.show', $bookingRequest) }}" 
-               class="block w-full py-3 border border-noir-profond text-noir-profond rounded-xl font-semibold text-center hover:bg-noir-profond/10 transition">
+            <a href="{{ route('client.booking-request.show', $bookingRequest) }}"
+                class="block w-full py-3 border border-noir-profond text-noir-profond rounded-xl font-semibold text-center hover:bg-noir-profond/10 transition">
                 Voir les détails
             </a>
         </div>
     </div>
-</x-app-layout>
+    </x-app-layout>

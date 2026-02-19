@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.client')
 
 @section('title', 'Payer l\'acompte - ' . $bookingRequest->bookable->user->name)
 
