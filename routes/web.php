@@ -254,6 +254,8 @@ Route::middleware(['auth'])->prefix('client')->name('client.')->group(function (
     Route::get('/complaints', [App\Http\Controllers\ClientController::class, 'complaints'])->name('complaints');
     Route::post('/reviews/{bookingRequest}', [App\Http\Controllers\ClientController::class, 'createReview'])->name('reviews.create');
     Route::post('/complaints/{bookingRequest}', [App\Http\Controllers\ClientController::class, 'createComplaint'])->name('complaints.create');
+    Route::post('/booking-requests/{bookingRequest}/cancel', [App\Http\Controllers\ClientController::class, 'bookingRequestCancel'])->name('booking-request.cancel');
+    Route::delete('/booking-request/{bookingRequest}/delete', [App\Http\Controllers\ClientController::class, 'bookingRequestDelete'])->name('booking-request.delete');
     Route::get('/bookings/{bookingRequest}/balance', [App\Http\Controllers\BalancePaymentController::class, 'show'])
         ->name('balance.show');
 });
@@ -312,53 +314,6 @@ Route::middleware(['auth'])->prefix('studio-artist')->name('studio-artist.')->gr
 Route::get('/artistes/{slug}', [MarketplaceController::class, 'show'])
     ->name('marketplace.show.artist');
 
-// Route de test ultra-simple
-Route::get('/test-simple', function () {
-    return '<h1>Test Simple</h1><p>Route fonctionne</p>';
-})->middleware(['auth']);
-
-// Route de test avec vue
-Route::get('/test-view', function () {
-    return '<h1>Test View</h1><p>Vue: ' . view()->exists('livewire.tattooer.pending-verification-simple') . '</p>';
-})->middleware(['auth']);
-
-// Route de test
-Route::get('/auto-login-pierceur', function () {
-    $user = App\Models\User::find(6); // L'utilisateur pierceur existant
-    if ($user) {
-        Auth::login($user);
-        return redirect()->route('pierceur.pending-verification');
-    }
-    return 'User not found';
-})->name('auto.login.pierceur');
-
-Route::get('/test-pierceur-auth', function () {
-    if (!auth()->check()) {
-        return 'Not authenticated';
-    }
-
-    $user = auth()->user();
-    $response = 'Authenticated as: ' . $user->email . ' (Role: ' . $user->role . ')';
-
-    if ($user->role !== 'pierceur') {
-        $response .= ' - NOT A PIERCEUR!';
-        return $response;
-    }
-
-    $pierceur = $user->pierceur;
-    if (!$pierceur) {
-        $response .= ' - NO PIERCEUR PROFILE!';
-        return $response;
-    }
-
-    $response .= ' - Pierceur profile: ' . $pierceur->name;
-    return $response;
-})->middleware(['auth']);
-
-// Route de test avec vue
-Route::get('/test-pending-view', function () {
-    return view('livewire.tattooer.pending-verification');
-})->middleware(['auth']);
 
 Route::get('/pierceur/pending-verification', function () {
     $pierceur = auth()->user()->pierceur;
@@ -379,14 +334,6 @@ Route::delete('/tattooer/delete-account', [App\Http\Controllers\Tattooer\Account
     ->middleware(['auth'])
     ->name('tattooer.delete-account');
 
-// Routes booking-requests client
-Route::middleware(['auth'])->prefix('client')->name('client.')->group(function () {
-    Route::get('/booking-requests', [ClientController::class, 'bookingRequests'])->name('booking-requests');
-
-    Route::get('/booking-requests/{bookingRequest}', [ClientController::class, 'bookingRequestShow'])->name('booking-request.show');
-    Route::post('/booking-requests/{bookingRequest}/cancel', [ClientController::class, 'bookingRequestCancel'])->name('booking-request.cancel');
-    Route::delete('/booking-request/{bookingRequest}/delete', [ClientController::class, 'bookingRequestDelete'])->name('booking-request.delete');
-});
 
 // Routes webhook Stripe (sans CSRF)
 Route::post('/webhooks/stripe', [App\Http\Controllers\StripeWebhookController::class, 'handleWebhook'])
@@ -442,8 +389,5 @@ Route::prefix('auth')->name('auth.')->group(function () {
 Route::middleware(['auth'])->prefix('booking-request/{bookingRequest}/deposit')->name('booking-request.deposit.')->group(function () {
     Route::get('/request', App\Livewire\RequestDeposit::class)->name('request');
 });
-
-// Webhooks Stripe (sans middleware CSRF)
-Route::post('/webhooks/stripe', [App\Http\Controllers\StripeWebhookController::class, 'handleWebhook'])->name('webhooks.stripe');
 
 require __DIR__.'/settings.php';
