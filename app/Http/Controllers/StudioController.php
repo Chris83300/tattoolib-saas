@@ -9,25 +9,31 @@ use Illuminate\Support\Facades\Auth;
 
 class StudioController extends Controller
 {
+    /**
+     * Récupère le studio de l'utilisateur connecté ou abort 403.
+     */
+    private function getStudio(): Studio
+    {
+        $studio = $this->getStudio();
+        abort_unless($studio, 403, 'Profil studio non trouvé');
+
+        return $studio;
+    }
+
     public function dashboard()
     {
-        $studio = Auth::user()->studio;
+        $studio = $this->getStudio();
 
-        // Stats globales
         $totalArtists = $studio->artists()->count();
-        $activeArtists = $studio->activeArtists()->count();
-        $totalRevenue = $studio->artists()
-            ->whereHas('studioArtist', function ($query) {
-                return $query->where('is_active', true);
-            })
-            ->withSum('total_revenue');
+        $activeArtists = $studio->artists()->where('is_active', true)->count();
+        $totalRevenue = 0;
 
         return view('studio.dashboard', compact('studio', 'totalArtists', 'activeArtists', 'totalRevenue'));
     }
 
     public function artists()
     {
-        $studio = Auth::user()->studio;
+        $studio = $this->getStudio();
         $artists = $studio->artists()->with('user')->get();
 
         return view('studio.artists', compact('studio', 'artists'));
@@ -40,7 +46,7 @@ class StudioController extends Controller
             'role' => 'required|in:artist,manager,receptionist',
         ]);
 
-        $studio = Auth::user()->studio;
+        $studio = $this->getStudio();
 
         // Générer un code d'invitation unique
         $invitationCode = strtoupper(substr(md5(uniqid()), 0, 8));
@@ -54,37 +60,37 @@ class StudioController extends Controller
 
     public function planning()
     {
-        $studio = Auth::user()->studio;
+        $studio = $this->getStudio();
         return view('studio.planning', compact('studio'));
     }
 
     public function requests()
     {
-        $studio = Auth::user()->studio;
+        $studio = $this->getStudio();
         return view('studio.requests', compact('studio'));
     }
 
     public function transactions()
     {
-        $studio = Auth::user()->studio;
+        $studio = $this->getStudio();
         return view('studio.transactions', compact('studio'));
     }
 
     public function stats()
     {
-        $studio = Auth::user()->studio;
+        $studio = $this->getStudio();
         return view('studio.stats', compact('studio'));
     }
 
     public function exports()
     {
-        $studio = Auth::user()->studio;
+        $studio = $this->getStudio();
         return view('studio.exports', compact('studio'));
     }
 
     public function settings()
     {
-        $studio = Auth::user()->studio;
+        $studio = $this->getStudio();
         return view('studio.settings', compact('studio'));
     }
 
