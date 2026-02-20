@@ -53,5 +53,6 @@ class AppServiceProvider extends ServiceProvider
 
         // View Composer pour les messages non-lus
         view()->composer('layouts.tattooer', UnreadMessagesComposer::class);
+        view()->composer('layouts.client', \App\View\Composers\ClientLayoutComposer::class);
     }
 }

@@ -70,42 +70,10 @@
                         </path>
                     </svg>
                     <span class="font-semibold">Messages</span>
-                    @php
-                        // Badge messages non-lus
-                        if (!auth()->check()) {
-                            $unreadCount = 0;
-                        } elseif (!auth()->user()->client) {
-                            $unreadCount = 0;
-                        } else {
-                            $client = auth()->user()->client;
-                            $conversationIds = \App\Models\Conversation::whereHas('bookingRequest', function ($q) use (
-                                $client,
-                            ) {
-                                $q->where('client_id', $client->id);
-                            })->pluck('id');
-
-                            $unreadCount = 0;
-                            foreach ($conversationIds as $conversationId) {
-                                $conversation = \App\Models\Conversation::find($conversationId);
-                                if ($conversation) {
-                                    $pivot = $conversation
-                                        ->participants()
-                                        ->where('user_id', auth()->id())
-                                        ->first()?->pivot;
-                                    $lastReadAt = $pivot?->last_read_at ?? now()->subYears(10);
-                                    $unreadCount += $conversation
-                                        ->messages()
-                                        ->where('sender_id', '!=', auth()->id())
-                                        ->where('created_at', '>', $lastReadAt)
-                                        ->count();
-                                }
-                            }
-                        }
-                    @endphp
-                    @if ($unreadCount > 0)
+                    @if (($clientUnreadCount ?? 0) > 0)
                         <span
                             class="ml-auto bg-rouge-alerte text-noir-profond px-2 py-0.5 rounded-full text-xs font-bold">
-                            {{ $unreadCount > 99 ? '99+' : $unreadCount }}
+                            {{ $clientUnreadCount > 99 ? '99+' : $clientUnreadCount }}
                         </span>
                     @endif
                 </a>
@@ -231,10 +199,10 @@
                         </path>
                     </svg>
                     <span class="text-[10px] font-semibold">Messages</span>
-                    @if ($unreadCount > 0)
+                    @if (($clientUnreadCount ?? 0) > 0)
                         <span
                             class="absolute top-0 right-0 w-4 h-4 bg-rouge-alerte text-noir-profond rounded-full text-[8px] font-bold flex items-center justify-center">
-                            {{ $unreadCount > 99 ? '99+' : $unreadCount }}
+                            {{ $clientUnreadCount > 99 ? '99+' : $clientUnreadCount }}
                         </span>
                     @endif
                 </a>
