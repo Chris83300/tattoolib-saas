@@ -567,6 +567,41 @@ $displayStyles = array_filter(
             APRÈS</div>
     </div>
 
+    <!-- Section Avis -->
+    <section id="reviews" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h2 class="text-xl font-bold text-ivoire-text mb-4">
+            Avis clients
+            @if ($artist->reviews->where('is_visible', true)->count() > 0)
+                <span class="text-sm font-normal text-titane">
+                    ({{ number_format($artist->reviews->where('is_visible', true)->avg('rating'), 1) }}/5 — {{ $artist->reviews->where('is_visible', true)->count() }} avis)
+                </span>
+            @endif
+        </h2>
+
+        @forelse ($artist->reviews->where('is_visible', true)->sortByDesc('created_at') as $review)
+            <div class="bg-gris-fonde rounded-xl p-4 mb-3">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                        <div class="flex">
+                            @for ($i = 1; $i <= 5; $i++)
+                                <span class="{{ $i <= $review->rating ? 'text-ambre-warning' : 'text-titane/30' }}">&#9733;</span>
+                            @endfor
+                        </div>
+                        <span class="text-sm font-semibold text-ivoire-text">
+                            {{ $review->client?->name ?? 'Client' }}
+                        </span>
+                    </div>
+                    <span class="text-xs text-titane">{{ $review->created_at->diffForHumans() }}</span>
+                </div>
+                @if ($review->comment)
+                    <p class="text-sm text-ivoire-text/80">{{ $review->comment }}</p>
+                @endif
+            </div>
+        @empty
+            <p class="text-titane text-sm text-center py-6">Aucun avis pour le moment</p>
+        @endforelse
+    </section>
+
     <!-- Lightbox simple -->
     <div id="lightbox" class="fixed inset-0 bg-black/90 z-50 hidden items-center justify-center"
         onclick="closeLightbox()">
