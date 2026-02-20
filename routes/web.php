@@ -258,18 +258,15 @@ Route::middleware(['auth'])->prefix('client')->name('client.')->group(function (
         ->name('balance.show');
 });
 
-// Routes Pierceur (protégées)
+// Routes Pierceur (protégées — Livewire)
 Route::middleware(['auth', 'role:pierceur'])->prefix('pierceur')->name('pierceur.')->group(function () {
-    // Dashboard, settings, portfolio, clients, messages, booking requests
-    Route::get('/', [App\Http\Controllers\PiercerController::class, 'index'])->name('index');
-    Route::get('/dashboard', [App\Http\Controllers\PiercerController::class, 'dashboard'])->name('dashboard');
-    Route::get('/settings', [App\Http\Controllers\PiercerController::class, 'settings'])->name('settings');
-    Route::get('/portfolio', [App\Http\Controllers\PiercerController::class, 'portfolio'])->name('portfolio');
-    Route::get('/clients', [App\Http\Controllers\PiercerController::class, 'clients'])->name('clients');
-    Route::get('/messages', [App\Http\Controllers\PiercerController::class, 'messages'])->name('messages');
-    Route::get('/booking-requests', [App\Http\Controllers\PiercerController::class, 'bookingRequests'])->name('booking-requests');
-    Route::get('/booking-requests/{bookingRequest}', [App\Http\Controllers\PiercerController::class, 'bookingRequestShow'])->name('booking-request.show');
-    Route::post('/booking-requests/{bookingRequest}/select-date', [App\Http\Controllers\PiercerController::class, 'selectProposedDate'])->name('booking-request.select-date');
+    Route::get('/', App\Livewire\Pierceur\Dashboard::class)->name('index');
+    Route::get('/dashboard', App\Livewire\Pierceur\Dashboard::class)->name('dashboard');
+    Route::get('/settings', App\Livewire\Pierceur\Settings::class)->name('settings');
+    Route::get('/profil', App\Livewire\Pierceur\Profile::class)->name('profile');
+    Route::get('/messages', App\Livewire\Pierceur\Messages::class)->name('messages');
+    Route::get('/calendar', App\Livewire\Pierceur\Calendar::class)->name('calendar');
+    Route::get('/demandes', App\Livewire\Pierceur\BookingRequests::class)->name('booking-requests');
 });
 
 // Routes Studio (protégées)
@@ -277,12 +274,6 @@ Route::middleware(['auth', 'role:studio'])->prefix('studio')->name('studio.')->g
     Route::get('/dashboard', [App\Http\Controllers\StudioController::class, 'dashboard'])->name('dashboard');
     Route::get('/artists', [App\Http\Controllers\StudioController::class, 'artists'])->name('artists');
     Route::post('/artists/invite', [App\Http\Controllers\StudioController::class, 'inviteArtist'])->name('artists.invite');
-    Route::get('/planning', [App\Http\Controllers\StudioController::class, 'planning'])->name('planning');
-    Route::get('/requests', [App\Http\Controllers\StudioController::class, 'requests'])->name('requests');
-    Route::get('/transactions', [App\Http\Controllers\StudioController::class, 'transactions'])->name('transactions');
-    Route::get('/stats', [App\Http\Controllers\StudioController::class, 'stats'])->name('stats');
-    Route::get('/exports', [App\Http\Controllers\StudioController::class, 'exports'])->name('exports');
-    Route::get('/settings', [App\Http\Controllers\StudioController::class, 'settings'])->name('settings');
 });
 
 // Profil public Studio (accessible sans auth)
@@ -299,7 +290,7 @@ Route::middleware(['auth'])->prefix('studio')->name('studio.')->group(function (
     })->name('upgrade');
     Route::get('/compliance', function () {
         return view('studio.compliance');
-    })->name('compliance');
+    })->name('studio.compliance');
 });
 
 // Routes Studio Artist (protégées)
@@ -316,7 +307,7 @@ Route::middleware(['auth'])->prefix('studio-artist')->name('studio-artist.')->gr
     })->name('upgrade');
     Route::get('/compliance', function () {
         return view('studio-artist.compliance');
-    })->name('compliance');
+    })->name('studio-artist.compliance');
 });
 
 // Page publique artiste (Tattooer OU Pierceur)
@@ -334,8 +325,36 @@ Route::get('/test-view', function () {
 })->middleware(['auth']);
 
 // Route de test
-Route::get('/test-tattooer', function () {
-    return 'Test route - User: ' . (auth()->check() ? auth()->user()->name : 'Not authenticated') . ' - Status: ' . (auth()->check() ? auth()->user()->status : 'N/A');
+Route::get('/auto-login-pierceur', function () {
+    $user = App\Models\User::find(6); // L'utilisateur pierceur existant
+    if ($user) {
+        Auth::login($user);
+        return redirect()->route('pierceur.pending-verification');
+    }
+    return 'User not found';
+})->name('auto.login.pierceur');
+
+Route::get('/test-pierceur-auth', function () {
+    if (!auth()->check()) {
+        return 'Not authenticated';
+    }
+
+    $user = auth()->user();
+    $response = 'Authenticated as: ' . $user->email . ' (Role: ' . $user->role . ')';
+
+    if ($user->role !== 'pierceur') {
+        $response .= ' - NOT A PIERCEUR!';
+        return $response;
+    }
+
+    $pierceur = $user->pierceur;
+    if (!$pierceur) {
+        $response .= ' - NO PIERCEUR PROFILE!';
+        return $response;
+    }
+
+    $response .= ' - Pierceur profile: ' . $pierceur->name;
+    return $response;
 })->middleware(['auth']);
 
 // Route de test avec vue
@@ -344,7 +363,8 @@ Route::get('/test-pending-view', function () {
 })->middleware(['auth']);
 
 Route::get('/pierceur/pending-verification', function () {
-    return view('auth.pending-verification', ['role' => 'pierceur']);
+    $pierceur = auth()->user()->pierceur;
+    return view('livewire.pierceur.pending-verification', compact('pierceur'));
 })->middleware(['auth'])->name('pierceur.pending-verification');
 
 Route::get('/studio/pending-verification', function () {

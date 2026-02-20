@@ -17,7 +17,7 @@ use App\Actions\ReportNoShowAction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class PiercerController extends Controller
+class PierceurController extends Controller
 {
     /**
      * Profil public du pierceur (vue interne)
@@ -143,7 +143,7 @@ class PiercerController extends Controller
         $piercer = auth()->user()->piercer;
 
         // Vérifier que la demande appartient bien au pierceur
-        if ($bookingRequest->bookable_id !== $piercer->id || $bookingRequest->bookable_type !== 'App\Models\Piercer') {
+        if ($bookingRequest->bookable_id !== $piercer->id || $bookingRequest->bookable_type !== 'App\Models\Pierceur') {
             abort(403);
         }
 
@@ -158,7 +158,7 @@ class PiercerController extends Controller
         $piercer = auth()->user()->piercer;
 
         // Vérifier que la demande appartient bien au pierceur
-        if ($bookingRequest->bookable_id !== $piercer->id || $bookingRequest->bookable_type !== 'App\Models\Piercer') {
+        if ($bookingRequest->bookable_id !== $piercer->id || $bookingRequest->bookable_type !== 'App\Models\Pierceur') {
             abort(403);
         }
 
