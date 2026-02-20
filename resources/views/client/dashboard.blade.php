@@ -162,7 +162,7 @@
                                         </span>
                                     @endif
 
-                                    @if ($bookingRequest->status === 'accepted')
+                                    @if ($bookingRequest->status === \App\Enums\BookingRequestStatus::ACCEPTED)
                                         <a href="{{ route('client.chat', $bookingRequest) }}"
                                             class="p-2 bg-beige-peau text-noir-profond rounded-lg hover:bg-beige-peau/90 transition-colors"
                                             title="Discuter">

@@ -258,7 +258,7 @@
 
                                 <!-- Actions -->
                                 <div class="flex flex-col gap-2 lg:w-48">
-                                    @if ($bookingRequest->status === 'deposit_paid')
+                                    @if ($bookingRequest->status === \App\Enums\BookingRequestStatus::DEPOSIT_PAID)
                                         <!-- Actions pour deposit_paid -->
                                         <a href="{{ route('client.chat', $bookingRequest->conversation) }}"
                                             class="flex items-center justify-center px-4 py-3 bg-vert-succes text-noir-profond rounded-lg font-semibold hover:bg-vert-succes/90 transition-colors">
@@ -269,7 +269,7 @@
                                             </svg>
                                             Discuter
                                         </a>
-                                    @elseif ($bookingRequest->status === 'rejected')
+                                    @elseif ($bookingRequest->status === \App\Enums\BookingRequestStatus::REJECTED)
                                         <!-- Actions pour rejected -->
                                         <a href="{{ route('marketplace.index') }}"
                                             class="flex items-center justify-center px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">

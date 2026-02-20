@@ -50,7 +50,7 @@
                                                 class="{{ $expiryInfo['days_remaining'] <= 2 ? 'text-rouge-alerte font-semibold' : 'text-jaune-alerte' }}">
                                                 {{ $expiryInfo['time_remaining'] }} restant(es)
                                             </span>
-                                            @if ($bookingRequest->status === 'awaiting_deposit' && !$bookingRequest->deposit_paid_at)
+                                            @if ($bookingRequest->status === \App\Enums\BookingRequestStatus::DEPOSIT_REQUESTED && !$bookingRequest->deposit_paid_at)
                                                 <a href="{{ route('deposit.payment', $bookingRequest->id) }}"
                                                     class="inline-flex items-center px-3 py-1 bg-beige-peau text-noir-profond rounded text-sm font-medium hover:bg-beige-peau/90 transition-colors">
                                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor"
@@ -78,7 +78,7 @@
                 @endif
 
                 {{-- Alerte acompte en attente (sans expiry info) --}}
-                @if (!$expiryInfo && $bookingRequest->status === 'awaiting_deposit' && !$bookingRequest->deposit_paid_at)
+                @if (!$expiryInfo && $bookingRequest->status === \App\Enums\BookingRequestStatus::DEPOSIT_REQUESTED && !$bookingRequest->deposit_paid_at)
                     <div class="mb-4 p-4 bg-jaune-alerte/10 border border-jaune-alerte/30 rounded-lg">
                         <div class="flex items-start">
                             <svg class="w-5 h-5 mt-0.5 mr-3 text-jaune-alerte" fill="none" stroke="currentColor"

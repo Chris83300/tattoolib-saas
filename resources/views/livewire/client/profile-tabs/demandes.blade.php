@@ -171,7 +171,7 @@
                                 </div>
                             </div>
                             <div class="flex items-center gap-2">
-                                @if ($bookingRequest->status === 'accepted')
+                                @if ($bookingRequest->status === \App\Enums\BookingRequestStatus::ACCEPTED)
                                     <a href="{{ route('client.chat', $bookingRequest) }}"
                                         class="inline-flex items-center px-3 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
                                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor"

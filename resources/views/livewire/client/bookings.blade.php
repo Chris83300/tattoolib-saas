@@ -212,7 +212,7 @@
                                     Voir détails
                                 </a>
 
-                                @if ($bookingRequest->status === 'accepted' && $bookingRequest->conversation)
+                                @if ($bookingRequest->status === \App\Enums\BookingRequestStatus::ACCEPTED && $bookingRequest->conversation)
                                     <a href="{{ route('client.chat', $bookingRequest->conversation->id) }}"
                                         class="px-3 py-2 border border-titane/30 text-ivoire-text text-sm font-medium rounded-lg hover:border-beige-peau transition-colors text-center">
                                         Contacter
