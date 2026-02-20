@@ -270,21 +270,19 @@ Route::middleware(['auth', 'role:pierceur'])->prefix('pierceur')->name('pierceur
 });
 
 // Routes Studio (protégées)
-Route::middleware(['auth', 'role:studio'])->prefix('studio')->name('studio.')->group(function () {
-    Route::get('/dashboard', [App\Http\Controllers\StudioController::class, 'dashboard'])->name('dashboard');
-    Route::get('/artists', [App\Http\Controllers\StudioController::class, 'artists'])->name('artists');
-    Route::post('/artists/invite', [App\Http\Controllers\StudioController::class, 'inviteArtist'])->name('artists.invite');
-});
-
 // Profil public Studio (accessible sans auth)
 Route::get('/studios/{slug}', [App\Http\Controllers\StudioController::class, 'publicProfile'])->name('studio.public');
-Route::middleware(['auth'])->prefix('studio')->name('studio.')->group(function () {
+
+// Routes Studio (protégées — fusionnées Controller + Livewire)
+Route::middleware(['auth', 'role:studio'])->prefix('studio')->name('studio.')->group(function () {
     Route::get('/dashboard', App\Livewire\Studio\Dashboard::class)->name('dashboard');
     Route::get('/profil', App\Livewire\Studio\Profile::class)->name('profile');
     Route::get('/profil/edit', App\Livewire\Studio\Profile::class)->name('profile.edit');
     Route::get('/messages', App\Livewire\Studio\Messages::class)->name('messages');
     Route::get('/parametres', App\Livewire\Studio\Settings::class)->name('settings');
     Route::get('/calendar', App\Livewire\Studio\Calendar::class)->name('calendar');
+    Route::get('/artists', [App\Http\Controllers\StudioController::class, 'artists'])->name('artists');
+    Route::post('/artists/invite', [App\Http\Controllers\StudioController::class, 'inviteArtist'])->name('artists.invite');
     Route::get('/upgrade', function () {
         return view('professionnels.index');
     })->name('upgrade');
