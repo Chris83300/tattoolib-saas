@@ -63,15 +63,15 @@
                                     @default
                                         bg-titane/30 text-ivoire-text/80
                                 @endswitch">
-                                    {{ match ($request->status) {
+                                    {{ match ($request->status->value) {
                                         'pending' => 'En attente',
                                         'accepted' => 'Acceptée',
-                                        'awaiting_deposit' => 'Acompte attendu',
+                                        'deposit_requested' => 'Acompte attendu',
                                         'deposit_paid' => 'Acompte payé',
-                                        'confirmed' => 'Confirmée',
+                                        'date_confirmed' => 'Confirmée',
                                         'completed' => 'Terminée',
                                         'cancelled' => 'Annulée',
-                                        default => ucfirst($request->status),
+                                        default => ucfirst($request->status->value),
                                     } }}
                                 </span>
                             </div>

@@ -87,16 +87,16 @@
                                             <!-- Badge statut demande -->
                                             <span
                                                 class="px-2.5 py-0.5 bg-titane/30 text-ivoire-text/80 rounded-full text-xs font-semibold">
-                                                {{ match ($br->status) {
+                                                {{ match ($br->status->value) {
                                                     'pending' => 'En attente',
                                                     'accepted' => 'Acceptée',
-                                                    'awaiting_deposit' => 'Acompte attendu',
+                                                    'deposit_requested' => 'Acompte attendu',
                                                     'deposit_paid' => 'Acompte payé',
                                                     'design_sent' => 'Dessin envoyé',
-                                                    'confirmed' => 'Confirmé',
+                                                    'date_confirmed' => 'Confirmé',
                                                     'completed' => 'Terminé',
                                                     'cancelled' => 'Annulé',
-                                                    default => ucfirst($br->status),
+                                                    default => ucfirst($br->status->value),
                                                 } }}
                                             </span>
                                         </div>

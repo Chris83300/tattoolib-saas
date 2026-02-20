@@ -760,20 +760,20 @@ function messageForm() {
                                 <span class="text-ivoire-text/70">Statut:</span>
                                 <span
                                     class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
-                                {{ match ($bookingRequest->status) {
+                                {{ match ($bookingRequest->status->value) {
                                     'pending' => 'bg-jaune-alerte/20 text-jaune-alerte',
                                     'accepted' => 'bg-vert-succes/20 text-vert-succes',
-                                    'awaiting_deposit' => 'bg-jaune-alerte/20 text-jaune-alerte',
+                                    'deposit_requested' => 'bg-jaune-alerte/20 text-jaune-alerte',
                                     'deposit_paid' => 'bg-vert-succes/20 text-vert-succes',
                                     'in_progress' => 'bg-beige-peau/20 text-beige-peau',
                                     'completed' => 'bg-vert-succes/20 text-vert-succes',
                                     'cancelled' => 'bg-rouge-alerte/20 text-rouge-alerte',
                                     default => 'bg-gris-fonde/20 text-ivoire-text',
                                 } }}">
-                                    {{ match ($bookingRequest->status) {
+                                    {{ match ($bookingRequest->status->value) {
                                         'pending' => '⏳ En attente',
                                         'accepted' => '✅ Acceptée',
-                                        'awaiting_deposit' => '⏳ Acompte attendu',
+                                        'deposit_requested' => '⏳ Acompte attendu',
                                         'deposit_paid' => '💰 Acompte payé',
                                         'in_progress' => '🎨 En cours',
                                         'completed' => '✅ Terminé',
@@ -858,20 +858,20 @@ function messageForm() {
                             <span class="text-ivoire-text/70">Statut:</span>
                             <span
                                 class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
-                            {{ match ($bookingRequest->status) {
+                            {{ match ($bookingRequest->status->value) {
                                 'pending' => 'bg-jaune-alerte/20 text-jaune-alerte',
                                 'accepted' => 'bg-vert-succes/20 text-vert-succes',
-                                'awaiting_deposit' => 'bg-jaune-alerte/20 text-jaune-alerte',
+                                'deposit_requested' => 'bg-jaune-alerte/20 text-jaune-alerte',
                                 'deposit_paid' => 'bg-vert-succes/20 text-vert-succes',
                                 'in_progress' => 'bg-beige-peau/20 text-beige-peau',
                                 'completed' => 'bg-vert-succes/20 text-vert-succes',
                                 'cancelled' => 'bg-rouge-alerte/20 text-rouge-alerte',
                                 default => 'bg-gris-fonde/20 text-ivoire-text',
                             } }}">
-                                {{ match ($bookingRequest->status) {
+                                {{ match ($bookingRequest->status->value) {
                                     'pending' => '⏳ En attente',
                                     'accepted' => '✅ Acceptée',
-                                    'awaiting_deposit' => '⏳ Acompte attendu',
+                                    'deposit_requested' => '⏳ Acompte attendu',
                                     'deposit_paid' => '💰 Acompte payé',
                                     'in_progress' => '🎨 En cours',
                                     'completed' => '✅ Terminé',

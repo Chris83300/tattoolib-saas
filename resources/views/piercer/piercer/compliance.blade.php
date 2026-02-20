@@ -6,7 +6,7 @@
 <div class="min-h-screen bg-noir-profond py-8">
     <div class="container-custom px-4">
         <div class="max-w-4xl mx-auto">
-            
+
             <!-- Header -->
             <div class="text-center mb-12">
                 <h1 class="text-4xl md:text-5xl font-display font-bold text-ivoire-text mb-4">
@@ -19,7 +19,7 @@
 
             <!-- Badge actuel -->
             <div class="bg-gris-fonde rounded-xl p-8 mb-8 text-center">
-                @if (auth()->user()->pierceur?->is_verified)
+                @if (auth()->user()->tattooer?->is_verified)
                     <div class="mb-6">
                         <div class="inline-flex items-center gap-2 bg-vert-succes/20 border border-vert-succes text-vert-succes px-6 py-3 rounded-full font-bold">
                             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
@@ -47,13 +47,13 @@
             </div>
 
             <!-- Étapes de conformité -->
-            @if (!auth()->user()->pierceur?->is_verified)
+            @if (!auth()->user()->tattooer?->is_verified)
             <div class="space-y-6">
                 <!-- Étape 1 : SIRET -->
                 <div class="bg-gris-fonde rounded-xl p-6">
                     <div class="flex items-start gap-4">
                         <div class="flex-shrink-0">
-                            @if (auth()->user()->pierceur?->siret)
+                            @if (auth()->user()->tattooer?->siret)
                                 <div class="w-8 h-8 bg-vert-succes text-noir-profond rounded-full flex items-center justify-center font-bold">
                                     ✓
                                 </div>
@@ -68,10 +68,10 @@
                             <p class="text-ivoire-text/70 mb-3">
                                 Indiquez votre numéro SIRET pour vérifier votre statut professionnel.
                             </p>
-                            @if (auth()->user()->pierceur?->siret)
+                            @if (auth()->user()->tattooer?->siret)
                                 <p class="text-vert-succes font-semibold">✓ SIRET renseigné</p>
                             @else
-                                <a href="{{ route('pierceur.profile') }}" class="text-beige-peau hover:underline">
+                                <a href="{{ route('tattooer.profile') }}" class="text-beige-peau hover:underline">
                                     Renseigner mon SIRET →
                                 </a>
                             @endif
@@ -88,11 +88,11 @@
                             </div>
                         </div>
                         <div class="flex-1">
-                            <h3 class="text-xl font-bold text-ivoire-text mb-2">Documents ARS</h3>
+                            <h3 class="text-xl font-bold text-ivoire-text mb-2">Documents Légaux</h3>
                             <p class="text-ivoire-text/70 mb-3">
-                                Téléchargez vos documents de conformité (diplôme, assurance, etc.).
+                                Téléchargez vos documents de conformité (ARS, Hygiène, etc.).
                             </p>
-                            <a href="{{ route('pierceur.profile') }}" class="text-beige-peau hover:underline">
+                            <a href="{{ route('tattooer.profile') }}" class="text-beige-peau hover:underline">
                                 Télécharger mes documents →
                             </a>
                         </div>
@@ -122,7 +122,7 @@
 
             <!-- Bouton d'action -->
             <div class="text-center mt-8">
-                <a href="{{ route('pierceur.profile') }}" class="inline-block px-8 py-3 bg-beige-peau text-noir-profond font-bold rounded-lg hover:bg-beige-peau/90 transition-colors">
+                <a href="{{ route('tattooer.profile') }}" class="inline-block px-8 py-3 bg-beige-peau text-noir-profond font-bold rounded-lg hover:bg-beige-peau/90 transition-colors">
                     Compléter mon profil
                 </a>
             </div>
