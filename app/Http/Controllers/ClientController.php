@@ -717,4 +717,57 @@ class ClientController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Liste des avis du client
+     */
+    public function reviews()
+    {
+        $client = auth()->user()->client;
+        abort_unless($client, 403, 'Profil client non trouvé');
+
+        $reviews = Review::where('client_id', $client->id)
+            ->with(['reviewable.bookable.user', 'reviewable.bookable.media'])
+            ->latest()
+            ->get();
+
+        return view('client.reviews', compact('reviews'));
+    }
+
+    /**
+     * Liste des réclamations du client
+     */
+    public function complaints()
+    {
+        $complaints = \App\Models\Complaint::where('user_id', auth()->id())
+            ->with('bookingRequest')
+            ->latest()
+            ->get();
+
+        return view('client.complaints', compact('complaints'));
+    }
+
+    /**
+     * Créer une réclamation
+     */
+    public function createComplaint(Request $request, BookingRequest $bookingRequest)
+    {
+        $client = auth()->user()->client;
+        abort_unless($client && $bookingRequest->client_id === $client->id, 403);
+
+        $validated = $request->validate([
+            'type' => 'required|string|in:quality,behavior,delay,billing,other',
+            'description' => 'required|string|max:2000',
+        ]);
+
+        \App\Models\Complaint::create([
+            'booking_request_id' => $bookingRequest->id,
+            'user_id' => auth()->id(),
+            'type' => $validated['type'],
+            'description' => $validated['description'],
+            'status' => 'pending',
+        ]);
+
+        return back()->with('success', 'Votre réclamation a été soumise. Notre équipe va l\'examiner.');
+    }
 }
