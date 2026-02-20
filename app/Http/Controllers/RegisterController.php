@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Client;
 use App\Models\Tattooer;
-use App\Models\Pierceur;
+use App\Models\Piercer;
 use App\Models\Studio;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -148,6 +148,7 @@ class RegisterController extends Controller
             $user = User::create([
                 'first_name' => $validated['first_name'],
                 'last_name' => $validated['last_name'],
+                'name' => $validated['first_name'] . ' ' . $validated['last_name'], // Nom complet
                 'pseudo' => $validated['pseudo'] ?? $validated['first_name'] . ' ' . $validated['last_name'], // Prio: pseudo > nom
                 'email' => $validated['email'],
                 'phone' => $validated['phone'] ?? null,
@@ -241,6 +242,7 @@ class RegisterController extends Controller
             $user = User::create([
                 'first_name' => $validated['first_name'],
                 'last_name' => $validated['last_name'],
+                'name' => $validated['first_name'] . ' ' . $validated['last_name'], // Nom complet
                 'pseudo' => $validated['pseudo'] ?? $validated['first_name'] . ' ' . $validated['last_name'], // Prio: pseudo > nom
                 'email' => $validated['email'],
                 'phone' => $validated['phone'] ?? null,
@@ -250,7 +252,7 @@ class RegisterController extends Controller
             ]);
 
             // Créer profil pierceur
-            $pierceur = Pierceur::create([
+            $piercer = Piercer::create([
                 'user_id' => $user->id,
                 'siret' => $validated['siret'],
                 'first_name' => $validated['first_name'],
@@ -268,7 +270,7 @@ class RegisterController extends Controller
                 'has_compliance_badge' => false,
             ]);
 
-            Log::info('Pierceur créé: ' . json_encode($pierceur));
+            Log::info('Pierceur créé: ' . json_encode($piercer));
 
             // Login automatique
             Auth::login($user);
@@ -335,6 +337,7 @@ class RegisterController extends Controller
             $user = User::create([
                 'first_name' => $validated['first_name'],
                 'last_name' => $validated['last_name'],
+                'name' => $validated['first_name'] . ' ' . $validated['last_name'], // Nom complet
                 'pseudo' => $validated['first_name'] . ' ' . $validated['last_name'], // Prio: nom > pseudo
                 'email' => $validated['email'],
                 'phone' => $validated['phone'] ?? null,

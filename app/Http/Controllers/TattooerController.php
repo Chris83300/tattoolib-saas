@@ -2442,4 +2442,10 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
 
         return redirect()->back()->with('success', 'Fiche de soins mise à jour avec succès.');
     }
+
+    public function compliance()
+    {
+        $tattooer = Auth::user()->tattooer;
+        return view('tattooer.compliance', compact('tattooer'));
+    }
 }

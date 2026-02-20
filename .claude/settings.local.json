@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php artisan route:list:*)",
+      "Bash(grep:*)",
+      "Bash(composer show:*)",
+      "Bash(find:*)",
+      "Bash(php artisan migrate:status:*)",
+      "Bash(php artisan test:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}

@@ -28,7 +28,7 @@
             <!-- Message -->
             <div class="bg-gris-fonde rounded-xl p-6 mb-6">
                 <p class="text-ivoire-text mb-4">
-                    Bonjour {{ auth()->user()->name }},
+                    Bonjour {{ auth()->user()->displayName() }},
                 </p>
 
                 <p class="text-ivoire-text/70 mb-4">

@@ -192,7 +192,7 @@
                             <span class="font-semibold">Calendrier</span>
                         </a>
                         @if (!$tattooer->has_compliance_badge)
-                            <a href="{{ route('compliance') }}"
+                            <a href="{{ route('tattooer.compliance') }}"
                                 class="w-full flex items-center gap-3 px-4 py-3 bg-vert-succes/20 hover:bg-vert-succes/30 text-vert-succes rounded-lg transition-colors">
                                 <span class="text-xl">✓</span>
                                 <span class="font-semibold">Obtenir badge conformité</span>

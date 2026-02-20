@@ -36,13 +36,17 @@ et ne pas nettoyer ses interventions.
 - Le bouton "Réclamation" n'apparaît nulle part côté client
 - Routes potentiellement cassées après les 16 interventions Cascade
 - Code possiblement dupliqué dans les vues/controllers
+- Problème de route après les dernières implémentations (prompt 13 à 16)
+- Sur le profil tattooer les avis ne sont pas visibles (les avis doivent automatiquement être validés)
+- Sur le dashboard Admin il doit y avoir la possibilité de supprimer un avis (si insulte ou contenu non approprié)
+- NON TESTÉ : dashboard Filament studio, création compte pierceur/bodymodeur, création compte studio, création studio artiste depuis un studio
 
 ## CONSIGNES
 
-- **NE MODIFIE RIEN** pendant les phases d'audit (Phases 1 à 6)
+- **NE MODIFIE RIEN** pendant les phases d'audit (Phases 1 à 7)
 - Génère un rapport structuré avec priorités P0/P1/P2
 - Pour chaque problème : fichier, ligne, description, fix recommandé
-- **Phase 7** : applique les corrections UNIQUEMENT après validation du rapport
+- **Phase 8** : applique les corrections UNIQUEMENT après validation du rapport
 - **Ignore** : `node_modules/`, `vendor/`, `public/build/`, `storage/`, `.env*`, IDE configs
 
 ---
@@ -99,6 +103,12 @@ declare -a CRITICAL_ROUTES=(
     "client.reviews.create"
     "client.complaints"
     "client.complaints.create"
+    "piercer.dashboard"
+    "piercer.settings"
+    "studio.dashboard"
+    "studio.artists"
+    "studio.artists.create"
+    "studio.settings"
 )
 for route in "${CRITICAL_ROUTES[@]}"; do
     php artisan route:list --name="$route" 2>&1 | grep -q "$route" \
@@ -107,14 +117,13 @@ for route in "${CRITICAL_ROUTES[@]}"; do
 done
 
 # 1F. Chercher les imports use manquants dans routes/web.php
-head -40 routes/web.php
+head -50 routes/web.php
 grep -n "use " routes/web.php
-# Vérifier que chaque Controller référencé est bien importé
 grep -oP '\b\w+Controller\b' routes/web.php | sort -u | while read -r ctrl; do
     grep -q "use.*$ctrl" routes/web.php || echo "❌ IMPORT MANQUANT: $ctrl"
 done
 
-# 1G. Fichier routes/web.php — structure complète
+# 1G. Fichier routes/web.php — taille
 wc -l routes/web.php
 # Si > 500 lignes : risque de doublons après 16 prompts
 ```
@@ -129,7 +138,6 @@ Vérifier que chaque implémentation des 16 prompts est cohérente.
 # ═══ P0-1 : Badge messages non-lus ═══
 echo "=== P0-1 BADGE MESSAGES ==="
 grep -rn "unread\|read_at\|unreadMessages\|unread_count" resources/views/layouts/tattooer.blade.php
-# Doit exister : un count filtrant sur read_at IS NULL
 
 # ═══ P0-2 : Auto-expiration acompte ═══
 echo "=== P0-2 EXPIRATION ACOMPTE ==="
@@ -164,7 +172,6 @@ grep -rn "aftercare\|soins\|Soins" resources/views/tattooer/settings* | head -5
 echo "=== P1-8 SIDEBAR CLIENT ==="
 wc -l resources/views/layouts/client.blade.php
 grep -c "fixed.*bottom\|bottom.*nav\|mobile.*nav" resources/views/layouts/client.blade.php
-# Si 0 : la sidebar mobile n'a pas été implémentée
 
 # ═══ P1-9 : Indicateur demandes en cours ═══
 echo "=== P1-9 INDICATEUR DEMANDES ==="
@@ -180,7 +187,6 @@ grep -rn "no_show_count\|increment.*no_show" app/Http/Controllers/ app/Models/ |
 
 # ═══ P1-12 : Avis + Réclamations (CASSÉ) ═══
 echo "=== P1-12 AVIS + RÉCLAMATIONS ==="
-# Le bouton avis est invisible → diagnostic complet
 php artisan tinker --execute="
   echo 'Table reviews: ' . (Schema::hasTable('reviews') ? 'OUI' : 'NON');
   echo ' | Model Review: ' . (class_exists('App\Models\Review') ? 'OUI' : 'NON');
@@ -194,12 +200,71 @@ php artisan tinker --execute="
     echo ' | Aucune BR completed';
   }
 "
-# Chercher où est le bouton avis et pourquoi il est caché
+# Bouton réclamation
+grep -rn "réclamation\|complaint\|Complaint\|récla" resources/views/client/ resources/views/layouts/client.blade.php | head -20
+# Bouton avis
 grep -rn "avis\|review\|Review\|openReviewModal" resources/views/client/ resources/views/layouts/client.blade.php | head -20
-# Chercher la condition de visibilité
+# Condition de visibilité
 grep -rn "completed" resources/views/client/ | head -20
-# Vérifier si le problème est une comparaison Enum
+# Comparaison Enum cassée ?
 grep -rn "status.*===.*completed\|status.*==.*completed" resources/views/client/ | head -10
+
+# ═══ P1-12 BIS : Avis sur profil public tattooer ═══
+echo "=== P1-12 BIS AVIS PROFIL PUBLIC TATTOOER ==="
+# Les avis doivent être AUTOMATIQUEMENT validés (is_published = true par défaut, PAS de modération a priori)
+grep -rn "is_published\|auto.*publish\|published" app/Models/Review.php app/Http/Controllers/ | head -10
+# Vue du profil public tattooer
+find resources/views -name "*profile*" -o -name "*public*" | head -10
+grep -rn "review\|avis\|rating\|étoile\|star" resources/views/tattooer/profile* resources/views/public* resources/views/marketplace* 2>/dev/null | head -10
+# Vérifier la valeur par défaut de is_published dans la migration
+grep -rn "is_published" database/migrations/ | head -5
+
+# ═══ P2-13 : Pierceur ═══
+echo "=== P2-13 PIERCEUR ==="
+ls app/Models/Piercer.php 2>/dev/null && echo "Model Piercer: EXISTS" || echo "Model Piercer: ABSENT"
+php artisan tinker --execute="echo 'Table piercers: ' . (Schema::hasTable('piercers') ? 'OUI' : 'NON');" 2>/dev/null
+php artisan route:list 2>&1 | grep -c "piercer"
+ls resources/views/piercer/ 2>/dev/null | head -5 || echo "Pas de vues piercer"
+ls resources/views/layouts/piercer.blade.php 2>/dev/null || echo "Pas de layout piercer"
+grep -rn "piercer\|bodymod" app/Models/User.php config/auth.php app/Providers/ routes/web.php | head -10
+# Vérifier que l'inscription pierceur fonctionne
+grep -rn "piercer\|bodymod" resources/views/auth/ 2>/dev/null | head -5
+
+# ═══ P2-14 : Studio ═══
+echo "=== P2-14 STUDIO ==="
+ls app/Models/Studio.php 2>/dev/null && echo "Model Studio: EXISTS" || echo "Model Studio: ABSENT"
+ls app/Models/StudioArtist.php 2>/dev/null && echo "Model StudioArtist: EXISTS" || echo "Model StudioArtist: ABSENT"
+php artisan tinker --execute="
+  echo 'Table studios: ' . (Schema::hasTable('studios') ? 'OUI' : 'NON');
+  echo ' | Table studio_artists: ' . (Schema::hasTable('studio_artists') ? 'OUI' : 'NON');
+" 2>/dev/null
+php artisan route:list 2>&1 | grep -c "studio"
+ls resources/views/studio/ 2>/dev/null | head -10 || echo "Pas de vues studio"
+# Dashboard Filament Studio
+ls app/Filament/StudioPanel/ 2>/dev/null || ls app/Filament/Resources/Studio* 2>/dev/null || echo "Pas de panel Filament Studio"
+# Pricing 39.99€/artiste (1 artiste inclus dans l'offre)
+grep -rn "39.99\|3999\|artist.*price\|per_artist\|inclus\|included" app/ config/ --include="*.php" | head -5
+# Inscription studio
+grep -rn "studio" resources/views/auth/ 2>/dev/null | head -5
+
+# ═══ P2-15 : Studio Artiste ═══
+echo "=== P2-15 STUDIO ARTISTE ==="
+grep -rn "studio_id\|studioArtist\|studio_artist\|belongsToStudio" app/Models/Tattooer.php app/Models/Piercer.php app/Models/User.php 2>/dev/null | head -10
+# Logique Stripe : si studio centralized → pas de Stripe Connect pour l'artiste
+grep -rn "centralized\|distributed\|payment_model" app/Models/Studio.php app/Http/Controllers/ app/Services/ 2>/dev/null | head -10
+# Création d'un studio artiste depuis le dashboard studio
+grep -rn "createArtist\|inviteArtist\|addArtist\|artist.*create\|artist.*store" app/Http/Controllers/Studio/ app/Filament/ 2>/dev/null | head -10
+
+# ═══ P2-16 : Dashboard Filament Admin ═══
+echo "=== P2-16 DASHBOARD ADMIN ==="
+ls app/Filament/ 2>/dev/null
+ls app/Filament/Resources/ 2>/dev/null | head -20
+# L'admin doit pouvoir SUPPRIMER des avis
+grep -rn "Review\|review\|DeleteAction\|delete.*review\|ReviewResource" app/Filament/Resources/ 2>/dev/null | head -10
+# Widgets dashboard
+ls app/Filament/Widgets/ 2>/dev/null
+# Vérifier les resources pour réclamations
+grep -rn "Complaint\|complaint\|ComplaintResource" app/Filament/Resources/ 2>/dev/null | head -5
 ```
 
 ---
@@ -214,11 +279,10 @@ php artisan route:list --columns=method,uri,middleware 2>&1 | grep -v "auth\|gue
 # Policies existantes vs controllers
 ls app/Policies/ 2>/dev/null
 echo "---"
-ls app/Http/Controllers/Tattooer/ app/Http/Controllers/Client/ 2>/dev/null
+ls app/Http/Controllers/Tattooer/ app/Http/Controllers/Client/ app/Http/Controllers/Piercer/ app/Http/Controllers/Studio/ 2>/dev/null
 
 # Accès horizontal : un tattooer accède aux données d'un autre
-grep -rn "auth()->user()->tattooer->id\|abort_unless\|abort_if\|authorize\|policy\|->can(" app/Http/Controllers/Tattooer/ | head -20
-# CHAQUE action sur BookingRequest, Client, etc. doit vérifier la propriété
+grep -rn "auth()->user()->tattooer->id\|abort_unless\|abort_if\|authorize\|policy\|->can(" app/Http/Controllers/Tattooer/ app/Http/Controllers/Piercer/ app/Http/Controllers/Studio/ 2>/dev/null | head -20
 ```
 
 ### 3.2 Injection & Validation
@@ -227,12 +291,12 @@ grep -rn "auth()->user()->tattooer->id\|abort_unless\|abort_if\|authorize\|polic
 grep -rn "DB::raw\|->whereRaw\|->selectRaw\|DB::select\|DB::statement" app/ --include="*.php" | grep -v "migration\|seeder"
 
 # Controllers store/update SANS validation
-for f in app/Http/Controllers/Tattooer/*.php app/Http/Controllers/Client/*.php; do
+for f in app/Http/Controllers/Tattooer/*.php app/Http/Controllers/Client/*.php app/Http/Controllers/Piercer/*.php app/Http/Controllers/Studio/*.php 2>/dev/null; do
+    [ -f "$f" ] || continue
     methods=$(grep -n "function store\|function update\|function upload\|function create" "$f" 2>/dev/null)
     if [ -n "$methods" ]; then
         while IFS= read -r line; do
             linenum=$(echo "$line" | cut -d: -f1)
-            # Chercher validate dans les 15 lignes suivantes
             has_validate=$(sed -n "$((linenum)),$(($linenum+15))p" "$f" | grep -c "validate\|FormRequest\|Validator")
             if [ "$has_validate" -eq 0 ]; then
                 echo "⚠️ PAS DE VALIDATION: $f:$linenum → $line"
@@ -241,9 +305,11 @@ for f in app/Http/Controllers/Tattooer/*.php app/Http/Controllers/Client/*.php; 
     fi
 done
 
-# Models sans $fillable (mass assignment danger)
+# Models sans $fillable
 for f in app/Models/*.php; do
-    grep -qL "fillable\|guarded" "$f" 2>/dev/null && echo "❌ PAS DE \$fillable: $f"
+    grep -L "fillable\|guarded" "$f" 2>/dev/null | while read -r noguard; do
+        echo "❌ PAS DE \$fillable: $noguard"
+    done
 done
 ```
 
@@ -255,19 +321,13 @@ grep -rn "sk_live\|sk_test\|pk_live\|pk_test\|whsec_" app/ resources/ config/ ro
 # Validation webhook Stripe
 grep -rn "Webhook::constructEvent\|stripe_signature\|webhook" app/ routes/ --include="*.php" | head -10
 
-# Montants non validés côté serveur
-grep -rn "amount.*request\|price.*input\|deposit.*request" app/Http/Controllers/ --include="*.php" | head -10
+# Laravel Cashier
+grep -rn "Billable\|cashier" app/Models/User.php app/Models/Tattooer.php app/Models/Studio.php config/cashier.php 2>/dev/null | head -10
 ```
 
-### 3.4 Upload fichiers
+### 3.4 Upload fichiers & CSRF
 ```bash
-# Validation des uploads
 grep -rn "mimes:\|max:\|image\|file" app/Http/Requests/ app/Http/Controllers/ --include="*.php" | grep -i "valid\|rule" | head -15
-```
-
-### 3.5 CSRF
-```bash
-# Exclusions CSRF
 grep -rn "except\|withoutMiddleware.*csrf\|validateCsrfTokens" bootstrap/app.php app/Http/Middleware/ routes/ --include="*.php" 2>/dev/null
 ```
 
@@ -276,9 +336,9 @@ grep -rn "except\|withoutMiddleware.*csrf\|validateCsrfTokens" bootstrap/app.php
 ## PHASE 4 — FICHIERS MORTS & DOUBLONS (P1)
 
 ```bash
-# 4A. Controllers orphelins (sans route)
+# 4A. Controllers orphelins
 echo "=== CONTROLLERS ORPHELINS ==="
-for f in app/Http/Controllers/*.php app/Http/Controllers/Tattooer/*.php app/Http/Controllers/Client/*.php 2>/dev/null; do
+for f in $(find app/Http/Controllers -name "*.php" -not -path "*/Middleware/*" 2>/dev/null); do
     class=$(basename "$f" .php)
     refs=$(grep -rn "$class" routes/ --include="*.php" 2>/dev/null | wc -l)
     if [ "$refs" -eq 0 ]; then
@@ -291,26 +351,28 @@ echo "=== VUES ORPHELINES ==="
 for dir in tattooer client piercer studio; do
     for f in resources/views/$dir/*.blade.php 2>/dev/null; do
         name=$(basename "$f" .blade.php)
-        refs=$(grep -rn "'$dir.$name'\|\"$dir.$name\"\|$dir/$name" app/ routes/ resources/views/ --include="*.php" --include="*.blade.php" 2>/dev/null | wc -l)
+        refs=$(grep -rn "'$dir.$name'\|\"$dir.$name\"\|$dir/$name\|$dir\.$name" app/ routes/ resources/views/ --include="*.php" --include="*.blade.php" 2>/dev/null | wc -l)
         if [ "$refs" -eq 0 ]; then
             echo "ORPHELINE: $f"
         fi
     done
 done
 
-# 4C. Méthodes dupliquées dans les controllers (Cascade ajoute sans vérifier)
+# 4C. Méthodes dupliquées dans les controllers
 echo "=== MÉTHODES DUPLIQUÉES ==="
-for f in app/Http/Controllers/Tattooer/*.php app/Http/Controllers/Client/*.php 2>/dev/null; do
-    grep -o "public function [a-zA-Z]*" "$f" | sort | uniq -d | while read -r dup; do
-        echo "DOUBLON dans $f: $dup"
-    done
+for f in $(find app/Http/Controllers -name "*.php" 2>/dev/null); do
+    dups=$(grep -o "public function [a-zA-Z]*" "$f" | sort | uniq -d)
+    if [ -n "$dups" ]; then
+        echo "DOUBLON dans $f:"
+        echo "$dups"
+    fi
 done
 
-# 4D. Doublons dans routes/web.php (même route définie 2 fois)
-echo "=== ROUTES DUPLIQUÉES ==="
-grep -n "Route::" routes/web.php | grep -oP "name\('\K[^']*" | sort | uniq -d
+# 4D. Routes nommées dupliquées dans routes/web.php
+echo "=== ROUTES NOMMÉES DUPLIQUÉES ==="
+grep -oP "name\('\K[^']*" routes/web.php | sort | uniq -d
 
-# 4E. Tables legacy en BDD
+# 4E. Tables BDD complètes
 echo "=== TABLES BDD ==="
 php artisan tinker --execute="
   \$tables = collect(DB::select('SHOW TABLES'))->pluck('Tables_in_' . config('database.connections.mysql.database'));
@@ -320,7 +382,7 @@ php artisan tinker --execute="
 # 4F. Migrations en attente
 php artisan migrate:status | grep -v "Ran"
 
-# 4G. Models peu ou pas utilisés
+# 4G. Models peu utilisés
 echo "=== MODELS PEU UTILISÉS ==="
 for f in app/Models/*.php; do
     class=$(basename "$f" .php)
@@ -330,10 +392,12 @@ for f in app/Models/*.php; do
     fi
 done
 
-# 4H. Code JS dupliqué dans les blades
+# 4H. Code JS/lightbox dupliqué dans les blades
 echo "=== SCRIPTS DUPLIQUÉS ==="
-grep -rn "<script>" resources/views/ --include="*.blade.php" | grep -v "layouts/" | grep -v "@push"
+grep -rn "<script>" resources/views/ --include="*.blade.php" | grep -v "layouts/" | grep -v "@push" | wc -l
+echo "Lightbox functions:"
 grep -rn "openLightbox\|closeLightbox" resources/views/ --include="*.blade.php" | wc -l
+echo "Review modal:"
 grep -rn "openReviewModal" resources/views/ --include="*.blade.php"
 ```
 
@@ -342,7 +406,7 @@ grep -rn "openReviewModal" resources/views/ --include="*.blade.php"
 ## PHASE 5 — PERFORMANCE (P2)
 
 ```bash
-# 5A. N+1 dans les layouts (exécutées sur CHAQUE page)
+# 5A. Queries dans les layouts (exécutées sur CHAQUE page)
 echo "=== QUERIES DANS LAYOUTS ==="
 grep -rn "::where\|::count\|::find\|::first\|DB::" resources/views/layouts/ --include="*.blade.php"
 
@@ -350,7 +414,7 @@ grep -rn "::where\|::count\|::find\|::first\|DB::" resources/views/layouts/ --in
 echo "=== EAGER LOADING MANQUANT ==="
 grep -rn "->get()\|->paginate\|->find(" app/Http/Controllers/ --include="*.php" | grep -v "->with(" | head -20
 
-# 5C. Index BDD manquants sur colonnes fréquemment filtrées
+# 5C. Index BDD manquants
 php artisan tinker --execute="
   \$checks = [
     'booking_requests' => ['status', 'bookable_id', 'client_id', 'tattooer_id', 'client_user_id'],
@@ -360,6 +424,9 @@ php artisan tinker --execute="
     'reviews' => ['booking_request_id', 'client_user_id', 'tattooer_id'],
     'complaints' => ['user_id', 'status', 'booking_request_id'],
     'traceability_records' => ['appointment_id', 'tattooer_client_id'],
+    'studios' => ['user_id', 'slug'],
+    'studio_artists' => ['studio_id', 'user_id'],
+    'piercers' => ['user_id'],
   ];
   foreach(\$checks as \$table => \$cols) {
     if (!Schema::hasTable(\$table)) { echo \"TABLE ABSENTE: \$table\" . PHP_EOL; continue; }
@@ -372,50 +439,74 @@ php artisan tinker --execute="
   }
 "
 
-# 5D. Taille des controllers (> 300 lignes = à refactorer)
-echo "=== CONTROLLERS TROP GROS ==="
-wc -l app/Http/Controllers/*.php app/Http/Controllers/Tattooer/*.php app/Http/Controllers/Client/*.php 2>/dev/null | sort -rn | head -15
+# 5D. Taille des controllers
+echo "=== CONTROLLERS TROP GROS (>300 lignes) ==="
+find app/Http/Controllers -name "*.php" -exec wc -l {} + 2>/dev/null | sort -rn | head -15
 ```
 
 ---
 
-## PHASE 6 — ENUM & COMPARAISONS (P0 — cause racine du bug avis)
-
-C'est le problème #1 post-Cascade. Laravel 12 cast les status en BackedEnum, mais Cascade compare avec des strings.
+## PHASE 6 — ENUM & COMPARAISONS (P0 — cause racine bugs avis/réclamation)
 
 ```bash
 # 6A. Identifier l'Enum des BookingRequest status
 echo "=== ENUM BOOKING STATUS ==="
+find app/Enums -name "*ooking*" -o -name "*tatus*" 2>/dev/null | head -5
 cat app/Enums/BookingRequestStatus.php 2>/dev/null || cat app/Enums/BookingStatus.php 2>/dev/null || echo "PAS D'ENUM TROUVÉ"
 grep -n "protected \$casts" app/Models/BookingRequest.php
 
-# 6B. TOUTES les comparaisons string vs Enum (BUG PATTERN)
-echo "=== COMPARAISONS DANGEREUSES === "
-# Pattern: $xxx->status === 'string' ou == 'string' → FALSE si Enum
-grep -rn "->status\s*===\s*'" app/ resources/ --include="*.php" --include="*.blade.php" | grep -v "->status->value"
-grep -rn "->status\s*==\s*'" app/ resources/ --include="*.php" --include="*.blade.php" | grep -v "->status->value"
-# Pattern dans les Blades avec @if
+# 6B. TOUTES les comparaisons string vs Enum (BUG PATTERN — cause racine)
+echo "=== COMPARAISONS DANGEREUSES ==="
+# Pattern: ->status === 'string' → FALSE si Enum BackedEnum
+grep -rn "->status\s*===\s*'" app/ resources/ --include="*.php" --include="*.blade.php" | grep -v "->status->value" | grep -v vendor
+grep -rn "->status\s*==\s*'" app/ resources/ --include="*.php" --include="*.blade.php" | grep -v "->status->value" | grep -v vendor
+# Dans les blades spécifiquement
 grep -rn "status.*===\|status.*==" resources/views/ --include="*.blade.php" | grep -v "Enum\|->value" | head -30
 
-# 6C. Vérifier si isCompleted() / isNoShow() existent dans le modèle
+# 6C. Helper methods dans le modèle BookingRequest
+echo "=== HELPERS isXxx() ==="
 grep -n "function is" app/Models/BookingRequest.php
 
-# 6D. Vérifier les match() qui utilisent des strings au lieu de l'Enum
-grep -rn "match.*status" app/ resources/ --include="*.php" --include="*.blade.php" | head -20
+# 6D. match() avec strings au lieu d'Enum
+grep -rn "match.*status" app/ resources/ --include="*.php" --include="*.blade.php" | grep -v vendor | head -20
 
-# 6E. Lister TOUTES les valeurs possibles de l'Enum
+# 6E. Valeurs de l'Enum
 php artisan tinker --execute="
-  if (enum_exists('App\Enums\BookingRequestStatus')) {
-    foreach(App\Enums\BookingRequestStatus::cases() as \$c) {
-      echo \$c->value . PHP_EOL;
+  \$enumClasses = ['App\Enums\BookingRequestStatus', 'App\Enums\BookingStatus'];
+  foreach (\$enumClasses as \$class) {
+    if (enum_exists(\$class)) {
+      echo \$class . ':' . PHP_EOL;
+      foreach (\$class::cases() as \$c) {
+        echo '  ' . \$c->name . ' = ' . \$c->value . PHP_EOL;
+      }
     }
-  } else {
-    echo 'Enum BookingRequestStatus non trouvé. Chercher...';
-    \$br = App\Models\BookingRequest::first();
-    echo 'Status type: ' . gettype(\$br->status) . PHP_EOL;
-    echo 'Status class: ' . (is_object(\$br->status) ? get_class(\$br->status) : 'scalar') . PHP_EOL;
+  }
+  \$br = App\Models\BookingRequest::first();
+  if (\$br) {
+    echo 'Status runtime type: ' . (is_object(\$br->status) ? get_class(\$br->status) : gettype(\$br->status)) . PHP_EOL;
   }
 "
+
+# 6F. Review auto-publish — is_published doit être TRUE par défaut
+echo "=== REVIEW AUTO-PUBLISH ==="
+grep -rn "is_published" app/Models/Review.php database/migrations/ | head -10
+# Vérifier le default en BDD
+php artisan tinker --execute="
+  if (Schema::hasTable('reviews') && Schema::hasColumn('reviews', 'is_published')) {
+    \$col = collect(DB::select(\"SHOW COLUMNS FROM reviews WHERE Field = 'is_published'\"))->first();
+    echo 'is_published default: ' . (\$col->Default ?? 'NULL') . PHP_EOL;
+    echo 'is_published type: ' . \$col->Type . PHP_EOL;
+  } else {
+    echo 'reviews.is_published: COLONNE ABSENTE';
+  }
+"
+# Vérifier que le controller NE MET PAS is_published = false à la création
+grep -rn "is_published" app/Http/Controllers/Client/ app/Http/Controllers/Tattooer/ | head -10
+
+# 6G. Admin suppression avis — Filament ReviewResource avec DeleteAction
+echo "=== ADMIN DELETE REVIEWS ==="
+find app/Filament -name "*Review*" 2>/dev/null
+grep -rn "DeleteAction\|DeleteBulkAction\|forceDelete\|delete" app/Filament/Resources/ReviewResource* 2>/dev/null | head -10
 ```
 
 ---
@@ -423,13 +514,13 @@ php artisan tinker --execute="
 ## PHASE 7 — TESTS (P1)
 
 ```bash
-# 7A. Lancer les tests existants
+# 7A. Lancer les tests
 php artisan test --parallel 2>&1 | tail -20
 
 # 7B. Tests qui échouent
 php artisan test 2>&1 | grep -E "FAIL|Error|Exception" | head -20
 
-# 7C. Nombre de tests
+# 7C. Résumé
 php artisan test --parallel 2>&1 | grep -E "Tests:|Assertions:"
 ```
 
@@ -450,7 +541,7 @@ Date : 20/02/2026
 - Failles sécurité : X
 - Tests échoués : X / Y
 
-## P0 — CRITIQUE (routes cassées, sécurité, Enum)
+## P0 — CRITIQUE (routes cassées, sécurité, Enum, avis/réclamation invisible)
 | # | Phase | Fichier:ligne | Problème | Fix |
 |---|-------|---------------|----------|-----|
 | 1 | ... | ... | ... | ... |
@@ -472,9 +563,22 @@ Date : 20/02/2026
 |---|--------|--------|-------------------|
 | 1 | Badge messages | ✅/⚠️/❌ | ... |
 | 2 | Expiration acompte | ✅/⚠️/❌ | ... |
-| ... | ... | ... | ... |
+| 3 | Boutons Terminé/No-show | ✅ | Fonctionne |
+| 4 | Limite portfolio 15 | ✅/⚠️/❌ | ... |
+| 5 | Commission 7% | ✅ | Confirmé OK |
+| 6 | Notifications | ✅ | Confirmé OK |
+| 7 | Aftercare settings | ✅/⚠️/❌ | ... |
+| 8 | Sidebar mobile client | ✅/⚠️/❌ | ... |
+| 9 | Indicateur demandes | ✅/⚠️/❌ | ... |
+| 10 | Before/After images | ✅/⚠️/❌ | ... |
+| 11 | No-show count | ✅ | Fonctionne |
+| 12 | Avis + Réclamations | ❌ | Bouton réclamation invisible, avis invisible sur profil tattooer, is_published doit être true par défaut, admin doit pouvoir supprimer un avis |
+| 13 | Pierceur | ⚠️ | Non testé — vérifier inscription + dashboard |
+| 14 | Studio | ⚠️ | Non testé — vérifier inscription + dashboard + création artistes + pricing 39.99€ |
+| 15 | Studio Artiste | ⚠️ | Non testé — vérifier création depuis studio + logique Stripe centralized/distributed |
+| 16 | Dashboard Admin | ⚠️ | Non testé — vérifier resources + suppression avis + gestion réclamations |
 
-## PLAN DE CORRECTION (par ordre)
+## PLAN DE CORRECTION (par ordre de priorité)
 1. ...
 2. ...
 ```
@@ -488,3 +592,5 @@ Date : 20/02/2026
 5. **Le rapport doit être COMPLET** avant toute correction
 6. Si tu trouves plus de 20 problèmes P0 → STOP et affiche le rapport partiel
 7. **Priorité #1** : les routes cassées et les comparaisons Enum
+8. **Priorité #2** : bouton réclamation invisible + avis visible sur profil tattooer + auto-publish reviews + admin delete reviews
+9. **Priorité #3** : vérifier que pierceur/studio/studio-artiste compilent sans erreur

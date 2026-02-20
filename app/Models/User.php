@@ -2,6 +2,10 @@
 
 namespace App\Models;
 
+use App\Models\Client;
+use App\Models\Tattooer;
+use App\Models\Piercer;
+use App\Models\Studio;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -100,7 +104,7 @@ class User extends Authenticatable implements HasMedia
         return match($this->role) {
             'client' => $this->hasOne(Client::class),
             'tattooer' => $this->hasOne(Tattooer::class),
-            'pierceur' => $this->hasOne(Pierceur::class),
+            'pierceur' => $this->hasOne(Piercer::class),
             'studio' => $this->hasOne(Studio::class),
             'studio_artist' => $this->hasOne(StudioArtist::class),
             'admin' => $this->hasOne(Client::class)->where('id', 0), // Relation vide pour admin
@@ -120,7 +124,7 @@ class User extends Authenticatable implements HasMedia
 
     public function pierceur()
     {
-        return $this->hasOne(Pierceur::class);
+        return $this->hasOne(Piercer::class);
     }
 
     public function studio()

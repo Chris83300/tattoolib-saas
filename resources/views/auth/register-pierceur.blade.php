@@ -74,12 +74,21 @@
                     </h2>
 
                     <div class="space-y-4">
-                        <!-- Nom complet -->
+                        <!-- Prénom -->
                         <div>
                             <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                                Nom complet *
+                                Prénom *
                             </label>
-                            <input type="text" name="name" required placeholder="Ex: Jean Dupont"
+                            <input type="text" name="first_name" required placeholder="Ex: Jean"
+                                class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors">
+                        </div>
+
+                        <!-- Nom -->
+                        <div>
+                            <label class="block text-ivoire-text text-sm font-semibold mb-2">
+                                Nom *
+                            </label>
+                            <input type="text" name="last_name" required placeholder="Ex: Dupont"
                                 class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors">
                         </div>
 
