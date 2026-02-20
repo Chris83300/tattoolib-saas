@@ -109,6 +109,30 @@
                             <?php echo e(Str::limit($bookingRequest->tattoo_description, 80)); ?></p>
                     </div>
                 </div>
+
+                <!-- Bouton laisser un avis pour les demandes terminées -->
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(
+                    $bookingRequest->isCompleted() &&
+                        !\App\Models\Review::where('reviewable_type', 'App\Models\BookingRequest')->where('reviewable_id', $bookingRequest->id)->where('client_id', auth()->id())->exists()): ?>
+                    <div class="bg-beige-peau/10 border border-beige-peau/30 rounded-xl p-4 mb-4">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                            <div>
+                                <p class="font-semibold text-ivoire-text">🎉 Tatouage terminé !</p>
+                                <p class="text-sm text-titane">Partagez votre expérience</p>
+                            </div>
+                            <button type="button" onclick="openReviewModal(<?php echo e($bookingRequest->id); ?>)"
+                                class="px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold text-sm hover:bg-beige-peau/90 transition-colors whitespace-nowrap">
+                                ⭐ Laisser un avis
+                            </button>
+                        </div>
+                    </div>
+                <?php elseif(
+                    $bookingRequest->isCompleted() &&
+                        \App\Models\Review::where('reviewable_type', 'App\Models\BookingRequest')->where('reviewable_id', $bookingRequest->id)->where('client_id', auth()->id())->exists()): ?>
+                    <div class="bg-vert-succes/10 border border-vert-succes/30 rounded-xl p-4 mb-4 text-center">
+                        <p class="text-sm text-vert-succes">✅ Merci pour votre avis !</p>
+                    </div>
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             </div>
 
             
@@ -1472,4 +1496,4 @@
     </script>
 <?php $__env->stopSection(); ?>
 
-<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\tattoolib-saas\resources\views/client/chat.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('layouts.client', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\tattoolib-saas\resources\views/client/chat.blade.php ENDPATH**/ ?>

@@ -331,6 +331,39 @@
                                         </a>
                                     @endif
 
+                                    @if ($bookingRequest->isCompleted())
+                                        @php
+                                            $reviewed = \App\Models\Review::where(
+                                                'reviewable_type',
+                                                'App\Models\BookingRequest',
+                                            )
+                                                ->where('reviewable_id', $bookingRequest->id)
+                                                ->where('client_id', auth()->id())
+                                                ->exists();
+                                        @endphp
+                                        @if (!$reviewed)
+                                            <button type="button" onclick="openReviewModal({{ $bookingRequest->id }})"
+                                                class="flex items-center justify-center px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
+                                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 01-.69.69l-4.416-1.416a1 1 0 01-.688-.69l1.517-4.674z" />
+                                                </svg>
+                                                ⭐ Laisser un avis
+                                            </button>
+                                        @else
+                                            <div
+                                                class="flex items-center justify-center px-4 py-2 bg-vert-succes/20 text-vert-succes rounded-lg font-semibold">
+                                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                ✅ Avis laissé
+                                            </div>
+                                        @endif
+                                    @endif
+
                                     <a href="{{ route('client.booking-request.show', $bookingRequest) }}"
                                         class="flex items-center justify-center px-4 py-2 bg-titane text-ivoire-text rounded-lg font-semibold hover:bg-titane/80 transition-colors">
                                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor"

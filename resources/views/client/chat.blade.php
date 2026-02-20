@@ -112,6 +112,30 @@
                             {{ Str::limit($bookingRequest->tattoo_description, 80) }}</p>
                     </div>
                 </div>
+
+                <!-- Bouton laisser un avis pour les demandes terminées -->
+                @if (
+                    $bookingRequest->isCompleted() &&
+                        !\App\Models\Review::where('reviewable_type', 'App\Models\BookingRequest')->where('reviewable_id', $bookingRequest->id)->where('client_id', auth()->id())->exists())
+                    <div class="bg-beige-peau/10 border border-beige-peau/30 rounded-xl p-4 mb-4">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                            <div>
+                                <p class="font-semibold text-ivoire-text">🎉 Tatouage terminé !</p>
+                                <p class="text-sm text-titane">Partagez votre expérience</p>
+                            </div>
+                            <button type="button" onclick="openReviewModal({{ $bookingRequest->id }})"
+                                class="px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold text-sm hover:bg-beige-peau/90 transition-colors whitespace-nowrap">
+                                ⭐ Laisser un avis
+                            </button>
+                        </div>
+                    </div>
+                @elseif (
+                    $bookingRequest->isCompleted() &&
+                        \App\Models\Review::where('reviewable_type', 'App\Models\BookingRequest')->where('reviewable_id', $bookingRequest->id)->where('client_id', auth()->id())->exists())
+                    <div class="bg-vert-succes/10 border border-vert-succes/30 rounded-xl p-4 mb-4 text-center">
+                        <p class="text-sm text-vert-succes">✅ Merci pour votre avis !</p>
+                    </div>
+                @endif
             </div>
 
             {{-- ═══════════════════════════════════════════════

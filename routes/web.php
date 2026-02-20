@@ -242,6 +242,7 @@ Route::post('/register/studio', function (Illuminate\Http\Request $request) {
 
 // Routes Client (protégées)
 Route::middleware(['auth'])->prefix('client')->name('client.')->group(function () {
+    Route::get('/', [App\Http\Controllers\ClientController::class, 'index'])->name('index');
     Route::get('/dashboard', [App\Http\Controllers\ClientController::class, 'dashboard'])->name('dashboard');
     Route::get('/booking-requests', [App\Http\Controllers\ClientController::class, 'bookingRequests'])->name('booking-requests');
     Route::get('/booking-requests/{bookingRequest}', [App\Http\Controllers\ClientController::class, 'bookingRequestShow'])->name('booking-request.show');
@@ -249,56 +250,43 @@ Route::middleware(['auth'])->prefix('client')->name('client.')->group(function (
     Route::post('/booking-requests/{bookingRequest}/request-alternatives', [App\Http\Controllers\ClientController::class, 'requestAlternativeDates'])->name('booking-request.request-alternatives');
     Route::get('/chat/{conversation}', [App\Http\Controllers\ClientController::class, 'chat'])->name('chat');
     Route::post('/message/{conversation}/send', [App\Http\Controllers\ClientController::class, 'sendMessage'])->name('message.send');
-
-    // Paiement du solde
+    Route::get('/reviews', [App\Http\Controllers\ClientController::class, 'reviews'])->name('reviews');
+    Route::get('/complaints', [App\Http\Controllers\ClientController::class, 'complaints'])->name('complaints');
+    Route::post('/reviews/{bookingRequest}', [App\Http\Controllers\ClientController::class, 'createReview'])->name('reviews.create');
+    Route::post('/complaints/{bookingRequest}', [App\Http\Controllers\ClientController::class, 'createComplaint'])->name('complaints.create');
     Route::get('/bookings/{bookingRequest}/balance', [App\Http\Controllers\BalancePaymentController::class, 'show'])
-        ->name('balance-payment.show');
-    Route::post('/bookings/{bookingRequest}/balance/checkout', [App\Http\Controllers\BalancePaymentController::class, 'checkout'])
-        ->name('balance-payment.checkout');
-    Route::get('/bookings/{bookingRequest}/balance/success', [App\Http\Controllers\BalancePaymentController::class, 'success'])
-        ->name('balance-payment.success');
-
-    // Consentement
-    Route::post('/consent/{bookingRequest}', [App\Http\Controllers\ClientController::class, 'storeConsent'])->name('consent.store');
-
-    // Client signale no-show artiste
-    Route::post('/appointments/{appointment}/no-show', [App\Http\Controllers\ClientController::class, 'reportNoShow'])
-        ->name('appointments.no-show');
-
-    // Messages / Conversations
-    Route::get('/messages', [App\Http\Controllers\ClientController::class, 'messages'])->name('messages');
-    Route::get('/conversations', [App\Http\Controllers\ClientController::class, 'conversationsList'])->name('conversations');
-
-    Route::get('/reservations', App\Livewire\Client\Bookings::class)->name('bookings');
-    Route::get('/parametres', App\Livewire\Client\Settings::class)->name('settings');
+        ->name('balance.show');
 });
 
-// Routes Tattooer Calendar (publique pour réservations)
-Route::get('/tattooer/upgrade', function () {
-    return view('professionnels.index');
-})->name('upgrade');
-Route::get('/tattooer/compliance', function () {
-    return view('tattooer.compliance');
-})->name('compliance');
-
 // Routes Pierceur (protégées)
-Route::middleware(['auth'])->prefix('pierceur')->name('pierceur.')->group(function () {
-    Route::get('/dashboard', App\Livewire\Pierceur\Dashboard::class)->name('dashboard');
-    Route::get('/profil', App\Livewire\Pierceur\Profile::class)->name('profile');
-    Route::get('/profil/edit', App\Livewire\Pierceur\Profile::class)->name('profile.edit');
-    Route::get('/demandes', App\Livewire\Pierceur\BookingRequests::class)->name('booking-requests');
-    Route::get('/messages', App\Livewire\Pierceur\Messages::class)->name('messages');
-    Route::get('/parametres', App\Livewire\Pierceur\Settings::class)->name('settings');
-    Route::get('/calendar', App\Livewire\Pierceur\Calendar::class)->name('calendar');
-    Route::get('/upgrade', function () {
-        return view('professionnels.index');
-    })->name('upgrade');
-    Route::get('/compliance', function () {
-        return view('pierceur.compliance');
-    })->name('compliance');
+Route::middleware(['auth', 'role:pierceur'])->prefix('pierceur')->name('pierceur.')->group(function () {
+    // Dashboard, settings, portfolio, clients, messages, booking requests
+    Route::get('/', [App\Http\Controllers\PiercerController::class, 'index'])->name('index');
+    Route::get('/dashboard', [App\Http\Controllers\PiercerController::class, 'dashboard'])->name('dashboard');
+    Route::get('/settings', [App\Http\Controllers\PiercerController::class, 'settings'])->name('settings');
+    Route::get('/portfolio', [App\Http\Controllers\PiercerController::class, 'portfolio'])->name('portfolio');
+    Route::get('/clients', [App\Http\Controllers\PiercerController::class, 'clients'])->name('clients');
+    Route::get('/messages', [App\Http\Controllers\PiercerController::class, 'messages'])->name('messages');
+    Route::get('/booking-requests', [App\Http\Controllers\PiercerController::class, 'bookingRequests'])->name('booking-requests');
+    Route::get('/booking-requests/{bookingRequest}', [App\Http\Controllers\PiercerController::class, 'bookingRequestShow'])->name('booking-request.show');
+    Route::post('/booking-requests/{bookingRequest}/select-date', [App\Http\Controllers\PiercerController::class, 'selectProposedDate'])->name('booking-request.select-date');
 });
 
 // Routes Studio (protégées)
+Route::middleware(['auth', 'role:studio'])->prefix('studio')->name('studio.')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\StudioController::class, 'dashboard'])->name('dashboard');
+    Route::get('/artists', [App\Http\Controllers\StudioController::class, 'artists'])->name('artists');
+    Route::post('/artists/invite', [App\Http\Controllers\StudioController::class, 'inviteArtist'])->name('artists.invite');
+    Route::get('/planning', [App\Http\Controllers\StudioController::class, 'planning'])->name('planning');
+    Route::get('/requests', [App\Http\Controllers\StudioController::class, 'requests'])->name('requests');
+    Route::get('/transactions', [App\Http\Controllers\StudioController::class, 'transactions'])->name('transactions');
+    Route::get('/stats', [App\Http\Controllers\StudioController::class, 'stats'])->name('stats');
+    Route::get('/exports', [App\Http\Controllers\StudioController::class, 'exports'])->name('exports');
+    Route::get('/settings', [App\Http\Controllers\StudioController::class, 'settings'])->name('settings');
+});
+
+// Profil public Studio (accessible sans auth)
+Route::get('/studios/{slug}', [App\Http\Controllers\StudioController::class, 'publicProfile'])->name('studio.public');
 Route::middleware(['auth'])->prefix('studio')->name('studio.')->group(function () {
     Route::get('/dashboard', App\Livewire\Studio\Dashboard::class)->name('dashboard');
     Route::get('/profil', App\Livewire\Studio\Profile::class)->name('profile');

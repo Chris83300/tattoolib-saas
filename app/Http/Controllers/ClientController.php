@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use App\Models\BookingRequest;
+use App\Models\Client;
+use App\Models\Review;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\ClientConsentForm;
@@ -11,9 +15,8 @@ use App\Enums\BookingRequestStatus;
 use App\Enums\ConversationStatus;
 use App\Enums\AppointmentStatus;
 use App\Actions\ReportNoShowAction;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
+
 
 class ClientController extends Controller
 {
@@ -635,5 +638,83 @@ class ClientController extends Controller
         $action->execute($appointment, 'client', $validated['no_show_reason'] ?? null);
 
         return back()->with('success', 'Signalement envoyé. Notre équipe va examiner la situation.');
+    }
+
+    /**
+     * Créer un avis pour une demande terminée
+     */
+    public function createReview(Request $request, BookingRequest $bookingRequest)
+    {
+        try {
+            // Debug: Vérifier l'authentification
+            Log::info('createReview DEBUG', [
+                'auth_check' => Auth::check(),
+                'auth_id' => Auth::id(),
+                'booking_request_id' => $bookingRequest->id,
+                'booking_request_client_id' => $bookingRequest->client_id,
+                'user_id' => Auth::user() ? Auth::user()->id : 'null',
+                'user_client_id' => Auth::user() && Auth::user()->client ? Auth::user()->client->id : 'null',
+            ]);
+
+            // Vérifier que la demande est terminée et appartient au client
+            if (!$bookingRequest->isCompleted() || (Auth::user() && Auth::user()->client ? $bookingRequest->client_id !== Auth::user()->client->id : true)) {
+                Log::error('createReview: Action non autorisée', [
+                    'is_completed' => $bookingRequest->isCompleted(),
+                    'br_client_id' => $bookingRequest->client_id,
+                    'auth_id' => Auth::id(),
+                    'user_client_id' => Auth::user() && Auth::user()->client ? Auth::user()->client->id : 'null',
+                ]);
+                return response()->json(['success' => false, 'message' => 'Action non autorisée'], 403);
+            }
+
+            // Vérifier que le client n'a pas déjà laissé d'avis
+            $clientId = Auth::user()->client ? Auth::user()->client->id : null;
+            if (!$clientId) {
+                return response()->json(['success' => false, 'message' => 'Profil client non trouvé'], 400);
+            }
+
+            $existingReview = \App\Models\Review::where('reviewable_type', 'App\Models\BookingRequest')
+                ->where('reviewable_id', $bookingRequest->id)
+                ->where('client_id', $clientId)
+                ->first();
+
+            if ($existingReview) {
+                return response()->json(['success' => false, 'message' => 'Vous avez déjà laissé un avis pour cette demande'], 400);
+            }
+
+            $validated = $request->validate([
+                'rating' => 'required|integer|min:1|max:5',
+                'comment' => 'nullable|string|max:1000',
+                'reviewable_id' => 'required|integer',
+            ]);
+
+            $review = \App\Models\Review::create([
+                'reviewable_type' => 'App\Models\BookingRequest',
+                'reviewable_id' => $validated['reviewable_id'],
+                'client_id' => $clientId,
+                'rating' => $validated['rating'],
+                'comment' => $validated['comment'] ?? null,
+                'is_visible' => true, // Visible immédiatement pour le tattooer
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Merci pour votre avis !',
+                'review' => $review
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur de validation',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Erreur createReview: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la sauvegarde de votre avis: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

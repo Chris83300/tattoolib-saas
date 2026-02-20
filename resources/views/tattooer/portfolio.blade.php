@@ -114,7 +114,7 @@
                     @foreach ($tattoos as $media)
                         <div class="relative group aspect-square rounded-lg overflow-hidden bg-noir-profond"
                             draggable="true" data-media-id="{{ $media->id }}">
-                            <img src="{{ $media->getUrl() }}" alt="Tattoo" class="w-full h-full object-cover">
+                            <img src="{{ $media->getUrl() }}" alt="Tattoo" class="w-full h-full object-contain">
 
                             <!-- Overlay actions -->
                             <div
@@ -166,7 +166,7 @@
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     @foreach ($drawings as $media)
                         <div class="relative group aspect-square rounded-lg overflow-hidden bg-noir-profond">
-                            <img src="{{ $media->getUrl() }}" alt="Dessin" class="w-full h-full object-cover">
+                            <img src="{{ $media->getUrl() }}" alt="Dessin" class="w-full h-full object-contain">
 
                             <div
                                 class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
@@ -251,9 +251,9 @@ $legacy = $beforeAfter
                                 <!-- Before/After Slider -->
                                 <div class="relative aspect-video rounded-lg overflow-hidden mb-4 before-after-slider">
                                     <img src="{{ $pair[0]->getUrl() }}"
-                                        class="absolute inset-0 w-full h-full object-cover before-image" alt="Avant">
+                                        class="absolute inset-0 w-full h-full object-contain before-image" alt="Avant">
                                     <img src="{{ $pair[1]->getUrl() }}"
-                                        class="absolute inset-0 w-full h-full object-cover after-image" alt="Après"
+                                        class="absolute inset-0 w-full h-full object-contain after-image" alt="Après"
                                         style="clip-path: inset(0 50% 0 0);">
 
                                     <!-- Slider -->
@@ -724,7 +724,8 @@ $legacy = $beforeAfter
                 if (file) {
                     const reader = new FileReader();
                     reader.onload = (e) => {
-                        preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover rounded-lg">`;
+                        preview.innerHTML =
+                        `<img src="${e.target.result}" class="w-full h-full object-contain rounded-lg">`;
                     };
                     reader.readAsDataURL(file);
                 }

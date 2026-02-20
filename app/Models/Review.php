@@ -11,8 +11,8 @@ class Review extends Model
     use HasFactory;
 
     protected $fillable = [
-        'reviewable_id',
         'reviewable_type',
+        'reviewable_id',
         'client_id',
         'rating',
         'comment',
@@ -25,11 +25,22 @@ class Review extends Model
     ];
 
     /**
-     * Get the parent reviewable model (tattooer or pierceur).
+     * Get the parent reviewable model.
      */
-    public function reviewable(): MorphTo
+    public function reviewable()
     {
         return $this->morphTo();
+    }
+
+    /**
+     * Get the tattooer from the reviewable (if it's a BookingRequest).
+     */
+    public function getTattooerAttribute()
+    {
+        if ($this->reviewable_type === 'App\Models\BookingRequest') {
+            return $this->reviewable->bookable;
+        }
+        return null;
     }
 
     /**
@@ -37,6 +48,22 @@ class Review extends Model
      */
     public function client()
     {
-        return $this->belongsTo(Client::class);
+        return $this->belongsTo(User::class, 'client_id');
+    }
+
+    /**
+     * Get the tattooer who is being reviewed.
+     */
+    public function tattooer()
+    {
+        return $this->belongsTo(User::class, 'tattooer_id');
+    }
+
+    /**
+     * Get the booking request.
+     */
+    public function bookingRequest()
+    {
+        return $this->belongsTo(BookingRequest::class);
     }
 }

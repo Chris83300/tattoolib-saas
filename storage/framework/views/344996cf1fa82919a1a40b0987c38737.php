@@ -176,9 +176,9 @@
                 <!-- Badges seront insérés ici -->
             </div>
 
-            <!-- Image portfolio -->
+            <!-- Image avatar -->
             <div class="aspect-square bg-gray-800 relative">
-                <img src="" alt="Portfolio" class="w-full h-full object-cover artist-image">
+                <img src="" alt="avatar" class="w-full h-full object-cover artist-image">
             </div>
 
             <!-- Infos -->

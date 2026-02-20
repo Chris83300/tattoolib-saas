@@ -1,7 +1,7 @@
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
     <!-- Stat Card : En attente -->
     <a href="{{ route('client.booking-requests', ['status' => 'pending']) }}"
-        class="bg-gradient-to-br from-ambre-warning/20 to-ambre-warning/10 rounded-xl border border-ambre-warning/30 p-4 sm:p-6 hover:from-ambre-warning/30 hover:to-ambre-warning/20 transition-all cursor-pointer group">
+        class="bg-gradient-to-br from-ambre-warning/25 to-ambre-warning/10 m-2 shadow-md shadow-ambre-warning/10 rounded-xl border border-ambre-warning/30 p-4 sm:p-6 hover:from-ambre-warning/30 hover:to-ambre-warning/20 transition-all cursor-pointer group">
         <div class="flex items-center justify-between mb-3 sm:mb-4">
             <div
                 class="w-10 h-10 sm:w-12 sm:h-12 bg-ambre-warning/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -23,7 +23,7 @@
 
     <!-- Stat Card : Acceptées -->
     <a href="{{ route('client.booking-requests', ['status' => 'accepted']) }}"
-        class="bg-gradient-to-br from-vert-succes/20 to-vert-succes/10 rounded-xl border border-vert-succes/30 p-4 sm:p-6 hover:from-vert-succes/30 hover:to-vert-succes/20 transition-all cursor-pointer group">
+        class="bg-gradient-to-br from-vert-succes/25 to-vert-succes/10 rounded-xl m-2 shadow-md shadow-vert-succes/10 border border-vert-succes/30 p-4 sm:p-6 hover:from-vert-succes/30 hover:to-vert-succes/20 transition-all cursor-pointer group">
         <div class="flex items-center justify-between mb-3 sm:mb-4">
             <div
                 class="w-10 h-10 sm:w-12 sm:h-12 bg-vert-succes/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -44,7 +44,7 @@
 
     <!-- Stat Card : Terminées -->
     <a href="{{ route('client.booking-requests', ['status' => 'completed']) }}"
-        class="bg-gradient-to-br from-beige-peau/20 to-beige-peau/10 rounded-xl border border-beige-peau/30 p-4 sm:p-6 hover:from-beige-peau/30 hover:to-beige-peau/20 transition-all cursor-pointer group">
+        class="bg-gradient-to-br from-beige-peau/25 to-beige-peau/10 rounded-xl m-2 shadow-md shadow-beige-peau/10 border border-beige-peau/30 p-4 sm:p-6 hover:from-beige-peau/30 hover:to-beige-peau/20 transition-all cursor-pointer group">
         <div class="flex items-center justify-between mb-3 sm:mb-4">
             <div
                 class="w-10 h-10 sm:w-12 sm:h-12 bg-beige-peau/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -66,7 +66,7 @@
 
     <!-- Stat Card : Refusées -->
     <a href="{{ route('client.booking-requests', ['status' => 'rejected']) }}"
-        class="bg-gradient-to-br from-rouge-alerte/20 to-rouge-alerte/10 rounded-xl border border-rouge-alerte/30 p-4 sm:p-6 hover:from-rouge-alerte/30 hover:to-rouge-alerte/20 transition-all cursor-pointer group">
+        class="bg-gradient-to-br from-rouge-alerte/25 to-rouge-alerte/10 rounded-xl m-2 shadow-md shadow-rouge-alerte/10 border border-rouge-alerte/30 p-4 sm:p-6 hover:from-rouge-alerte/30 hover:to-rouge-alerte/20 transition-all cursor-pointer group">
         <div class="flex items-center justify-between mb-3 sm:mb-4">
             <div
                 class="w-10 h-10 sm:w-12 sm:h-12 bg-rouge-alerte/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -88,7 +88,7 @@
 
     <!-- Stat Card : Annulées -->
     <a href="{{ route('client.booking-requests', ['status' => 'cancelled']) }}"
-        class="bg-gradient-to-br from-orange-500/20 to-orange-500/10 rounded-xl border border-orange-500/30 p-4 sm:p-6 hover:from-orange-500/30 hover:to-orange-500/20 transition-all cursor-pointer group">
+        class="bg-gradient-to-br from-orange-500/25 to-orange-500/10 rounded-xl m-2 shadow-md shadow-orange-500/10 border border-orange-500/30 p-4 sm:p-6 hover:from-orange-500/30 hover:to-orange-500/20 transition-all cursor-pointer group">
         <div class="flex items-center justify-between mb-3 sm:mb-4">
             <div
                 class="w-10 h-10 sm:w-12 sm:h-12 bg-orange-500/20 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -192,7 +192,7 @@
 @endif
 
 <!-- Actions rapides -->
-<div class="bg-gris-fonde rounded-xl border border-beige-peau/20 shadow-lg p-6 mb-6">
+<div class="bg-gris-fonde g p-6 mb-6">
     <h2 class="text-xl font-bold text-ivoire-text mb-4">Actions rapides</h2>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <a href="{{ route('client.booking-requests') }}"
@@ -252,7 +252,7 @@
 </div>
 
 <!-- Liste des demandes récentes -->
-<div class="bg-gris-fonde rounded-xl border border-beige-peau/20 shadow-lg p-6">
+<div class="bg-gris-fonde p-6">
     <div class="flex items-center justify-between mb-4">
         <h2 class="text-xl font-bold text-ivoire-text">Demandes récentes</h2>
         <a href="{{ route('client.booking-requests') }}"
@@ -282,7 +282,9 @@
                                 class="px-3 py-1 rounded-full text-xs font-semibold
                             {{ $booking->status === \App\Enums\BookingRequestStatus::PENDING ? 'bg-ambre-warning/20 text-ambre-warning' : '' }}
                             {{ $booking->status === \App\Enums\BookingRequestStatus::ACCEPTED ? 'bg-vert-succes/20 text-vert-succes' : '' }}
-                            {{ $booking->status === \App\Enums\BookingRequestStatus::COMPLETED ? 'bg-beige-peau/20 text-beige-peau' : '' }}">
+                            {{ $booking->status === \App\Enums\BookingRequestStatus::COMPLETED ? 'bg-beige-peau/20 text-beige-peau' : '' }}
+                            {{ $booking->status === \App\Enums\BookingRequestStatus::CANCELLED ? 'bg-rouge-alerte/20 text-rouge-alerte' : '' }}
+                            {{ $booking->status === \App\Enums\BookingRequestStatus::NO_SHOW ? 'bg-rouge-alerte/20 text-rouge-alerte' : '' }}">
                                 {{ $booking->status->label() }}
                             </span>
                             <p class="text-xs text-ivoire-text/60 mt-1">{{ $booking->created_at->diffForHumans() }}

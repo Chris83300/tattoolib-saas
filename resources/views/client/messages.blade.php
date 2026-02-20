@@ -131,11 +131,13 @@
                                                         @break
 
                                                         @case('cancelled')
-                                                            bg-rouge-alerte/20 text-rouge-alerte border border-rouge-alerte/30
+                                                        @case('rejected')
+                                                            bg-rouge-alerte/20 text-rouge-alerte
                                                         @break
 
+
                                                         @default
-                                                            bg-titane/30 text-ivoire-text/80
+                                                            bg-titane/20 text-titane
                                                     @endswitch
                                                 ">
                                                 @switch($br->status->value)
@@ -175,52 +177,139 @@
                                                         Annulé
                                                     @break
 
+                                                    @case('rejected')
+                                                        Rejeté
+                                                    @break
+
                                                     @default
                                                         {{ ucfirst($br->status->value) }}
                                                 @endswitch
+                                                {{ $br->status->label() }}
                                             </span>
+
+                                            <!-- Bouton laisser un avis pour les demandes terminées -->
+                                            @if (
+                                                $br->isCompleted() &&
+                                                    !\App\Models\Review::where('booking_request_id', $br->id)->where('client_user_id', auth()->id())->exists())
+                                                <button onclick="openReviewModal({{ $br->id }})"
+                                                    class="px-2.5 py-0.5 bg-beige-peau/20 text-beige-peau rounded-full text-xs font-bold hover:bg-beige-peau/30 transition-colors">
+                                                    ⭐ Laisser un avis
+                                                </button>
+                                            @endif
                                         </div>
                                     @endif
+                                    @switch($br->status->value)
+                                        @case('deposit_paid')
+                                            bg-vert-succes/20 text-vert-succes border border-vert-succes/30
+                                        @break
 
-                                    @if ($conversation->unread_count > 0)
-                                        <span
-                                            class="bg-rouge-alerte text-noir-profond px-2 py-1 rounded-full text-xs font-bold">
-                                            {{ $conversation->unread_count }}
-                                        </span>
-                                    @endif
+                                        @case('design_sent')
+                                            bg-titane/30 text-ivoire-text/80
+                                        @break
+
+                                        @case('date_confirmed')
+                                            bg-vert-succes/20 text-vert-succes border border-vert-succes/30
+                                        @break
+
+                                        @case('confirmed')
+                                            bg-vert-succes/20 text-vert-succes border border-vert-succes/30
+                                        @break
+
+                                        @case('completed')
+                                            bg-vert-succes/20 text-vert-succes border border-vert-succes/30
+                                        @break
+
+                                        @case('cancelled')
+                                            bg-rouge-alerte/20 text-rouge-alerte border border-rouge-alerte/30
+                                        @break
+
+                                        @default
+                                            bg-titane/30 text-ivoire-text/80
+                                    @endswitch
+                                    ">
+                                    @switch($br->status->value)
+                                        @case('pending')
+                                            En attente
+                                        @break
+
+                                        @case('accepted')
+                                            Acceptée
+                                        @break
+
+                                        @case('awaiting_deposit')
+                                            Acompte attendu
+                                        @break
+
+                                        @case('deposit_paid')
+                                            Acompte payé
+                                        @break
+
+                                        @case('design_sent')
+                                            Dessin envoyé
+                                        @break
+
+                                        @case('date_confirmed')
+                                            📅 Date confirmée
+                                        @break
+
+                                        @case('confirmed')
+                                            Confirmé
+                                        @break
+
+                                        @case('completed')
+                                            Terminé
+                                        @break
+
+                                        @case('cancelled')
+                                            Annulé
+                                        @break
+
+                                        @default
+                                            {{ ucfirst($br->status->value) }}
+                                    @endswitch
+                                    </span>
                                 </div>
+
+
+                                @if ($conversation->unread_count > 0)
+                                    <span
+                                        class="bg-rouge-alerte text-noir-profond px-2 py-1 rounded-full text-xs font-bold">
+                                        {{ $conversation->unread_count }}
+                                    </span>
+                                @endif
                             </div>
-                        </a>
-                    @endforeach
                 </div>
-            @else
-                <div class="text-center py-12">
-                    <div class="w-16 h-16 bg-noir-profond rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-ivoire-text/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z">
-                            </path>
-                        </svg>
-                    </div>
-                    <h3 class="text-lg font-semibold text-ivoire-text mb-2">
-                        Aucune conversation
-                    </h3>
-                    <p class="text-ivoire-text/60">
-                        Vous n'avez pas encore de messages avec vos artistes.
-                    </p>
-                    <div class="mt-6 space-x-4">
-                        <a href="{{ route('client.booking-requests') }}"
-                            class="inline-flex items-center px-4 py-2 bg-beige-peau hover:bg-beige-peau/90 text-noir-profond rounded-lg font-medium transition-colors">
-                            Nouvelle demande
-                        </a>
-                        <a href="{{ route('marketplace.index') }}"
-                            class="inline-flex items-center px-4 py-2 border border-beige-peau/30 text-beige-peau hover:bg-beige-peau/10 rounded-lg font-medium transition-colors">
-                            Trouver un artiste
-                        </a>
-                    </div>
-                </div>
-            @endif
+                </a>
+            @endforeach
         </div>
+    @else
+        <div class="text-center py-12">
+            <div class="w-16 h-16 bg-noir-profond rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-ivoire-text/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z">
+                    </path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-ivoire-text mb-2">
+                Aucune conversation
+            </h3>
+            <p class="text-ivoire-text/60">
+                Vous n'avez pas encore de messages avec vos artistes.
+            </p>
+            <div class="mt-6 space-x-4">
+                <a href="{{ route('client.booking-requests') }}"
+                    class="inline-flex items-center px-4 py-2 bg-beige-peau hover:bg-beige-peau/90 text-noir-profond rounded-lg font-medium transition-colors">
+                    Nouvelle demande
+                </a>
+                <a href="{{ route('marketplace.index') }}"
+                    class="inline-flex items-center px-4 py-2 border border-beige-peau/30 text-beige-peau hover:bg-beige-peau/10 rounded-lg font-medium transition-colors">
+                    Trouver un artiste
+                </a>
+            </div>
+        </div>
+        @endif
+    </div>
 
     </div>
 
@@ -231,6 +320,119 @@
                 // Optionnel : recharger la page pour voir les nouveaux messages
                 // window.location.reload();
             }, 30000);
+        </script>
+
+        <script>
+            function openReviewModal(bookingRequestId) {
+                // Créer la modal
+                const modal = document.createElement('div');
+                modal.className = 'fixed inset-0 bg-noir-profond/90 z-50 flex items-center justify-center p-4';
+                modal.innerHTML = `
+                <div class="bg-gris-fonde rounded-xl p-6 max-w-md w-full max-w-lg">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-ivoire-text">Laisser un avis</h3>
+                        <button onclick="closeReviewModal()" class="text-ivoire-text/60 hover:text-ivoire-text/80">
+                            ✕
+                        </button>
+                    </div>
+                    <form onsubmit="submitReview(event, ${bookingRequestId})">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-ivoire-text font-semibold mb-2">Note (1-5 étoiles)</label>
+                                <div class="flex gap-2">
+                                    <button type="button" onclick="setRating(1)" class="w-12 h-12 rounded-lg border border-titane/30 bg-noir-profond text-ivoire-text hover:bg-titane/20 transition-colors">⭐</button>
+                                    <button type="button" onclick="setRating(2)" class="w-12 h-12 rounded-lg border border-titane/30 bg-noir-profond text-ivoire-text hover:bg-titane/20 transition-colors">⭐</button>
+                                    <button type="button" onclick="setRating(3)" class="w-12 h-12 rounded-lg border border-titane/30 bg-noir-profond text-ivoire-text hover:bg-titane/20 transition-colors">⭐</button>
+                                    <button type="button" onclick="setRating(4)" class="w-12 h-12 rounded-lg border border-titane/30 bg-noir-profond text-ivoire-text hover:bg-titane/20 transition-colors">⭐</button>
+                                    <button type="button" onclick="setRating(5)" class="w-12 h-12 rounded-lg border border-titane/30 bg-noir-profond text-ivoire-text hover:bg-titane/20 transition-colors">⭐</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-ivoire-text font-semibold mb-2">Commentaire</label>
+                                <textarea name="comment" rows="4" class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-2 focus:ring-beige-peau"></textarea>
+                            </div>
+                            <div class="flex justify-end gap-2">
+                                <button type="submit" class="px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
+                                    Envoyer l'avis
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            `;
+                document.body.appendChild(modal);
+            }
+
+            function closeReviewModal() {
+                const modal = document.querySelector('[onclick*="closeReviewModal"]');
+                if (modal) {
+                    modal.remove();
+                }
+            }
+
+            function setRating(rating) {
+                const buttons = document.querySelectorAll('[onclick^="setRating("]');
+                buttons.forEach((btn, index) => {
+                    btn.classList.remove('border-beige-peau', 'bg-beige-peau');
+                    btn.classList.add('border-titane/30');
+                    if (index < rating) {
+                        btn.classList.add('border-beige-peau', 'bg-beige-peau');
+                    }
+                });
+            }
+
+            function submitReview(event, bookingRequestId) {
+                event.preventDefault();
+                const formData = new FormData(event.target);
+                const rating = document.querySelectorAll('[onclick^="setRating("].border-beige-peau').length;
+
+                if (rating === 0) {
+                    alert('Veuillez sélectionner une note (1-5 étoiles)');
+                    return;
+                }
+
+                fetch(`/client/reviews/${bookingRequestId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+                        },
+                        body: JSON.stringify({
+                            rating: rating,
+                            comment: formData.get('comment')
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showNotification('Avis envoyé avec succès !', 'success');
+                            closeReviewModal();
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            showNotification(data.message || 'Erreur lors de l\'envoi de l\'avis', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showNotification('Erreur lors de l\'envoi de l\'avis', 'error');
+                    });
+            }
+
+            function showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white font-semibold z-50 ${
+                type === 'success' ? 'bg-green-500' :
+                type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+            }`;
+                notification.textContent = message;
+                document.body.appendChild(notification);
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+            }
         </script>
     @endpush
 @endsection

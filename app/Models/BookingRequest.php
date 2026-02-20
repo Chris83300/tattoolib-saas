@@ -18,6 +18,24 @@ class BookingRequest extends Model implements HasMedia
 {
     use HasFactory, SoftDeletes, InteractsWithMedia;
 
+    /**
+     * Vérifie si la demande est terminée
+     */
+    public function isCompleted(): bool
+    {
+        $status = $this->status instanceof \BackedEnum ? $this->status->value : $this->status;
+        return $status === 'completed';
+    }
+
+    /**
+     * Vérifie si la demande est en no-show
+     */
+    public function isNoShow(): bool
+    {
+        $status = $this->status instanceof \BackedEnum ? $this->status->value : $this->status;
+        return $status === 'no_show';
+    }
+
     // ... existing code ...
 
     public function consent(): \Illuminate\Database\Eloquent\Relations\HasOne

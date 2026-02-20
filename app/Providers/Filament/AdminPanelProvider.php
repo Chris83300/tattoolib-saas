@@ -43,6 +43,8 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 \App\Filament\Admin\Widgets\StatsOverview::class,
                 \App\Filament\Admin\Widgets\RevenueChart::class,
+                \App\Filament\Admin\Widgets\RevenueOverviewWidget::class,
+                \App\Filament\Admin\Widgets\ComplaintsWidget::class,
                 \App\Filament\Admin\Widgets\RecentActivity::class,
             ])
             ->middleware([

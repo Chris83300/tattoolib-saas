@@ -432,7 +432,7 @@ $displayStyles = array_filter(
                                     <div class="aspect-square rounded-xl overflow-hidden bg-titane/20 cursor-pointer hover:opacity-90 transition-opacity group"
                                         onclick="openLightbox('{{ $media->getUrl() }}')">
                                         <img src="{{ $media->getUrl() }}" alt="Tatouage"
-                                            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                                            class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300">
                                     </div>
                                 @endforeach
                             </div>
@@ -444,14 +444,14 @@ $displayStyles = array_filter(
                         <div>
                             <h3 class="text-xl font-bold text-ivoire-text mb-6 flex items-center gap-2">
                                 <span class="text-2xl">🎨</span>
-                                Dessins & Sketches
+                                Dessins / Sketches
                             </h3>
                             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                 @foreach ($drawings as $media)
                                     <div class="aspect-square rounded-xl overflow-hidden bg-titane/20 cursor-pointer hover:opacity-90 transition-opacity group"
                                         onclick="openLightbox('{{ $media->getUrl() }}')">
                                         <img src="{{ $media->getUrl() }}" alt="Dessin / Sketch"
-                                            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                                            class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300">
                                     </div>
                                 @endforeach
                             </div>
@@ -486,10 +486,10 @@ $displayStyles = array_filter(
                                                 <div
                                                     class="relative aspect-video rounded-lg overflow-hidden mb-4 before-after-slider">
                                                     <img src="{{ $pair[0]->getUrl() }}"
-                                                        class="absolute inset-0 w-full h-full object-cover before-image"
+                                                        class="absolute inset-0 w-full h-full object-contain before-image"
                                                         alt="Avant">
                                                     <img src="{{ $pair[1]->getUrl() }}"
-                                                        class="absolute inset-0 w-full h-full object-cover after-image"
+                                                        class="absolute inset-0 w-full h-full object-contain after-image"
                                                         alt="Après" style="clip-path: inset(0 50% 100% 100%);">
 
                                                     <!-- Slider -->

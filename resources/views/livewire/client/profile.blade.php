@@ -1,13 +1,13 @@
 <div class="max-w-6xl mx-auto">
     <!-- Header Profil -->
     <div
-        class="bg-gradient-to-br from-gris-fonde to-noir-profond rounded-2xl border border-beige-peau/20 shadow-2xl p-6 mb-6">
+        class="bg-gradient-to-br from-gris-fonde to-gris-fonce/60 rounded-2xl border border-beige-peau/20 shadow-2xl shadow-beige-peau/10 p-6 mb-6">
         <div class="flex items-center justify-between">
             <!-- Avatar + Infos -->
             <div class="flex items-center gap-6">
                 <!-- Avatar -->
                 <div class="relative">
-                    <div class="w-24 h-24 rounded-full overflow-hidden border-2 border-cuivre/60 bg-beige-peau/10">
+                    <div class="w-24 h-24 rounded-full overflow-hidden border-2 border-cuivre/60 bg-beige-peau/10 shadow-lg shadow-cuivre/40">
                         @if (auth()->user()->getFirstMediaUrl('avatar'))
                             <img src="{{ auth()->user()->getFirstMediaUrl('avatar') }}" alt="Avatar"
                                 class="w-full h-full object-cover">
@@ -59,7 +59,7 @@
 
             <!-- Bouton Éditer -->
             <a href="{{ route('client.settings') }}"
-                class="px-6 py-3 bg-beige-peau text-noir-profond rounded-xl font-semibold hover:bg-beige-peau/90 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center gap-2">
+                class="px-6 py-3 bg-beige-peau shadow-md shadow-beige-peau/40 text-noir-profond rounded-xl font-semibold hover:bg-beige-peau/90 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center gap-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
@@ -71,7 +71,7 @@
     </div>
 
     <!-- Navigation onglets -->
-    <div class="bg-gris-fonde rounded-xl border border-beige-peau/20 shadow-lg mb-6" x-data="{ activeTab: 'demandes' }">
+    <div class="bg-gris-fonde rounded-xl border border-beige-peau/20 shadow-md shadow-beige-peau/20 mb-6" x-data="{ activeTab: 'demandes' }">
         <div class="flex border-b border-beige-peau/10">
             <button @click="activeTab = 'demandes'"
                 :class="activeTab === 'demandes' ? 'text-beige-peau border-b-2 border-beige-peau' :

@@ -39,7 +39,7 @@
                             d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
                         </path>
                     </svg>
-                    <span class="font-semibold">🏠 Accueil</span>
+                    <span class="font-semibold">Accueil</span>
                 </a>
 
                 <a href="{{ route('marketplace.index') }}"
@@ -49,7 +49,7 @@
                             d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2zm14 0V9a2 2 0 00-2-2M5 11a2 2 0 00-2 2v6a2 2 0 002 2h14a2 2 0 002-2v-6a2 2 0 00-2-2z">
                         </path>
                     </svg>
-                    <span class="font-semibold">🛍️ Marketplace</span>
+                    <span class="font-semibold">Marketplace</span>
                 </a>
 
                 <a href="{{ route('client.booking-requests') }}"
@@ -59,7 +59,7 @@
                             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002 2M9 5a2 2 0 012-2h2a2 2 0 012 2">
                         </path>
                     </svg>
-                    <span class="font-semibold">📋 Mes demandes</span>
+                    <span class="font-semibold">Mes demandes</span>
                 </a>
 
                 <a href="{{ route('client.messages') }}"
@@ -69,7 +69,7 @@
                             d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z">
                         </path>
                     </svg>
-                    <span class="font-semibold">💬 Messages</span>
+                    <span class="font-semibold">Messages</span>
                     @php
                         // Badge messages non-lus
                         if (!auth()->check()) {
@@ -117,7 +117,7 @@
                             d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z">
                         </path>
                     </svg>
-                    <span class="font-semibold">👤 Mon profil</span>
+                    <span class="font-semibold">Mon profil</span>
                 </a>
 
                 <a href="{{ route('client.settings') }}"
@@ -127,7 +127,7 @@
                             d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 002.573 1.066c1.543-.94 3.31-.826 2.37-2.37.996.608 2.296.07 2.572-1.065z">
                         </path>
                     </svg>
-                    <span class="font-semibold">⚙️ Paramètres</span>
+                    <span class="font-semibold">Paramètres</span>
                 </a>
             </nav>
 
@@ -180,7 +180,7 @@
                             d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
                         </path>
                     </svg>
-                    <span class="text-[10px] font-semibold">🏠</span>
+                    <span class="text-[10px] font-semibold">Acceuil</span>
                 </a>
 
                 <a href="{{ route('marketplace.index') }}"
@@ -190,7 +190,7 @@
                             d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2zm14 0V9a2 2 0 00-2-2M5 11a2 2 0 00-2 2v6a2 2 0 002 2h14a2 2 0 002-2v-6a2 2 0 00-2-2z">
                         </path>
                     </svg>
-                    <span class="text-[10px] font-semibold">🛍️</span>
+                    <span class="text-[10px] font-semibold whitespace-nowrap">Les Artistes</span>
                 </a>
 
                 <a href="{{ route('client.booking-requests') }}"
@@ -200,7 +200,7 @@
                             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002 2M9 5a2 2 0 012-2h2a2 2 0 012 2">
                         </path>
                     </svg>
-                    <span class="text-[10px] font-semibold">📋</span>
+                    <span class="text-[10px] font-semibold whitespace-nowrap">Mes Demandes</span>
                 </a>
 
                 <a href="{{ route('client.messages') }}"
@@ -210,7 +210,7 @@
                             d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z">
                         </path>
                     </svg>
-                    <span class="text-[10px] font-semibold">💬</span>
+                    <span class="text-[10px] font-semibold">Messages</span>
                     @if ($unreadCount > 0)
                         <span
                             class="absolute top-0 right-0 w-4 h-4 bg-rouge-alerte text-noir-profond rounded-full text-[8px] font-bold flex items-center justify-center">
@@ -226,7 +226,7 @@
                             d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z">
                         </path>
                     </svg>
-                    <span class="text-[10px] font-semibold">👤</span>
+                    <span class="text-[10px] font-semibold">Profil</span>
                 </a>
 
                 <a href="{{ route('client.settings') }}"
@@ -236,11 +236,186 @@
                             d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 002.573 1.066c1.543-.94 3.31-.826 2.37-2.37.996.608 2.296.07 2.572-1.065z">
                         </path>
                     </svg>
-                    <span class="text-[10px] font-semibold">⚙️</span>
+                    <span class="text-[10px] font-semibold">Paramètres</span>
                 </a>
             </div>
         </nav>
     </div>
+
+    <!-- ═══ MODAL AVIS ═══ -->
+    <div id="review-modal" class="hidden fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4"
+        onclick="if(event.target===this)closeReviewModal()">
+        <div class="bg-gris-fonde rounded-xl p-6 w-full max-w-md shadow-2xl" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-ivoire-text">⭐ Votre avis</h3>
+                <button onclick="closeReviewModal()" class="text-titane hover:text-ivoire-text transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <form id="review-form" class="space-y-4">
+                @csrf
+                <input type="hidden" name="reviewable_id" id="review-br-id">
+                <input type="hidden" name="reviewable_type" value="App\Models\BookingRequest">
+
+                <!-- Étoiles -->
+                <div>
+                    <label class="text-sm text-ivoire-text/60 block mb-2">Note *</label>
+                    <div class="flex gap-1" id="star-container"></div>
+                    <input type="hidden" name="rating" id="review-rating" required>
+                </div>
+
+                <!-- Commentaire -->
+                <div>
+                    <label class="text-sm text-ivoire-text/60 block mb-1">Commentaire</label>
+                    <textarea name="comment" id="review-comment" rows="4" placeholder="Comment s'est passée votre séance ?"
+                        class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm focus:border-beige-peau resize-none"></textarea>
+                </div>
+
+                <!-- Bouton submit -->
+                <button type="submit" id="review-submit-btn"
+                    class="w-full px-4 py-3 bg-beige-peau text-noir-profond font-bold rounded-lg hover:bg-beige-peau/90 transition-colors">
+                    Envoyer mon avis
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            var currentRating = 0;
+
+            // Créer les étoiles
+            var container = document.getElementById('star-container');
+            if (container) {
+                for (var i = 1; i <= 5; i++) {
+                    var btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.dataset.star = i;
+                    btn.textContent = '★';
+                    btn.className = 'text-3xl text-titane/40 hover:text-ambre-warning transition-colors cursor-pointer';
+                    btn.addEventListener('click', (function(rating) {
+                        return function() {
+                            setRating(rating);
+                        };
+                    })(i));
+                    container.appendChild(btn);
+                }
+            }
+
+            function setRating(n) {
+                currentRating = n;
+                document.getElementById('review-rating').value = n;
+                document.querySelectorAll('#star-container button').forEach(function(btn) {
+                    var star = parseInt(btn.dataset.star);
+                    btn.className = star <= n ?
+                        'text-3xl text-ambre-warning transition-colors cursor-pointer' :
+                        'text-3xl text-titane/40 hover:text-ambre-warning transition-colors cursor-pointer';
+                });
+            }
+
+            window.openReviewModal = function(brId) {
+                document.getElementById('review-br-id').value = brId;
+                document.getElementById('review-modal').classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+                currentRating = 0;
+                document.getElementById('review-rating').value = '';
+                document.getElementById('review-comment').value = '';
+                document.querySelectorAll('#star-container button').forEach(function(btn) {
+                    btn.className =
+                        'text-3xl text-titane/40 hover:text-ambre-warning transition-colors cursor-pointer';
+                });
+            };
+
+            window.closeReviewModal = function() {
+                document.getElementById('review-modal').classList.add('hidden');
+                document.body.style.overflow = '';
+            };
+
+            // Soumission
+            var form = document.getElementById('review-form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    var brId = document.getElementById('review-br-id').value;
+                    var rating = document.getElementById('review-rating').value;
+                    var comment = document.getElementById('review-comment').value;
+
+                    if (!rating || rating < 1) {
+                        alert('Veuillez sélectionner une note (1 à 5 étoiles)');
+                        return;
+                    }
+
+                    var btn = document.getElementById('review-submit-btn');
+                    btn.disabled = true;
+                    btn.textContent = 'Envoi en cours...';
+
+                    fetch('/client/reviews/' + brId, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                    ?.getAttribute('content'),
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json'
+                            },
+                            credentials: 'same-origin',
+                            body: JSON.stringify({
+                                reviewable_id: parseInt(brId),
+                                reviewable_type: 'App\\Models\\BookingRequest',
+                                rating: parseInt(rating),
+                                comment: comment
+                            })
+                        })
+                        .then(function(res) {
+                            return res.json();
+                        })
+                        .then(function(data) {
+                            if (data.success) {
+                                closeReviewModal();
+                                // Remplacer le bouton par un message de succès
+                                var successDiv = document.createElement('div');
+                                successDiv.className =
+                                    'bg-vert-succes/10 border border-vert-succes/30 rounded-xl p-3 my-3 text-center';
+                                successDiv.innerHTML =
+                                    '<p class="text-sm text-vert-succes">✅ Merci pour votre avis !</p>';
+
+                                var reviewBtn = document.querySelector('[onclick*="openReviewModal(' +
+                                    brId + ')"]');
+                                if (reviewBtn) {
+                                    var parent = reviewBtn.closest('.bg-beige-peau\\/10') || reviewBtn
+                                        .parentElement;
+                                    parent.replaceWith(successDiv);
+                                }
+
+                                alert('✅ Merci ! Votre avis a été enregistré.');
+                            } else {
+                                alert(data.message || 'Erreur lors de l\'envoi');
+                            }
+                        })
+                        .catch(function(err) {
+                            console.error(err);
+                            alert('Erreur réseau');
+                        })
+                        .finally(function() {
+                            btn.disabled = false;
+                            btn.textContent = 'Envoyer mon avis';
+                        });
+                });
+            }
+
+            // Fermer avec Escape
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && !document.getElementById('review-modal').classList.contains(
+                        'hidden')) {
+                    closeReviewModal();
+                }
+            });
+        })();
+    </script>
 
     @stack('scripts')
     @livewireScripts
