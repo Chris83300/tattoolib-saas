@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
+            'role' => \App\Http\Middleware\EnsureUserHasRole::class,
             'secure.file.upload' => \App\Http\Middleware\SecureFileUpload::class,
             'security.headers' => \App\Http\Middleware\SecurityHeaders::class,
             'block.suspicious.ips' => \App\Http\Middleware\BlockSuspiciousIps::class,
