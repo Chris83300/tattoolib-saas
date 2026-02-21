@@ -68,12 +68,14 @@
                     <!-- Filtres avancés (cachés par défaut) -->
                     <div id="advanced-filters" class="hidden">
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <!-- Spécialisation -->
+                            <!-- Type d'artiste -->
                             <div>
-                                <label class="block text-ivoire-text/70 text-sm mb-2">Spécialisation</label>
-                                <select name="specialization"
+                                <label class="block text-ivoire-text/70 text-sm mb-2">Type d'artiste</label>
+                                <select name="artisan_type"
                                     class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:outline-none focus:border-beige-peau">
-                                    <option value="">Toutes</option>
+                                    <option value="">Tous</option>
+                                    <option value="tattooer" {{ ($filters['artisan_type'] ?? '') === 'tattooer' ? 'selected' : '' }}>🎨 Tatoueurs</option>
+                                    <option value="piercer" {{ ($filters['artisan_type'] ?? '') === 'piercer' ? 'selected' : '' }}>💉 Pierceurs</option>
                                 </select>
                             </div>
 

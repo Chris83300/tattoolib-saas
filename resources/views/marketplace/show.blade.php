@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', ($artist->user->pseudo ?? $artist->user->first_name . ' ' . $artist->user->last_name) . ' - ' . ($type
-    === 'tattooer' ? 'Tatoueur' : 'Perceur') . ' - Ink&Pik')
+    === 'tattooer' ? 'Tatoueur' : 'Pierceur') . ' - Ink&Pik')
 
 @section('content')
     <div class="min-h-screen bg-noir-profond">
@@ -238,6 +238,45 @@ $displayStyles = array_filter(
                         @endforeach
                     </div>
                 </div>
+            @endif
+
+            @if ($type === 'piercer')
+                {{-- Types de piercing --}}
+                @php
+                    $piercingTypes = is_array($artist->piercing_types)
+                        ? $artist->piercing_types
+                        : json_decode($artist->piercing_types ?? '[]', true) ?? [];
+                @endphp
+                @if (!empty($piercingTypes))
+                    <div class="bg-titane/10 rounded-xl p-6 border border-titane/20">
+                        <h3 class="text-lg font-bold text-ivoire-text mb-4">💉 Types de piercing</h3>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach ($piercingTypes as $type_p)
+                                <span class="px-3 py-1 bg-beige-peau/20 text-beige-peau rounded-full text-sm font-medium">
+                                    {{ $type_p }}
+                                </span>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Grille tarifaire --}}
+                @php
+                    $pricingGrid = method_exists($artist, 'getPricingGrid') ? $artist->getPricingGrid() : [];
+                @endphp
+                @if (!empty($pricingGrid))
+                    <div class="bg-titane/10 rounded-xl p-6 border border-titane/20">
+                        <h3 class="text-lg font-bold text-ivoire-text mb-4">💰 Grille tarifaire</h3>
+                        <div class="space-y-2">
+                            @foreach ($pricingGrid as $entry)
+                                <div class="flex items-center justify-between py-2 border-b border-titane/10 last:border-0">
+                                    <span class="text-ivoire-text text-sm">{{ $entry['type'] ?? '' }}</span>
+                                    <span class="text-beige-peau font-semibold">{{ number_format($entry['price'] ?? 0, 0, ',', ' ') }} €</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
             @endif
 
             <!-- Bio -->

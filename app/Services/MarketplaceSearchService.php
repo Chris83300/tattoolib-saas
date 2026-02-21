@@ -17,11 +17,18 @@ class MarketplaceSearchService
 
     public function search(array $filters = [], int $perPage = 12): LengthAwarePaginator
     {
-        $query = $this->getBaseQuery();
+        $artistType = $filters['artist_type'] ?? $filters['artisan_type'] ?? '';
+
+        if ($artistType === 'piercer') {
+            $query = $this->getPiercerBaseQuery();
+        } elseif ($artistType === 'tattooer') {
+            $query = $this->getBaseQuery();
+        } else {
+            // Les deux types : tattooers par défaut (les piercers seront ajoutés en V2 via UNION)
+            $query = $this->getBaseQuery();
+        }
 
         $this->applyFilters($query, $filters);
-
-        // Tri : Pro en premier, puis Free
         $this->applySorting($query, $filters['sort'] ?? 'pro_first');
 
         return $query->paginate($perPage);
@@ -36,9 +43,55 @@ class MarketplaceSearchService
             ->get();
     }
 
+    protected function getPiercerBaseQuery()
+    {
+        return Piercer::query()
+            ->select([
+                'piercers.id',
+                DB::raw("'piercer' as artist_type"),
+                'piercers.user_id',
+                'piercers.name',
+                'piercers.slug',
+                'piercers.city',
+                'piercers.postal_code',
+                'piercers.bio',
+                'piercers.siret_verified',
+                'piercers.has_compliance_badge',
+                'piercers.created_at',
+                DB::raw('NULL as years_of_experience'),
+                DB::raw('NULL as wait_time_weeks_min'),
+                DB::raw('NULL as wait_time_weeks_max'),
+                DB::raw('NULL as minimum_price'),
+                'piercers.piercing_types as styles',
+                'piercers.working_hours',
+                'users.status',
+                'users.pseudo',
+                DB::raw('COALESCE(AVG(reviews.rating), 0) as rating'),
+                DB::raw('COUNT(DISTINCT reviews.id) as reviews_count'),
+                DB::raw('COUNT(DISTINCT appointments.id) as appointments_count'),
+            ])
+            ->join('users', 'piercers.user_id', '=', 'users.id')
+            ->leftJoin('reviews', function($join) {
+                $join->on('reviews.reviewable_id', '=', 'piercers.id')
+                     ->where('reviews.reviewable_type', '=', 'App\\Models\\Piercer');
+            })
+            ->leftJoin('appointments', function($join) {
+                $join->on('appointments.bookable_id', '=', 'piercers.id')
+                     ->where('appointments.bookable_type', '=', 'App\\Models\\Piercer')
+                     ->whereIn('appointments.status', ['completed', 'confirmed']);
+            })
+            ->where('users.status', 'active')
+            ->groupBy([
+                'piercers.id', 'piercers.user_id', 'piercers.name', 'piercers.slug',
+                'piercers.city', 'piercers.postal_code', 'piercers.bio',
+                'piercers.siret_verified', 'piercers.has_compliance_badge',
+                'piercers.created_at', 'piercers.piercing_types', 'piercers.working_hours',
+                'users.status', 'users.pseudo'
+            ]);
+    }
+
     protected function getBaseQuery()
     {
-        // Pour l'instant, seulement les tattooers pour éviter les problèmes de colonnes
         return Tattooer::query()
             ->select([
                 'tattooers.id',
@@ -152,8 +205,8 @@ class MarketplaceSearchService
     {
         return [
             'tattooer' => 'Tatoueur',
-            'Piercer' => 'Piercer',
-            'bodemodeur' => 'Bodemodeur',
+            'piercer' => 'Pierceur',
+            'bodemodeur' => 'Body Modeur',
             'studio_artist' => 'Artiste de studio'
         ];
     }
@@ -183,21 +236,20 @@ class MarketplaceSearchService
      */
     public function getTotalArtists(): int
     {
-        return Tattooer::whereHas('user', fn($q) => $q->where('status', 'active'))->count();
+        return Tattooer::whereHas('user', fn($q) => $q->where('status', 'active'))->count()
+             + Piercer::whereHas('user', fn($q) => $q->where('status', 'active'))->count();
     }
 
     public function getVerifiedArtistsCount(): int
     {
-        return Tattooer::whereHas('user', fn($q) => $q->where('status', 'active'))
-                ->where('siret_verified', true)
-                ->count();
+        return Tattooer::whereHas('user', fn($q) => $q->where('status', 'active'))->where('siret_verified', true)->count()
+             + Piercer::whereHas('user', fn($q) => $q->where('status', 'active'))->where('siret_verified', true)->count();
     }
 
     public function getProArtistsCount(): int
     {
-        return Tattooer::whereHas('user', fn($q) => $q->where('status', 'active'))
-                ->where('current_plan', 'pro')
-                ->count();
+        return Tattooer::whereHas('user', fn($q) => $q->where('status', 'active'))->where('current_plan', 'pro')->count()
+             + Piercer::whereHas('user', fn($q) => $q->where('status', 'active'))->where('current_plan', 'pro')->count();
     }
 
     public function getTotalAppointments(): int

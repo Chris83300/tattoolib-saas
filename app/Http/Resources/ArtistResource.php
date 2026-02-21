@@ -28,7 +28,7 @@ class ArtistResource extends JsonResource
 
             // Spécialisation
             'artist_type' => $this->artist_type,
-            'specialization_label' => $this->artist_type === 'tattooer' ? 'Tatoueur' : 'Perceur',
+            'specialization_label' => $this->artist_type === 'tattooer' ? 'Tatoueur' : 'Pierceur',
 
             // Stats
             'rating' => round($this->rating ?? 0, 1),
@@ -58,7 +58,9 @@ class ArtistResource extends JsonResource
             'wait_time_display' => $this->getWaitTimeDisplay(),
 
             // URLs
-            'profile_url' => route('marketplace.tattooer.show', $this->slug),
+            'profile_url' => in_array($this->artist_type, ['piercer', 'Piercer'])
+                ? route('marketplace.piercer.show', $this->slug)
+                : route('marketplace.tattooer.show', $this->slug),
             'contact_url' => $this->getContactUrl(),
 
             // Badges
@@ -286,10 +288,8 @@ class ArtistResource extends JsonResource
 
     protected function getMorphClass(): string
     {
-        return match($this->artist_type) {
-            'tattooer' => 'App\\Models\\Tattooer',
-            'Piercer' => 'App\\Models\\Piercer',
-            default => 'App\\Models\\Tattooer',
-        };
+        return in_array($this->artist_type, ['piercer', 'Piercer'])
+            ? 'App\\Models\\Piercer'
+            : 'App\\Models\\Tattooer';
     }
 }

@@ -76,12 +76,14 @@ class CacheService
         return Cache::remember($cacheKey, self::ARTIST_PROFILE_TTL, function() use ($artist) {
             $artist->load(['user', 'workingHours']);
 
+            $isPiercer = $artist instanceof Piercer;
             return [
                 'id' => $artist->id,
+                'type' => $isPiercer ? 'piercer' : 'tattooer',
                 'name' => $artist->name,
                 'slug' => $artist->slug,
                 'bio' => $artist->bio,
-                'styles' => $artist->styles,
+                'styles' => $isPiercer ? ($artist->piercing_types ?? []) : ($artist->styles ?? []),
                 'city' => $artist->city,
                 'avatar_url' => $artist->getFirstMediaUrl('avatar'),
                 'banner_url' => $artist->getFirstMediaUrl('banner'),
@@ -90,7 +92,7 @@ class CacheService
                 'total_reviews' => $artist->reviews()->count() ?? 0,
                 'is_subscribed' => $artist->is_subscribed ?? false,
                 'siret_verified' => $artist->siret_verified ?? false,
-                'status' => $artist->status,
+                'status' => $artist->user?->status ?? 'active',
                 'created_at' => $artist->created_at,
             ];
         });
@@ -104,29 +106,42 @@ class CacheService
         $cacheKey = 'marketplace.listings.' . md5(json_encode($filters));
 
         return Cache::remember($cacheKey, self::MARKETPLACE_TTL, function() use ($filters) {
-            $query = Tattooer::query()
-                ->with(['user', 'workingHours'])
-                ->where('siret_verified', true)
-                ->where('compliance_status', 'verified');
+            $artisanType = $filters['artisan_type'] ?? '';
+            $results = collect();
 
-            // Appliquer filtres
-            if (isset($filters['city']) && !empty($filters['city'])) {
-                $query->where('city', 'LIKE', '%' . $filters['city'] . '%');
+            // Tattooers
+            if ($artisanType !== 'piercer') {
+                $query = Tattooer::query()
+                    ->with(['user', 'workingHours'])
+                    ->whereHas('user', fn($q) => $q->where('status', 'active'));
+
+                if (isset($filters['city']) && !empty($filters['city'])) {
+                    $query->where('city', 'LIKE', '%' . $filters['city'] . '%');
+                }
+                if (isset($filters['styles']) && !empty($filters['styles'])) {
+                    $query->where('styles', 'LIKE', '%' . $filters['styles'] . '%');
+                }
+                if (isset($filters['rating']) && $filters['rating'] > 0) {
+                    $query->whereHas('reviews', fn($q) => $q->havingRaw('AVG(rating) >= ?', [$filters['rating']]));
+                }
+
+                $results = $results->concat($query->get()->map(fn($t) => $this->getArtistProfile($t)));
             }
 
-            if (isset($filters['styles']) && !empty($filters['styles'])) {
-                $query->where('styles', 'LIKE', '%' . $filters['styles'] . '%');
+            // Piercers
+            if ($artisanType !== 'tattooer') {
+                $query = Piercer::query()
+                    ->with(['user', 'workingHours'])
+                    ->whereHas('user', fn($q) => $q->where('status', 'active'));
+
+                if (isset($filters['city']) && !empty($filters['city'])) {
+                    $query->where('city', 'LIKE', '%' . $filters['city'] . '%');
+                }
+
+                $results = $results->concat($query->get()->map(fn($p) => $this->getArtistProfile($p)));
             }
 
-            if (isset($filters['rating']) && $filters['rating'] > 0) {
-                $query->whereHas('reviews', function($q) use ($filters) {
-                    $q->havingRaw('AVG(rating) >= ?', [$filters['rating']]);
-                });
-            }
-
-            return $query->get()->map(function($tattooer) {
-                return $this->getArtistProfile($tattooer);
-            })->toArray();
+            return $results->sortByDesc('average_rating')->values()->toArray();
         });
     }
 

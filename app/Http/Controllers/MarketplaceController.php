@@ -17,7 +17,7 @@ class MarketplaceController extends Controller
     {
         $cacheService = app(\App\Services\CacheService::class);
 
-        $filters = $request->only(['city', 'styles', 'rating']);
+        $filters = $request->only(['city', 'styles', 'rating', 'artisan_type']);
         $artists = $cacheService->getMarketplaceListings($filters);
 
         // Obtenir aussi les données de filtrage depuis cache
@@ -52,7 +52,7 @@ class MarketplaceController extends Controller
                 ->with('user')
                 ->first();
 
-            $type = 'Piercer';
+            $type = 'piercer';
         }
 
         abort_if(!$artist, 404, 'Artiste non trouvé');
