@@ -205,12 +205,11 @@ Route::get('/register/tattooer', function () {
     return view('auth.register-tattooer');
 })->name('register.tattooer');
 
-// Inscription pierceur — Phase 8 : sera adapté avec choix artisan_type
 Route::get('/register/pierceur', function () {
     if (auth()->check()) {
         return redirect()->route('home');
     }
-    return view('auth.register-tattooer', ['defaultType' => 'piercer']);
+    return view('auth.register-pierceur');
 })->name('register.pierceur');
 
 Route::get('/register/studio', function () {

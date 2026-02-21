@@ -247,7 +247,7 @@ class RegisterController extends Controller
                 'email' => $validated['email'],
                 'phone' => $validated['phone'] ?? null,
                 'password' => Hash::make($validated['password']),
-                'role' => 'Piercer',
+                'role' => 'pierceur',
                 'status' => 'pending_verification',
             ]);
 
