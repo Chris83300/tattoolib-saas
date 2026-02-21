@@ -5,7 +5,7 @@ namespace App\Policies;
 use App\Models\Conversation;
 use App\Models\User;
 use App\Models\Tattooer;
-use App\Models\Pierceur;
+use App\Models\Piercer;
 use App\Enums\ConversationStatus;
 use App\Enums\BookingRequestStatus;
 
@@ -160,8 +160,8 @@ class ConversationPolicy
             return $user->tattooer->is_subscribed;
         }
 
-        if ($user->isPierceur()) {
-            return $user->pierceur->is_subscribed;
+        if ($user->isPiercer()) {
+            return $user->Piercer->is_subscribed;
         }
 
         if ($user->isStudioArtist()) {
@@ -220,8 +220,8 @@ class ConversationPolicy
             }
 
             // Artiste destinataire
-            if ($user->isTattooer() || $user->isPierceur()) {
-                $profile = $user->isTattooer() ? $user->tattooer : $user->pierceur;
+            if ($user->isTattooer() || $user->isPiercer()) {
+                $profile = $user->isTattooer() ? $user->tattooer : $user->Piercer;
 
                 return $booking->bookable_id === $profile->id
                     && $booking->bookable_type === get_class($profile);

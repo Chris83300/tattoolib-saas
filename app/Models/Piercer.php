@@ -25,15 +25,15 @@ class Piercer extends Model implements HasMedia
     {
         parent::booted();
 
-        static::creating(function ($pierceur) {
-            if (empty($pierceur->slug)) {
-                $pierceur->slug = Str::slug($pierceur->user->name . '-' . $pierceur->id);
+        static::creating(function ($Piercer) {
+            if (empty($Piercer->slug)) {
+                $Piercer->slug = Str::slug($Piercer->user->name . '-' . $Piercer->id);
             }
         });
 
-        static::updating(function ($pierceur) {
-            if (empty($pierceur->slug)) {
-                $pierceur->slug = Str::slug($pierceur->user->name . '-' . $pierceur->id);
+        static::updating(function ($Piercer) {
+            if (empty($Piercer->slug)) {
+                $Piercer->slug = Str::slug($Piercer->user->name . '-' . $Piercer->id);
             }
         });
     }
@@ -170,9 +170,9 @@ class Piercer extends Model implements HasMedia
         return $this->current_plan === 'pro';
     }
 
-    public function isPierceur(): bool
+    public function isPiercer(): bool
     {
-        return $this->specialization === 'pierceur';
+        return $this->specialization === 'Piercer';
     }
 
     public function isBodemodeur(): bool
@@ -182,15 +182,15 @@ class Piercer extends Model implements HasMedia
 
     public function isBoth(): bool
     {
-        return $this->specialization === 'pierceur_bodemodeur';
+        return $this->specialization === 'Piercer_bodemodeur';
     }
 
     public function getSpecializationLabel(): string
     {
         return match($this->specialization) {
-            'pierceur' => 'Pierceur',
+            'Piercer' => 'Piercer',
             'bodemodeur' => 'Bodemodeur',
-            'pierceur_bodemodeur' => 'Pierceur / Bodemodeur',
+            'Piercer_bodemodeur' => 'Piercer / Bodemodeur',
             default => 'Spécialiste',
         };
     }
@@ -235,10 +235,54 @@ class Piercer extends Model implements HasMedia
 
     public function registerMediaCollections(): void
     {
+        // Avatar tatoueur (unique)
+        $this->addMediaCollection('avatar')
+            ->singleFile()
+            ->acceptsMimeTypes([
+                'image/jpeg',
+                'image/png',
+                'image/webp'
+            ])
+            ->useFallbackUrl('/images/default-piercer-avatar.png')
+            ->useFallbackPath(public_path('/images/default-piercer-avatar.png'))
+            ->useDisk('public');
+
+        // Bannière profil (unique)
+        $this->addMediaCollection('banner')
+            ->singleFile()
+            ->acceptsMimeTypes([
+                'image/jpeg',
+                'image/png',
+                'image/webp'
+            ])
+            ->useDisk('public');
+
         $this->addMediaCollection('portfolio')
             ->useDisk('public')
-            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp'])
-            ->maxFiles(20)
-            ->maxSize(5 * 1024 * 1024); // 5MB
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp']);
+    }
+
+    public function registerMediaConversions(Media $media = null): void
+    {
+        // Avatar conversions
+        $this->addMediaConversion('thumb')
+            ->width(200)
+            ->height(200)
+            ->sharpen(10)
+            ->performOnCollections('avatar');
+
+        // Bannière conversions
+        $this->addMediaConversion('thumb')
+            ->width(400)
+            ->height(133)
+            ->sharpen(10)
+            ->performOnCollections('banner');
+
+        // Portfolio conversions
+        $this->addMediaConversion('thumb')
+            ->width(400)
+            ->height(400)
+            ->sharpen(10)
+            ->performOnCollections('portfolio');
     }
 }

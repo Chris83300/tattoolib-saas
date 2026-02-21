@@ -24,6 +24,12 @@ class TattooerController extends Controller
     public function profile()
     {
         $tattooer = auth()->user()->tattooer;
+
+        if (!$tattooer) {
+            return redirect()->route('register.tattooer')
+                ->with('error', 'Veuillez compléter votre profil tatoueur pour accéder à cette page.');
+        }
+
         $cacheService = app(\App\Services\CacheService::class);
 
         // Charger données depuis cache

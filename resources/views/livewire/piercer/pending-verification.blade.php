@@ -28,7 +28,7 @@
                 <div class="bg-vert-succes/20 border border-vert-succes text-vert-succes px-4 py-3 rounded-lg mb-6">
                     <p class="font-semibold">{{ session('success') }}</p>
                     <p class="text-sm mt-2">
-                        <a href="{{ route('pierceur.dashboard') }}" class="underline hover:text-beige-peau">
+                        <a href="{{ route('piercer.dashboard') }}" class="underline hover:text-beige-peau">
                             Accéder à mon dashboard pierceur →
                         </a>
                     </p>
@@ -46,7 +46,7 @@
                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                         <span><strong class="text-ivoire-text">SIRET :</strong>
-                            {{ $pierceur?->siret ?? 'Non renseigné' }}</span>
+                            {{ $piercer?->siret ?? 'Non renseigné' }}</span>
                     </li>
                     <li class="flex items-start gap-2">
                         <svg class="w-5 h-5 text-vert-succes flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
@@ -55,7 +55,7 @@
                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                         <span><strong class="text-ivoire-text">Nom :</strong>
-                            {{ $pierceur?->name ?? auth()->user()->displayName() }}</span>
+                            {{ $piercer?->name ?? auth()->user()->displayName() }}</span>
                     </li>
                     <li class="flex items-start gap-2">
                         <svg class="w-5 h-5 text-vert-succes flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
@@ -64,7 +64,7 @@
                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                         <span><strong class="text-ivoire-text">Spécialisation :</strong>
-                            {{ $pierceur?->specialization ?? 'Non renseignée' }}</span>
+                            {{ $piercer?->specialization ?? 'Non renseignée' }}</span>
                     </li>
                     <li class="flex items-start gap-2">
                         <svg class="w-5 h-5 text-vert-succes flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
@@ -73,7 +73,7 @@
                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                         <span><strong class="text-ivoire-text">Ville :</strong>
-                            {{ $pierceur?->city ?? 'Non renseignée' }}</span>
+                            {{ $piercer?->city ?? 'Non renseignée' }}</span>
                     </li>
                 </ul>
             </div>
@@ -108,7 +108,7 @@
 
             <!-- CTA -->
             <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                <a href="{{ route('pierceur.dashboard') }}"
+                <a href="{{ route('Piercer.dashboard') }}"
                     class="px-6 py-3 bg-beige-peau hover:bg-beige-peau/90 text-noir-profond font-bold rounded-lg transition-colors">
                     Accéder à mon dashboard pierceur
                 </a>
@@ -131,6 +131,6 @@
 <!-- Redirection automatique après 10 secondes -->
 <script>
     setTimeout(function() {
-        window.location.href = "{{ route('pierceur.dashboard') }}";
+        window.location.href = "{{ route('Piercer.dashboard') }}";
     }, 10000);
 </script>

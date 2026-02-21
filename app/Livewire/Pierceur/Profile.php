@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Pierceur;
+namespace App\Livewire\Piercer;
 
 use Livewire\Component;
 use Livewire\Attributes\Layout;
@@ -9,7 +9,7 @@ use Livewire\Attributes\Title;
 class Profile extends Component
 {
     public $user;
-    public $pierceur;
+    public $Piercer;
     public $stats;
     public $bio;
     public $editingBio = false;
@@ -17,24 +17,24 @@ class Profile extends Component
     public function mount()
     {
         $this->user = auth()->user();
-        $this->pierceur = $this->user->pierceur;
-        $this->bio = $this->pierceur->bio ?? '';
+        $this->Piercer = $this->user->Piercer;
+        $this->bio = $this->Piercer->bio ?? '';
 
         // Stats
         $this->stats = (object) [
-            'appointments_this_month' => $this->pierceur->appointments()
+            'appointments_this_month' => $this->Piercer->appointments()
                 ->whereMonth('appointment_date', now()->month)
                 ->whereYear('appointment_date', now()->year)
                 ->count(),
-            'total_clients' => $this->pierceur->appointments()
+            'total_clients' => $this->Piercer->appointments()
                 ->distinct('client_id')
                 ->count('client_id'),
-            'monthly_revenue' => $this->pierceur->appointments()
+            'monthly_revenue' => $this->Piercer->appointments()
                 ->whereMonth('appointment_date', now()->month)
                 ->whereYear('appointment_date', now()->year)
                 ->where('status', 'completed')
                 ->sum('total_price'),
-            'pending_requests' => $this->pierceur->bookingRequests()
+            'pending_requests' => $this->Piercer->bookingRequests()
                 ->where('status', 'pending')
                 ->count(),
         ];
@@ -45,9 +45,9 @@ class Profile extends Component
     public function render()
     {
         // Portfolio via Spatie
-        $portfolioImages = $this->pierceur->getMedia('portfolio');
-        
-        return view('livewire.pierceur.profile', [
+        $portfolioImages = $this->Piercer->getMedia('portfolio');
+
+        return view('livewire.Piercer.profile', [
             'portfolioImages' => $portfolioImages,
         ]);
     }
@@ -58,7 +58,7 @@ class Profile extends Component
             'bio' => 'nullable|string|max:1000',
         ]);
 
-        $this->pierceur->update([
+        $this->Piercer->update([
             'bio' => $this->bio,
         ]);
 
@@ -70,7 +70,7 @@ class Profile extends Component
     {
         $this->editingBio = !$this->editingBio;
         if ($this->editingBio) {
-            $this->bio = $this->pierceur->bio ?? '';
+            $this->bio = $this->Piercer->bio ?? '';
         }
     }
 }

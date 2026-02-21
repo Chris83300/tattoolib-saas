@@ -88,7 +88,7 @@
                         </a>
                     @endif
 
-                    @if (in_array(auth()->user()->role, ['tattooer', 'pierceur', 'studio_artist']))
+                    @if (in_array(auth()->user()->role, ['tattooer', 'piercer', 'studio_artist']))
                         <a href="/tattooer/dashboard" class="hover:text-beige-peau transition-colors">Mon
                             espace pro</a>
                         <a href="/tattooer/demandes" class="hover:text-beige-peau transition-colors">Demandes</a>
@@ -136,7 +136,7 @@
                             class="block py-2 text-ivoire-text hover:text-beige-peau transition-colors">Messages</a>
                     @endif
 
-                    @if (in_array(auth()->user()->role, ['tattooer', 'pierceur', 'studio_artist']))
+                    @if (in_array(auth()->user()->role, ['tattooer', 'piercer', 'studio_artist']))
                         <a href="/tattooer/dashboard"
                             class="block py-2 text-ivoire-text hover:text-beige-peau transition-colors">Mon espace pro</a>
                         <a href="/tattooer/demandes"

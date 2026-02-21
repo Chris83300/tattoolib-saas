@@ -290,7 +290,7 @@ class ClientController extends Controller
                 'lastMessage.sender',
                 'bookingRequest' => function ($query) {
                     $query->with([
-                        'bookable.user', // Tattooer ou Pierceur
+                        'bookable.user', // Tattooer ou Piercer
                         'client.user'
                     ]);
                 }

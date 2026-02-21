@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Pierceur - Tattoolib SaaS')</title>
+    <title>@yield('title', 'Piercer - Tattoolib SaaS')</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -27,16 +27,16 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16">
                     <div class="flex items-center">
-                        <a href="{{ route('pierceur.dashboard') }}" class="text-xl font-bold text-beige-peau">
-                            Tattoolib - Pierceur
+                        <a href="{{ route('Piercer.dashboard') }}" class="text-xl font-bold text-beige-peau">
+                            Tattoolib - Piercer
                         </a>
                     </div>
                     <div class="flex items-center space-x-4">
-                        <a href="{{ route('pierceur.dashboard') }}" class="text-ivoire-text hover:text-beige-peau">Dashboard</a>
-                        <a href="{{ route('pierceur.portfolio') }}" class="text-ivoire-text hover:text-beige-peau">Portfolio</a>
-                        <a href="{{ route('pierceur.clients') }}" class="text-ivoire-text hover:text-beige-peau">Clients</a>
-                        <a href="{{ route('pierceur.messages') }}" class="text-ivoire-text hover:text-beige-peau">Messages</a>
-                        <a href="{{ route('pierceur.settings') }}" class="text-ivoire-text hover:text-beige-peau">Paramètres</a>
+                        <a href="{{ route('Piercer.dashboard') }}" class="text-ivoire-text hover:text-beige-peau">Dashboard</a>
+                        <a href="{{ route('Piercer.portfolio') }}" class="text-ivoire-text hover:text-beige-peau">Portfolio</a>
+                        <a href="{{ route('Piercer.clients') }}" class="text-ivoire-text hover:text-beige-peau">Clients</a>
+                        <a href="{{ route('Piercer.messages') }}" class="text-ivoire-text hover:text-beige-peau">Messages</a>
+                        <a href="{{ route('Piercer.settings') }}" class="text-ivoire-text hover:text-beige-peau">Paramètres</a>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit" class="text-ivoire-text hover:text-beige-peau">Déconnexion</button>

@@ -6,7 +6,7 @@ use App\Models\Client;
 use App\Models\BookingRequest;
 use App\Models\Tattooer;
 use App\Models\StudioArtist;
-use App\Models\Pierceur;
+use App\Models\Piercer;
 use App\Models\User;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -114,14 +114,14 @@ class BookingRequestForm extends Component
         $this->bookable = match($bookableType) {
             'tattooer' => Tattooer::findOrFail($bookableId),
             'studio-artist' => StudioArtist::findOrFail($bookableId),
-            'piercer', 'pierceur' => Pierceur::findOrFail($bookableId),
+            'piercer', 'Piercer' => Piercer::findOrFail($bookableId),
             default => abort(404),
         };
 
         $this->bookableName = match($this->bookableType) {
             'tattooer' => $this->bookable->user->pseudo ?? $this->bookable->user->name,
             'studio-artist' => $this->bookable->artist_name,
-            'piercer', 'pierceur' => $this->bookable->user->pseudo ?? $this->bookable->user->name,
+            'piercer', 'Piercer' => $this->bookable->user->pseudo ?? $this->bookable->user->name,
             default => 'Artiste',
         };
 
@@ -269,7 +269,7 @@ class BookingRequestForm extends Component
         return match($this->bookableType) {
             'tattooer' => 'App\\Models\\Tattooer',
             'studio-artist' => 'App\\Models\\StudioArtist',
-            'piercer', 'pierceur' => 'App\\Models\\Pierceur',
+            'piercer', 'Piercer' => 'App\\Models\\Piercer',
             default => abort(404),
         };
     }
@@ -311,7 +311,7 @@ class BookingRequestForm extends Component
         return match($this->bookableType) {
             'tattooer' => $this->bookable->user->name,
             'studio-artist' => $this->bookable->artist_name,
-            'piercer', 'pierceur' => $this->bookable->user->name,
+            'piercer', 'Piercer' => $this->bookable->user->name,
             default => 'Artiste',
         };
     }

@@ -3,9 +3,10 @@
 namespace App\Filament\Admin\Resources\Pierceurs\Schemas;
 
 use Filament\Forms;
-use Filament\Forms\Components\Actions\Action;
+use Filament\Actions\Action;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use App\Models\Piercer;
 
 class PierceurForm
 {
@@ -108,36 +109,7 @@ class PierceurForm
                             ->visible(fn ($get) => $get('user.status') === 'suspended')
                             ->columnSpanFull(),
 
-                    ])
-                    ->columns(2),
-
-                // SECTION 3 : Portfolio (NON OBLIGATOIRE)
-                Section::make('Portfolio')
-                    ->description('Photos et images du pierceur')
-                    ->schema([
-
-                        Forms\Components\FileUpload::make('avatar')
-                            ->label('Avatar')
-                            ->image()
-                            ->imageEditor()
-                            ->imageEditorAspectRatios(['1:1'])
-                            ->maxSize(5120)
-                            ->helperText('Avatar principal du pierceur (format carré recommandé)')
-                            ->required(false), // ← NON OBLIGATOIRE
-
-                        Forms\Components\FileUpload::make('portfolio')
-                            ->label('Portfolio')
-                            ->multiple()
-                            ->image()
-                            ->imageEditor()
-                            ->maxSize(5120)
-                            ->maxFiles(20)
-                            ->reorderable()
-                            ->helperText('Photos des réalisations (max 20 images)')
-                            ->required(false) // ← NON OBLIGATOIRE
-                            ->columnSpanFull(),
-
-                    ]),
+                        ]),
 
                 // SECTION 4 : Configuration Paiement
                 Section::make('Configuration Paiement')

@@ -8,6 +8,7 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\CreateAction;
+use App\Models\Piercer;
 
 class PierceursTable
 {
@@ -27,7 +28,7 @@ class PierceursTable
                     ->label('Avatar')
                     ->circular()
                     ->size(50)
-                    ->defaultImageUrl(fn ($record) => $record->getFirstMediaUrl('avatar') ?: asset('images/default-avatar.png')),
+                    ->defaultImageUrl(fn ($record) => $record->user->getFirstMediaUrl('avatar') ?: asset('images/default-avatar.png')),
 
                 // COLONNE 3 : Nom (principal)
                 Tables\Columns\TextColumn::make('name')

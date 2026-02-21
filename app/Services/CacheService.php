@@ -4,7 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Cache;
 use App\Models\Tattooer;
-use App\Models\Pierceur;
+use App\Models\Piercer;
 
 class CacheService
 {
@@ -18,7 +18,7 @@ class CacheService
     /**
      * Cache portfolio images d'un artiste
      */
-    public function getPortfolio(Tattooer|Pierceur $artist): array
+    public function getPortfolio(Tattooer|Piercer $artist): array
     {
         $cacheKey = $this->portfolioKey($artist);
 
@@ -39,7 +39,7 @@ class CacheService
     /**
      * Cache horaires de travail
      */
-    public function getWorkingHours(Tattooer|Pierceur $artist): array
+    public function getWorkingHours(Tattooer|Piercer $artist): array
     {
         $cacheKey = "artist.{$artist->id}.working_hours";
 
@@ -69,7 +69,7 @@ class CacheService
     /**
      * Cache profil complet artiste (pour marketplace)
      */
-    public function getArtistProfile(Tattooer|Pierceur $artist): array
+    public function getArtistProfile(Tattooer|Piercer $artist): array
     {
         $cacheKey = "artist.{$artist->id}.full_profile";
 
@@ -133,7 +133,7 @@ class CacheService
     /**
      * Cache stats dashboard (déjà dans TattooerStatsService mais wrapper ici)
      */
-    public function getDashboardStats(Tattooer|Pierceur $artist): array
+    public function getDashboardStats(Tattooer|Piercer $artist): array
     {
         $cacheKey = "artist.{$artist->id}.dashboard_stats";
 
@@ -184,7 +184,7 @@ class CacheService
     /**
      * Invalider cache artiste (appelé après update)
      */
-    public function invalidateArtist(Tattooer|Pierceur $artist): void
+    public function invalidateArtist(Tattooer|Piercer $artist): void
     {
         Cache::forget($this->portfolioKey($artist));
         Cache::forget("artist.{$artist->id}.working_hours");
@@ -216,7 +216,7 @@ class CacheService
     /**
      * Invalider tous les caches pour un artiste
      */
-    public function invalidateAllArtistCache(Tattooer|Pierceur $artist): void
+    public function invalidateAllArtistCache(Tattooer|Piercer $artist): void
     {
         $this->invalidateArtist($artist);
 
@@ -227,9 +227,9 @@ class CacheService
     /**
      * Invalider cache médias
      */
-    public function invalidateMediaCache(Tattooer|Pierceur $artist): void
+    public function invalidateMediaCache(Tattooer|Piercer $artist): void
     {
-        $type = $artist instanceof Tattooer ? 'tattooer' : 'pierceur';
+        $type = $artist instanceof Tattooer ? 'tattooer' : 'Piercer';
         if (config('cache.default') === 'redis') {
             $keys = Cache::getRedis()->keys("{$type}.{$artist->id}.*");
             if (!empty($keys)) {
@@ -267,7 +267,7 @@ class CacheService
 
     private function portfolioKey($artist): string
     {
-        $type = $artist instanceof Tattooer ? 'tattooer' : 'pierceur';
+        $type = $artist instanceof Tattooer ? 'tattooer' : 'Piercer';
         return "{$type}.{$artist->id}.portfolio";
     }
 

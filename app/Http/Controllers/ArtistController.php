@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tattooer;
-use App\Models\Pierceur;
+use App\Models\Piercer;
 use App\Models\Studio;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -12,9 +12,9 @@ class ArtistController extends Controller
 {
     public function show(string $slug)
     {
-        // Chercher dans tattooers, pierceurs OU studios
+        // Chercher dans tattooers, Piercers OU studios
         $artist = Tattooer::where('slug', $slug)->first()
-                  ?? Pierceur::where('slug', $slug)->first()
+                  ?? Piercer::where('slug', $slug)->first()
                   ?? Studio::where('slug', $slug)->first();
 
         if (!$artist) {

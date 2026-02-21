@@ -108,7 +108,7 @@ class User extends Authenticatable implements HasMedia
             'studio' => $this->hasOne(Studio::class),
             'studio_artist' => $this->hasOne(StudioArtist::class),
             'admin' => $this->hasOne(Client::class)->where('id', 0), // Relation vide pour admin
-            default => $this->hasOne(Client::class)->where('id', 0), // Relation vide par défaut
+            default => null,
         };
     }
 
@@ -194,7 +194,7 @@ class User extends Authenticatable implements HasMedia
         return $this->role === 'tattooer';
     }
 
-    public function isPierceur(): bool
+    public function isPiercer(): bool
     {
         return $this->role === 'pierceur';
     }

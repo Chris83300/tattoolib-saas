@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tattooer;
-use App\Models\Pierceur;
+use App\Models\Piercer;
 use App\Models\Subscription;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -45,14 +45,14 @@ class MarketplaceController extends Controller
 
         $type = 'tattooer';
 
-        // Si pas trouvé, chercher dans pierceurs
+        // Si pas trouvé, chercher dans Piercers
         if (!$artist) {
-            $artist = Pierceur::where('slug', $slug)
+            $artist = Piercer::where('slug', $slug)
                 ->whereHas('user', fn($q) => $q->whereIn('status', ['active', 'pending_verification']))
                 ->with('user')
                 ->first();
 
-            $type = 'pierceur';
+            $type = 'Piercer';
         }
 
         abort_if(!$artist, 404, 'Artiste non trouvé');
@@ -104,15 +104,15 @@ class MarketplaceController extends Controller
             $proTattooers = $proTattooers->concat($freeTattooers);
         }
 
-        // Ajouter quelques pierceurs PRO si disponible
-        $proPierceurs = Pierceur::whereHas('user', fn($q) => $q->where('status', 'active'))
+        // Ajouter quelques Piercers PRO si disponible
+        $proPiercers = Piercer::whereHas('user', fn($q) => $q->where('status', 'active'))
             ->whereHas('subscription', fn($q) => $q->where('plan', Subscription::PLAN_PRO)->where('status', 'active'))
             ->with(['user', 'media'])
             ->inRandomOrder()
             ->limit(2)
             ->get();
 
-        $allArtists = $proTattooers->concat($proPierceurs);
+        $allArtists = $proTattooers->concat($proPiercers);
 
         return $allArtists->take(8); // Maximum 8 artistes
     }

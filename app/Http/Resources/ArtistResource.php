@@ -288,7 +288,7 @@ class ArtistResource extends JsonResource
     {
         return match($this->artist_type) {
             'tattooer' => 'App\\Models\\Tattooer',
-            'pierceur' => 'App\\Models\\Pierceur',
+            'Piercer' => 'App\\Models\\Piercer',
             default => 'App\\Models\\Tattooer',
         };
     }

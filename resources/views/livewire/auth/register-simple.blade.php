@@ -21,7 +21,7 @@
                 <p class="text-ivoire-text/70 text-sm">Je suis tatoueur</p>
             </button>
 
-            <button wire:click="selectRole('pierceur')" class="bg-gris-fonde hover:bg-beige-peau/10 border-2 border-transparent rounded-xl p-6 text-center">
+            <button wire:click="selectRole('piercer')" class="bg-gris-fonde hover:bg-beige-peau/10 border-2 border-transparent rounded-xl p-6 text-center">
                 <h3 class="text-ivoire-text font-bold">Pierceur</h3>
                 <p class="text-ivoire-text/70 text-sm">Je suis pierceur</p>
             </button>

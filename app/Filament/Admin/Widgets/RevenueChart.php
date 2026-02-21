@@ -5,7 +5,7 @@ namespace App\Filament\Admin\Widgets;
 use App\Models\Appointment;
 use App\Models\Subscription;
 use App\Models\Tattooer;
-use App\Models\Pierceur;
+use App\Models\Piercer;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Carbon;
 
@@ -22,7 +22,7 @@ class RevenueChart extends ChartWidget
 
         // Données de base qui existent
         $totalTattooers = Tattooer::count();
-        $totalPierceurs = Pierceur::count();
+        $totalPierceurs = Piercer::count();
         $totalAppointments = Appointment::whereMonth('start_datetime', $currentMonth)
             ->whereYear('start_datetime', $currentYear)
             ->count();

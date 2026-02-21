@@ -23,14 +23,14 @@ class RedirectIfAuthenticated
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
                 $user = Auth::user();
-                
+
                 // Redirection selon le rôle au lieu de /dashboard
                 switch ($user->role) {
                     case 'client':
                         return redirect()->route('client.profile');
                     case 'tattooer':
                         return redirect()->route('tattooer.dashboard');
-                    case 'pierceur':
+                    case 'Piercer':
                         return redirect()->route('tattooer.dashboard'); // Temporairement
                     case 'studio':
                         return redirect()->route('tattooer.dashboard'); // Temporairement

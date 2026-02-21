@@ -17,7 +17,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use App\Models\Client;
 use App\Models\BookingRequest;
 use App\Models\StudioArtist;
-use App\Models\Pierceur;
+use App\Models\Piercer;
 use App\Models\User;
 use App\Models\Appointment;
 use App\Models\Availability;

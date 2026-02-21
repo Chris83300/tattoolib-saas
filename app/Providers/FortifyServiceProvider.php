@@ -45,7 +45,7 @@ class FortifyServiceProvider extends ServiceProvider
 
             return match($user->role) {
                 'client' => route('client.profile'),
-                'tattooer', 'pierceur' => $user->status === 'pending_verification'
+                'tattooer', 'piercer' => $user->status === 'pending_verification'
                     ? route('tattooer.pending-verification')
                     : route('tattooer.dashboard'),
                 'studio_artist' => route('tattooer.dashboard'),

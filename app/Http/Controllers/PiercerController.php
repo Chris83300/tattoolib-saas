@@ -17,10 +17,10 @@ use App\Actions\ReportNoShowAction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class PierceurController extends Controller
+class PiercerController extends Controller
 {
     /**
-     * Profil public du pierceur (vue interne)
+     * Profil public du Piercer (vue interne)
      */
     public function profile()
     {
@@ -42,11 +42,16 @@ class PierceurController extends Controller
     }
 
     /**
-     * Dashboard du pierceur
+     * Dashboard du Piercer
      */
     public function dashboard()
     {
         $piercer = auth()->user()->piercer;
+
+        if (!$piercer) {
+            return redirect()->route('register.Piercer')
+                ->with('error', 'Veuillez compléter votre profil Piercer pour accéder au dashboard.');
+        }
 
         // Statistiques
         $stats = [
@@ -74,7 +79,7 @@ class PierceurController extends Controller
     }
 
     /**
-     * Paramètres du pierceur
+     * Paramètres du Piercer
      */
     public function settings()
     {
@@ -83,7 +88,7 @@ class PierceurController extends Controller
     }
 
     /**
-     * Portfolio du pierceur
+     * Portfolio du Piercer
      */
     public function portfolio()
     {
@@ -94,7 +99,7 @@ class PierceurController extends Controller
     }
 
     /**
-     * Clients du pierceur
+     * Clients du Piercer
      */
     public function clients()
     {
@@ -108,7 +113,7 @@ class PierceurController extends Controller
     }
 
     /**
-     * Messages du pierceur
+     * Messages du Piercer
      */
     public function messages()
     {
@@ -122,7 +127,7 @@ class PierceurController extends Controller
     }
 
     /**
-     * Demandes de réservation du pierceur
+     * Demandes de réservation du Piercer
      */
     public function bookingRequests()
     {
@@ -142,8 +147,8 @@ class PierceurController extends Controller
     {
         $piercer = auth()->user()->piercer;
 
-        // Vérifier que la demande appartient bien au pierceur
-        if ($bookingRequest->bookable_id !== $piercer->id || $bookingRequest->bookable_type !== 'App\Models\Pierceur') {
+        // Vérifier que la demande appartient bien au Piercer
+        if ($bookingRequest->bookable_id !== $piercer->id || $bookingRequest->bookable_type !== 'App\Models\Piercer') {
             abort(403);
         }
 
@@ -157,8 +162,8 @@ class PierceurController extends Controller
     {
         $piercer = auth()->user()->piercer;
 
-        // Vérifier que la demande appartient bien au pierceur
-        if ($bookingRequest->bookable_id !== $piercer->id || $bookingRequest->bookable_type !== 'App\Models\Pierceur') {
+        // Vérifier que la demande appartient bien au Piercer
+        if ($bookingRequest->bookable_id !== $piercer->id || $bookingRequest->bookable_type !== 'App\Models\Piercer') {
             abort(403);
         }
 
@@ -176,10 +181,10 @@ class PierceurController extends Controller
     }
 
     /**
-     * Page d'accueil du pierceur
+     * Page d'accueil du Piercer
      */
     public function index()
     {
-        return redirect()->route('pierceur.dashboard');
+        return redirect()->route('piercer.dashboard');
     }
 }

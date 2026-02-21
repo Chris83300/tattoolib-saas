@@ -138,7 +138,7 @@ Route::get('/tattooer/pending-verification', function () {
 
 // Routes marketplace publiques (APRÈS les routes authentifiées)
 Route::get('/tattooer/{slug}', [MarketplaceController::class, 'show'])->name('marketplace.tattooer.show');
-Route::get('/pierceur/{slug}', [MarketplaceController::class, 'show'])->name('marketplace.pierceur.show');
+Route::get('/piercer/{slug}', [MarketplaceController::class, 'show'])->name('marketplace.piercer.show');
 
 // Authentification
 Route::get('/login', function () {
@@ -150,8 +150,8 @@ Route::get('/login', function () {
                 return redirect()->route('client.profile');
             case 'tattooer':
                 return redirect()->route('tattooer.profile');
-            case 'pierceur':
-                return redirect()->route('pierceur.dashboard');
+            case 'Piercer':
+                return redirect()->route('Piercer.dashboard');
             case 'studio':
                 return redirect()->route('studio.dashboard');
             case 'studio_artist':
@@ -172,8 +172,8 @@ Route::get('/register', function () {
                 return redirect()->route('client.profile');
             case 'tattooer':
                 return redirect()->route('tattooer.dashboard');
-            case 'pierceur':
-                return redirect()->route('pierceur.dashboard');
+            case 'Piercer':
+                return redirect()->route('Piercer.dashboard');
             case 'studio':
                 return redirect()->route('studio.dashboard');
             case 'studio_artist':
@@ -202,13 +202,13 @@ Route::get('/register/tattooer', function () {
     return view('auth.register-tattooer');
 })->name('register.tattooer');
 
-Route::get('/register/pierceur', function () {
+Route::get('/register/Piercer', function () {
     // Si déjà connecté, rediriger vers le profil approprié
     if (auth()->check()) {
-        return redirect()->route('pierceur.dashboard');
+        return redirect()->route('Piercer.dashboard');
     }
-    return view('auth.register-pierceur');
-})->name('register.pierceur');
+    return view('auth.register-Piercer');
+})->name('register.Piercer');
 
 Route::get('/register/studio', function () {
     // Si déjà connecté, rediriger vers le profil approprié
@@ -232,9 +232,9 @@ Route::post('/register/tattooer', function (Illuminate\Http\Request $request) {
     return app(App\Http\Controllers\RegisterController::class)->submitTattooer($request);
 })->name('register.tattooer.submit');
 
-Route::post('/register/pierceur', function (Illuminate\Http\Request $request) {
-    return app(App\Http\Controllers\RegisterController::class)->submitPierceur($request);
-})->name('register.pierceur.submit');
+Route::post('/register/Piercer', function (Illuminate\Http\Request $request) {
+    return app(App\Http\Controllers\RegisterController::class)->submitPiercer($request);
+})->name('register.Piercer.submit');
 
 Route::post('/register/studio', function (Illuminate\Http\Request $request) {
     return app(App\Http\Controllers\RegisterController::class)->submitStudio($request);
@@ -260,16 +260,22 @@ Route::middleware(['auth'])->prefix('client')->name('client.')->group(function (
         ->name('balance.show');
 });
 
-// Routes Pierceur (protégées — Livewire)
-Route::middleware(['auth', 'role:pierceur'])->prefix('pierceur')->name('pierceur.')->group(function () {
-    Route::get('/', App\Livewire\Pierceur\Dashboard::class)->name('index');
-    Route::get('/dashboard', App\Livewire\Pierceur\Dashboard::class)->name('dashboard');
-    Route::get('/settings', App\Livewire\Pierceur\Settings::class)->name('settings');
-    Route::get('/profil', App\Livewire\Pierceur\Profile::class)->name('profile');
-    Route::get('/messages', App\Livewire\Pierceur\Messages::class)->name('messages');
-    Route::get('/calendar', App\Livewire\Pierceur\Calendar::class)->name('calendar');
-    Route::get('/demandes', App\Livewire\Pierceur\BookingRequests::class)->name('booking-requests');
+// Routes Piercer (protégées — Livewire)
+Route::middleware(['auth', 'role:Piercer'])->prefix('Piercer')->name('Piercer.')->group(function () {
+    Route::get('/', [App\Http\Controllers\PiercerController::class, 'index'])->name('index');
+    Route::get('/dashboard', [App\Http\Controllers\PiercerController::class, 'dashboard'])->name('dashboard');
+    Route::get('/settings', [App\Http\Controllers\PiercerController::class, 'settings'])->name('settings');
+    Route::get('/portfolio', [App\Http\Controllers\PiercerController::class, 'portfolio'])->name('portfolio');
+    Route::get('/clients', [App\Http\Controllers\PiercerController::class, 'clients'])->name('clients');
+    Route::get('/messages', [App\Http\Controllers\PiercerController::class, 'messages'])->name('messages');
+    Route::get('/calendar', [App\Http\Controllers\PiercerController::class, 'calendar'])->name('calendar');
+    Route::get('/demandes', [App\Http\Controllers\PiercerController::class, 'bookingRequests'])->name('booking-requests');
 });
+
+// Route de test pour le dashboard Piercer
+Route::get('/Piercer/dashboard-test', function () {
+    return 'Dashboard Piercer fonctionne !';
+})->middleware(['auth', 'role:Piercer'])->name('Piercer.dashboard-test');
 
 // Routes Studio (protégées)
 // Profil public Studio (accessible sans auth)
@@ -310,15 +316,15 @@ Route::middleware(['auth'])->prefix('studio-artist')->name('studio-artist.')->gr
     })->name('studio-artist.compliance');
 });
 
-// Page publique artiste (Tattooer OU Pierceur)
+// Page publique artiste (Tattooer OU Piercer)
 Route::get('/artistes/{slug}', [MarketplaceController::class, 'show'])
     ->name('marketplace.show.artist');
 
 
-Route::get('/pierceur/pending-verification', function () {
-    $pierceur = auth()->user()->pierceur;
-    return view('livewire.pierceur.pending-verification', compact('pierceur'));
-})->middleware(['auth'])->name('pierceur.pending-verification');
+Route::get('/Piercer/pending-verification', function () {
+    $Piercer = auth()->user()->Piercer;
+    return view('livewire.Piercer.pending-verification', compact('Piercer'));
+})->middleware(['auth'])->name('Piercer.pending-verification');
 
 Route::get('/studio/pending-verification', function () {
     return view('auth.pending-verification', ['role' => 'studio']);
@@ -364,7 +370,7 @@ Route::prefix('booking-request')->name('booking-request.')->group(function () {
         return view('booking-request-form', compact('bookableId', 'bookableType'));
     })->name('form')->where([
         'bookableId' => '[0-9]+',
-        'bookableType' => 'tattooer|pierceur|piercer|studio-artist',
+        'bookableType' => 'tattooer|Piercer|piercer|studio-artist',
     ]);
 });
 

@@ -15,12 +15,12 @@
                 Vous êtes...
             </p>
         </div>
-        
+
         <!-- Grid choix rôles (2x2) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-            
+
             <!-- CLIENT -->
-            <button 
+            <button
                 wire:click="selectRole('client')"
                 class="bg-gris-fonde hover:bg-beige-peau/10 hover:border-beige-peau border-2 border-transparent rounded-xl p-6 text-center transition-all group">
                 <div class="w-16 h-16 mx-auto mb-4 bg-beige-peau/10 rounded-full flex items-center justify-center">
@@ -35,9 +35,9 @@
                     Je cherche un artiste pour mon projet
                 </p>
             </button>
-            
+
             <!-- TATTOOER -->
-            <button 
+            <button
                 wire:click="selectRole('tattooer')"
                 class="bg-gris-fonde hover:bg-beige-peau/10 hover:border-beige-peau border-2 border-transparent rounded-xl p-6 text-center transition-all group">
                 <div class="w-16 h-16 mx-auto mb-4 bg-beige-peau/10 rounded-full flex items-center justify-center">
@@ -52,10 +52,10 @@
                     Je suis tatoueur professionnel
                 </p>
             </button>
-            
-            <!-- PIERCEUR -->
-            <button 
-                wire:click="selectRole('pierceur')"
+
+            <!-- Piercer -->
+            <button
+                wire:click="selectRole('Piercer')"
                 class="bg-gris-fonde hover:bg-beige-peau/10 hover:border-beige-peau border-2 border-transparent rounded-xl p-6 text-center transition-all group">
                 <div class="w-16 h-16 mx-auto mb-4 bg-beige-peau/10 rounded-full flex items-center justify-center">
                     <svg class="w-8 h-8 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -63,15 +63,15 @@
                     </svg>
                 </div>
                 <h3 class="text-ivoire-text font-display font-bold text-lg mb-2 group-hover:text-beige-peau transition-colors">
-                    Pierceur
+                    Piercer
                 </h3>
                 <p class="text-ivoire-text/70 text-sm">
-                    Je suis pierceur professionnel
+                    Je suis Piercer professionnel
                 </p>
             </button>
-            
+
             <!-- STUDIO -->
-            <button 
+            <button
                 wire:click="selectRole('studio')"
                 class="bg-gris-fonde hover:bg-beige-peau/10 hover:border-beige-peau border-2 border-transparent rounded-xl p-6 text-center transition-all group">
                 <div class="w-16 h-16 mx-auto mb-4 bg-beige-peau/10 rounded-full flex items-center justify-center">
@@ -86,9 +86,9 @@
                     Je gère un salon avec plusieurs artistes
                 </p>
             </button>
-            
+
         </div>
-        
+
         <!-- Lien connexion -->
         <div class="text-center">
             <p class="text-ivoire-text/70 text-sm">

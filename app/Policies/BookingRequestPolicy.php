@@ -5,7 +5,7 @@ namespace App\Policies;
 use App\Models\BookingRequest;
 use App\Models\User;
 use App\Models\Tattooer;
-use App\Models\Pierceur;
+use App\Models\Piercer;
 
 class BookingRequestPolicy
 {
@@ -19,9 +19,9 @@ class BookingRequestPolicy
             return true;
         }
 
-        // Tatoueur/Pierceur destinataire
-        if ($user->isTattooer() || $user->isPierceur()) {
-            $profile = $user->isTattooer() ? $user->tattooer : $user->pierceur;
+        // Tatoueur/Piercer destinataire
+        if ($user->isTattooer() || $user->isPiercer()) {
+            $profile = $user->isTattooer() ? $user->tattooer : $user->Piercer;
 
             return $bookingRequest->bookable_id === $profile->id
                 && $bookingRequest->bookable_type === get_class($profile);
@@ -51,7 +51,7 @@ class BookingRequestPolicy
      */
     public function update(User $user, BookingRequest $bookingRequest): bool
     {
-        if (!($user->isTattooer() || $user->isPierceur() || $user->isStudioArtist())) {
+        if (!($user->isTattooer() || $user->isPiercer() || $user->isStudioArtist())) {
             return false;
         }
 
@@ -60,8 +60,8 @@ class BookingRequestPolicy
             return $bookingRequest->bookable->user_id === $user->id;
         }
 
-        // Tattooer/Pierceur
-        $profile = $user->isTattooer() ? $user->tattooer : $user->pierceur;
+        // Tattooer/Piercer
+        $profile = $user->isTattooer() ? $user->tattooer : $user->Piercer;
 
         return $bookingRequest->bookable_id === $profile->id
             && $bookingRequest->bookable_type === get_class($profile);
@@ -87,7 +87,7 @@ class BookingRequestPolicy
         }
 
         // Artiste peut annuler à tout moment
-        if ($user->isTattooer() || $user->isPierceur() || $user->isStudioArtist()) {
+        if ($user->isTattooer() || $user->isPiercer() || $user->isStudioArtist()) {
             if ($user->isStudioArtist()) {
                 return $bookingRequest->bookable->user_id === $user->id
                     && in_array($bookingRequest->status, [
@@ -98,7 +98,7 @@ class BookingRequestPolicy
                     ]);
             }
 
-            $profile = $user->isTattooer() ? $user->tattooer : $user->pierceur;
+            $profile = $user->isTattooer() ? $user->tattooer : $user->Piercer;
 
             return $bookingRequest->bookable_id === $profile->id
                 && $bookingRequest->bookable_type === get_class($profile)
@@ -128,7 +128,7 @@ class BookingRequestPolicy
      */
     public function sendDesign(User $user, BookingRequest $bookingRequest): bool
     {
-        if (!($user->isTattooer() || $user->isPierceur() || $user->isStudioArtist())) {
+        if (!($user->isTattooer() || $user->isPiercer() || $user->isStudioArtist())) {
             return false;
         }
 
@@ -141,8 +141,8 @@ class BookingRequestPolicy
                 ]);
         }
 
-        // Tattooer/Pierceur
-        $profile = $user->isTattooer() ? $user->tattooer : $user->pierceur;
+        // Tattooer/Piercer
+        $profile = $user->isTattooer() ? $user->tattooer : $user->Piercer;
 
         return $bookingRequest->bookable_id === $profile->id
             && $bookingRequest->bookable_type === get_class($profile)
@@ -162,7 +162,7 @@ class BookingRequestPolicy
             return $bookingRequest->status === BookingRequest::STATUS_DESIGN_SENT;
         }
 
-        if (!($user->isTattooer() || $user->isPierceur() || $user->isStudioArtist())) {
+        if (!($user->isTattooer() || $user->isPiercer() || $user->isStudioArtist())) {
             return false;
         }
 
@@ -172,8 +172,8 @@ class BookingRequestPolicy
                 && $bookingRequest->status === BookingRequest::STATUS_DESIGN_SENT;
         }
 
-        // Tattooer/Pierceur
-        $profile = $user->isTattooer() ? $user->tattooer : $user->pierceur;
+        // Tattooer/Piercer
+        $profile = $user->isTattooer() ? $user->tattooer : $user->Piercer;
 
         return $bookingRequest->bookable_id === $profile->id
             && $bookingRequest->bookable_type === get_class($profile)
@@ -203,7 +203,7 @@ class BookingRequestPolicy
      */
     public function requestDeposit(User $user, BookingRequest $bookingRequest): bool
     {
-        if (!($user->isTattooer() || $user->isPierceur() || $user->isStudioArtist())) {
+        if (!($user->isTattooer() || $user->isPiercer() || $user->isStudioArtist())) {
             return false;
         }
 
@@ -213,8 +213,8 @@ class BookingRequestPolicy
                 && $bookingRequest->status === BookingRequest::STATUS_ACCEPTED;
         }
 
-        // Tattooer/Pierceur
-        $profile = $user->isTattooer() ? $user->tattooer : $user->pierceur;
+        // Tattooer/Piercer
+        $profile = $user->isTattooer() ? $user->tattooer : $user->Piercer;
 
         return $bookingRequest->bookable_id === $profile->id
             && $bookingRequest->bookable_type === get_class($profile)

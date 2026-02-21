@@ -39,7 +39,7 @@
                 <x-ui.button variant="primary" size="lg" href="/register/tattooer">
                     Je suis tatoueur
                 </x-ui.button>
-                <x-ui.button variant="secondary" size="lg" href="/register/pierceur">
+                <x-ui.button variant="secondary" size="lg" href="/register/piercer">
                     Je suis pierceur
                 </x-ui.button>
             </div>
@@ -250,7 +250,7 @@
                     <x-ui.button variant="primary" size="lg" href="/register/tattooer">
                         Découvrir la plateforme
                     </x-ui.button>
-                    <x-ui.button variant="secondary" size="lg" href="/register/pierceur">
+                    <x-ui.button variant="secondary" size="lg" href="/register/piercer">
                         Créer mon compte
                     </x-ui.button>
                 </div>

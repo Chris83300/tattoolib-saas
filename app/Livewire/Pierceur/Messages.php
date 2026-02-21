@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Pierceur;
+namespace App\Livewire\Piercer;
 
 use Livewire\Component;
 
@@ -8,6 +8,6 @@ class Messages extends Component
 {
     public function render()
     {
-        return view('livewire.pierceur.messages');
+        return view('livewire.Piercer.messages');
     }
 }

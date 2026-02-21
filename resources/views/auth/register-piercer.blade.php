@@ -9,7 +9,7 @@
                     ← Retour au choix du rôle
                 </a>
                 <h1 class="text-beige-peau font-display text-2xl font-bold">
-                    Inscription Pierceur / Bodemodeur
+                    Inscription Piercer / Bodemodeur
                 </h1>
                 <p class="text-ivoire-text/70 text-sm mt-2">
                     SIRET obligatoire pour vous inscrire
@@ -17,7 +17,7 @@
             </div>
 
             <!-- Formulaire -->
-            <form action="{{ route('register.pierceur.submit') }}" method="POST"
+            <form action="{{ route('register.Piercer.submit') }}" method="POST"
                 class="bg-gris-fonde rounded-xl p-6 md:p-8 space-y-6">
                 @csrf
 
@@ -60,9 +60,9 @@
                         <select name="specialization" required
                             class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors">
                             <option value="">Choisir une spécialisation</option>
-                            <option value="pierceur">Pierceur</option>
+                            <option value="pierceur">Piercer</option>
                             <option value="bodemodeur">Bodemodeur</option>
-                            <option value="pierceur_bodemodeur">Pierceur / Bodemodeur</option>
+                            <option value="pierceur_bodemodeur">Piercer / Bodemodeur</option>
                         </select>
                     </div>
                 </div>
@@ -97,7 +97,7 @@
                             <label class="block text-ivoire-text text-sm font-semibold mb-2">
                                 Pseudo <span class="text-ivoire-text/50 font-normal">(affiché publiquement)</span>
                             </label>
-                            <input type="text" name="pseudo" placeholder="Ex: PierceurPro"
+                            <input type="text" name="pseudo" placeholder="Ex: PiercerPro"
                                 class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors">
                             <p class="text-ivoire-text/50 text-xs mt-1">
                                 Ce pseudo sera affiché sur votre profil public et dans les messages
@@ -181,7 +181,7 @@
                 <!-- Submit -->
                 <button type="submit"
                     class="w-full bg-beige-peau hover:bg-beige-peau/90 text-noir-profond font-bold py-3 rounded-lg transition-colors">
-                    Créer mon compte pierceur
+                    Créer mon compte Piercer
                 </button>
 
             </form>

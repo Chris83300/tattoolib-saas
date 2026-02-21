@@ -3,7 +3,7 @@
 namespace App\Services;
 
 use App\Models\Tattooer;
-use App\Models\Pierceur;
+use App\Models\Piercer;
 use App\Models\StudioArtist;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 
 class MarketplaceSearchService
 {
-    protected array $specializations = ['tattooer', 'pierceur', 'bodemodeur'];
+    protected array $specializations = ['tattooer', 'Piercer', 'bodemodeur'];
     protected array $styles = ['japonais', 'realisme', 'traditionnel', 'geometrique', 'aquarelle', 'dotwork', 'blackwork', 'lettering', 'new_school', 'old_school'];
     protected array $regions = ['ile-de-france', 'provence-alpes-cote-dazur', 'auvergne-rhone-alpes', 'occitanie', 'hauts-de-france', 'grand-est', 'bretagne', 'normandie', 'pays-de-la-loire', 'centre-val-de-loire', 'bourgogne-franche-comte', 'nouvelle-aquitaine', 'poitou-charentes', 'corse'];
 
@@ -152,7 +152,7 @@ class MarketplaceSearchService
     {
         return [
             'tattooer' => 'Tatoueur',
-            'pierceur' => 'Pierceur',
+            'Piercer' => 'Piercer',
             'bodemodeur' => 'Bodemodeur',
             'studio_artist' => 'Artiste de studio'
         ];

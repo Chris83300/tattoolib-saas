@@ -52,7 +52,7 @@ class InvalidatePortfolioCache
                 if ($model instanceof \App\Models\User) {
                     // Pour les User (clients), invalider le cache client
                     $this->invalidateUserCache($model);
-                } elseif ($model instanceof \App\Models\Tattooer || $model instanceof \App\Models\Pierceur) {
+                } elseif ($model instanceof \App\Models\Tattooer || $model instanceof \App\Models\Piercer) {
                     // Pour les artistes, utiliser la méthode existante
                     app(CacheService::class)->invalidateMediaCache($model);
                 }

@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class PierceurResource extends JsonResource
+class PiercerResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -40,7 +40,7 @@ class PierceurResource extends JsonResource
             }),
             'verified' => $this->siret_verified,
             'is_pro' => $this->isPro(),
-            'is_pierceur' => $this->isPierceur(),
+            'is_Piercer' => $this->isPiercer(),
             'is_bodemodeur' => $this->isBodemodeur(),
             'portfolio_count' => $this->getMedia('portfolio')->count(),
             'created_at' => $this->created_at,

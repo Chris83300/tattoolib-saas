@@ -202,9 +202,9 @@ class RegisterController extends Controller
         }
     }
 
-    public function submitPierceur(Request $request)
+    public function submitPiercer(Request $request)
     {
-        Log::info('submitPierceur appelé avec: ' . json_encode($request->all()));
+        Log::info('submitPiercer appelé avec: ' . json_encode($request->all()));
 
         try {
             $validated = $request->validate([
@@ -247,11 +247,11 @@ class RegisterController extends Controller
                 'email' => $validated['email'],
                 'phone' => $validated['phone'] ?? null,
                 'password' => Hash::make($validated['password']),
-                'role' => 'pierceur',
+                'role' => 'Piercer',
                 'status' => 'pending_verification',
             ]);
 
-            // Créer profil pierceur
+            // Créer profil Piercer
             $piercer = Piercer::create([
                 'user_id' => $user->id,
                 'siret' => $validated['siret'],
@@ -270,20 +270,20 @@ class RegisterController extends Controller
                 'has_compliance_badge' => false,
             ]);
 
-            Log::info('Pierceur créé: ' . json_encode($piercer));
+            Log::info('Piercer créé: ' . json_encode($piercer));
 
             // Login automatique
             Auth::login($user);
 
             // Message de succès
-            session()->flash('success', 'Votre compte pierceur a été créé avec succès ! Votre SIRET a été enregistré et sera vérifié par notre équipe.');
+            session()->flash('success', 'Votre compte Piercer a été créé avec succès ! Votre SIRET a été enregistré et sera vérifié par notre équipe.');
 
             // Redirection vers page "en attente validation"
-            return redirect()->route('pierceur.pending-verification');
+            return redirect()->route('Piercer.pending-verification');
 
         } catch (\Exception $e) {
             // Logger l'erreur pour debug
-            Log::error('Erreur création pierceur: ' . $e->getMessage());
+            Log::error('Erreur création Piercer: ' . $e->getMessage());
             Log::error('Stack trace: ' . $e->getTraceAsString());
 
             // En cas d'erreur, supprimer le user créé et retourner une erreur

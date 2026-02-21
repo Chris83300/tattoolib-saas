@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Validate;
 
-class RegisterPierceur extends AuthLayoutComponent
+class RegisterPiercer extends AuthLayoutComponent
 {
     // Infos user
     #[Validate('required|string|max:255')]
@@ -113,7 +113,7 @@ class RegisterPierceur extends AuthLayoutComponent
             'name' => $this->name,
             'email' => $this->email,
             'password' => Hash::make($this->password),
-            'role' => 'pierceur',
+            'role' => 'Piercer',
             'status' => 'pending_verification', // ⚠️ En attente validation admin
         ]);
 
@@ -135,11 +135,11 @@ class RegisterPierceur extends AuthLayoutComponent
         auth()->login($user);
 
         // Redirection vers page "en attente validation"
-        return redirect()->route('pierceur.pending-verification');
+        return redirect()->route('Piercer.pending-verification');
     }
 
     protected function getView()
     {
-        return 'livewire.auth.register-pierceur-clean';
+        return 'livewire.auth.register-Piercer-clean';
     }
 }

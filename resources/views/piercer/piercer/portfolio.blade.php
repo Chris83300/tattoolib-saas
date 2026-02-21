@@ -43,7 +43,7 @@
                             $piercer->getMedia('drawings')->count() +
                             $piercer->getMedia('before_after')->count() >=
                             15)
-                    <a href="{{ route('pierceur.subscription.plans') }}"
+                    <a href="{{ route('Piercer.subscription.plans') }}"
                         class="px-4 py-2 bg-vert-succes text-white rounded-lg font-semibold hover:bg-vert-succes/90 transition-colors">
                         🚀 Passer au plan Pro
                     </a>
@@ -60,7 +60,7 @@
                     class="bg-ambre-warning/20 border border-ambre-warning/30 text-ambre-warning px-4 py-3 rounded-lg mb-4">
                     <p class="text-sm">
                         ⚠️ Vous avez atteint la limite de 15 images du plan Free.
-                        <a href="/pierceur/subscription-plans" class="underline font-semibold">Passez au plan Pro</a>
+                        <a href="/Piercer/subscription-plans" class="underline font-semibold">Passez au plan Pro</a>
                         pour un portfolio illimité.
                     </p>
                 </div>

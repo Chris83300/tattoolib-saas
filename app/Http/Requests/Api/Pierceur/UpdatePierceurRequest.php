@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Http\Requests\Api\Pierceur;
+namespace App\Http\Requests\Api\Piercer;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class UpdatePierceurRequest extends FormRequest
+class UpdatePiercerRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return $this->user()->can('update', $this->route('pierceur'));
+        return $this->user()->can('update', $this->route('Piercer'));
     }
 
     /**
@@ -30,19 +30,19 @@ class UpdatePierceurRequest extends FormRequest
             'city' => ['sometimes', 'string', 'max:255'],
             'postal_code' => ['sometimes', 'string', 'max:10'],
             'email' => ['sometimes', 'nullable', 'email', 'max:255'],
-            
+
             // Réseaux sociaux
             'instagram' => ['sometimes', 'nullable', 'string', 'max:100'],
             'facebook' => ['sometimes', 'nullable', 'string', 'max:100'],
             'tiktok' => ['sometimes', 'nullable', 'string', 'max:100'],
             'website' => ['sometimes', 'nullable', 'url', 'max:255'],
-            
+
             // Paramètres par défaut
             'minimum_deposit' => ['sometimes', 'numeric', 'min:0', 'max:1000'],
             'default_deposit_rate' => ['sometimes', 'numeric', 'min:0', 'max:100'],
             'default_client_payment_deadline_days' => ['sometimes', 'integer', 'min:1', 'max:30'],
             'default_design_versions_included' => ['sometimes', 'integer', 'min:1', 'max:10'],
-            
+
             // Délais d'attente
             'weekday_wait_days' => ['sometimes', 'integer', 'min:0', 'max:365'],
             'weekend_wait_days' => ['sometimes', 'integer', 'min:0', 'max:365'],

@@ -54,10 +54,10 @@ class EnsureUserIsAdmin
                 return redirect('/')->with('info', 'Configurez votre profil artiste.');
             }
 
-            if ($user->role === 'pierceur') {
-                $pierceur = $user->pierceur;
-                if ($pierceur) {
-                    return redirect()->route('pierceur.dashboard')
+            if ($user->role === 'Piercer') {
+                $Piercer = $user->Piercer;
+                if ($Piercer) {
+                    return redirect()->route('Piercer.dashboard')
                         ->with('success', 'Bienvenue sur votre espace artiste ! 💉');
                 }
                 return redirect('/')->with('info', 'Configurez votre profil artiste.');

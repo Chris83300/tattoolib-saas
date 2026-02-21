@@ -256,8 +256,8 @@
         switch ($user->role) {
             case 'tattooer':
                 return route('tattooer.dashboard');
-            case 'pierceur':
-                return route('pierceur.dashboard');
+            case 'Piercer':
+                return route('Piercer.dashboard');
             case 'studio':
                 return route('studio.dashboard');
             case 'studio_artist':
@@ -275,8 +275,8 @@
         switch ($user->role) {
             case 'tattooer':
                 return route('tattooer.profile.edit');
-            case 'pierceur':
-                return route('pierceur.profile.edit');
+            case 'Piercer':
+                return route('Piercer.profile.edit');
             case 'studio':
                 return route('studio.profile.edit');
             case 'studio_artist':

@@ -56,8 +56,8 @@
                     </p>
                 </button>
 
-                <!-- PIERCEUR -->
-                <button onclick="window.location.href='{{ route('register.pierceur') }}'"
+                <!-- Piercer -->
+                <button onclick="window.location.href='{{ route('register.Piercer') }}'"
                     class="bg-gris-fonde hover:bg-beige-peau/10 hover:border-beige-peau border-2 border-transparent rounded-xl p-6 text-center transition-all group">
                     <div class="w-16 h-16 mx-auto mb-4 bg-beige-peau/10 rounded-full flex items-center justify-center">
                         <svg class="w-8 h-8 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -68,10 +68,10 @@
                     </div>
                     <h3
                         class="text-ivoire-text font-display font-bold text-lg mb-2 group-hover:text-beige-peau transition-colors">
-                        Pierceur / Bodemodeur
+                        Piercer / Bodemodeur
                     </h3>
                     <p class="text-ivoire-text/70 text-sm">
-                        Je suis pierceur / bodemodeur professionnel
+                        Je suis Piercer / bodemodeur professionnel
                     </p>
                 </button>
 

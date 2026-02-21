@@ -7,7 +7,7 @@ use App\Filament\Admin\Resources\Pierceurs\Pages\EditPierceur;
 use App\Filament\Admin\Resources\Pierceurs\Pages\ListPierceurs;
 use App\Filament\Admin\Resources\Pierceurs\Schemas\PierceurForm;
 use App\Filament\Admin\Resources\Pierceurs\Tables\PierceursTable;
-use App\Models\Pierceur;
+use App\Models\Piercer;
 use App\Models\User;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class PierceurResource extends Resource
 {
-    protected static ?string $model = Pierceur::class;
+    protected static ?string $model = Piercer::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-beaker';
 
@@ -59,7 +59,7 @@ class PierceurResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        return Pierceur::whereHas('user', function ($query) {
+        return Piercer::whereHas('user', function ($query) {
             $query->where('status', 'pending_verification');
         })->count();
     }

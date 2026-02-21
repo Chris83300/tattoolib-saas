@@ -32,10 +32,10 @@ class LoginController extends Controller
                     return redirect()->route('client.profile');
                 case 'tattooer':
                     return redirect()->route('tattooer.profile');
-                case 'pierceur':
-                    return redirect()->route('tattooer.dashboard'); // Temporairement
+                case 'Piercer':
+                    return redirect()->route('Piercer.dashboard');
                 case 'studio':
-                    return redirect()->route('tattooer.dashboard'); // Temporairement
+                    return redirect()->route('studio.dashboard');
                 default:
                     return redirect()->route('home');
             }

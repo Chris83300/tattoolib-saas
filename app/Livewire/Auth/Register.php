@@ -13,7 +13,7 @@ class Register extends AuthLayoutComponent
         return match($role) {
             'client' => redirect()->route('register.client'),
             'tattooer' => redirect()->route('register.tattooer'),
-            'pierceur' => redirect()->route('register.pierceur'),
+            'Piercer' => redirect()->route('register.Piercer'),
             'studio' => redirect()->route('register.studio'),
         };
     }

@@ -16,17 +16,17 @@ class ClientPolicy
         if ($user->isClient() && $user->client?->id === $client->id) {
             return true;
         }
-        
+
         // Artiste avec booking actif
-        if ($user->isTattooer() || $user->isPierceur()) {
-            $profile = $user->isTattooer() ? $user->tattooer : $user->pierceur;
-            
+        if ($user->isTattooer() || $user->isPiercer()) {
+            $profile = $user->isTattooer() ? $user->tattooer : $user->Piercer;
+
             return $client->bookingRequests()
                 ->where('bookable_id', $profile->id)
                 ->where('bookable_type', get_class($profile))
                 ->exists();
         }
-        
+
         // Studio artist
         if ($user->isStudioArtist()) {
             return $client->bookingRequests()
@@ -34,11 +34,11 @@ class ClientPolicy
                 ->where('bookable_type', get_class($user->studioArtist))
                 ->exists();
         }
-        
+
         // Admin
         return $user->isAdmin();
     }
-    
+
     /**
      * Modifier profil
      */
@@ -46,7 +46,7 @@ class ClientPolicy
     {
         return $user->isClient() && $user->client?->id === $client->id;
     }
-    
+
     /**
      * Supprimer profil
      */
@@ -56,11 +56,11 @@ class ClientPolicy
         if ($user->isAdmin()) {
             return true;
         }
-        
+
         // Seul le propriétaire peut supprimer son profil
         return $user->isClient() && $user->client?->id === $client->id;
     }
-    
+
     /**
      * Voir les demandes de réservation
      */
@@ -68,13 +68,13 @@ class ClientPolicy
     {
         return $user->isClient() && $user->client?->id === $client->id;
     }
-    
+
     /**
      * Créer une demande de réservation
      */
     public function createBookingRequest(User $user, Client $client): bool
     {
-        return $user->isClient() 
+        return $user->isClient()
             && $user->client?->id === $client->id
             && !$client->is_blacklisted;
     }

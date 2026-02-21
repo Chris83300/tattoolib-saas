@@ -4,7 +4,7 @@ namespace App\Filament\Admin\Widgets;
 
 use App\Models\User;
 use App\Models\Tattooer;
-use App\Models\Pierceur;
+use App\Models\Piercer;
 use App\Models\Appointment;
 use App\Models\Studio;
 use App\Models\StudioArtist;
@@ -25,8 +25,8 @@ class StatsOverview extends BaseWidget
 
         $activeTattooers = Tattooer::whereHas('user', fn($q) => $q->where('status', 'active'))->count();
         $totalTattooers = Tattooer::count();
-        $activePierceurs = Pierceur::whereHas('user', fn($q) => $q->where('status', 'active'))->count();
-        $totalPierceurs = Pierceur::count();
+        $activePierceurs = Piercer::whereHas('user', fn($q) => $q->where('status', 'active'))->count();
+        $totalPierceurs = Piercer::count();
         $totalActiveArtists = $activeTattooers + $activePierceurs;
         $totalArtists = $totalTattooers + $totalPierceurs;
 

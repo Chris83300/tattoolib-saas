@@ -50,7 +50,7 @@ class Transaction extends Model
         if ($this->artist_type === 'tattooer') {
             return $this->belongsTo(Tattooer::class, 'artist_id');
         } elseif ($this->artist_type === 'piercer') {
-            return $this->belongsTo(Pierceur::class, 'artist_id');
+            return $this->belongsTo(Piercer::class, 'artist_id');
         }
         return null;
     }

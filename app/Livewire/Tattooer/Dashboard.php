@@ -26,8 +26,8 @@ class Dashboard extends Component
                 case 'tattooer':
                     $this->tattooer = $this->user->tattooer;
                     break;
-                case 'pierceur':
-                    $this->tattooer = $this->user->pierceur;
+                case 'Piercer':
+                    $this->tattooer = $this->user->Piercer;
                     break;
                 case 'studio_artist':
                     $this->tattooer = $this->user->studioArtist;

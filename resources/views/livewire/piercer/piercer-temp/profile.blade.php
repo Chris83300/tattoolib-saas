@@ -17,21 +17,21 @@
                             <h1 class="text-3xl font-Satoshi font-bold text-ivoire-text mb-2">
                                 {{ $user->displayName() }}
                             </h1>
-                            <p class="text-beige-peau font-semibold mb-1">{{ $pierceur->specialization_label }}</p>
+                            <p class="text-beige-peau font-semibold mb-1">{{ $Piercer->specialization_label }}</p>
                             <p class="text-ivoire-text/70">
-                                {{ $pierceur->city }}, {{ $pierceur->postal_code }}
+                                {{ $Piercer->city }}, {{ $Piercer->postal_code }}
                             </p>
                         </div>
 
                         <!-- Badges -->
                         <div class="flex gap-2 flex-wrap">
-                            @if ($pierceur->has_compliance_badge)
+                            @if ($Piercer->has_compliance_badge)
                                 <span
                                     class="bg-vert-succes/20 text-vert-succes px-3 py-1 rounded-full text-xs font-semibold">
                                     ✓ Conforme Ink&Pik
                                 </span>
                             @endif
-                            @if ($pierceur->isPro())
+                            @if ($Piercer->isPro())
                                 <span
                                     class="bg-beige-peau/20 text-beige-peau px-3 py-1 rounded-full text-xs font-semibold">
                                     ⭐ PRO
@@ -48,12 +48,12 @@
 
                     <!-- Actions -->
                     <div class="flex gap-3 mt-4">
-                        <a href="{{ route('pierceur.settings') }}"
+                        <a href="{{ route('Piercer.settings') }}"
                             class="px-4 py-2 bg-beige-peau hover:bg-beige-peau/90 text-noir-profond font-semibold rounded-lg transition-colors">
                             Modifier
                         </a>
-                        @if ($pierceur->slug)
-                            <a href="{{ route('marketplace.pierceur.show', $pierceur->slug) }}" target="_blank"
+                        @if ($Piercer->slug)
+                            <a href="{{ route('marketplace.Piercer.show', $Piercer->slug) }}" target="_blank"
                                 class="px-4 py-2 border border-beige-peau text-beige-peau hover:bg-beige-peau/10 font-semibold rounded-lg transition-colors">
                                 Voir profil public
                             </a>
@@ -82,7 +82,7 @@
                     @if (!$editingBio)
                         <!-- Affichage bio -->
                         <p class="text-ivoire-text/80 leading-relaxed">
-                            {{ $pierceur->bio ?: 'Aucune bio renseignée.' }}
+                            {{ $Piercer->bio ?: 'Aucune bio renseignée.' }}
                         </p>
                     @else
                         <!-- Édition bio -->
@@ -116,7 +116,7 @@
                 <div class="bg-gris-fonde rounded-xl p-6">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-xl font-Satoshi font-bold text-ivoire-text">Portfolio</h2>
-                        <a href="{{ route('pierceur.settings') }}"
+                        <a href="{{ route('Piercer.settings') }}"
                             class="text-beige-peau text-sm font-semibold hover:underline">
                             Gérer →
                         </a>
@@ -134,7 +134,7 @@
                     @else
                         <div class="text-center py-8">
                             <p class="text-ivoire-text/50 mb-4">Aucune image dans votre portfolio</p>
-                            <a href="{{ route('pierceur.settings') }}"
+                            <a href="{{ route('Piercer.settings') }}"
                                 class="inline-block px-4 py-2 bg-beige-peau text-noir-profond font-semibold rounded-lg">
                                 Ajouter des images
                             </a>
@@ -176,12 +176,12 @@
                 <div class="bg-gris-fonde rounded-xl p-6">
                     <h3 class="text-lg font-Satoshi font-bold text-ivoire-text mb-4">Actions rapides</h3>
                     <div class="space-y-3">
-                        <a href="{{ route('pierceur.dashboard') }}"
+                        <a href="{{ route('Piercer.dashboard') }}"
                             class="w-full flex items-center gap-3 px-4 py-3 bg-beige-peau/10 hover:bg-beige-peau/20 text-beige-peau rounded-lg transition-colors">
                             <span class="text-xl">📊</span>
                             <span class="font-semibold">Dashboard</span>
                         </a>
-                        <a href="{{ route('pierceur.booking-requests') }}"
+                        <a href="{{ route('Piercer.booking-requests') }}"
                             class="w-full flex items-center gap-3 px-4 py-3 bg-beige-peau/10 hover:bg-beige-peau/20 text-beige-peau rounded-lg transition-colors">
                             <span class="text-xl">📅</span>
                             <span class="font-semibold">Demandes RDV</span>
@@ -192,18 +192,18 @@
                                 </span>
                             @endif
                         </a>
-                        <a href="/pierceur/messages"
+                        <a href="/Piercer/messages"
                             class="w-full flex items-center gap-3 px-4 py-3 bg-beige-peau/10 hover:bg-beige-peau/20 text-beige-peau rounded-lg transition-colors">
                             <span class="text-xl">💬</span>
                             <span class="font-semibold">Messages</span>
                         </a>
-                        <a href="/pierceur/calendar"
+                        <a href="/Piercer/calendar"
                             class="w-full flex items-center gap-3 px-4 py-3 bg-beige-peau/10 hover:bg-beige-peau/20 text-beige-peau rounded-lg transition-colors">
                             <span class="text-xl">🗓️</span>
                             <span class="font-semibold">Calendrier</span>
                         </a>
-                        @if (!$pierceur->has_compliance_badge)
-                            <a href="/pierceur/compliance"
+                        @if (!$Piercer->has_compliance_badge)
+                            <a href="/Piercer/compliance"
                                 class="w-full flex items-center gap-3 px-4 py-3 bg-vert-succes/20 hover:bg-vert-succes/30 text-vert-succes rounded-lg transition-colors">
                                 <span class="text-xl">✓</span>
                                 <span class="font-semibold">Obtenir badge conformité</span>
@@ -218,7 +218,7 @@
                     <p class="text-ivoire-text/70 text-sm mb-4">
                         Partagez votre profil avec vos clients
                     </p>
-                    <a href="{{ route('marketplace.show', $pierceur->slug) }}" target="_blank"
+                    <a href="{{ route('marketplace.show', $Piercer->slug) }}" target="_blank"
                         class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-beige-peau hover:bg-beige-peau/90 text-noir-profond font-bold rounded-lg transition-colors">
                         <span>Voir mon profil</span>
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -229,7 +229,7 @@
                 </div>
 
                 <!-- Upgrade PRO (si FREE) -->
-                @if ($pierceur->isFree())
+                @if ($Piercer->isFree())
                     <div
                         class="bg-gradient-to-br from-beige-peau/20 to-beige-peau/5 border border-beige-peau/30 rounded-xl p-6">
                         <div class="flex items-start gap-3 mb-4">
@@ -241,7 +241,7 @@
                                 </p>
                             </div>
                         </div>
-                        <a href="/pierceur/upgrade"
+                        <a href="/Piercer/upgrade"
                             class="w-full block text-center px-4 py-3 bg-beige-peau hover:bg-beige-peau/90 text-noir-profond font-bold rounded-lg transition-colors">
                             Découvrir PRO
                         </a>
