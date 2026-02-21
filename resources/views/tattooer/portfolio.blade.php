@@ -43,7 +43,7 @@
                             $tattooer->getMedia('drawings')->count() +
                             $tattooer->getMedia('before_after')->count() >=
                             15)
-                    <a href="{{ route('tattooer.subscription.plans') }}"
+                    <a href="{{ route($tattooer->routePrefix() . '.subscription.plans') }}"
                         class="px-4 py-2 bg-vert-succes text-white rounded-lg font-semibold hover:bg-vert-succes/90 transition-colors">
                         🚀 Passer au plan Pro
                     </a>
@@ -78,10 +78,12 @@
                     class="tab-btn flex-1 px-4 py-2 rounded-lg font-semibold transition-colors" data-tab="drawings">
                     ✏️ Dessins ({{ $drawings->count() }})
                 </button>
+                @if (!$tattooer->isPiercer())
                 <button onclick="switchTab('before-after')"
                     class="tab-btn flex-1 px-4 py-2 rounded-lg font-semibold transition-colors" data-tab="before-after">
                     📸 Avant/Après ({{ $beforeAfter->count() }})
                 </button>
+                @endif
             </div>
         </div>
 
@@ -198,7 +200,8 @@
             </div>
         </div>
 
-        <!-- Tab Content: Before/After -->
+        @if (!$tattooer->isPiercer())
+        <!-- Tab Content: Before/After (tatoueur uniquement) -->
         <div id="tab-before-after" class="tab-content hidden">
             <div class="bg-gris-fonde rounded-xl p-6">
                 <div class="flex justify-between items-center mb-6">
@@ -293,13 +296,15 @@ $legacy = $beforeAfter
         </div>
 
     </div>
+        @endif {{-- !isPiercer (before/after tab) --}}
 
-    <!-- Modal Upload Before/After -->
+    <!-- Modal Upload Before/After (tatoueur uniquement) -->
+    @if (!$tattooer->isPiercer())
     <div id="before-after-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
         <div class="bg-gris-fonde rounded-xl p-6 max-w-2xl w-full">
             <h3 class="text-xl font-bold text-ivoire-text mb-4">Ajouter photo Avant/Après</h3>
             <div id="before-after-feedback" class="hidden px-4 py-3 rounded-lg mb-4"></div>
-            <form id="before-after-form" action="{{ route('tattooer.portfolio.before-after.store') }}" method="POST"
+            <form id="before-after-form" action="{{ route($tattooer->routePrefix() . '.portfolio.before-after.store') }}" method="POST"
                 enctype="multipart/form-data">
                 @csrf
                 <div class="grid grid-cols-2 gap-4 mb-6">
@@ -343,6 +348,7 @@ $legacy = $beforeAfter
             </form>
         </div>
     </div>
+    @endif {{-- !isPiercer (before/after modal) --}}
 
     @push('scripts')
         <script>
@@ -589,7 +595,7 @@ $legacy = $beforeAfter
                 });
                 formData.append('collection', collection);
 
-                fetch('{{ route('tattooer.portfolio.upload') }}', {
+                fetch('{{ route($tattooer->routePrefix() . '.portfolio.upload') }}', {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',

@@ -16,7 +16,7 @@
 
             <div class="flex gap-3">
                 <!-- Recherche -->
-                <form action="{{ route('tattooer.clients') }}" method="GET" class="flex gap-3">
+                <form action="{{ route($tattooer->routePrefix() . '.clients') }}" method="GET" class="flex gap-3">
                     <div class="relative flex-1 max-w-md">
                         <input type="text" name="search" value="{{ request('search') }}"
                             placeholder="Rechercher un client..."
@@ -35,12 +35,12 @@
 
                 <!-- Bouton création client -->
                 @if (auth()->user()->tattooer->isPro())
-                    <a href="{{ route('tattooer.clients.create') }}"
+                    <a href="{{ route($tattooer->routePrefix() . '.clients.create') }}"
                         class="px-4 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold text-sm hover:bg-beige-peau/90 transition-colors">
                         ➕ Créer une fiche client
                     </a>
                 @else
-                    <a href="{{ route('tattooer.subscription.plans') }}"
+                    <a href="{{ route($tattooer->routePrefix() . '.subscription.plans') }}"
                         class="px-4 py-3 bg-beige-peau/30 text-beige-peau rounded-lg font-semibold text-sm hover:bg-beige-peau/40 transition-colors">
                         🔒 Créer une fiche client (PRO)
                     </a>
@@ -52,7 +52,7 @@
         @if ($clients->count() > 0)
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach ($clients as $client)
-                    <a href="{{ route('tattooer.client.show', $client) }}"
+                    <a href="{{ route($tattooer->routePrefix() . '.client.show', $client) }}"
                         class="block bg-gris-fonde rounded-xl p-4 hover:bg-gris-fonde/80 transition-all hover:scale-[1.02] active:scale-[0.98]">
 
                         <div class="flex items-center gap-3 mb-3">

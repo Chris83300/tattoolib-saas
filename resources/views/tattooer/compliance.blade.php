@@ -71,7 +71,7 @@
                             @if (auth()->user()->tattooer?->siret)
                                 <p class="text-vert-succes font-semibold">✓ SIRET renseigné</p>
                             @else
-                                <a href="{{ route('tattooer.profile') }}" class="text-beige-peau hover:underline">
+                                <a href="{{ route($tattooer->routePrefix() . '.profile') }}" class="text-beige-peau hover:underline">
                                     Renseigner mon SIRET →
                                 </a>
                             @endif
@@ -92,7 +92,7 @@
                             <p class="text-ivoire-text/70 mb-3">
                                 Téléchargez vos documents de conformité (ARS, Hygiène, etc.).
                             </p>
-                            <a href="{{ route('tattooer.profile') }}" class="text-beige-peau hover:underline">
+                            <a href="{{ route($tattooer->routePrefix() . '.profile') }}" class="text-beige-peau hover:underline">
                                 Télécharger mes documents →
                             </a>
                         </div>
@@ -122,7 +122,7 @@
 
             <!-- Bouton d'action -->
             <div class="text-center mt-8">
-                <a href="{{ route('tattooer.profile') }}" class="inline-block px-8 py-3 bg-beige-peau text-noir-profond font-bold rounded-lg hover:bg-beige-peau/90 transition-colors">
+                <a href="{{ route($tattooer->routePrefix() . '.profile') }}" class="inline-block px-8 py-3 bg-beige-peau text-noir-profond font-bold rounded-lg hover:bg-beige-peau/90 transition-colors">
                     Compléter mon profil
                 </a>
             </div>

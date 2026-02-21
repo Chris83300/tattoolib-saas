@@ -8,7 +8,7 @@
         <!-- Header -->
         <div class="bg-gris-fonde rounded-xl p-6">
             <div class="flex items-center gap-4">
-                <a href="{{ route('tattooer.clients') }}" class="p-2 rounded-lg hover:bg-noir-profond transition-colors">
+                <a href="{{ route($tattooer->routePrefix() . '.clients') }}" class="p-2 rounded-lg hover:bg-noir-profond transition-colors">
                     <svg class="w-5 h-5 text-titane" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
@@ -22,7 +22,7 @@
 
         <!-- Formulaire -->
         <div class="bg-gris-fonde rounded-xl p-6">
-            <form action="{{ route('tattooer.clients.store') }}" method="POST" class="space-y-6">
+            <form action="{{ route($tattooer->routePrefix() . '.clients.store') }}" method="POST" class="space-y-6">
                 @csrf
 
                 <!-- Informations de base -->
@@ -107,7 +107,7 @@
 
                 <!-- Actions -->
                 <div class="flex gap-4 pt-4">
-                    <a href="{{ route('tattooer.clients') }}"
+                    <a href="{{ route($tattooer->routePrefix() . '.clients') }}"
                         class="px-6 py-3 border border-titane/30 text-titane rounded-lg font-semibold hover:bg-noir-profond transition-colors">
                         Annuler
                     </a>

@@ -123,7 +123,7 @@
                 </li>
             </ul>
             
-            <form action="{{ route('tattooer.upgrade.process') }}" method="POST">
+            <form action="{{ route($tattooer->routePrefix() . '.upgrade.process') }}" method="POST">
                 @csrf
                 <button type="submit" 
                         class="w-full px-6 py-4 bg-beige-peau text-noir-profond rounded-xl font-bold text-lg hover:bg-beige-peau/90 transition-all transform hover:scale-105">

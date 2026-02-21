@@ -9,7 +9,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <!-- En-tête -->
             <div class="mb-8">
-                <a href="{{ route('tattooer.requests') }}"
+                <a href="{{ route($tattooer->routePrefix() . '.requests') }}"
                     class="inline-flex items-center text-ivoire-text/80 hover:text-ivoire-text mb-4">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -158,7 +158,7 @@
                                         ✓ Accepter
                                     </button>
 
-                                    <form action="{{ route('tattooer.request-reject', $bookingRequest) }}" method="POST"
+                                    <form action="{{ route($tattooer->routePrefix() . '.request-reject', $bookingRequest) }}" method="POST"
                                         class="inline">
                                         @csrf
                                         <button type="submit"
@@ -232,13 +232,13 @@
                             <h3 class="text-lg font-bold text-ivoire-text mb-4">Actions</h3>
                             <div class="space-y-3">
                                 @if ($bookingRequest->conversation)
-                                    <a href="{{ route('tattooer.message.show', $bookingRequest) }}"
+                                    <a href="{{ route($tattooer->routePrefix() . '.message.show', $bookingRequest) }}"
                                         class="block w-full px-4 py-3 bg-beige-peau text-noir-profond rounded-xl font-bold text-center hover:bg-beige-peau/90 transition-all">
                                         💬 Chat avec le client
                                     </a>
                                 @endif
 
-                                <form action="{{ route('tattooer.request-reject', $bookingRequest) }}" method="POST">
+                                <form action="{{ route($tattooer->routePrefix() . '.request-reject', $bookingRequest) }}" method="POST">
                                     @csrf
                                     <button type="submit"
                                         class="w-full px-4 py-3 bg-rouge-alerte/20 border border-rouge-alerte/30 text-rouge-alerte rounded-xl font-semibold text-center hover:bg-rouge-alerte/30 transition-all"
@@ -247,7 +247,7 @@
                                 </form>
 
                                 @if ($bookingRequest->status->value === 'date_confirmed')
-                                    <form action="{{ route('tattooer.booking-requests.complete', $bookingRequest) }}"
+                                    <form action="{{ route($tattooer->routePrefix() . '.booking-requests.complete', $bookingRequest) }}"
                                         method="POST">
                                         @csrf
                                         <button type="submit"
@@ -256,7 +256,7 @@
                                         </button>
                                     </form>
 
-                                    <form action="{{ route('tattooer.booking-requests.no-show', $bookingRequest) }}"
+                                    <form action="{{ route($tattooer->routePrefix() . '.booking-requests.no-show', $bookingRequest) }}"
                                         method="POST"
                                         onsubmit="return confirm('Êtes-vous sûr de vouloir déclarer ce client comme absent ? Cette action est irréversible et incrémentera son compteur de no-show.')">
                                         @csrf
@@ -464,7 +464,7 @@
                             <div class="relative bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">
                                 <h3 class="text-lg font-bold text-noir-profond mb-1">Confirmer le paiement du solde</h3>
                                 <p class="text-sm text-noir-profond/60 mb-4">Le client vous a réglé directement ?</p>
-                                <form action="{{ route('tattooer.balance-payment.confirm-offline', $bookingRequest) }}"
+                                <form action="{{ route($tattooer->routePrefix() . '.balance-payment.confirm-offline', $bookingRequest) }}"
                                     method="POST">
                                     @csrf
                                     <div class="space-y-4">

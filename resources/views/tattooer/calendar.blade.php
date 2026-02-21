@@ -77,7 +77,7 @@
     <div id="create-event-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
         <div class="bg-gris-fonde rounded-xl p-6 max-w-md w-full">
             <h3 class="text-xl font-bold text-ivoire-text mb-4">Nouvel événement</h3>
-            <form id="create-event-form" action="{{ route('tattooer.calendar.store') }}" method="POST">
+            <form id="create-event-form" action="{{ route($tattooer->routePrefix() . '.calendar.store') }}" method="POST">
                 @csrf
                 <input type="hidden" name="type" id="event-type">
 
@@ -527,7 +527,7 @@
                 const formData = new FormData(this);
                 const data = Object.fromEntries(formData.entries());
 
-                fetch('{{ route('tattooer.calendar.store') }}', {
+                fetch('{{ route($tattooer->routePrefix() . '.calendar.store') }}', {
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': '{{ csrf_token() }}',

@@ -26,7 +26,7 @@
             'expired' => 'Expirées',
             'cancelled' => 'Annulées',
         ] as $key => $label)
-                    <a href="{{ route('tattooer.requests') }}?status={{ $key }}"
+                    <a href="{{ route($tattooer->routePrefix() . '.requests') }}?status={{ $key }}"
                         class="px-4 py-2 rounded-lg text-sm font-semibold transition-all relative
                               {{ $filter === $key ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text/60 hover:text-ivoire-text' }}">
                         {{ $label }}
@@ -186,7 +186,7 @@
 
                             <!-- Actions -->
                             <div class="flex flex-wrap gap-2">
-                                <a href="{{ route('tattooer.request.show', $request) }}"
+                                <a href="{{ route($tattooer->routePrefix() . '.request.show', $request) }}"
                                     class="px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
                                     Voir détails
                                 </a>
@@ -198,7 +198,7 @@
                                         ✓ Accepter
                                     </button>
 
-                                    <form action="{{ route('tattooer.request-reject', $request) }}" method="POST"
+                                    <form action="{{ route($tattooer->routePrefix() . '.request-reject', $request) }}" method="POST"
                                         class="inline">
                                         @csrf
                                         <button type="submit"

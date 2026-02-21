@@ -8,7 +8,7 @@
              ═══════════════════════════════════════════════════════════════ --}}
         <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
             <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-                <a href="{{ route('tattooer.clients') }}"
+                <a href="{{ route($tattooer->routePrefix() . '.clients') }}"
                     class="mt-1 p-2 rounded-lg hover:bg-noir-profond transition-colors flex-shrink-0">
                     <svg class="w-5 h-5 text-titane" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -124,7 +124,7 @@
 
                 {{-- MODE ÉDITION --}}
                 <div x-show="editMode" x-cloak>
-                    <form action="{{ route('tattooer.clients.update', $client) }}" method="POST">
+                    <form action="{{ route($tattooer->routePrefix() . '.clients.update', $client) }}" method="POST">
                         @csrf
                         @method('PUT')
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -241,7 +241,7 @@
             {{-- Actions rapides --}}
             <div class="bg-gris-fonde rounded-xl p-4">
                 <div class="flex flex-wrap gap-2">
-                    <a href="{{ route('tattooer.messages') }}" class="px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold text-sm hover:bg-beige-peau/90 transition-colors">💬 Envoyer un message</a>
+                    <a href="{{ route($tattooer->routePrefix() . '.messages') }}" class="px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold text-sm hover:bg-beige-peau/90 transition-colors">💬 Envoyer un message</a>
                 </div>
             </div>
 
@@ -274,7 +274,7 @@
                             </div>
                             <p class="text-xs text-titane mt-1">{{ $br->created_at->translatedFormat('d F Y') }}</p>
                         </div>
-                        <a href="{{ route('tattooer.request.show', $br) }}" class="p-2 bg-noir-profond rounded-lg hover:bg-beige-peau/20 transition-colors flex-shrink-0">
+                        <a href="{{ route($tattooer->routePrefix() . '.request.show', $br) }}" class="p-2 bg-noir-profond rounded-lg hover:bg-beige-peau/20 transition-colors flex-shrink-0">
                             <svg class="w-4 h-4 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                         </a>
                     </div>
@@ -320,7 +320,7 @@
 
                     {{-- MODE UPLOAD SCAN --}}
                     <div x-show="consentMode === 'upload'" x-cloak x-collapse>
-                        <form action="{{ route('tattooer.clients.consent.upload', $client) }}" method="POST" enctype="multipart/form-data" class="space-y-3">
+                        <form action="{{ route($tattooer->routePrefix() . '.clients.consent.upload', $client) }}" method="POST" enctype="multipart/form-data" class="space-y-3">
                             @csrf
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
@@ -340,7 +340,7 @@
 
                     {{-- MODE FORMULAIRE NUMÉRIQUE SNAT --}}
                     <div x-show="consentMode === 'digital'" x-cloak x-collapse>
-                        <form action="{{ route('tattooer.clients.consent.store-digital', $client) }}" method="POST" class="space-y-4" id="digital-consent-form">
+                        <form action="{{ route($tattooer->routePrefix() . '.clients.consent.store-digital', $client) }}" method="POST" class="space-y-4" id="digital-consent-form">
                             @csrf
 
                             {{-- Identité client --}}
@@ -585,7 +585,7 @@
                                         <a href="{{ $document->getUrl() }}" target="_blank" class="p-2 bg-beige-peau/20 text-beige-peau rounded-lg hover:bg-beige-peau/30 transition-colors">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                         </a>
-                                        <form action="{{ route('tattooer.clients.consent.delete', [$client, $document->id]) }}" method="POST" onsubmit="return confirm('Supprimer ce consentement ?')">
+                                        <form action="{{ route($tattooer->routePrefix() . '.clients.consent.delete', [$client, $document->id]) }}" method="POST" onsubmit="return confirm('Supprimer ce consentement ?')">
                                             @csrf @method('DELETE')
                                             <button type="submit" class="p-2 bg-rouge-alerte/20 text-rouge-alerte rounded-lg hover:bg-rouge-alerte/30 transition-colors">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
@@ -726,7 +726,7 @@
                 {{-- ═══ FORMULAIRE STANDALONE (rétractable, même format que appointment) ═══ --}}
                 <div class="bg-gris-fonde rounded-xl p-4" x-data="{
                     showForm: false,
-                    needles: [{ brand: '', lot_number: '', type: 'aiguille' }],
+                    needles: [{ brand: '', lot_number: '', type: '{{ $tattooer->isPiercer() ? 'canule' : 'aiguille' }}' }],
                     inks: [{ brand: '', color: '', lot_number: '' }]
                 }">
                     <button @click="showForm = !showForm" type="button"
@@ -739,7 +739,7 @@
                     </button>
 
                     <div x-show="showForm" x-cloak x-collapse class="mt-4 pt-4 border-t border-titane/20">
-                        <form action="{{ route('tattooer.clients.traceability.store', $client) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                        <form action="{{ route($tattooer->routePrefix() . '.clients.traceability.store', $client) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                             @csrf
 
                             {{-- Infos séance --}}
@@ -750,18 +750,75 @@
                                         class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
                                 </div>
                                 <div>
-                                    <label class="text-xs text-titane block mb-1">Description tattoo</label>
-                                    <input type="text" name="tattoo_description" placeholder="Ex : Mandala bras gauche"
+                                    <label class="text-xs text-titane block mb-1">
+                                        @if ($tattooer->isPiercer()) Description piercing @else Description tattoo @endif
+                                    </label>
+                                    <input type="text" name="tattoo_description"
+                                        placeholder="{{ $tattooer->isPiercer() ? 'Ex : Septum titane' : 'Ex : Mandala bras gauche' }}"
                                         class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm focus:border-beige-peau">
                                 </div>
                                 <div>
                                     <label class="text-xs text-titane block mb-1">Zone du corps</label>
-                                    <input type="text" name="body_zone" placeholder="Ex : Avant-bras gauche"
+                                    <input type="text" name="body_zone"
+                                        placeholder="{{ $tattooer->isPiercer() ? 'Ex : Nez, Hélix gauche' : 'Ex : Avant-bras gauche' }}"
                                         class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm focus:border-beige-peau">
                                 </div>
                             </div>
 
-                            {{-- Aiguilles & Cartouches (dynamique comme encres) --}}
+                            @if ($tattooer->isPiercer())
+                            {{-- Canules (pierceur) --}}
+                            <div class="flex items-center justify-between">
+                                <p class="text-xs font-bold text-ivoire-text/60 uppercase tracking-wider">Canules utilisées</p>
+                                <button type="button" @click="needles.push({ brand: '', lot_number: '', type: 'canule' })" class="text-xs text-beige-peau hover:text-beige-peau/80 font-semibold">+ Ajouter</button>
+                            </div>
+                            <template x-for="(needle, ni) in needles" :key="'sn'+ni">
+                                <div class="bg-noir-profond/30 rounded-lg p-3 space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs text-titane font-semibold" x-text="'#' + (ni + 1)"></span>
+                                            <select :name="'needles[' + ni + '][type]'" x-model="needle.type" class="px-2 py-1 bg-noir-profond border border-titane/30 rounded text-ivoire-text text-xs focus:border-beige-peau">
+                                                <option value="canule">Canule</option>
+                                                <option value="aiguille_piercing">Aiguille piercing</option>
+                                            </select>
+                                        </div>
+                                        <button type="button" @click="if(needles.length > 1) needles.splice(ni, 1)" x-show="needles.length > 1" class="text-rouge-alerte/60 hover:text-rouge-alerte">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                        </button>
+                                    </div>
+                                    <div class="flex flex-col sm:flex-row gap-2">
+                                        <input type="text" :name="'needles[' + ni + '][brand]'" x-model="needle.brand" placeholder="Marque (Caflon, Inverness...)"
+                                            class="flex-1 px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm focus:border-beige-peau">
+                                        <input type="text" :name="'needles[' + ni + '][lot_number]'" x-model="needle.lot_number" placeholder="N° de lot"
+                                            class="flex-1 px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm focus:border-beige-peau">
+                                    </div>
+                                </div>
+                            </template>
+
+                            {{-- Bijoux (pierceur) --}}
+                            <div class="flex items-center justify-between">
+                                <p class="text-xs font-bold text-ivoire-text/60 uppercase tracking-wider">Bijoux utilisés</p>
+                                <button type="button" @click="inks.push({ brand: '', color: '', lot_number: '' })" class="text-xs text-beige-peau hover:text-beige-peau/80 font-semibold">+ Ajouter</button>
+                            </div>
+                            <template x-for="(ink, ii) in inks" :key="'si'+ii">
+                                <div class="bg-noir-profond/30 rounded-lg p-3 space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs text-titane font-semibold" x-text="'Bijou ' + (ii + 1)"></span>
+                                        <button type="button" @click="if(inks.length > 1) inks.splice(ii, 1)" x-show="inks.length > 1" class="text-rouge-alerte/60 hover:text-rouge-alerte">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                        </button>
+                                    </div>
+                                    <input type="text" :name="'inks[' + ii + '][brand]'" x-model="ink.brand" placeholder="Marque / Type (Implant Grade Titane, Acier 316L...)"
+                                        class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm focus:border-beige-peau">
+                                    <div class="flex flex-col sm:flex-row gap-2">
+                                        <input type="text" :name="'inks[' + ii + '][color]'" x-model="ink.color" placeholder="Taille / Calibre (ex: 1.2mm, 8mm)"
+                                            class="flex-1 px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm focus:border-beige-peau">
+                                        <input type="text" :name="'inks[' + ii + '][lot_number]'" x-model="ink.lot_number" placeholder="N° lot"
+                                            class="flex-1 px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm focus:border-beige-peau">
+                                    </div>
+                                </div>
+                            </template>
+                            @else
+                            {{-- Aiguilles & Cartouches (tatoueur) --}}
                             <div class="flex items-center justify-between">
                                 <p class="text-xs font-bold text-ivoire-text/60 uppercase tracking-wider">Aiguilles & Cartouches</p>
                                 <button type="button" @click="needles.push({ brand: '', lot_number: '', type: 'aiguille' })" class="text-xs text-beige-peau hover:text-beige-peau/80 font-semibold">+ Ajouter</button>
@@ -789,7 +846,7 @@
                                 </div>
                             </template>
 
-                            {{-- Encres (dynamique) --}}
+                            {{-- Encres (tatoueur) --}}
                             <div class="flex items-center justify-between">
                                 <p class="text-xs font-bold text-ivoire-text/60 uppercase tracking-wider">Encres utilisées</p>
                                 <button type="button" @click="inks.push({ brand: '', color: '', lot_number: '' })" class="text-xs text-beige-peau hover:text-beige-peau/80 font-semibold">+ Ajouter</button>
@@ -812,6 +869,7 @@
                                     </div>
                                 </div>
                             </template>
+                            @endif
 
                             {{-- Stérilisation --}}
                             <p class="text-xs font-bold text-ivoire-text/60 uppercase tracking-wider">Stérilisation</p>
@@ -903,7 +961,7 @@
                         </div>
 
                         <div x-show="expanded" x-cloak x-collapse class="mt-4 pt-4 border-t border-titane/20">
-                            <form action="{{ route('tattooer.traceability.store', $apt) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                            <form action="{{ route($tattooer->routePrefix() . '.traceability.store', $apt) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                                 @csrf
 
                                 {{-- Aiguilles (dynamique) --}}
@@ -1026,7 +1084,7 @@
 
                 <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
                     <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider mb-3">📤 Upload photos</h3>
-                    <form action="{{ route('tattooer.clients.photos.upload', $client) }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route($tattooer->routePrefix() . '.clients.photos.upload', $client) }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <input type="file" name="photos[]" multiple accept=".jpg,.jpeg,.png,.webp" onchange="previewFiles(this)"
                             class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-beige-peau file:text-noir-profond mb-1">
@@ -1044,7 +1102,7 @@
                                 <div class="aspect-square rounded-lg overflow-hidden bg-noir-profond relative group">
                                     <img src="{{ $photo->getUrl() }}" alt="" class="w-full h-full object-cover cursor-pointer" loading="lazy"
                                         data-lb="{{ $photo->getUrl() }}" onclick="window.openLightbox('{{ $photo->getUrl() }}')" onerror="this.style.display='none'">
-                                    <form action="{{ route('tattooer.clients.photos.delete', [$client, $photo->id]) }}" method="POST"
+                                    <form action="{{ route($tattooer->routePrefix() . '.clients.photos.delete', [$client, $photo->id]) }}" method="POST"
                                         class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                         @csrf @method('DELETE')
                                         <button type="submit" onclick="return confirm('Supprimer ?')" class="w-6 h-6 bg-rouge-alerte rounded-full flex items-center justify-center shadow-lg hover:bg-rouge-alerte/80">
@@ -1065,7 +1123,7 @@
                                 <div class="aspect-square rounded-lg overflow-hidden bg-noir-profond relative group">
                                     <img src="{{ $media->getUrl() }}" alt="" class="w-full h-full object-cover cursor-pointer" loading="lazy"
                                         data-lb="{{ $media->getUrl() }}" onclick="window.openLightbox('{{ $media->getUrl() }}')" onerror="this.style.display='none'">
-                                    <form action="{{ route('tattooer.client.media.delete', [$client, $media->id]) }}" method="POST"
+                                    <form action="{{ route($tattooer->routePrefix() . '.client.media.delete', [$client, $media->id]) }}" method="POST"
                                         class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                         @csrf @method('DELETE')
                                         <button type="submit" onclick="return confirm('Supprimer ?')" class="w-6 h-6 bg-rouge-alerte rounded-full flex items-center justify-center shadow-lg hover:bg-rouge-alerte/80">
@@ -1089,7 +1147,7 @@
                                 @foreach ($tattooPhotos as $photo)
                                     <div class="aspect-square rounded-lg overflow-hidden bg-noir-profond relative group">
                                         <img src="{{ $photo->getUrl() }}" alt="" class="w-full h-full object-cover cursor-pointer" data-lb="{{ $photo->getUrl() }}" onclick="window.openLightbox('{{ $photo->getUrl() }}')">
-                                        <form action="{{ route('tattooer.client.media.delete', [$client, $photo->id]) }}" method="POST" class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <form action="{{ route($tattooer->routePrefix() . '.client.media.delete', [$client, $photo->id]) }}" method="POST" class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                             @csrf @method('DELETE')
                                             <button type="submit" onclick="return confirm('Supprimer ?')" class="w-6 h-6 bg-rouge-alerte rounded-full flex items-center justify-center shadow-lg">
                                                 <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -1099,7 +1157,7 @@
                                 @endforeach
                             </div>
                         @endif
-                        <form action="{{ route('tattooer.client.photos.upload', [$client, $br]) }}" method="POST" enctype="multipart/form-data" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                        <form action="{{ route($tattooer->routePrefix() . '.client.photos.upload', [$client, $br]) }}" method="POST" enctype="multipart/form-data" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                             @csrf
                             <input type="file" name="photos[]" multiple accept="image/jpeg,image/png,image/webp" onchange="previewFiles(this)"
                                 class="flex-1 text-sm text-ivoire-text file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-beige-peau/20 file:text-beige-peau file:font-semibold file:text-xs">
@@ -1120,7 +1178,7 @@
                 <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
                     <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider mb-3">Notes privées</h3>
                     <p class="text-xs text-titane mb-3">Visibles uniquement par vous.</p>
-                    <form action="{{ route('tattooer.client.update-notes', $client) }}" method="POST">
+                    <form action="{{ route($tattooer->routePrefix() . '.client.update-notes', $client) }}" method="POST">
                         @csrf
                         <textarea name="notes" rows="8" placeholder="Allergies, préférences, comportement au salon..."
                             class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm focus:border-beige-peau focus:ring-1 focus:ring-beige-peau resize-y">{{ $client->notes ?? '' }}</textarea>

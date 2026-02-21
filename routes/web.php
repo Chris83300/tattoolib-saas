@@ -96,6 +96,7 @@ Route::middleware(['auth'])->prefix('tattooer')->name('tattooer.')->group(functi
     Route::get('/settings', [TattooerController::class, 'settings'])->name('settings');
     Route::post('/settings', [TattooerController::class, 'settingsUpdate'])->name('settings.update');
     Route::post('/settings/aftercare', [TattooerController::class, 'settingsAftercareUpdate'])->name('settings.aftercare');
+    Route::post('/settings/pricing', [TattooerController::class, 'settingsPricingUpdate'])->name('settings.pricing');
     Route::delete('/settings/avatar', [TattooerController::class, 'deleteAvatar'])->name('settings.delete-avatar');
     Route::delete('/settings/banner', [TattooerController::class, 'deleteBanner'])->name('settings.delete-banner');
     Route::post('/settings/schedule', [TattooerController::class, 'settingsUpdateSchedule'])->name('settings.update-schedule');
@@ -312,6 +313,7 @@ Route::middleware(['auth', 'role:pierceur,Piercer'])->prefix('pierceur')->name('
     Route::get('/settings', [TattooerController::class, 'settings'])->name('settings');
     Route::post('/settings', [TattooerController::class, 'settingsUpdate'])->name('settings.update');
     Route::post('/settings/aftercare', [TattooerController::class, 'settingsAftercareUpdate'])->name('settings.aftercare');
+    Route::post('/settings/pricing', [TattooerController::class, 'settingsPricingUpdate'])->name('settings.pricing');
     Route::delete('/settings/avatar', [TattooerController::class, 'deleteAvatar'])->name('settings.delete-avatar');
     Route::delete('/settings/banner', [TattooerController::class, 'deleteBanner'])->name('settings.delete-banner');
     Route::post('/settings/schedule', [TattooerController::class, 'settingsUpdateSchedule'])->name('settings.update-schedule');

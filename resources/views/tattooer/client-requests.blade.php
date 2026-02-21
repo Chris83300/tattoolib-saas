@@ -9,7 +9,7 @@
         <!-- Header -->
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
-                <a href="{{ route('tattooer.clients') }}" class="text-ivoire-text/70 hover:text-beige-peau transition-colors">
+                <a href="{{ route($tattooer->routePrefix() . '.clients') }}" class="text-ivoire-text/70 hover:text-beige-peau transition-colors">
                     ← Retour aux clients
                 </a>
                 <div class="w-px h-6 bg-titane/30"></div>
@@ -99,13 +99,13 @@
                         <!-- Actions -->
                         <div class="flex items-center gap-2 ml-4">
                             @if ($request->conversation)
-                                <a href="{{ route('tattooer.message.show', $request) }}"
+                                <a href="{{ route($tattooer->routePrefix() . '.message.show', $request) }}"
                                     class="px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
                                     💬 Chat
                                 </a>
                             @endif
 
-                            <a href="{{ route('tattooer.request-show', $request) }}"
+                            <a href="{{ route($tattooer->routePrefix() . '.request-show', $request) }}"
                                 class="px-4 py-2 bg-noir-profond text-ivoire-text border border-titane/30 rounded-lg font-semibold hover:bg-noir-profond/80 transition-colors">
                                 Voir les détails
                             </a>

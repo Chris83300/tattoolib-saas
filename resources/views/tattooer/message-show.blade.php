@@ -7,7 +7,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <!-- En-tête avec alertes d'expiration -->
             <div class="mb-6">
-                <a href="{{ route('tattooer.requests') }}"
+                <a href="{{ route($tattooer->routePrefix() . '.requests') }}"
                     class="inline-flex items-center text-ivoire-text/80 hover:text-ivoire-text mb-4">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -376,7 +376,7 @@
                         @if(auth()->user()->isTattooer()
                             && $bookingRequest->confirmed_date
                             && !$bookingRequest->appointment_datetime)
-                            <a href="{{ route('tattooer.calendar') }}?book={{ $bookingRequest->id }}&date={{ \Carbon\Carbon::parse($bookingRequest->confirmed_date)->format('Y-m-d') }}&period={{ $bookingRequest->confirmed_period ?? 'morning' }}"
+                            <a href="{{ route($tattooer->routePrefix() . '.calendar') }}?book={{ $bookingRequest->id }}&date={{ \Carbon\Carbon::parse($bookingRequest->confirmed_date)->format('Y-m-d') }}&period={{ $bookingRequest->confirmed_period ?? 'morning' }}"
                                class="inline-flex items-center gap-2 mt-3 px-4 py-2.5 bg-beige-peau text-noir-profond font-bold rounded-lg hover:bg-beige-peau/90 transition">
                                 📅 Fixer l'horaire du rendez-vous →
                             </a>
@@ -489,7 +489,7 @@
                         @endif
 
 
-                        <form action="{{ route('tattooer.message.send', $bookingRequest) }}" method="POST"
+                        <form action="{{ route($tattooer->routePrefix() . '.message.send', $bookingRequest) }}" method="POST"
     enctype="multipart/form-data" id="messageForm"
     x-data="messageForm()" @submit="handleSubmit($event)">
     @csrf
@@ -581,7 +581,7 @@
                     </button>
                     <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-10">
                         <div class="bg-gris-fonde border border-beige-peau/30 rounded-lg px-3 py-2 text-xs text-ivoire-text whitespace-nowrap shadow-lg">
-                            🔒 Upload images — <a href="{{ route('tattooer.subscription.plans') }}" class="text-beige-peau font-semibold hover:underline">Plan PRO requis</a>
+                            🔒 Upload images — <a href="{{ route($tattooer->routePrefix() . '.subscription.plans') }}" class="text-beige-peau font-semibold hover:underline">Plan PRO requis</a>
                         </div>
                     </div>
                 </div>
@@ -1070,7 +1070,7 @@ function messageForm() {
             </div>
 
             {{-- Form POST classique --}}
-            <form action="{{ route('tattooer.booking-requests.repropose-dates', $bookingRequest ?? 0) }}"
+            <form action="{{ route($tattooer->routePrefix() . '.booking-requests.repropose-dates', $bookingRequest ?? 0) }}"
                   method="POST"
                   id="repropose-dates-form">
                 @csrf

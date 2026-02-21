@@ -60,6 +60,13 @@
                         data-tab="aftercare">
                         🩹 Soins
                     </button>
+                    @if ($tattooer->isPiercer())
+                        <button onclick="switchTab('pricing')"
+                            class="tab-btn min-h-11 px-4 py-2.5 md:py-2 rounded-lg font-semibold whitespace-nowrap snap-start flex-shrink-0 text-sm md:text-base"
+                            data-tab="pricing">
+                            💰 Tarifs
+                        </button>
+                    @endif
                 @endif
                 <button onclick="switchTab('password')"
                     class="tab-btn min-h-11 px-4 py-2.5 md:py-2 rounded-lg font-semibold whitespace-nowrap snap-start flex-shrink-0 text-sm md:text-base"
@@ -71,7 +78,7 @@
 
         <!-- TAB: Profil -->
         <div id="tab-profile" class="tab-content">
-            <form action="{{ route('tattooer.settings.update') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route($tattooer->routePrefix() . '.settings.update') }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
                 <div class="bg-gris-fonde rounded-xl p-4 md:p-6 space-y-6">
@@ -227,7 +234,8 @@
                         </p>
                     </div>
 
-                    <!-- Styles pratiqués -->
+                    @if (!$tattooer->isPiercer())
+                    <!-- Styles pratiqués (tatoueur uniquement) -->
                     <div>
                         <label class="block font-semibold text-ivoire-text mb-2">Styles pratiqués</label>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -327,6 +335,32 @@
                             </div>
                         </div>
                     </div>
+                    @else
+                    <!-- Types de piercing (pierceur uniquement) -->
+                    <div>
+                        <label class="block font-semibold text-ivoire-text mb-2">Types de piercing pratiqués</label>
+                        @php
+                            $allPiercingTypes = [
+                                'Lobe', 'Hélix', 'Tragus', 'Anti-tragus', 'Daith',
+                                'Conch', 'Rook', 'Industrial', 'Septum', 'Narine',
+                                'Sourcil', 'Labret', 'Langue', 'Nombril', 'Microdermal',
+                            ];
+                            $currentPiercingTypes = is_array($tattooer->piercing_types)
+                                ? $tattooer->piercing_types
+                                : json_decode($tattooer->piercing_types ?? '[]', true) ?? [];
+                        @endphp
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            @foreach ($allPiercingTypes as $type)
+                                <label class="flex items-center gap-2 p-3 bg-noir-profond rounded-lg cursor-pointer hover:bg-noir-profond/80 transition-colors active:scale-95">
+                                    <input type="checkbox" name="piercing_types[]" value="{{ $type }}"
+                                        {{ in_array($type, $currentPiercingTypes) ? 'checked' : '' }}
+                                        class="w-4 h-4 text-beige-peau focus:ring-beige-peau">
+                                    <span class="text-ivoire-text text-sm">{{ $type }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
                 </div>
 
                 <!-- Informations professionnelles -->
@@ -432,7 +466,7 @@
         <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
             <h3 class="text-xl font-bold text-ivoire-text mb-4">Horaires d'ouverture</h3>
 
-            <form action="{{ route('tattooer.settings.update-schedule') }}" method="POST">
+            <form action="{{ route($tattooer->routePrefix() . '.settings.update-schedule') }}" method="POST">
                 @csrf
 
                 @php
@@ -606,7 +640,7 @@
         <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
             <h3 class="text-xl font-bold text-ivoire-text mb-4">Changer mon mot de passe</h3>
 
-            <form action="{{ route('tattooer.settings.update-password') }}" method="POST" class="max-w-md">
+            <form action="{{ route($tattooer->routePrefix() . '.settings.update-password') }}" method="POST" class="max-w-md">
                 @csrf
 
                 <div class="space-y-4">
@@ -647,9 +681,15 @@
     @if ($tattooer->isPro())
         <div id="tab-aftercare" class="tab-content hidden">
             <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
-                <h3 class="text-xl font-bold text-ivoire-text mb-4">🩹 Fiche de soins post-tatouage</h3>
+                <h3 class="text-xl font-bold text-ivoire-text mb-4">
+                    @if ($tattooer->isPiercer())
+                        💉 Fiche de soins post-piercing
+                    @else
+                        🩹 Fiche de soins post-tatouage
+                    @endif
+                </h3>
 
-                <form action="{{ route('tattooer.settings.aftercare') }}" method="POST" class="space-y-6">
+                <form action="{{ route($tattooer->routePrefix() . '.settings.aftercare') }}" method="POST" class="space-y-6">
                     @csrf
 
                     <!-- Fiche de soins -->
@@ -659,11 +699,20 @@
                         </label>
                         <textarea name="aftercare_sheet" rows="8"
                             class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm sm:text-base"
+                            @if ($tattooer->isPiercer())
+                            placeholder="- Nettoyer 2x/jour avec du sérum physiologique
+- Ne pas tourner ou manipuler le bijou
+- Éviter la piscine et les bains pendant 4 semaines
+- Ne pas appliquer d'alcool ou d'eau oxygénée
+- Contacter votre pierceur en cas de rougeur ou gonflement anormal"
+                            @else
                             placeholder="- Ne pas gratter la zone tatouée
 - Appliquer la crème cicatrisante 2x/jour pendant 15 jours
 - Éviter le soleil direct pendant 1 mois
 - Ne pas tremper (piscine, bain) pendant 2 semaines
-- Contacter votre tattooer en cas de rougeur anormale">{{ $tattooer->aftercare_sheet ?? '' }}</textarea>
+- Contacter votre tattooer en cas de rougeur anormale"
+                            @endif
+                            >{{ $tattooer->aftercare_sheet ?? '' }}</textarea>
                         <p class="text-xs text-ivoire-text/60 mt-1">
                             Ces instructions seront envoyées automatiquement à vos clients (2h, 7j, 14j après le RDV)
                         </p>
@@ -699,6 +748,74 @@
                         <button type="submit"
                             class="w-full sm:w-auto min-h-11 px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors text-sm sm:text-base active:scale-95">
                             💾 Sauvegarder les soins
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
+
+    <!-- TAB: Grille tarifaire (pierceur Pro uniquement) -->
+    @if ($tattooer->isPiercer() && $tattooer->isPro())
+        <div id="tab-pricing" class="tab-content hidden">
+            <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
+                <h3 class="text-xl font-bold text-ivoire-text mb-4">💰 Grille tarifaire</h3>
+                <p class="text-sm text-ivoire-text/70 mb-6">
+                    Définissez vos tarifs par type de piercing. Ces tarifs seront affichés sur votre profil public.
+                </p>
+
+                <form action="{{ route($tattooer->routePrefix() . '.settings.pricing') }}" method="POST" class="space-y-4"
+                      x-data="{
+                        grid: {{ json_encode($tattooer->getPricingGrid() ?: []) }},
+                        newType: '',
+                        newPrice: '',
+                        addEntry() {
+                            if (this.newType.trim() && this.newPrice) {
+                                this.grid.push({ type: this.newType.trim(), price: parseFloat(this.newPrice) });
+                                this.newType = '';
+                                this.newPrice = '';
+                            }
+                        },
+                        removeEntry(index) { this.grid.splice(index, 1); }
+                      }">
+                    @csrf
+
+                    <template x-for="(entry, i) in grid" :key="i">
+                        <div class="flex items-center gap-3 p-3 bg-noir-profond rounded-lg">
+                            <input type="text" :name="'pricing_grid[' + i + '][type]'" x-model="entry.type"
+                                class="flex-1 px-3 py-2 bg-gris-fonde border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
+                            <div class="flex items-center gap-1">
+                                <input type="number" :name="'pricing_grid[' + i + '][price]'" x-model="entry.price"
+                                    min="0" step="0.01"
+                                    class="w-28 px-3 py-2 bg-gris-fonde border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
+                                <span class="text-titane text-sm">€</span>
+                            </div>
+                            <button type="button" @click="removeEntry(i)" class="p-2 text-rouge-alerte hover:bg-rouge-alerte/10 rounded-lg transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </template>
+
+                    <div class="flex items-center gap-3 pt-2 border-t border-titane/20">
+                        <input type="text" x-model="newType" placeholder="Ex : Septum, Lobe, Hélix..."
+                            class="flex-1 px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm focus:border-beige-peau">
+                        <div class="flex items-center gap-1">
+                            <input type="number" x-model="newPrice" placeholder="Prix" min="0" step="0.01"
+                                class="w-28 px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm focus:border-beige-peau">
+                            <span class="text-titane text-sm">€</span>
+                        </div>
+                        <button type="button" @click="addEntry()"
+                            class="px-4 py-2 bg-beige-peau/20 text-beige-peau border border-beige-peau/30 rounded-lg text-sm font-semibold hover:bg-beige-peau/30 transition-colors whitespace-nowrap">
+                            + Ajouter
+                        </button>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit"
+                            class="w-full sm:w-auto min-h-11 px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors text-sm sm:text-base active:scale-95">
+                            💾 Sauvegarder les tarifs
                         </button>
                     </div>
                 </form>
@@ -816,7 +933,7 @@
 
             function deleteBanner() {
                 if (confirm('Supprimer votre bannière ?')) {
-                    fetch('{{ route('tattooer.settings.delete-banner') }}', {
+                    fetch('{{ route($tattooer->routePrefix() . '.settings.delete-banner') }}', {
                             method: 'DELETE',
                             headers: {
                                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -854,7 +971,7 @@
 
             function deleteAvatar() {
                 if (confirm('Supprimer votre photo de profil ?')) {
-                    fetch('{{ route('tattooer.settings.delete-avatar') }}', {
+                    fetch('{{ route($tattooer->routePrefix() . '.settings.delete-avatar') }}', {
                             method: 'DELETE',
                             headers: {
                                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -893,7 +1010,7 @@
 
                     if (userInput === 'SUPPRIMER') {
                         // Rediriger vers la route de suppression
-                        window.location.href = '{{ route('tattooer.delete-account') }}';
+                        window.location.href = '{{ route($tattooer->routePrefix() . '.delete-account') }}';
                     } else {
                         alert('❌ Texte de confirmation incorrect. Suppression annulée.');
                     }

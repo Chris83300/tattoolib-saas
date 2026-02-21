@@ -18,7 +18,7 @@
             @if ($conversations->count() > 0)
                 <div class="space-y-4">
                     @foreach ($conversations as $conversation)
-                        <a href="{{ route('tattooer.message.show', $conversation) }}"
+                        <a href="{{ route($tattooer->routePrefix() . '.message.show', $conversation) }}"
                             class="block p-4 bg-noir-profond rounded-lg hover:bg-noir-profond/80 transition-colors">
                             <div class="flex items-start justify-between">
                                 <div class="flex-1">

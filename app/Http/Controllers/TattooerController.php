@@ -170,13 +170,15 @@ class TattooerController extends Controller
             'postal_code' => 'nullable|string|max:10',
             'country' => 'nullable|string|max:255',
 
-            // Description et styles
+            // Description et styles / types
             'bio' => 'nullable|string|max:2000',
             'styles' => 'nullable|array',
             'styles.*' => 'string|max:100',
             'custom_styles' => 'nullable|array',
             'custom_style_names' => 'nullable|array',
             'custom_style_names.*' => 'nullable|string|max:100',
+            'piercing_types' => 'nullable|array',
+            'piercing_types.*' => 'string|max:100',
             'years_of_experience' => 'nullable|integer|min:0|max:50',
             'minimum_price' => 'nullable|numeric|min:0|max:10000',
 
@@ -198,7 +200,7 @@ class TattooerController extends Controller
             'sms_notifications' => 'boolean',
         ]);
 
-        // Séparer les styles prédéfinis et personnalisés
+        // Séparer les styles prédéfinis et personnalisés (tatoueur)
         $styles = array_values(array_filter(
             $validated['styles'] ?? [],
             fn($s) => $s !== 'Autres' && trim($s) !== ''
@@ -206,6 +208,11 @@ class TattooerController extends Controller
         $customStyleNames = array_values(
             array_filter($validated['custom_style_names'] ?? [], fn($s) => trim($s) !== '')
         );
+        // Types de piercing (pierceur)
+        $piercingTypes = array_values(array_filter(
+            $validated['piercing_types'] ?? [],
+            fn($t) => trim($t) !== ''
+        ));
 
         // Mettre à jour l'utilisateur
         $tattooer->user->update([
@@ -226,8 +233,9 @@ class TattooerController extends Controller
             'postal_code' => $validated['postal_code'] ?? null,
             'country' => $validated['country'] ?? null,
             'bio' => $validated['bio'] ?? null,
-            'styles' => $styles,
-            'custom_styles' => $customStyleNames,
+            'styles' => $tattooer->isPiercer() ? ($tattooer->styles ?? []) : $styles,
+            'custom_styles' => $tattooer->isPiercer() ? ($tattooer->custom_styles ?? []) : $customStyleNames,
+            'piercing_types' => $tattooer->isPiercer() ? $piercingTypes : ($tattooer->piercing_types ?? []),
             'years_of_experience' => $validated['years_of_experience'] ?? null,
             'minimum_price' => $validated['minimum_price'] ?? null,
             'wait_time_weeks_min' => $validated['wait_time_weeks_min'] ?? null,
@@ -2468,9 +2476,31 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
         return redirect()->back()->with('success', 'Fiche de soins mise à jour avec succès.');
     }
 
+    /**
+     * Mettre à jour la grille tarifaire (pierceur Pro uniquement)
+     */
+    public function settingsPricingUpdate(Request $request)
+    {
+        $tattooer = $this->artisan();
+
+        if (!$tattooer->isPro()) {
+            return redirect()->back()->with('error', 'Cette fonctionnalité est réservée aux plans Pro.');
+        }
+
+        $validated = $request->validate([
+            'pricing_grid' => 'nullable|array',
+            'pricing_grid.*.type' => 'required|string|max:100',
+            'pricing_grid.*.price' => 'required|numeric|min:0',
+        ]);
+
+        $tattooer->update(['pricing_grid' => $validated['pricing_grid'] ?? []]);
+
+        return redirect()->back()->with('success', 'Grille tarifaire mise à jour avec succès.');
+    }
+
     public function compliance()
     {
-        $tattooer = Auth::user()->tattooer;
+        $tattooer = $this->artisan();
         return view('tattooer.compliance', compact('tattooer'));
     }
 }

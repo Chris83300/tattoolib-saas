@@ -53,7 +53,7 @@
 
                 <!-- Actions -->
                 <div class="flex gap-3">
-                    <a href="{{ route('tattooer.settings') }}"
+                    <a href="{{ route($tattooer->routePrefix() . '.settings') }}"
                         class="px-4 py-2 bg-beige-peau hover:bg-beige-peau/90 text-noir-profond font-semibold rounded-lg transition-colors">
                         Modifier
                     </a>
@@ -85,7 +85,7 @@
                 <div class="bg-gris-fonde rounded-xl p-6">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-xl font-Satoshi font-bold text-ivoire-text">Portfolio</h2>
-                        <a href="{{ route('tattooer.settings') }}"
+                        <a href="{{ route($tattooer->routePrefix() . '.settings') }}"
                             class="text-beige-peau text-sm font-semibold hover:underline">
                             Gérer →
                         </a>
@@ -103,7 +103,7 @@
                     @else
                         <div class="text-center py-8">
                             <p class="text-ivoire-text/50 mb-4">Aucune image dans votre portfolio</p>
-                            <a href="{{ route('tattooer.settings') }}"
+                            <a href="{{ route($tattooer->routePrefix() . '.settings') }}"
                                 class="inline-block px-4 py-2 bg-beige-peau text-noir-profond font-semibold rounded-lg">
                                 Ajouter des images
                             </a>
@@ -170,12 +170,12 @@
                 <div class="bg-gris-fonde rounded-xl p-6">
                     <h3 class="text-lg font-Satoshi font-bold text-ivoire-text mb-4">Actions rapides</h3>
                     <div class="space-y-3">
-                        <a href="{{ route('tattooer.dashboard') }}"
+                        <a href="{{ route($tattooer->routePrefix() . '.dashboard') }}"
                             class="w-full flex items-center gap-3 px-4 py-3 bg-beige-peau/10 hover:bg-beige-peau/20 text-beige-peau rounded-lg transition-colors">
                             <span class="text-xl">📊</span>
                             <span class="font-semibold">Dashboard</span>
                         </a>
-                        <a href="{{ route('tattooer.requests') }}"
+                        <a href="{{ route($tattooer->routePrefix() . '.requests') }}"
                             class="w-full flex items-center gap-3 px-4 py-3 bg-beige-peau/10 hover:bg-beige-peau/20 text-beige-peau rounded-lg transition-colors">
                             <span class="text-xl">📅</span>
                             <span class="font-semibold">Demandes RDV</span>
@@ -186,13 +186,13 @@
                                 </span>
                             @endif
                         </a>
-                        <a href="{{ route('tattooer.calendar') }}"
+                        <a href="{{ route($tattooer->routePrefix() . '.calendar') }}"
                             class="w-full flex items-center gap-3 px-4 py-3 bg-beige-peau/10 hover:bg-beige-peau/20 text-beige-peau rounded-lg transition-colors">
                             <span class="text-xl">🗓️</span>
                             <span class="font-semibold">Calendrier</span>
                         </a>
                         @if (!$tattooer->has_compliance_badge)
-                            <a href="{{ route('tattooer.compliance') }}"
+                            <a href="{{ route($tattooer->routePrefix() . '.compliance') }}"
                                 class="w-full flex items-center gap-3 px-4 py-3 bg-vert-succes/20 hover:bg-vert-succes/30 text-vert-succes rounded-lg transition-colors">
                                 <span class="text-xl">✓</span>
                                 <span class="font-semibold">Obtenir badge conformité</span>
@@ -214,7 +214,7 @@
                                 </p>
                             </div>
                         </div>
-                        <a href="{{ route('tattooer.subscription.plans') }}"
+                        <a href="{{ route($tattooer->routePrefix() . '.subscription.plans') }}"
                             class="w-full block text-center px-4 py-3 bg-beige-peau hover:bg-beige-peau/90 text-noir-profond font-bold rounded-lg transition-colors">
                             Voir les abonnements
                         </a>

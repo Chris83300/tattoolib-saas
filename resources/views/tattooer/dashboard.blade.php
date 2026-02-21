@@ -45,7 +45,7 @@
 
             <!-- Demandes en attente -->
             <div class="bg-gris-fonde rounded-xl p-6 hover:ring-2 hover:ring-beige-peau transition-all cursor-pointer"
-                onclick="window.location.href='{{ route('tattooer.requests') }}'">
+                onclick="window.location.href='{{ route($tattooer->routePrefix() . '.requests') }}'">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 bg-ambre-warning/20 rounded-lg flex items-center justify-center">
                         <svg class="w-6 h-6 text-ambre-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -127,7 +127,7 @@
                     <h2 class="text-xl font-bold text-ivoire-text">
                         📅 Prochains rendez-vous
                     </h2>
-                    <a href="{{ route('tattooer.calendar') }}"
+                    <a href="{{ route($tattooer->routePrefix() . '.calendar') }}"
                         class="text-beige-peau text-sm font-semibold hover:underline">
                         Voir tout →
                     </a>
@@ -156,7 +156,7 @@
                                 {{-- Boutons de clôture pour RDV passés --}}
                                 @if ($isConfirmed && $isPast)
                                     <div class="mt-3 flex flex-wrap gap-2">
-                                        <form action="{{ route('tattooer.appointments.complete', $appointment) }}"
+                                        <form action="{{ route($tattooer->routePrefix() . '.appointments.complete', $appointment) }}"
                                             method="POST"
                                             onsubmit="return confirm('Confirmer que le RDV s\'est bien passé ?')">
                                             @csrf
@@ -192,7 +192,7 @@
                                             <h3 class="text-lg font-bold text-noir-profond mb-1">Signaler un no-show</h3>
                                             <p class="text-sm text-noir-profond/60 mb-4">Le client ne s'est pas présenté au
                                                 rendez-vous ?</p>
-                                            <form action="{{ route('tattooer.appointments.no-show', $appointment) }}"
+                                            <form action="{{ route($tattooer->routePrefix() . '.appointments.no-show', $appointment) }}"
                                                 method="POST">
                                                 @csrf
                                                 <textarea name="no_show_reason" rows="3" placeholder="Décrivez la situation (optionnel)..."
@@ -344,7 +344,7 @@
                     <div class="text-center">
                         <div class="text-4xl font-bold text-beige-peau mb-2">49,99€</div>
                         <div class="text-ivoire-text/60 text-sm mb-4">/mois</div>
-                        <a href="{{ route('tattooer.subscription.plans') }}"
+                        <a href="{{ route($tattooer->routePrefix() . '.subscription.plans') }}"
                             class="inline-block px-8 py-3 bg-beige-peau text-noir-profond rounded-lg font-bold hover:bg-beige-peau/90 transition-colors">
                             Passer PRO maintenant
                         </a>
