@@ -13,7 +13,11 @@
       "Bash(php artisan make:migration:*)",
       "Bash(php artisan migrate:*)",
       "Bash(php artisan:*)",
-      "Bash(php artisan view:cache:*)"
+      "Bash(php artisan view:cache:*)",
+      "Bash(echo:*)",
+      "Bash(printf:*)",
+      "Bash(php -r:*)",
+      "Bash(php -l:*)"
     ]
   }
 }

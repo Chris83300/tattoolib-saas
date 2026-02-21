@@ -8,24 +8,21 @@ use Symfony\Component\HttpFoundation\Response;
 
 class EnsureProPlan
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
     public function handle(Request $request, Closure $next): Response
     {
-        $tattooer = auth()->user()?->tattooer;
+        $artisan = auth()->user()?->artisan();
+        $artisanType = auth()->user()?->artisanType() ?? 'tattooer';
+        $routePrefix = $artisanType === 'piercer' ? 'pierceur' : 'tattooer';
 
-        if (!$tattooer || $tattooer->isFree()) {
+        if (!$artisan || $artisan->isFree()) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'error' => 'Fonctionnalité réservée au plan PRO.',
-                    'upgrade_url' => route('tattooer.subscription.plans'),
+                    'upgrade_url' => route($routePrefix . '.subscription.plans'),
                 ], 403);
             }
 
-            return redirect()->route('tattooer.subscription.plans')
+            return redirect()->route($routePrefix . '.subscription.plans')
                 ->with('info', '🔒 Cette fonctionnalité est réservée au plan PRO.');
         }
 

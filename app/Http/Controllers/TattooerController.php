@@ -19,14 +19,33 @@ use Illuminate\Support\Facades\Auth;
 class TattooerController extends Controller
 {
     /**
+     * Retourne le profil artisan (Tattooer ou Piercer) de l'utilisateur connecté.
+     * Rend le controller polymorphique pour tattooers ET pierceurs.
+     */
+    private function artisan(): ?\Illuminate\Database\Eloquent\Model
+    {
+        return auth()->user()->artisan();
+    }
+
+    private function artisanType(): string
+    {
+        return auth()->user()->artisanType() ?? 'tattooer';
+    }
+
+    private function routePrefix(): string
+    {
+        return $this->artisanType() === 'piercer' ? 'pierceur' : 'tattooer';
+    }
+
+    /**
      * Profil public du tattooer (vue interne)
      */
     public function profile()
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         if (!$tattooer) {
-            return redirect()->route('register.tattooer')
+            return redirect()->route('register.' . $this->artisanType())
                 ->with('error', 'Veuillez compléter votre profil tatoueur pour accéder à cette page.');
         }
 
@@ -50,7 +69,7 @@ class TattooerController extends Controller
      */
     public function requests(Request $request)
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
         $filter = $request->query('status', 'all'); // par défaut "all" pour tout afficher
 
         // Service pour stats (1 requête au lieu de 5)
@@ -93,7 +112,7 @@ class TattooerController extends Controller
      */
     public function requestShow(BookingRequest $bookingRequest)
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         // Vérifier que la demande appartient au tattooer
         if ($bookingRequest->bookable_id !== $tattooer->id ||
@@ -116,7 +135,7 @@ class TattooerController extends Controller
      */
     public function settings()
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         // Charger les relations nécessaires
         $tattooer->load(['media', 'user']);
@@ -129,7 +148,7 @@ class TattooerController extends Controller
      */
     public function settingsUpdate(Request $request)
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         // Valider les données du formulaire
         $validated = $request->validate([
@@ -246,7 +265,7 @@ class TattooerController extends Controller
                 ->toMediaCollection('banner');
         }
 
-        return redirect()->route('tattooer.settings')
+        return redirect()->route($this->routePrefix() . '.settings')
             ->with('success', 'Vos paramètres ont été mis à jour avec succès !');
     }
 
@@ -255,7 +274,7 @@ class TattooerController extends Controller
      */
     public function deleteAvatar()
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         if ($tattooer->user->hasMedia('avatar')) {
             $tattooer->user->clearMediaCollection('avatar');
@@ -269,7 +288,7 @@ class TattooerController extends Controller
      */
     public function deleteBanner()
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         if ($tattooer->hasMedia('banner')) {
             $tattooer->clearMediaCollection('banner');
@@ -283,7 +302,7 @@ class TattooerController extends Controller
      */
     public function dashboard()
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         // Charger les relations nécessaires
         $tattooer->load(['media', 'user']);
@@ -331,7 +350,7 @@ class TattooerController extends Controller
      */
     public function calendar()
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
         $tattooer->load(['media', 'user']);
 
         // ═══════════════════════════════════════════════
@@ -449,7 +468,7 @@ class TattooerController extends Controller
             'end_datetime' => 'required|date|after:start_datetime',
         ]);
 
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         // Couleur selon le type
         $color = match($validated['type']) {
@@ -499,7 +518,7 @@ class TattooerController extends Controller
             'end_datetime' => 'nullable|date|after:start_datetime',
         ]);
 
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
         $calendarEvent = CalendarEvent::where('id', $event)
             ->where('bookable_type', $tattooer->getMorphClass())
             ->where('bookable_id', $tattooer->id)
@@ -525,7 +544,7 @@ class TattooerController extends Controller
      */
     public function calendarDestroy($event, Request $request)
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
         $calendarEvent = CalendarEvent::where('id', $event)
             ->where('bookable_type', $tattooer->getMorphClass())
             ->where('bookable_id', $tattooer->id)
@@ -551,11 +570,11 @@ class TattooerController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Événement supprimé avec succès',
-                'redirect' => route('tattooer.calendar')
+                'redirect' => route($this->routePrefix() . '.calendar')
             ]);
         }
 
-        return redirect()->route('tattooer.calendar')->with('success', 'Événement supprimé avec succès');
+        return redirect()->route($this->routePrefix() . '.calendar')->with('success', 'Événement supprimé avec succès');
     }
 
     /**
@@ -563,7 +582,7 @@ class TattooerController extends Controller
      */
     public function calendarEvents(Request $request)
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         // Récupérer les rendez-vous confirmés comme événements
         $appointments = Appointment::where('bookable_id', $tattooer->id)
@@ -644,7 +663,7 @@ class TattooerController extends Controller
      */
     public function messageShow(BookingRequest $bookingRequest)
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         // Vérifier que la demande appartient bien au tattooer
         if ($bookingRequest->bookable_id !== $tattooer->id ||
@@ -693,7 +712,7 @@ class TattooerController extends Controller
  */
 public function messageSend(Request $request, BookingRequest $bookingRequest)
 {
-    $tattooer = auth()->user()->tattooer;
+    $tattooer = $this->artisan();
 
     if ($bookingRequest->bookable_id !== $tattooer->id ||
         $bookingRequest->bookable_type !== 'App\Models\Tattooer') {
@@ -715,7 +734,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
 
     // Protection : bloquer l'upload d'images pour les utilisateurs FREE
     if ($tattooer->isFree() && $request->hasFile('attachments')) {
-        return redirect()->back()->with('error', '🔒 L\'envoi d\'images est réservé au plan PRO. <a href="' . route('tattooer.subscription.plans') . '" class="text-beige-peau underline">Passer PRO</a> pour débloquer cette fonctionnalité.');
+        return redirect()->back()->with('error', '🔒 L\'envoi d\'images est réservé au plan PRO. <a href="' . route($this->routePrefix() . '.subscription.plans') . '" class="text-beige-peau underline">Passer PRO</a> pour débloquer cette fonctionnalité.');
     }
 
     // Créer la conversation si elle n'existe pas
@@ -821,7 +840,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
         ]);
     }
 
-    return redirect()->route('tattooer.message.show', $bookingRequest)
+    return redirect()->route($this->routePrefix() . '.message.show', $bookingRequest)
         ->with('success', 'Message envoyé !');
 }
 
@@ -831,7 +850,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
      */
     public function messages()
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         // Charger les relations nécessaires
         $tattooer->load(['media', 'user']);
@@ -853,7 +872,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
      */
     public function clients()
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         // Recherche
         $search = request('search');
@@ -917,7 +936,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
      */
     public function clientShow(\App\Models\Client $client)
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         // Vérifier que ce client appartient bien au tattooer
         // Soit via une demande avec acompte payé, soit créé manuellement par ce tattooer
@@ -1034,7 +1053,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
      */
     public function updateClient(Request $request, \App\Models\Client $client)
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         // Vérifier que ce client appartient bien au tattooer
         $hasBookingRelation = BookingRequest::where('client_id', $client->id)
@@ -1089,7 +1108,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
      */
     public function uploadConsent(Request $request, \App\Models\Client $client)
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         // Vérifier que ce client appartient bien au tattooer
         $hasBookingRelation = BookingRequest::where('client_id', $client->id)
@@ -1129,7 +1148,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
      */
     public function deleteConsent(\App\Models\Client $client, $media)
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         // Vérifier que ce client appartient bien au tattooer
         $hasBookingRelation = BookingRequest::where('client_id', $client->id)
@@ -1160,7 +1179,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
      */
     public function storeClientTraceability(Request $request, \App\Models\Client $client)
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         // Vérifier que ce client appartient bien au tattooer
         $hasBookingRelation = BookingRequest::where('client_id', $client->id)
@@ -1227,7 +1246,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
      */
     public function uploadClientPhotos(Request $request, \App\Models\Client $client)
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         // Vérifier que ce client appartient bien au tattooer
         $hasBookingRelation = BookingRequest::where('client_id', $client->id)
@@ -1267,7 +1286,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
      */
     public function deleteClientPhoto(\App\Models\Client $client, $media)
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         // Vérifier que ce client appartient bien au tattooer
         $hasBookingRelation = BookingRequest::where('client_id', $client->id)
@@ -1298,7 +1317,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
      */
     public function storeConsent(Request $request, BookingRequest $bookingRequest)
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         // Vérifier propriété
         if ($bookingRequest->bookable_id !== $tattooer->id ||
@@ -1350,7 +1369,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
      */
     public function storeTraceability(Request $request, \App\Models\Appointment $appointment)
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         // Vérifier propriété via booking request
         $bookingRequest = $appointment->bookingRequest;
@@ -1428,7 +1447,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
      */
     public function updateClientNotes(Request $request, \App\Models\Client $client)
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         // Vérifier la relation
         $hasRelation = BookingRequest::where('client_id', $client->id)
@@ -1451,7 +1470,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
      */
     public function uploadClientTattooPhotos(Request $request, \App\Models\Client $client, BookingRequest $bookingRequest)
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         if ($bookingRequest->bookable_id !== $tattooer->id) {
             abort(403);
@@ -1480,7 +1499,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
      */
     public function deleteClientMedia(\App\Models\Client $client, $mediaId)
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         // Vérifier la relation client-tattooer
         $hasRelation = BookingRequest::where('client_id', $client->id)
@@ -1512,7 +1531,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
      */
     public function portfolio()
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         // Charger les relations nécessaires
         $tattooer->load(['media', 'user']);
@@ -1547,7 +1566,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
     public function portfolioUpload(Request $request)
     {
         try {
-            $tattooer = auth()->user()->tattooer;
+            $tattooer = $this->artisan();
             $collection = $request->input('collection', 'portfolio');
 
             // Validation
@@ -1558,7 +1577,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
             ]);
 
             // Vérifier la limite d'images selon le plan
-            $tattooer = auth()->user()->tattooer;
+            $tattooer = $this->artisan();
 
             // Compter le TOTAL des images portfolio (toutes collections confondues)
             $totalPortfolioCount = $tattooer->getMedia('portfolio')->count() +
@@ -1608,7 +1627,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
     public function portfolioBeforeAfterStore(Request $request)
     {
         try {
-            $tattooer = auth()->user()->tattooer;
+            $tattooer = $this->artisan();
 
             // Validation
             $request->validate([
@@ -1672,7 +1691,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
     public function portfolioDestroy($media)
     {
         try {
-            $tattooer = auth()->user()->tattooer;
+            $tattooer = $this->artisan();
 
             // Récupérer le média
             $mediaItem = $tattooer->media()->find($media);
@@ -1716,7 +1735,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
     public function portfolioBeforeAfterDestroy($beforeId, $afterId)
     {
         try {
-            $tattooer = auth()->user()->tattooer;
+            $tattooer = $this->artisan();
 
             // Récupérer les médias
             $beforeMedia = $tattooer->media()->find($beforeId);
@@ -1762,7 +1781,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
     public function settingsUpdateSchedule(Request $request)
     {
         try {
-            $tattooer = auth()->user()->tattooer;
+            $tattooer = $this->artisan();
 
             // Valider les données du formulaire
             $validated = $request->validate([
@@ -1824,7 +1843,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
      */
     public function payments()
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         // Charger les relations nécessaires
         $tattooer->load(['media', 'user']);
@@ -1859,7 +1878,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
     public function acceptRequest(Request $request, BookingRequest $bookingRequest)
     {
         // Vérifier que la demande appartient bien au tattooer connecté
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         if ($bookingRequest->bookable_id !== $tattooer->id ||
             $bookingRequest->bookable_type !== 'App\Models\Tattooer') {
@@ -1925,7 +1944,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
         // Envoyer une notification au client
         // TODO: Implémenter le système de notifications
 
-        return redirect()->route('tattooer.request.show', $bookingRequest)
+        return redirect()->route($this->routePrefix() . '.request.show', $bookingRequest)
             ->with('success', 'Demande acceptée avec succès !');
     }
 
@@ -1935,7 +1954,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
     public function requestReject(Request $request, BookingRequest $bookingRequest)
     {
         // Vérifier que la demande appartient bien au tattooer connecté
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         if ($bookingRequest->bookable_id !== $tattooer->id ||
             $bookingRequest->bookable_type !== 'App\Models\Tattooer') {
@@ -1985,7 +2004,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
 
         // TODO: Envoyer notification au client
 
-        return redirect()->route('tattooer.request.show', $bookingRequest)
+        return redirect()->route($this->routePrefix() . '.request.show', $bookingRequest)
             ->with('success', 'Demande refusée avec succès !');
     }
 
@@ -1995,7 +2014,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
     public function reproposeDates(Request $request, BookingRequest $bookingRequest)
     {
         // Vérifier que la demande appartient bien au tattooer connecté
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         if ($bookingRequest->bookable_id !== $tattooer->id ||
             $bookingRequest->bookable_type !== 'App\Models\Tattooer') {
@@ -2149,10 +2168,10 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
      */
     public function upgrade()
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         if ($tattooer->isPro()) {
-            return redirect()->route('tattooer.profile')
+            return redirect()->route($this->routePrefix() . '.profile')
                 ->with('info', 'Vous êtes déjà abonné au plan PRO.');
         }
 
@@ -2176,8 +2195,8 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
             // Debug
             Log::info('storeClient called', [
                 'request_data' => $request->all(),
-                'tattooer_id' => auth()->user()->tattooer->id,
-                'is_pro' => auth()->user()->tattooer->isPro()
+                'tattooer_id' => $this->artisan()?->id,
+                'is_pro' => $this->artisan()?->isPro()
             ]);
 
             $validated = $request->validate([
@@ -2217,12 +2236,12 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
                 'birth_date' => $validated['birth_date'],
                 'address' => $validated['address'],
                 'notes' => $validated['notes'],
-                'tattooer_id' => auth()->user()->tattooer->id, // Associer au tattooer actuel
+                'tattooer_id' => $this->artisan()?->id, // Associer au tattooer actuel
             ]);
 
             Log::info('Client created', ['client_id' => $client->id]);
 
-            return redirect()->route('tattooer.client.show', $client)
+            return redirect()->route($this->routePrefix() . '.client.show', $client)
                 ->with('success', '✅ Fiche client créée avec succès !');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -2246,7 +2265,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
      */
     public function storeDigitalConsent(Request $request, \App\Models\Client $client)
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         // Vérifier que ce client appartient bien au tattooer
         $hasBookingRelation = BookingRequest::where('client_id', $client->id)
@@ -2366,7 +2385,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
      */
     public function completeBooking(Request $request, BookingRequest $bookingRequest)
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         // Vérifier que la demande appartient bien au tattooer
         if ($bookingRequest->bookable_id !== $tattooer->id || $bookingRequest->bookable_type !== 'App\\Models\\Tattooer') {
@@ -2390,7 +2409,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
      */
     public function markNoShow(Request $request, BookingRequest $bookingRequest)
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         // Vérifier que la demande appartient bien au tattooer
         if ($bookingRequest->bookable_id !== $tattooer->id || $bookingRequest->bookable_type !== 'App\\Models\\Tattooer') {
@@ -2417,7 +2436,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
      */
     public function pricing()
     {
-        return redirect()->route('tattooer.subscription.plans');
+        return redirect()->route($this->routePrefix() . '.subscription.plans');
     }
 
     /**
@@ -2425,7 +2444,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
      */
     public function settingsAftercareUpdate(Request $request)
     {
-        $tattooer = auth()->user()->tattooer;
+        $tattooer = $this->artisan();
 
         // Vérifier que c'est un plan Pro
         if (!$tattooer->isPro()) {
