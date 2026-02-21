@@ -9,7 +9,9 @@
       "Bash(php artisan test:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(php artisan tinker:*)"
+      "Bash(php artisan tinker:*)",
+      "Bash(php artisan make:migration:*)",
+      "Bash(php artisan migrate:*)"
     ]
   }
 }
