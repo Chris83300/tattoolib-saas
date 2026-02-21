@@ -196,7 +196,31 @@ class User extends Authenticatable implements HasMedia
 
     public function isPiercer(): bool
     {
-        return $this->role === 'pierceur';
+        return in_array($this->role, ['pierceur', 'Piercer']);
+    }
+
+    public function isArtisan(): bool
+    {
+        return $this->isTattooer() || $this->isPiercer();
+    }
+
+    /**
+     * Retourne le profil artisan de l'utilisateur (Tattooer ou Piercer)
+     * Utiliser cette méthode dans les controllers pour le polymorphisme.
+     */
+    public function artisan(): ?\Illuminate\Database\Eloquent\Model
+    {
+        return $this->tattooer ?? $this->pierceur;
+    }
+
+    /**
+     * Retourne le type d'artisan : 'tattooer', 'piercer', ou null
+     */
+    public function artisanType(): ?string
+    {
+        if ($this->isTattooer()) return 'tattooer';
+        if ($this->isPiercer()) return 'piercer';
+        return null;
     }
 
     public function isStudio(): bool
