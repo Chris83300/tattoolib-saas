@@ -18,12 +18,14 @@ use App\Traits\HasStripeConnect;
 use App\Traits\HasWorkingHours;
 use App\Traits\HandlesMedia;
 use App\Traits\CalculatesStats;
+use App\Models\Traits\IsArtisan;
 
 class Piercer extends Model implements HasMedia
 {
     use HasFactory, SoftDeletes, InteractsWithMedia;
     use HasSubscription, BookableArtist, HasCompliance, HasStripeConnect;
     use HasWorkingHours, HandlesMedia, CalculatesStats;
+    use IsArtisan;
 
     protected $table = 'piercers';
 

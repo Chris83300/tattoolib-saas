@@ -28,10 +28,12 @@ use App\Traits\HasStripeConnect;
 use App\Traits\HasWorkingHours;
 use App\Traits\HandlesMedia;
 use App\Traits\CalculatesStats;
+use App\Models\Traits\IsArtisan;
 
 class Tattooer extends Model implements HasMedia
 {
     use HasFactory, SoftDeletes, InteractsWithMedia, HasSubscription, BookableArtist, HasCompliance, HasStripeConnect, HasWorkingHours, HandlesMedia, CalculatesStats;
+    use IsArtisan;
 
     protected static function booted()
     {
