@@ -279,7 +279,7 @@ class RegisterController extends Controller
             session()->flash('success', 'Votre compte Piercer a été créé avec succès ! Votre SIRET a été enregistré et sera vérifié par notre équipe.');
 
             // Redirection vers page "en attente validation"
-            return redirect()->route('Piercer.pending-verification');
+            return redirect()->route('pierceur.pending-verification');
 
         } catch (\Exception $e) {
             // Logger l'erreur pour debug

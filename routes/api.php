@@ -12,7 +12,7 @@ use App\Http\Controllers\Api\MarketplaceController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\AccountingController;
 use App\Http\Controllers\Api\PaymentController;
-use App\Http\Controllers\PiercerController;
+// PiercerController supprimé — Phase 0 cleanup
 use App\Http\Controllers\Api\TattooerController;
 use App\Http\Controllers\Api\TattooerPlanningController;
 use App\Http\Controllers\Api\TraceabilityController;
@@ -39,15 +39,7 @@ Route::prefix('tattooers')->group(function () {
     Route::get('/{id}/availability', [TattooerController::class, 'availability']);
 });
 
-// Routes publiques Piercers (recherche, profils publics)
-Route::prefix('piercers')->group(function () {
-    Route::get('/', [PiercerController::class, 'index']);
-    Route::get('/{id}', [PiercerController::class, 'show']);
-    Route::get('/{id}/portfolio', [PiercerController::class, 'portfolio']);
-    Route::get('/{id}/availability', [PiercerController::class, 'availability']);
-    Route::get('/{id}/statistics', [PiercerController::class, 'statistics']);
-    Route::get('/{id}/working-hours', [PiercerController::class, 'working-hours']);
-});
+// Routes publiques Piercers — TODO Phase 9 : sera réécrit via MarketplaceController
 
 // Routes publiques Marketplace
 Route::prefix('marketplace')->group(function () {
@@ -122,25 +114,7 @@ Route::middleware('auth:sanctum')->prefix('tattooers/{tattooer}')->group(functio
         ->where('day', '[0-6]');
 });
 
-// ===== PIERCERS (Protected routes) =====
-Route::middleware('auth:sanctum')->prefix('piercers/{Piercer}')->group(function () {
-    // Gestion du profil
-    Route::put('/', [PiercerController::class, 'update']);
-    Route::delete('/', [PiercerController::class, 'delete']);
-
-    // Gestion de la spécialisation
-    Route::put('/specialization', [PiercerController::class, 'updateSpecialization']);
-
-    // Gestion du portfolio
-    Route::post('/portfolio', [PiercerController::class, 'uploadPortfolioImage']);
-    Route::delete('/portfolio/{mediaId}', [PiercerController::class, 'deletePortfolioImage']);
-
-    // Gestion des horaires
-    Route::get('/working-hours', [PiercerController::class, 'getWorkingHours']);
-    Route::put('/working-hours', [PiercerController::class, 'updateWorkingHours']);
-    Route::put('/working-hours/{day}', [PiercerController::class, 'updateDayWorkingHours'])
-        ->where('day', '[0-6]');
-});
+// ===== PIERCERS (Protected routes) — TODO Phase 5 : sera réécrit
 
     // ===== BOOKING REQUESTS =====
     Route::prefix('booking-requests')->group(function () {

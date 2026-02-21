@@ -151,7 +151,8 @@ Route::get('/login', function () {
             case 'tattooer':
                 return redirect()->route('tattooer.profile');
             case 'Piercer':
-                return redirect()->route('Piercer.dashboard');
+            case 'pierceur':
+                return redirect()->route('pierceur.dashboard');
             case 'studio':
                 return redirect()->route('studio.dashboard');
             case 'studio_artist':
@@ -173,7 +174,8 @@ Route::get('/register', function () {
             case 'tattooer':
                 return redirect()->route('tattooer.dashboard');
             case 'Piercer':
-                return redirect()->route('Piercer.dashboard');
+            case 'pierceur':
+                return redirect()->route('pierceur.dashboard');
             case 'studio':
                 return redirect()->route('studio.dashboard');
             case 'studio_artist':
@@ -202,13 +204,13 @@ Route::get('/register/tattooer', function () {
     return view('auth.register-tattooer');
 })->name('register.tattooer');
 
-Route::get('/register/Piercer', function () {
-    // Si déjà connecté, rediriger vers le profil approprié
+// Inscription pierceur — Phase 8 : sera adapté avec choix artisan_type
+Route::get('/register/pierceur', function () {
     if (auth()->check()) {
-        return redirect()->route('Piercer.dashboard');
+        return redirect()->route('home');
     }
-    return view('auth.register-Piercer');
-})->name('register.Piercer');
+    return view('auth.register-tattooer', ['defaultType' => 'piercer']);
+})->name('register.pierceur');
 
 Route::get('/register/studio', function () {
     // Si déjà connecté, rediriger vers le profil approprié
@@ -232,9 +234,10 @@ Route::post('/register/tattooer', function (Illuminate\Http\Request $request) {
     return app(App\Http\Controllers\RegisterController::class)->submitTattooer($request);
 })->name('register.tattooer.submit');
 
-Route::post('/register/Piercer', function (Illuminate\Http\Request $request) {
+// Inscription pierceur — Phase 8 : sera adapté
+Route::post('/register/pierceur', function (Illuminate\Http\Request $request) {
     return app(App\Http\Controllers\RegisterController::class)->submitPiercer($request);
-})->name('register.Piercer.submit');
+})->name('register.pierceur.submit');
 
 Route::post('/register/studio', function (Illuminate\Http\Request $request) {
     return app(App\Http\Controllers\RegisterController::class)->submitStudio($request);
@@ -260,22 +263,7 @@ Route::middleware(['auth'])->prefix('client')->name('client.')->group(function (
         ->name('balance.show');
 });
 
-// Routes Piercer (protégées — Livewire)
-Route::middleware(['auth', 'role:Piercer'])->prefix('Piercer')->name('Piercer.')->group(function () {
-    Route::get('/', [App\Http\Controllers\PiercerController::class, 'index'])->name('index');
-    Route::get('/dashboard', [App\Http\Controllers\PiercerController::class, 'dashboard'])->name('dashboard');
-    Route::get('/settings', [App\Http\Controllers\PiercerController::class, 'settings'])->name('settings');
-    Route::get('/portfolio', [App\Http\Controllers\PiercerController::class, 'portfolio'])->name('portfolio');
-    Route::get('/clients', [App\Http\Controllers\PiercerController::class, 'clients'])->name('clients');
-    Route::get('/messages', [App\Http\Controllers\PiercerController::class, 'messages'])->name('messages');
-    Route::get('/calendar', [App\Http\Controllers\PiercerController::class, 'calendar'])->name('calendar');
-    Route::get('/demandes', [App\Http\Controllers\PiercerController::class, 'bookingRequests'])->name('booking-requests');
-});
-
-// Route de test pour le dashboard Piercer
-Route::get('/Piercer/dashboard-test', function () {
-    return 'Dashboard Piercer fonctionne !';
-})->middleware(['auth', 'role:Piercer'])->name('Piercer.dashboard-test');
+// Routes Pierceur — TODO Phase 5 : sera réécrit pour pointer vers TattooerController
 
 // Routes Studio (protégées)
 // Profil public Studio (accessible sans auth)
@@ -321,10 +309,10 @@ Route::get('/artistes/{slug}', [MarketplaceController::class, 'show'])
     ->name('marketplace.show.artist');
 
 
-Route::get('/Piercer/pending-verification', function () {
-    $Piercer = auth()->user()->Piercer;
-    return view('livewire.Piercer.pending-verification', compact('Piercer'));
-})->middleware(['auth'])->name('Piercer.pending-verification');
+// Pierceur pending-verification — Phase 8 : à réécrire avec vue unifiée
+Route::get('/pierceur/pending-verification', function () {
+    return view('auth.pending-verification', ['role' => 'pierceur']);
+})->middleware(['auth'])->name('pierceur.pending-verification');
 
 Route::get('/studio/pending-verification', function () {
     return view('auth.pending-verification', ['role' => 'studio']);
