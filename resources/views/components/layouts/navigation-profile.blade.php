@@ -40,11 +40,12 @@
                 @endif
 
                 @if (in_array(auth()->user()->role, ['tattooer', 'pierceur', 'studio_artist']))
-                    <a href="{{ route('tattooer.dashboard') }}"
+                    @php $artisanPrefix = auth()->user()->isPiercer() ? 'pierceur' : 'tattooer'; @endphp
+                    <a href="{{ route($artisanPrefix . '.dashboard') }}"
                         class="text-ivoire-text hover:text-beige-peau transition-colors">
                         Mon espace pro
                     </a>
-                    <a href="{{ route('tattooer.demandes') }}"
+                    <a href="{{ route($artisanPrefix . '.demandes') }}"
                         class="text-ivoire-text hover:text-beige-peau transition-colors">
                         Demandes
                     </a>

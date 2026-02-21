@@ -127,6 +127,11 @@ class User extends Authenticatable implements HasMedia
         return $this->hasOne(Piercer::class);
     }
 
+    public function piercer()
+    {
+        return $this->hasOne(Piercer::class);
+    }
+
     public function studio()
     {
         return $this->belongsTo(Studio::class);

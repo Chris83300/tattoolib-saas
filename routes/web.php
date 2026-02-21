@@ -326,6 +326,13 @@ Route::middleware(['auth', 'role:pierceur,Piercer'])->prefix('pierceur')->name('
     Route::post('/subscription/cancel', [SubscriptionController::class, 'cancel'])->name('subscription.cancel');
     Route::post('/subscription/resume', [SubscriptionController::class, 'resume'])->name('subscription.resume');
     Route::get('/subscription/manage', [SubscriptionController::class, 'manage'])->name('subscription.manage');
+
+    // Anciennes routes Livewire (miroir du groupe tattooer)
+    Route::get('/profil/edit', App\Livewire\Tattooer\Profile::class)->name('profile.edit');
+    Route::get('/disponibilites', App\Livewire\Tattooer\Availability::class)->name('availability');
+    Route::get('/demandes', App\Livewire\Tattooer\BookingRequests::class)->name('demandes');
+    Route::get('/reservations', App\Livewire\Tattooer\Bookings::class)->name('bookings');
+    Route::get('/statistiques', App\Livewire\Tattooer\Analytics::class)->name('analytics');
 });
 
 // Routes Studio (protégées)
@@ -390,6 +397,11 @@ Route::get('/client/profile', [App\Http\Controllers\Client\ProfileController::cl
 Route::delete('/tattooer/delete-account', [App\Http\Controllers\Tattooer\AccountController::class, 'delete'])
     ->middleware(['auth'])
     ->name('tattooer.delete-account');
+
+// Route suppression compte pierceur
+Route::delete('/pierceur/delete-account', [App\Http\Controllers\Tattooer\AccountController::class, 'delete'])
+    ->middleware(['auth'])
+    ->name('pierceur.delete-account');
 
 
 // Routes webhook Stripe (sans CSRF)
