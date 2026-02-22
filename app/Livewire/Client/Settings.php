@@ -5,22 +5,12 @@ namespace App\Livewire\Client;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
-use Livewire\Attributes\Validate;
-use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 
 class Settings extends Component
 {
-    use WithFileUploads;
-
     public $pseudo;
     public $birth_date;
-    public $newAvatar;
-
-    protected $rules = [
-        'newAvatar' => 'nullable|image|mimes:jpeg,png,gif,webp|max:5120', // 5MB max
-    ];
 
     #[Layout('components.layouts.livewire-site')]
     #[Title('Paramètres - Ink&Pik')]
@@ -33,11 +23,6 @@ class Settings extends Component
         // Priorité: client.pseudo > user.pseudo > user.first_name > vide
         $this->pseudo = $client->pseudo ?? $user->pseudo ?? $user->first_name ?? '';
         $this->birth_date = $client->birth_date?->format('Y-m-d') ?? '';
-        $this->newAvatar = null; // Initialiser la propriété
-
-        // Debug pour voir les propriétés
-        logger()->info('Client Settings mount - newAvatar: ' . ($this->newAvatar ?? 'NULL'));
-        logger()->info('Client Settings mount - properties: ' . json_encode(get_object_vars($this)));
     }
 
     public function render()
@@ -85,48 +70,7 @@ class Settings extends Component
         }
     }
 
-    public function uploadAvatar()
-    {
-        // Validation avec debug
-        try {
-            $this->validate([
-                'newAvatar' => 'required|image|mimes:jpeg,png,gif,webp|max:5120', // 5MB max
-            ]);
-        } catch (\Exception $e) {
-            $this->dispatch('avatar-upload-error', 'Erreur validation: ' . $e->getMessage());
-            return;
-        }
-
-        try {
-            $user = Auth::user();
-            $client = $user->client;
-
-            // Upload sur le modèle Client
-            $client->clearMediaCollection('avatar');
-            $media = $client->addMedia($this->newAvatar)
-                ->usingFileName($this->newAvatar->getClientOriginalName())
-                ->toMediaCollection('avatar');
-
-            $this->newAvatar = null;
-            $this->dispatch('avatar-uploaded', 'Avatar mis à jour avec succès !');
-
-        } catch (\Exception $e) {
-            $this->dispatch('avatar-upload-error', 'Erreur: ' . $e->getMessage());
-        }
-    }
-
-    public function removeAvatar()
-    {
-        $user = Auth::user();
-        $client = $user->client;
-
-        // Supprimer l'avatar du modèle Client
-        $client->clearMediaCollection('avatar');
-
-        $this->dispatch('avatar-removed', 'Avatar supprimé avec succès !');
-    }
-
-    protected $listeners = ['test-debug' => 'testDebug', 'confirm-delete' => 'deleteAccount', 'cancel-delete' => 'cancelDelete'];
+    protected $listeners = ['confirm-delete' => 'deleteAccount', 'cancel-delete' => 'cancelDelete'];
 
     public function cancelDelete()
     {

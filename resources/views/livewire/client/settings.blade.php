@@ -35,60 +35,35 @@
                     <!-- Avatar -->
                     <div>
                         <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                            Avatar
+                            Photo de profil
                         </label>
-                        <div class="flex items-center gap-4">
-                            <div
-                                class="w-20 h-20 rounded-full overflow-hidden bg-beige-peau/10 flex items-center justify-center">
-                                @if (auth()->user()->getFirstMediaUrl('avatar'))
-                                    <img src="{{ auth()->user()->getFirstMediaUrl('avatar') }}" alt="Avatar"
-                                        class="w-full h-full object-cover">
-                                @elseif ($newAvatar)
-                                    <!-- Prévisualisation du fichier sélectionné -->
-                                    <img src="{{ $newAvatar->temporaryUrl() }}" alt="Avatar preview"
-                                        class="w-full h-full object-cover">
-                                @else
-                                    <svg class="w-10 h-10 text-beige-peau" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd"
-                                            d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd">
-                                        </path>
-                                    </svg>
-                                @endif
-                            </div>
+                        <form action="{{ route('client.settings.update-avatar') }}" method="POST" enctype="multipart/form-data">
+                            @csrf
+                            <div class="flex items-center gap-4">
+                                <img id="avatar-preview"
+                                    src="{{ auth()->user()->getFirstMediaUrl('avatar') ?: asset('images/default-avatar.png') }}"
+                                    alt="Avatar" class="w-20 h-20 rounded-full object-cover">
 
-                            <div class="flex-1">
-                                <!-- Upload Avatar -->
-                                <form wire:submit="uploadAvatar" class="mb-4">
-                                    <input type="file" wire:model.live="newAvatar" accept="image/*"
-                                        class="w-full px-4 py-2 bg-noir-profond border border-titane/20 rounded-lg text-ivoire-text focus:border-beige-peau focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-beige-peau file:text-noir-profond hover:file:bg-beige-peau/90">
-
-                                    @if ($newAvatar)
-                                        <div class="text-vert-succes text-sm mt-2">
-                                            ✅ Fichier sélectionné: {{ $newAvatar->getClientOriginalName() }}
-                                        </div>
+                                <div class="flex flex-col gap-2">
+                                    <label
+                                        class="min-h-11 px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold cursor-pointer hover:bg-beige-peau/90 transition-colors inline-block text-center text-sm active:scale-95">
+                                        Changer photo (5MB max)
+                                        <input type="file" name="avatar" accept="image/*" class="hidden"
+                                            onchange="previewAvatar(this)">
+                                    </label>
+                                    @if (auth()->user()->hasMedia('avatar'))
+                                        <button type="button" onclick="deleteAvatar()"
+                                            class="min-h-11 px-4 py-2 bg-rouge-alerte/20 text-rouge-alerte rounded-lg font-semibold hover:bg-rouge-alerte/30 transition-colors text-sm active:scale-95">
+                                            Supprimer
+                                        </button>
                                     @endif
-
-                                    <button type="submit" wire:loading.attr="disabled"
-                                        class="mt-2 px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold disabled:opacity-50">
-                                        <span wire:loading>
-                                            Upload en cours...
-                                        </span>
-                                        <span wire:loading.remove>
-                                            Uploader l'avatar (max 5MB)
-                                        </span>
+                                    <button type="submit"
+                                        class="min-h-11 px-4 py-2 bg-titane/20 text-ivoire-text border border-titane/30 rounded-lg font-semibold hover:bg-titane/30 transition-colors text-sm active:scale-95">
+                                        Enregistrer la photo
                                     </button>
-
-                                </form>
-
-                                <!-- Suppression -->
-                                @if (auth()->user()->getFirstMediaUrl('avatar'))
-                                    <button wire:click="removeAvatar" type="button"
-                                        class="px-4 py-2 border border-rouge-alerte/30 text-rouge-alerte rounded-lg font-medium hover:border-rouge-alerte transition-colors text-sm">
-                                        Supprimer l'avatar
-                                    </button>
-                                @endif
+                                </div>
                             </div>
-                        </div>
+                        </form>
                     </div>
 
                     <!-- Pseudo -->
@@ -257,19 +232,6 @@
             }, 3000);
         });
 
-        Livewire.on('avatar-uploaded', (message) => {
-            // Afficher une notification de succès
-            const notification = document.createElement('div');
-            notification.className =
-                'fixed top-4 right-4 p-4 bg-vert-succes/20 border border-vert-succes/30 rounded-lg text-vert-succes z-50';
-            notification.innerHTML = `<p>${message}</p>`;
-            document.body.appendChild(notification);
-
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
-        });
-
         Livewire.on('show-confirm-dialog', (data) => {
             // Créer et afficher la modale de confirmation
             const modal = document.createElement('div');
@@ -339,4 +301,38 @@
             }, 3000);
         });
     });
+
+    function previewAvatar(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('avatar-preview').src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function deleteAvatar() {
+        if (confirm('Supprimer votre photo de profil ?')) {
+            fetch('{{ route('client.settings.delete-avatar') }}', {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        alert('Erreur lors de la suppression de l\'avatar');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors de la suppression de l\'avatar');
+                });
+        }
+    }
 </script>

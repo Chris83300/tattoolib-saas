@@ -393,6 +393,26 @@ Route::get('/client/profile', [App\Http\Controllers\Client\ProfileController::cl
     ->middleware(['auth'])
     ->name('client.profile');
 
+Route::get('/client/settings', [App\Http\Controllers\Client\ProfileController::class, 'settings'])
+    ->middleware(['auth'])
+    ->name('client.settings');
+
+Route::post('/client/settings/avatar', [App\Http\Controllers\Client\ProfileController::class, 'updateAvatar'])
+    ->middleware(['auth'])
+    ->name('client.settings.update-avatar');
+
+Route::delete('/client/settings/avatar', [App\Http\Controllers\Client\ProfileController::class, 'deleteAvatar'])
+    ->middleware(['auth'])
+    ->name('client.settings.delete-avatar');
+
+Route::get('/client/messages', [App\Http\Controllers\Client\ProfileController::class, 'messages'])
+    ->middleware(['auth'])
+    ->name('client.messages');
+
+Route::get('/client/bookings', [App\Http\Controllers\Client\ProfileController::class, 'bookings'])
+    ->middleware(['auth'])
+    ->name('client.bookings');
+
 // Route suppression compte tattooer
 Route::delete('/tattooer/delete-account', [App\Http\Controllers\Tattooer\AccountController::class, 'delete'])
     ->middleware(['auth'])
