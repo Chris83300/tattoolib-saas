@@ -755,8 +755,8 @@
         </div>
     @endif
 
-    <!-- TAB: Grille tarifaire (pierceur Pro uniquement) -->
-    @if ($tattooer->isPiercer() && $tattooer->isPro())
+    <!-- TAB: Grille tarifaire (pierceur uniquement) -->
+    @if ($tattooer->isPiercer())
         <div id="tab-pricing" class="tab-content hidden">
             <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
                 <h3 class="text-xl font-bold text-ivoire-text mb-4">💰 Grille tarifaire</h3>
@@ -810,6 +810,14 @@
                             class="px-4 py-2 bg-beige-peau/20 text-beige-peau border border-beige-peau/30 rounded-lg text-sm font-semibold hover:bg-beige-peau/30 transition-colors whitespace-nowrap">
                             + Ajouter
                         </button>
+                    </div>
+
+                    <div class="mt-4">
+                        <label class="text-xs text-titane block mb-1">💬 Note tarifaire (cas particuliers)</label>
+                        <input type="text" name="custom_pricing_note"
+                            value="{{ $tattooer->custom_pricing_note ?? '' }}"
+                            placeholder="Ex : Piercing génital sur devis, bijou premium +15€, tarif étudiant -10%..."
+                            class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm focus:border-beige-peau">
                     </div>
 
                     <div class="mt-4">

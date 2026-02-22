@@ -19,8 +19,9 @@ use App\Traits\HasWorkingHours;
 use App\Traits\HandlesMedia;
 use App\Traits\CalculatesStats;
 use App\Models\Traits\IsArtisan;
+use App\Contracts\ArtisanInterface;
 
-class Piercer extends Model implements HasMedia
+class Piercer extends Model implements HasMedia, ArtisanInterface
 {
     use HasFactory, SoftDeletes, InteractsWithMedia;
     use HasSubscription, BookableArtist, HasCompliance, HasStripeConnect;
@@ -109,6 +110,7 @@ class Piercer extends Model implements HasMedia
 
         // Spécifique piercing
         'pricing_grid',
+        'custom_pricing_note',
         'piercing_types',
         'default_appointment_duration',
     ];
