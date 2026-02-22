@@ -60,13 +60,13 @@
                         data-tab="aftercare">
                         🩹 Soins
                     </button>
-                    @if ($tattooer->isPiercer())
-                        <button onclick="switchTab('pricing')"
-                            class="tab-btn min-h-11 px-4 py-2.5 md:py-2 rounded-lg font-semibold whitespace-nowrap snap-start flex-shrink-0 text-sm md:text-base"
-                            data-tab="pricing">
-                            💰 Tarifs
-                        </button>
-                    @endif
+                @endif
+                @if ($tattooer->isPiercer())
+                    <button onclick="switchTab('pricing')"
+                        class="tab-btn min-h-11 px-4 py-2.5 md:py-2 rounded-lg font-semibold whitespace-nowrap snap-start flex-shrink-0 text-sm md:text-base"
+                        data-tab="pricing">
+                        💰 Tarifs
+                    </button>
                 @endif
                 <button onclick="switchTab('password')"
                     class="tab-btn min-h-11 px-4 py-2.5 md:py-2 rounded-lg font-semibold whitespace-nowrap snap-start flex-shrink-0 text-sm md:text-base"
@@ -333,31 +333,6 @@
                                     Ajouter un style
                                 </button>
                             </div>
-                        </div>
-                    </div>
-                    @else
-                    <!-- Types de piercing (pierceur uniquement) -->
-                    <div>
-                        <label class="block font-semibold text-ivoire-text mb-2">Types de piercing pratiqués</label>
-                        @php
-                            $allPiercingTypes = [
-                                'Lobe', 'Hélix', 'Tragus', 'Anti-tragus', 'Daith',
-                                'Conch', 'Rook', 'Industrial', 'Septum', 'Narine',
-                                'Sourcil', 'Labret', 'Langue', 'Nombril', 'Microdermal',
-                            ];
-                            $currentPiercingTypes = is_array($tattooer->piercing_types)
-                                ? $tattooer->piercing_types
-                                : json_decode($tattooer->piercing_types ?? '[]', true) ?? [];
-                        @endphp
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            @foreach ($allPiercingTypes as $type)
-                                <label class="flex items-center gap-2 p-3 bg-noir-profond rounded-lg cursor-pointer hover:bg-noir-profond/80 transition-colors active:scale-95">
-                                    <input type="checkbox" name="piercing_types[]" value="{{ $type }}"
-                                        {{ in_array($type, $currentPiercingTypes) ? 'checked' : '' }}
-                                        class="w-4 h-4 text-beige-peau focus:ring-beige-peau">
-                                    <span class="text-ivoire-text text-sm">{{ $type }}</span>
-                                </label>
-                            @endforeach
                         </div>
                     </div>
                     @endif
