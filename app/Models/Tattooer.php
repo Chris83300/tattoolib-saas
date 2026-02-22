@@ -29,8 +29,9 @@ use App\Traits\HasWorkingHours;
 use App\Traits\HandlesMedia;
 use App\Traits\CalculatesStats;
 use App\Models\Traits\IsArtisan;
+use App\Contracts\ArtisanInterface;
 
-class Tattooer extends Model implements HasMedia
+class Tattooer extends Model implements HasMedia, ArtisanInterface
 {
     use HasFactory, SoftDeletes, InteractsWithMedia, HasSubscription, BookableArtist, HasCompliance, HasStripeConnect, HasWorkingHours, HandlesMedia, CalculatesStats;
     use IsArtisan;

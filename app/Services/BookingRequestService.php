@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
+use App\Contracts\ArtisanInterface;
 use App\Models\BookingRequest;
-use App\Models\Tattooer;
 use App\Models\Client;
 use App\Models\Conversation;
 use App\Models\Appointment;
@@ -420,10 +420,10 @@ class BookingRequestService
     /**
      * Obtenir les statistiques d'un tatoueur
      */
-    public function getTattooerStats(Tattooer $tattooer, array $filters = []): array
+    public function getTattooerStats(ArtisanInterface $artisan, array $filters = []): array
     {
-        $query = BookingRequest::where('bookable_type', Tattooer::class)
-            ->where('bookable_id', $tattooer->id);
+        $query = BookingRequest::where('bookable_type', get_class($artisan))
+            ->where('bookable_id', $artisan->id);
 
         // Appliquer filtres
         if (isset($filters['date_from'])) {
@@ -478,19 +478,19 @@ class BookingRequestService
     /**
      * Valider la disponibilité pour un RDV
      */
-    private function validateAppointmentAvailability(Tattooer $tattooer, Carbon $startTime, int $durationMinutes): void
+    private function validateAppointmentAvailability(ArtisanInterface $artisan, Carbon $startTime, int $durationMinutes): void
     {
         $endTime = $startTime->copy()->addMinutes($durationMinutes);
         $dayOfWeek = $startTime->dayOfWeek;
 
         // Vérifier les horaires de travail
-        $workingHours = $tattooer->workingHours()
+        $workingHours = $artisan->workingHours()
             ->where('day_of_week', $dayOfWeek)
             ->where('is_closed', false)
             ->first();
 
         if (!$workingHours) {
-            throw new BookingException('Le tatoueur ne travaille pas ce jour.');
+            throw new BookingException('L\'artisan ne travaille pas ce jour.');
         }
 
         if ($startTime->format('H:i') < $workingHours->open_time ||
@@ -499,7 +499,7 @@ class BookingRequestService
         }
 
         // Vérifier les conflits
-        $conflictingAppointments = Appointment::where('bookable_id', $tattooer->id)
+        $conflictingAppointments = Appointment::where('bookable_id', $artisan->id)
             ->where('status', 'confirmed')
             ->where(function($query) use ($startTime, $endTime) {
                 $query->where('start_time', '<', $endTime)

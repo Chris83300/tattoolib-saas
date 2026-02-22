@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Tattooer;
+use App\Contracts\ArtisanInterface;
 use App\Models\BookingRequest;
 use App\Models\Review;
 use Illuminate\Support\Facades\Cache;
@@ -13,15 +13,15 @@ class TattooerStatsService
     /**
      * Get all dashboard statistics in a single query
      */
-    public function getDashboardStats(Tattooer $tattooer): array
+    public function getDashboardStats(ArtisanInterface $artisan): array
     {
         return Cache::remember(
-            "tattooer.{$tattooer->id}.dashboard_stats",
+            "tattooer.{$artisan->id}.dashboard_stats",
             now()->addHour(),
-            function () use ($tattooer) {
+            function () use ($artisan) {
                 // UNE SEULE requête pour toutes les stats booking
-                $bookingStats = BookingRequest::where('bookable_type', Tattooer::class)
-                    ->where('bookable_id', $tattooer->id)
+                $bookingStats = BookingRequest::where('bookable_type', get_class($artisan))
+                    ->where('bookable_id', $artisan->id)
                     ->selectRaw('
                         COUNT(CASE WHEN status = "confirmed" THEN 1 END) as completed_projects,
                         COUNT(CASE WHEN status = "pending" THEN 1 END) as active_projects,
@@ -32,7 +32,7 @@ class TattooerStatsService
                     ->first();
 
                 // UNE SEULE requête pour les reviews (si table existe)
-                $reviewStats = $this->getReviewStats($tattooer);
+                $reviewStats = $this->getReviewStats($artisan);
 
                 return [
                     'completed_projects' => $bookingStats->completed_projects ?? 0,
@@ -42,7 +42,7 @@ class TattooerStatsService
                     'total_earnings' => $bookingStats->total_earnings ?? 0,
                     'average_rating' => $reviewStats['average_rating'] ?? 0,
                     'total_reviews' => $reviewStats['total_reviews'] ?? 0,
-                    'portfolio_count' => $tattooer->getMedia('portfolio')->count(),
+                    'portfolio_count' => $artisan->getMedia('portfolio')->count(),
                 ];
             }
         );
@@ -51,7 +51,7 @@ class TattooerStatsService
     /**
      * Get review statistics efficiently
      */
-    private function getReviewStats(Tattooer $tattooer): array
+    private function getReviewStats(ArtisanInterface $artisan): array
     {
         // Vérifier si la table reviews existe
         if (!DB::getSchemaBuilder()->hasTable('reviews')) {
@@ -59,11 +59,11 @@ class TattooerStatsService
         }
 
         return Cache::remember(
-            "tattooer.{$tattooer->id}.review_stats",
+            "tattooer.{$artisan->id}.review_stats",
             now()->addDay(),
-            function () use ($tattooer) {
-                $stats = Review::where('reviewable_type', Tattooer::class)
-                    ->where('reviewable_id', $tattooer->id)
+            function () use ($artisan) {
+                $stats = Review::where('reviewable_type', get_class($artisan))
+                    ->where('reviewable_id', $artisan->id)
                     ->selectRaw('
                         AVG(rating) as average_rating,
                         COUNT(*) as total_reviews
@@ -81,14 +81,14 @@ class TattooerStatsService
     /**
      * Get statistics for requests page (with counts)
      */
-    public function getRequestsStats(Tattooer $tattooer): array
+    public function getRequestsStats(ArtisanInterface $artisan): array
     {
         return Cache::remember(
-            "tattooer.{$tattooer->id}.requests_stats",
+            "tattooer.{$artisan->id}.requests_stats",
             now()->addMinutes(30),
-            function () use ($tattooer) {
-                $stats = BookingRequest::where('bookable_type', Tattooer::class)
-                    ->where('bookable_id', $tattooer->id)
+            function () use ($artisan) {
+                $stats = BookingRequest::where('bookable_type', get_class($artisan))
+                    ->where('bookable_id', $artisan->id)
                     ->selectRaw('
                         COUNT(CASE WHEN status = "pending" THEN 1 END) as pending,
                         COUNT(CASE WHEN status = "accepted" THEN 1 END) as accepted,
@@ -114,14 +114,14 @@ class TattooerStatsService
     /**
      * Get monthly earnings data
      */
-    public function getMonthlyEarnings(Tattooer $tattooer, int $year, int $month): float
+    public function getMonthlyEarnings(ArtisanInterface $artisan, int $year, int $month): float
     {
         return Cache::remember(
-            "tattooer.{$tattooer->id}.earnings.{$year}.{$month}",
+            "tattooer.{$artisan->id}.earnings.{$year}.{$month}",
             now()->addDay(),
-            function () use ($tattooer, $year, $month) {
-                return BookingRequest::where('bookable_type', Tattooer::class)
-                    ->where('bookable_id', $tattooer->id)
+            function () use ($artisan, $year, $month) {
+                return BookingRequest::where('bookable_type', get_class($artisan))
+                    ->where('bookable_id', $artisan->id)
                     ->where('status', 'confirmed')
                     ->whereYear('confirmed_at', $year)
                     ->whereMonth('confirmed_at', $month)
@@ -133,14 +133,14 @@ class TattooerStatsService
     /**
      * Get client statistics efficiently
      */
-    public function getClientStats(Tattooer $tattooer): array
+    public function getClientStats(ArtisanInterface $artisan): array
     {
         return Cache::remember(
-            "tattooer.{$tattooer->id}.client_stats",
+            "tattooer.{$artisan->id}.client_stats",
             now()->addHour(),
-            function () use ($tattooer) {
-                return BookingRequest::where('bookable_type', Tattooer::class)
-                    ->where('bookable_id', $tattooer->id)
+            function () use ($artisan) {
+                return BookingRequest::where('bookable_type', get_class($artisan))
+                    ->where('bookable_id', $artisan->id)
                     ->selectRaw('
                         COUNT(DISTINCT client_id) as total_clients,
                         COUNT(CASE WHEN created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 END) as new_clients_30d,
@@ -153,15 +153,15 @@ class TattooerStatsService
     }
 
     /**
-     * Invalidate all caches for a tattooer
+     * Invalidate all caches for an artisan
      */
-    public function invalidateAllCaches(Tattooer $tattooer): void
+    public function invalidateAllCaches(ArtisanInterface $artisan): void
     {
         $patterns = [
-            "tattooer.{$tattooer->id}.dashboard_stats",
-            "tattooer.{$tattooer->id}.review_stats",
-            "tattooer.{$tattooer->id}.requests_stats",
-            "tattooer.{$tattooer->id}.client_stats",
+            "tattooer.{$artisan->id}.dashboard_stats",
+            "tattooer.{$artisan->id}.review_stats",
+            "tattooer.{$artisan->id}.requests_stats",
+            "tattooer.{$artisan->id}.client_stats",
         ];
 
         foreach ($patterns as $pattern) {
