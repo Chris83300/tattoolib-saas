@@ -93,84 +93,135 @@
             </div>
 
             <!-- Détails du projet -->
+            @php $isPiercerBooking = in_array($bookableType, ['piercer', 'Piercer']); @endphp
             <div class="border-b pb-6">
-                <h2 class="text-lg font-bold mb-4 text-ivoire-text">Détails du projet</h2>
+                <h2 class="text-lg font-bold mb-4 text-ivoire-text">
+                    {{ $isPiercerBooking ? 'Détails du piercing' : 'Détails du projet' }}
+                </h2>
 
                 <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-ivoire-text/80 mb-2">Description du tattoo
-                            *</label>
-                        <textarea wire:model="description" rows="4" placeholder="Décrivez en détail le tattoo que vous souhaitez..."
-                            class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau"></textarea>
-                        @error('description')
-                            <span class="text-rouge-alerte text-sm">{{ $message }}</span>
-                        @enderror
-                        <p class="text-xs text-ivoire-text/50 mt-2">{{ strlen($description ?? '') }}/1000 caractères
-                        </p>
-                    </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-semibold text-ivoire-text/80 mb-2">Taille du Tattoo en
-                                cm *</label>
-                            <input type="number" wire:model="tattoo_size"
-                                class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
-                            @error('tattoo_size')
-                                <span class="text-rouge-alerte text-sm">{{ $message }}</span>
-                            @enderror
-                        </div>
-                    </div>
+                    @if ($isPiercerBooking)
+                        {{-- ═══ CHAMPS SPÉCIFIQUES PIERCING ═══ --}}
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-semibold text-ivoire-text/80 mb-2">Emplacement *</label>
-                            <select wire:model="location"
+                            <label class="block text-sm font-semibold text-ivoire-text/80 mb-2">Type de piercing *</label>
+                            <select wire:model="pricingType"
                                 class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
-                                <option value="">Sélectionnez une zone</option>
-                                @foreach ($bodyLocations as $key => $value)
-                                    <option value="{{ $key }}">{{ $value }}</option>
+                                <option value="">-- Choisir le type de piercing --</option>
+                                @foreach ($pricingGrid as $pricing)
+                                    @if (!empty($pricing['type']))
+                                        <option value="{{ $pricing['type'] }}">
+                                            {{ $pricing['type'] }}
+                                            @if (!empty($pricing['price']))
+                                                — {{ number_format($pricing['price'], 0) }}€
+                                            @endif
+                                        </option>
+                                    @endif
                                 @endforeach
+                                <option value="autre">Autre (préciser ci-dessous)</option>
                             </select>
-                            @error('location')
+                            @error('pricingType')
                                 <span class="text-rouge-alerte text-sm">{{ $message }}</span>
                             @enderror
                         </div>
 
                         <div>
-                            <label class="block text-sm font-semibold text-ivoire-text/80 mb-2">Style *</label>
-                            <select wire:model="style"
+                            <label class="block text-sm font-semibold text-ivoire-text/80 mb-2">Précisions (optionnel)</label>
+                            <input type="text" wire:model="piercingPrecision"
+                                placeholder="Ex : côté gauche, deuxième trou, bijou spécifique souhaité..."
+                                class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-ivoire-text/80 mb-2">Demande spécifique (optionnel)</label>
+                            <textarea wire:model="specialRequest" rows="3"
+                                placeholder="Ex : piercing intime/génital, piercing surface, projet multi-piercings, allergie aux métaux, première fois..."
+                                class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane focus:border-beige-peau focus:ring-1 focus:ring-beige-peau resize-none"></textarea>
+                            <p class="text-xs text-titane mt-1">Ces informations restent confidentielles entre vous et le pierceur.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-ivoire-text/80 mb-2">Date souhaitée (optionnel)</label>
+                            <input type="date" wire:model="preferredDate"
+                                min="{{ now()->format('Y-m-d') }}"
                                 class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
-                                <option value="">Sélectionnez un style</option>
-                                @foreach ($styles as $key => $value)
-                                    <option value="{{ $key }}">{{ $value }}</option>
-                                @endforeach
-                            </select>
-                            @error('style')
-                                <span class="text-rouge-alerte text-sm">{{ $message }}</span>
-                            @enderror
+                            <p class="text-xs text-ivoire-text/50 mt-2">Optionnel — le pierceur vous confirmera la disponibilité</p>
                         </div>
+
+                    @else
+                        {{-- ═══ CHAMPS SPÉCIFIQUES TATTOO ═══ --}}
 
                         <div>
-                            <label class="block text-sm font-semibold text-ivoire-text/80 mb-2">Budget estimé (€)
-                                *</label>
-                            <input type="number" wire:model="estimatedBudget" min="50" step="10"
-                                class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
-                            @error('estimatedBudget')
+                            <label class="block text-sm font-semibold text-ivoire-text/80 mb-2">Description du tattoo *</label>
+                            <textarea wire:model="description" rows="4" placeholder="Décrivez en détail le tattoo que vous souhaitez..."
+                                class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau"></textarea>
+                            @error('description')
                                 <span class="text-rouge-alerte text-sm">{{ $message }}</span>
                             @enderror
+                            <p class="text-xs text-ivoire-text/50 mt-2">{{ strlen($description ?? '') }}/1000 caractères</p>
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-semibold text-ivoire-text/80 mb-2">Date souhaitée</label>
-
-                            {{-- Calendrier disponibilités --}}
-                            <livewire:components.availability-calendar :tattooer-id="$bookable->id" mode="single"
-                                :show-period-selector="true" wire-model="preferredDate" />
-
-                            <p class="text-xs text-ivoire-text/50 mt-2">Optionnel - L'artiste vous proposera les dates
-                                disponibles</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-ivoire-text/80 mb-2">Taille du Tattoo en cm *</label>
+                                <input type="number" wire:model="tattoo_size"
+                                    class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
+                                @error('tattoo_size')
+                                    <span class="text-rouge-alerte text-sm">{{ $message }}</span>
+                                @enderror
+                            </div>
                         </div>
-                    </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-ivoire-text/80 mb-2">Emplacement *</label>
+                                <select wire:model="location"
+                                    class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
+                                    <option value="">Sélectionnez une zone</option>
+                                    @foreach ($bodyLocations as $key => $value)
+                                        <option value="{{ $key }}">{{ $value }}</option>
+                                    @endforeach
+                                </select>
+                                @error('location')
+                                    <span class="text-rouge-alerte text-sm">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-ivoire-text/80 mb-2">Style *</label>
+                                <select wire:model="style"
+                                    class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
+                                    <option value="">Sélectionnez un style</option>
+                                    @foreach ($styles as $key => $value)
+                                        <option value="{{ $key }}">{{ $value }}</option>
+                                    @endforeach
+                                </select>
+                                @error('style')
+                                    <span class="text-rouge-alerte text-sm">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-ivoire-text/80 mb-2">Budget estimé (€) *</label>
+                                <input type="number" wire:model="estimatedBudget" min="50" step="10"
+                                    class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
+                                @error('estimatedBudget')
+                                    <span class="text-rouge-alerte text-sm">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-ivoire-text/80 mb-2">Date souhaitée</label>
+                                {{-- Calendrier disponibilités tattooer --}}
+                                <livewire:components.availability-calendar :tattooer-id="$bookable->id" mode="single"
+                                    :show-period-selector="true" />
+                                <p class="text-xs text-ivoire-text/50 mt-2">Optionnel — L'artiste vous proposera les dates disponibles</p>
+                            </div>
+                        </div>
+
+                    @endif
+
                 </div>
             </div>
 

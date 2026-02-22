@@ -35,7 +35,7 @@ class BookingRequestForm extends Component
     public $birthDate;
     public $address;
 
-    // Détails projet
+    // Détails projet tattoo
     public $description;
     public $tattoo_size;
     public $location;
@@ -45,6 +45,12 @@ class BookingRequestForm extends Component
     public $preferredDate;
     public $preferredPeriod;
     public $referenceImages = [];
+
+    // Détails projet piercing
+    public string $pricingType = '';
+    public string $piercingPrecision = '';
+    public string $specialRequest = '';
+    public array $pricingGrid = [];
 
     // Styles disponibles
     public $styles = [
@@ -81,29 +87,45 @@ class BookingRequestForm extends Component
         'autre' => 'Autre',
     ];
 
-    protected $rules = [
-        'firstName' => 'required|string|max:255',
-        'lastName' => 'required|string|max:255',
-        'email' => 'required|email|max:255',
-        'phone' => 'nullable|string|max:20',
-        'pseudo' => 'nullable|string|max:255',
-        'address' => 'nullable|string|max:255',
-        'birthDate' => 'required|date|before:today',
-        'description' => 'required|string|min:10|max:1000',
-        'tattoo_size' => 'required|numeric|min:0|max:500',
-        'location' => 'required|string',
-        'style' => 'required|string',
-        'estimatedBudget' => 'required|numeric|min:50',
-        'proposedDate' => 'nullable|date|after:today',
-        'referenceImages' => 'nullable|array|max:5',
-        'referenceImages.*' => 'file|mimes:jpeg,jpg,png,webp,heic,heif,gif,svg|max:10240', // 10MB max
-    ];
-
     protected $messages = [
         'birthDate.before' => 'Vous devez être majeur pour faire une demande.',
         'description.min' => 'La description doit faire au moins 10 caractères.',
         'estimatedBudget.min' => 'Le budget minimum est de 50€.',
+        'pricingType.required' => 'Veuillez choisir un type de piercing.',
     ];
+
+    public function rules(): array
+    {
+        $base = [
+            'firstName'       => 'required|string|max:255',
+            'lastName'        => 'required|string|max:255',
+            'email'           => 'required|email|max:255',
+            'phone'           => 'nullable|string|max:20',
+            'pseudo'          => 'nullable|string|max:255',
+            'address'         => 'nullable|string|max:255',
+            'birthDate'       => 'required|date|before:today',
+            'referenceImages'   => 'nullable|array|max:5',
+            'referenceImages.*' => 'file|mimes:jpeg,jpg,png,webp,heic,heif,gif,svg|max:10240',
+        ];
+
+        if ($this->isPiercer()) {
+            return array_merge($base, [
+                'pricingType'       => 'required|string',
+                'piercingPrecision' => 'nullable|string|max:255',
+                'specialRequest'    => 'nullable|string|max:1000',
+                'preferredDate'     => 'nullable|date|after_or_equal:today',
+            ]);
+        }
+
+        return array_merge($base, [
+            'description'    => 'required|string|min:10|max:1000',
+            'tattoo_size'    => 'required|numeric|min:0|max:500',
+            'location'       => 'required|string',
+            'style'          => 'required|string',
+            'estimatedBudget'=> 'required|numeric|min:50',
+            'proposedDate'   => 'nullable|date|after_or_equal:today',
+        ]);
+    }
 
     public function mount($bookableId, $bookableType)
     {
@@ -124,6 +146,10 @@ class BookingRequestForm extends Component
             'piercer', 'Piercer' => $this->bookable->user->pseudo ?? $this->bookable->user->name,
             default => 'Artiste',
         };
+
+        if ($this->isPiercer()) {
+            $this->pricingGrid = $this->bookable->getPricingGrid() ?? [];
+        }
 
         // Pré-remplir si utilisateur connecté
         if (Auth::check()) {
@@ -209,18 +235,25 @@ class BookingRequestForm extends Component
             );
 
             // 2. BookingRequest
-            $bookingRequest = BookingRequest::create([
-                'client_id' => $client->id,
-                'bookable_id' => $this->bookableId,
-                'bookable_type' => $this->getBookableModelClass(),
-                'status' => BookingRequest::STATUS_PENDING,
+            if ($this->isPiercer()) {
+                $parts = ['Type : ' . $this->pricingType];
+                if ($this->piercingPrecision) $parts[] = 'Précisions : ' . $this->piercingPrecision;
+                if ($this->specialRequest) $parts[] = 'Demande spécifique : ' . $this->specialRequest;
+                $descriptionValue = implode("\n", $parts);
+            } else {
+                $descriptionValue = $this->description;
+            }
 
-                // Détails projet
-                'description' => $this->description,
-                'body_zone' => $this->location,
-                'tattoo_size' => $this->tattoo_size ?? 'Moyen',
-                'estimated_total_price' => $this->estimatedBudget,
-                'preferred_date' => $this->preferredDate ? new \DateTime($this->preferredDate) : null,
+            $bookingRequest = BookingRequest::create([
+                'client_id'           => $client->id,
+                'bookable_id'         => $this->bookableId,
+                'bookable_type'       => $this->getBookableModelClass(),
+                'status'              => BookingRequest::STATUS_PENDING,
+                'description'         => $descriptionValue,
+                'body_zone'           => $this->isPiercer() ? null : $this->location,
+                'tattoo_size'         => $this->isPiercer() ? null : ($this->tattoo_size ?? null),
+                'estimated_total_price' => $this->isPiercer() ? null : $this->estimatedBudget,
+                'preferred_date'      => $this->preferredDate ? new \DateTime($this->preferredDate) : null,
             ]);
 
             // 3. Images de référence
@@ -259,6 +292,11 @@ class BookingRequestForm extends Component
                 'email' => $this->email,
             ]);
         }
+    }
+
+    private function isPiercer(): bool
+    {
+        return in_array($this->bookableType, ['piercer', 'Piercer']);
     }
 
     /**
