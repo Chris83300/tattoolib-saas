@@ -21,26 +21,62 @@ class MarketplaceSearchService
 
         if ($artistType === 'piercer') {
             $query = $this->getPiercerBaseQuery();
+            $this->applyFilters($query, $filters);
+            $this->applySorting($query, $filters['sort'] ?? 'pro_first');
+            return $query->paginate($perPage);
         } elseif ($artistType === 'tattooer') {
             $query = $this->getBaseQuery();
-        } else {
-            // Les deux types : tattooers par défaut (les piercers seront ajoutés en V2 via UNION)
-            $query = $this->getBaseQuery();
+            $this->applyFilters($query, $filters);
+            $this->applySorting($query, $filters['sort'] ?? 'pro_first');
+            return $query->paginate($perPage);
         }
 
-        $this->applyFilters($query, $filters);
-        $this->applySorting($query, $filters['sort'] ?? 'pro_first');
+        // Sans filtre de type : merger tattooers + piercers en mémoire
+        $tattooerQuery = $this->getBaseQuery();
+        $piercerQuery  = $this->getPiercerBaseQuery();
+        $this->applyFilters($tattooerQuery, $filters);
+        $this->applyFilters($piercerQuery, $filters);
 
-        return $query->paginate($perPage);
+        $tattooers = $tattooerQuery->get();
+        $piercers  = $piercerQuery->get();
+
+        $all = $tattooers->concat($piercers)
+            ->sortByDesc('siret_verified')
+            ->sortByDesc('rating')
+            ->values();
+
+        $page  = max(1, (int) request()->get('page', 1));
+        $total = $all->count();
+
+        return new LengthAwarePaginator(
+            $all->forPage($page, $perPage)->values(),
+            $total,
+            $perPage,
+            $page,
+            ['path' => request()->url()]
+        );
     }
 
     public function getFeaturedArtists(int $limit = 6): Collection
     {
-        return $this->getBaseQuery()
+        $tattooers = $this->getBaseQuery()
+            ->orderByDesc('siret_verified')
             ->orderByDesc('rating')
             ->orderByDesc('appointments_count')
             ->limit($limit)
             ->get();
+
+        $piercerLimit = max(1, (int) ceil($limit / 3));
+        $piercers = $this->getPiercerBaseQuery()
+            ->orderByDesc('siret_verified')
+            ->orderByDesc('rating')
+            ->limit($piercerLimit)
+            ->get();
+
+        return $tattooers->concat($piercers)
+            ->sortByDesc('rating')
+            ->take($limit)
+            ->values();
     }
 
     protected function getPiercerBaseQuery()
@@ -58,10 +94,10 @@ class MarketplaceSearchService
                 'piercers.siret_verified',
                 'piercers.has_compliance_badge',
                 'piercers.created_at',
-                DB::raw('NULL as years_of_experience'),
-                DB::raw('NULL as wait_time_weeks_min'),
-                DB::raw('NULL as wait_time_weeks_max'),
-                DB::raw('NULL as minimum_price'),
+                'piercers.years_of_experience',
+                'piercers.wait_time_weeks_min',
+                'piercers.wait_time_weeks_max',
+                'piercers.minimum_price',
                 'piercers.piercing_types as styles',
                 'piercers.working_hours',
                 'users.status',
@@ -85,7 +121,9 @@ class MarketplaceSearchService
                 'piercers.id', 'piercers.user_id', 'piercers.name', 'piercers.slug',
                 'piercers.city', 'piercers.postal_code', 'piercers.bio',
                 'piercers.siret_verified', 'piercers.has_compliance_badge',
-                'piercers.created_at', 'piercers.piercing_types', 'piercers.working_hours',
+                'piercers.created_at', 'piercers.years_of_experience',
+                'piercers.wait_time_weeks_min', 'piercers.wait_time_weeks_max',
+                'piercers.minimum_price', 'piercers.piercing_types', 'piercers.working_hours',
                 'users.status', 'users.pseudo'
             ]);
     }
