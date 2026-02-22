@@ -79,29 +79,27 @@
                                 </span>
                             @endif --}}
 
-                            @if ($type === 'tattooer' && isset($artist->years_of_experience) && $artist->years_of_experience)
+                            @if (isset($artist->years_of_experience) && $artist->years_of_experience)
                                 <span class="px-3 py-1 bg-titane/30 text-ivoire-text/80 rounded-full text-sm">
                                     ✏️ {{ $artist->years_of_experience }} ans d'expérience
                                 </span>
                             @endif
 
-                            @if (
-                                $type === 'tattooer' &&
-                                    isset($artist->wait_time_weeks_min) &&
+                            @if (isset($artist->wait_time_weeks_min) &&
                                     isset($artist->wait_time_weeks_max) &&
                                     $artist->wait_time_weeks_min &&
                                     $artist->wait_time_weeks_max)
                                 <span class="px-3 py-1 bg-titane/30 text-ivoire-text/80 rounded-full text-sm">
                                     ⏱️ {{ $artist->wait_time_weeks_min }} à {{ $artist->wait_time_weeks_max }} semaines
                                 </span>
-                            @elseif ($type === 'tattooer' && isset($artist->wait_time_weeks_min) && $artist->wait_time_weeks_min)
+                            @elseif (isset($artist->wait_time_weeks_min) && $artist->wait_time_weeks_min)
                                 <span class="px-3 py-1 bg-titane/30 text-ivoire-text/80 rounded-full text-sm">
                                     ⏱️ {{ $artist->wait_time_weeks_min }}
                                     semaine{{ $artist->wait_time_weeks_min > 1 ? 's' : '' }}
                                 </span>
                             @endif
 
-                            @if ($type === 'tattooer' && isset($artist->minimum_price) && $artist->minimum_price)
+                            @if (isset($artist->minimum_price) && $artist->minimum_price)
                                 <span class="px-3 py-1 bg-titane/30 text-ivoire-text/80 rounded-full text-sm">
                                     💰 À partir de {{ number_format($artist->minimum_price, 2, ',', ' ') }} €
                                 </span>
@@ -271,7 +269,9 @@ $displayStyles = array_filter(
                             @foreach ($pricingGrid as $entry)
                                 <div class="flex items-center justify-between py-2 border-b border-titane/10 last:border-0">
                                     <span class="text-ivoire-text text-sm">{{ $entry['type'] ?? '' }}</span>
-                                    <span class="text-beige-peau font-semibold">{{ number_format($entry['price'] ?? 0, 0, ',', ' ') }} €</span>
+                                    <span
+                                        class="text-beige-peau font-semibold">{{ number_format($entry['price'] ?? 0, 0, ',', ' ') }}
+                                        €</span>
                                 </div>
                             @endforeach
                         </div>
@@ -612,7 +612,8 @@ $displayStyles = array_filter(
             Avis clients
             @if ($artist->reviews->where('is_visible', true)->count() > 0)
                 <span class="text-sm font-normal text-titane">
-                    ({{ number_format($artist->reviews->where('is_visible', true)->avg('rating'), 1) }}/5 — {{ $artist->reviews->where('is_visible', true)->count() }} avis)
+                    ({{ number_format($artist->reviews->where('is_visible', true)->avg('rating'), 1) }}/5 —
+                    {{ $artist->reviews->where('is_visible', true)->count() }} avis)
                 </span>
             @endif
         </h2>
@@ -623,7 +624,8 @@ $displayStyles = array_filter(
                     <div class="flex items-center gap-2">
                         <div class="flex">
                             @for ($i = 1; $i <= 5; $i++)
-                                <span class="{{ $i <= $review->rating ? 'text-ambre-warning' : 'text-titane/30' }}">&#9733;</span>
+                                <span
+                                    class="{{ $i <= $review->rating ? 'text-ambre-warning' : 'text-titane/30' }}">&#9733;</span>
                             @endfor
                         </div>
                         <span class="text-sm font-semibold text-ivoire-text">

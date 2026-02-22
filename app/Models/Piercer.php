@@ -315,7 +315,12 @@ class Piercer extends Model implements HasMedia, ArtisanInterface
 
     public function getPricingGrid(): array
     {
-        return $this->pricing_grid ?? [];
+        $grid = $this->pricing_grid;
+        if (is_string($grid)) {
+            $decoded = json_decode($grid, true);
+            return is_array($decoded) ? $decoded : [];
+        }
+        return is_array($grid) ? $grid : [];
     }
 
     public function getPricingForType(string $type): ?float
