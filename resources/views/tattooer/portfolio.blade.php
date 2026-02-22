@@ -72,7 +72,7 @@
             <div class="flex gap-2">
                 <button onclick="switchTab('tattoos')"
                     class="tab-btn flex-1 px-4 py-2 rounded-lg font-semibold transition-colors" data-tab="tattoos">
-                    🎨 Tattoos ({{ $tattoos->count() }})
+                    {{ $tattooer->isPiercer() ? '💎 Piercings' : '🎨 Tattoos' }} ({{ $tattoos->count() }})
                 </button>
                 <button onclick="switchTab('drawings')"
                     class="tab-btn flex-1 px-4 py-2 rounded-lg font-semibold transition-colors" data-tab="drawings">
@@ -91,7 +91,7 @@
         <div id="tab-tattoos" class="tab-content">
             <div class="bg-gris-fonde rounded-xl p-6">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-bold text-ivoire-text">Photos de tattoos</h2>
+                    <h2 class="text-xl font-bold text-ivoire-text">{{ $tattooer->isPiercer() ? 'Photos de piercings' : 'Photos de tattoos' }}</h2>
                     @if (
                         $tattooer->isFree() &&
                             $tattooer->getMedia('portfolio')->count() +
@@ -116,7 +116,7 @@
                     @foreach ($tattoos as $media)
                         <div class="relative group aspect-square rounded-lg overflow-hidden bg-noir-profond"
                             draggable="true" data-media-id="{{ $media->id }}">
-                            <img src="{{ $media->getUrl() }}" alt="Tattoo" class="w-full h-full object-contain">
+                            <img src="{{ $media->getUrl() }}" alt="{{ $tattooer->isPiercer() ? 'Piercing' : 'Tattoo' }}" class="w-full h-full object-contain">
 
                             <!-- Overlay actions -->
                             <div
@@ -145,7 +145,7 @@
 
                     @if ($tattoos->isEmpty())
                         <div class="col-span-full text-center py-12 text-ivoire-text/60">
-                            Aucune photo de tattoo. Ajoutez-en pour enrichir votre portfolio !
+                            {{ $tattooer->isPiercer() ? 'Aucune photo de piercing. Ajoutez-en pour enrichir votre portfolio !' : 'Aucune photo de tattoo. Ajoutez-en pour enrichir votre portfolio !' }}
                         </div>
                     @endif
                 </div>
