@@ -24,6 +24,7 @@
         <!-- Formulaire paramètres -->
         <div class="bg-gris-fonde rounded-xl p-6 space-y-6">
 
+
             <!-- Avatar et pseudo -->
             <div>
                 <h2 class="text-ivoire-text font-display font-bold text-lg mb-4">
@@ -42,9 +43,9 @@
                                 @if (auth()->user()->getFirstMediaUrl('avatar'))
                                     <img src="{{ auth()->user()->getFirstMediaUrl('avatar') }}" alt="Avatar"
                                         class="w-full h-full object-cover">
-                                @elseif ($testAvatar)
+                                @elseif ($newAvatar)
                                     <!-- Prévisualisation du fichier sélectionné -->
-                                    <img src="{{ $testAvatar->temporaryUrl() }}" alt="Avatar preview"
+                                    <img src="{{ $newAvatar->temporaryUrl() }}" alt="Avatar preview"
                                         class="w-full h-full object-cover">
                                 @else
                                     <svg class="w-10 h-10 text-beige-peau" fill="currentColor" viewBox="0 0 20 20">
@@ -58,12 +59,12 @@
                             <div class="flex-1">
                                 <!-- Upload Avatar -->
                                 <form wire:submit="uploadAvatar" class="mb-4">
-                                    <input type="file" wire:model="testAvatar" accept="image/*"
+                                    <input type="file" wire:model.live="newAvatar" accept="image/*"
                                         class="w-full px-4 py-2 bg-noir-profond border border-titane/20 rounded-lg text-ivoire-text focus:border-beige-peau focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-beige-peau file:text-noir-profond hover:file:bg-beige-peau/90">
 
-                                    @if ($testAvatar)
+                                    @if ($newAvatar)
                                         <div class="text-vert-succes text-sm mt-2">
-                                            ✅ Fichier sélectionné: {{ $testAvatar->getClientOriginalName() }}
+                                            ✅ Fichier sélectionné: {{ $newAvatar->getClientOriginalName() }}
                                         </div>
                                     @endif
 
