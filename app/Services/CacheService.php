@@ -88,6 +88,12 @@ class CacheService
                 'avatar_url' => $artist->getFirstMediaUrl('avatar'),
                 'banner_url' => $artist->getFirstMediaUrl('banner'),
                 'portfolio_count' => $artist->getMedia('portfolio')->count(),
+                'portfolio_images' => $artist->getMedia('portfolio')->map(function($media) {
+                    return [
+                        'url' => $media->getUrl(),
+                        'thumb' => $media->getUrl('thumb'),
+                    ];
+                })->toArray(),
                 'average_rating' => $artist->reviews()->avg('rating') ?? 0,
                 'total_reviews' => $artist->reviews()->count() ?? 0,
                 'is_subscribed' => $artist->is_subscribed ?? false,
