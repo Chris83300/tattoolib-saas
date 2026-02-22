@@ -3,17 +3,12 @@
 namespace App\Livewire\Client;
 
 use Livewire\Component;
-use Livewire\Attributes\Layout;
-use Livewire\Attributes\Title;
 use Illuminate\Support\Facades\Auth;
 
 class Settings extends Component
 {
     public $pseudo;
     public $birth_date;
-
-    #[Layout('components.layouts.livewire-site')]
-    #[Title('Paramètres - Ink&Pik')]
 
     public function mount()
     {

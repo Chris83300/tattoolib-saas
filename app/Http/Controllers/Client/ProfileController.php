@@ -21,8 +21,7 @@ class ProfileController extends Controller
      */
     public function settings(Request $request)
     {
-        // La vue Blade contient le composant Livewire
-        return view('livewire.client.settings');
+        return view('client.settings');
     }
 
     /**
