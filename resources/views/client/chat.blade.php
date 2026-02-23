@@ -1,6 +1,6 @@
 @extends('layouts.client')
 
-@section('title', 'Chat avec ' . $bookingRequest->bookable->user->name)
+@section('title', 'Chat avec ' . $bookingRequest->bookable->user->pseudo)
 
 @section('content')
     <div class="min-h-screen bg-noir-profond">
@@ -51,7 +51,21 @@
                                                 {{ $expiryInfo['time_remaining'] }} restant(es)
                                             </span>
                                             @if ($bookingRequest->status === \App\Enums\BookingRequestStatus::DEPOSIT_REQUESTED && !$bookingRequest->deposit_paid_at)
-                                                <a href="{{ route('deposit.payment', $bookingRequest->id) }}"
+                                                @php
+                                                    // Déterminer si c'est un paiement total ou un acompte
+                                                    $isTotalPayment =
+                                                        $bookingRequest->total_price &&
+                                                        $bookingRequest->total_price ==
+                                                            $bookingRequest->total_deposit_amount;
+                                                    $paymentText = $isTotalPayment
+                                                        ? 'Payer la totalité'
+                                                        : 'Payer l\'acompte';
+                                                    $paymentUrgentText = $isTotalPayment
+                                                        ? 'Payer la totalité avant la suppression du chat'
+                                                        : 'Payer l\'acompte avant la suppression du chat';
+                                                @endphp
+
+                                                <a href="{{ route('deposit.payment', $bookingRequest) }}"
                                                     class="inline-flex items-center px-3 py-1 bg-beige-peau text-noir-profond rounded text-sm font-medium hover:bg-beige-peau/90 transition-colors">
                                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
@@ -59,14 +73,14 @@
                                                             stroke-width="2"
                                                             d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                                                     </svg>
-                                                    Payer l'acompte
+                                                    {{ $paymentText }}
                                                 </a>
                                             @endif
                                         </div>
                                         @if ($expiryInfo['days_remaining'] <= 2)
                                             <div class="mt-2 bg-rouge-alerte/20 rounded p-2">
                                                 <p class="text-rouge-alerte text-xs font-medium">
-                                                    ⚠️ Urgent : Payer l'acompte avant la suppression du chat
+                                                    ⚠️ Urgent : {{ $paymentUrgentText }}
                                                 </p>
                                             </div>
                                         @endif
@@ -78,7 +92,10 @@
                 @endif
 
                 {{-- Alerte acompte en attente (sans expiry info) --}}
-                @if (!$expiryInfo && $bookingRequest->status === \App\Enums\BookingRequestStatus::DEPOSIT_REQUESTED && !$bookingRequest->deposit_paid_at)
+                @if (
+                    !$expiryInfo &&
+                        $bookingRequest->status === \App\Enums\BookingRequestStatus::DEPOSIT_REQUESTED &&
+                        !$bookingRequest->deposit_paid_at)
                     <div class="mb-4 p-4 bg-jaune-alerte/10 border border-jaune-alerte/30 rounded-lg">
                         <div class="flex items-start">
                             <svg class="w-5 h-5 mt-0.5 mr-3 text-jaune-alerte" fill="none" stroke="currentColor"
@@ -661,497 +678,47 @@
     </div>{{-- fin min-h-screen --}}
 
     {{-- ═══════════════════════════════════════════════════════════════
-         MODAL CONSENTEMENT SNAT 2026
+         MODAL CONSENTEMENT SNAT 2026 (UNIQUEMENT POUR LES ARTISTES PRO)
          ═══════════════════════════════════════════════════════════════ --}}
-    @php
-        $client = auth()->user()->client;
-        $isMinor = $client->birth_date && $client->birth_date->age < 18;
-        $tattooer = $bookingRequest->bookable;
-    @endphp
+    @if ($bookingRequest->bookable && $bookingRequest->bookable->isPro())
+        @php
+            $client = auth()->user()->client;
+            $isMinor = $client->birth_date && $client->birth_date->age < 18;
+            $tattooer = $bookingRequest->bookable;
+        @endphp
 
-    <div id="consent-modal-{{ $bookingRequest->id }}" class="hidden fixed inset-0 z-[60] overflow-y-auto bg-black/60"
-        x-data="{
-            step: 1,
-            totalSteps: 4,
-            isMinor: {{ $isMinor ? 'true' : 'false' }},
-            showInfoSheet: false,
-            medicalFlags: {
-                allergies: false,
-                anticoagulant: false,
-                diabetes: false,
-                cicatrisation: false,
-                skin_disease: false,
-                vih_hepatite: false,
-                pregnant: false,
-                roaccutane: false,
-                cheloide: false
-            }
-        }">
+        <div id="consent-modal-{{ $bookingRequest->id }}" class="hidden fixed inset-0 z-[60] overflow-y-auto bg-black/60"
+            x-data="{
+                step: 1,
+                totalSteps: 4,
+                isMinor: {{ $isMinor ? 'true' : 'false' }},
+                showInfoSheet: false,
+                medicalFlags: {
+                    allergies: false,
+                    anticoagulant: false,
+                    diabetes: false,
+                    cicatrisation: false,
+                    skin_disease: false,
+                    vih_hepatite: false,
+                    pregnant: false,
+                    roaccutane: false,
+                    cheloide: false
+                }
+            }">
 
-        <div class="flex min-h-full items-end sm:items-center justify-center p-0 sm:p-4">
-            <div class="bg-gris-fonde w-full sm:max-w-2xl sm:rounded-2xl rounded-t-2xl max-h-[95vh] overflow-y-auto">
-
-                {{-- Header --}}
-                <div
-                    class="sticky top-0 bg-gris-fonde z-10 p-4 border-b border-titane/20 flex items-center justify-between">
-                    <div>
-                        <h2 class="text-lg font-bold text-ivoire-text">📝 Consentement éclairé</h2>
-                        <p class="text-xs text-titane">Étape <span x-text="step"></span> / <span
-                                x-text="totalSteps"></span> — SNAT 2026</p>
-                    </div>
-                    <button type="button"
-                        onclick="this.closest('[id^=consent-modal]').classList.add('hidden'); document.body.style.overflow='';"
-                        class="p-2 text-titane hover:text-ivoire-text">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-
-                {{-- Progress bar --}}
-                <div class="w-full bg-noir-profond h-1">
-                    <div class="bg-beige-peau h-1 transition-all duration-300"
-                        :style="'width:' + (step / totalSteps * 100) + '%'"></div>
-                </div>
-
-                <form action="{{ route('client.consent.store', $bookingRequest) }}" method="POST"
-                    enctype="multipart/form-data" class="p-4 space-y-4" id="consent-form-{{ $bookingRequest->id }}"
-                    novalidate
-                    onsubmit="return prepareAndValidateConsent({{ $bookingRequest->id }}, {{ $isMinor ? 'true' : 'false' }})">
-                    @csrf
-
-                    {{-- Champs pré-remplis depuis BookingRequest (hidden, requis par le controller) --}}
-                    <input type="hidden" name="act_type" value="tatouage">
-                    <input type="hidden" name="body_zone" value="{{ $bookingRequest->body_zone ?? 'Non précisé' }}">
-                    <input type="hidden" name="act_description"
-                        value="{{ $bookingRequest->description ?? 'Non précisé' }}">
-                    <input type="hidden" name="total_price"
-                        value="{{ $bookingRequest->total_price ?? ($bookingRequest->estimated_total_price ?? 0) }}">
-                    <input type="hidden" name="deposit_amount"
-                        value="{{ $bookingRequest->deposit_amount ?? ($bookingRequest->total_deposit_amount ?? 0) }}">
-
-                    {{-- Erreurs de validation (visibles si le controller rejette) --}}
-                    @if ($errors->any())
-                        <div class="bg-rouge-alerte/10 border border-rouge-alerte/30 rounded-lg p-3">
-                            <p class="text-sm font-bold text-rouge-alerte mb-2">⚠️ Erreurs dans le formulaire :</p>
-                            <ul class="text-xs text-rouge-alerte space-y-1">
-                                @foreach ($errors->all() as $error)
-                                    <li>• {{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-
-                    {{-- ═══ ÉTAPE 1 : IDENTITÉ + ACTE ═══ --}}
-                    <div x-show="step === 1" class="space-y-4">
-
-                        {{-- Bandeau fiche d'information --}}
-                        <div class="bg-noir-profond/50 rounded-lg p-3 cursor-pointer hover:bg-noir-profond/70 transition-colors"
-                            @click="showInfoSheet = true">
-                            <div class="flex items-center gap-2">
-                                <span>📄</span>
-                                <div class="flex-1">
-                                    <p class="text-sm text-ivoire-text font-semibold">Fiche d'information préalable à
-                                        l'acte</p>
-                                    <p class="text-xs text-titane">Cliquez pour lire</p>
-                                </div>
-                                <svg class="w-5 h-5 text-beige-peau" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 5l7 7-7 7" />
-                                </svg>
-                            </div>
-                        </div>
-
-                        <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider">1. Votre identité</h3>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label class="text-xs text-titane block mb-1">Nom complet *</label>
-                                <input type="text" name="client_full_name" required
-                                    value="{{ trim(($client->first_name ?? '') . ' ' . ($client->last_name ?? '')) }}"
-                                    class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
-                            </div>
-                            <div>
-                                <label class="text-xs text-titane block mb-1">Date de naissance *</label>
-                                <input type="date" name="client_birth_date" required
-                                    value="{{ $client->birth_date?->format('Y-m-d') }}"
-                                    class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="text-xs text-titane block mb-1">Adresse complète *</label>
-                            <input type="text" name="client_address" required value="{{ $client->address ?? '' }}"
-                                class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label class="text-xs text-titane block mb-1">Téléphone *</label>
-                                <input type="tel" name="client_phone" required value="{{ $client->phone ?? '' }}"
-                                    class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
-                            </div>
-                            <div>
-                                <label class="text-xs text-titane block mb-1">Email *</label>
-                                <input type="email" name="client_email" required
-                                    value="{{ $client->user?->email ?? ($client->email ?? '') }}"
-                                    class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
-                            </div>
-                        </div>
-
-                        {{-- Section mineur --}}
-                        @if ($isMinor)
-                            <div class="bg-ambre-warning/10 border border-ambre-warning/30 rounded-lg p-4 space-y-3">
-                                <input type="hidden" name="is_minor" value="1">
-                                <p class="text-sm font-bold text-ambre-warning">⚠️ Client mineur — Autorisation parentale
-                                    obligatoire</p>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="text-xs text-titane block mb-1">Nom du représentant légal *</label>
-                                        <input type="text" name="parent_name" required
-                                            class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm">
-                                    </div>
-                                    <div>
-                                        <label class="text-xs text-titane block mb-1">Lien de parenté *</label>
-                                        <select name="parent_relation" required
-                                            class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm">
-                                            <option value="">Choisir...</option>
-                                            <option value="pere">Père</option>
-                                            <option value="mere">Mère</option>
-                                            <option value="tuteur">Tuteur légal</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="text-xs text-titane block mb-1">N° pièce d'identité du représentant
-                                        *</label>
-                                    <input type="text" name="parent_id_number" required
-                                        class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm">
-                                </div>
-                                <div>
-                                    <label class="text-xs text-titane block mb-1">📎 Copie pièce d'identité du représentant
-                                        *</label>
-                                    <input type="file" name="parent_id_document" required accept="image/*,.pdf"
-                                        class="w-full text-sm text-ivoire-text file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-ambre-warning/20 file:text-ambre-warning file:font-semibold file:text-xs">
-                                </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="text-xs text-titane block mb-1">Type de pièce d'identité *</label>
-                                        <select name="client_id_type" required
-                                            class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
-                                            <option value="">Choisir...</option>
-                                            <option value="cni">Carte nationale d'identité</option>
-                                            <option value="passeport">Passeport</option>
-                                            <option value="titre_sejour">Titre de séjour</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="text-xs text-titane block mb-1">Numéro de pièce *</label>
-                                        <input type="text" name="client_id_number" required
-                                            class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="text-xs text-titane block mb-1">📎 Copie pièce d'identité du client
-                                        *</label>
-                                    <input type="file" name="client_id_document" required accept="image/*,.pdf"
-                                        class="w-full text-sm text-ivoire-text file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-ambre-warning/20 file:text-ambre-warning file:font-semibold file:text-xs">
-                                </div>
-                                <div>
-                                    <label class="text-xs text-titane block mb-1">✍️ Signature du représentant *</label>
-                                    <canvas
-                                        class="sig-canvas w-full bg-white rounded-lg border-2 border-ambre-warning/30 cursor-crosshair"
-                                        data-signature="parent-{{ $bookingRequest->id }}"
-                                        style="touch-action: none; height: 100px;"></canvas>
-                                    <input type="hidden" name="parent_signature_data"
-                                        class="parent-sig-data-{{ $bookingRequest->id }}">
-                                    <button type="button"
-                                        onclick="clearSigCanvas(document.querySelector('[data-signature=\'parent-{{ $bookingRequest->id }}\']'))"
-                                        class="text-xs text-titane hover:text-rouge-alerte mt-1">Effacer</button>
-                                </div>
-                            </div>
-                        @else
-                            <input type="hidden" name="is_minor" value="0">
-                        @endif
-
-                        <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider pt-2">2. Description de
-                            l'acte</h3>
-                        <div class="bg-noir-profond/50 rounded-lg p-3 space-y-1">
-                            <p class="text-sm text-ivoire-text"><strong>Type :</strong>
-                                Tatouage</p>
-                            <p class="text-xs text-titane"><strong>Zone :</strong>
-                                {{ $bookingRequest->body_zone ?? 'Non précisé' }} · <strong>Style :</strong>
-                                Tatouage</p>
-                            @if ($bookingRequest->description)
-                                <p class="text-xs text-titane">{{ $bookingRequest->description }}</p>
-                            @endif
-                        </div>
-
-                        <button type="button" @click="step = 2"
-                            class="w-full px-4 py-3 bg-beige-peau text-noir-profond font-bold rounded-lg text-sm hover:bg-beige-peau/90">
-                            Continuer → Questionnaire médical
-                        </button>
-                    </div>
-
-                    {{-- ═══ ÉTAPE 2 : QUESTIONNAIRE MÉDICAL ═══ --}}
-                    <div x-show="step === 2" class="space-y-4">
-                        <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider">3. Questionnaire médical
-                        </h3>
-                        <p class="text-xs text-titane">Cochez les conditions qui vous concernent :</p>
-
-                        @php
-                            $medicalItems = [
-                                'allergies' => [
-                                    'label' => 'Allergies connues (métaux, latex, encres…)',
-                                    'icon' => '🤧',
-                                    'detail' => true,
-                                ],
-                                'anticoagulant' => [
-                                    'label' => 'Traitement anticoagulant',
-                                    'icon' => '💉',
-                                    'detail' => false,
-                                ],
-                                'diabetes' => ['label' => 'Diabète', 'icon' => '🩸', 'detail' => false],
-                                'cicatrisation' => [
-                                    'label' => 'Troubles de cicatrisation',
-                                    'icon' => '🩹',
-                                    'detail' => false,
-                                ],
-                                'skin_disease' => [
-                                    'label' => 'Maladie de peau (eczéma, psoriasis…)',
-                                    'icon' => '🩹',
-                                    'detail' => true,
-                                ],
-                                'vih_hepatite' => ['label' => 'VIH / Hépatite', 'icon' => '🔬', 'detail' => false],
-                                'pregnant' => ['label' => 'Grossesse / allaitement', 'icon' => '🤰', 'detail' => false],
-                                'roaccutane' => ['label' => 'Roaccutane (< 6 mois)', 'icon' => '💊', 'detail' => false],
-                                'cheloide' => [
-                                    'label' => 'Antécédents de chéloïdes',
-                                    'icon' => '⚕️',
-                                    'detail' => false,
-                                ],
-                            ];
-                        @endphp
-
-                        @foreach ($medicalItems as $key => $item)
-                            <div class="bg-noir-profond/30 rounded-lg p-3">
-                                <label class="flex items-center gap-3 cursor-pointer">
-                                    <input type="checkbox" name="medical_{{ $key }}" value="1"
-                                        x-model="medicalFlags.{{ $key }}"
-                                        class="rounded border-titane/30 bg-noir-profond text-beige-peau focus:ring-beige-peau w-5 h-5">
-                                    <span class="text-sm text-ivoire-text">{{ $item['icon'] }}
-                                        {{ $item['label'] }}</span>
-                                </label>
-                                @if ($item['detail'])
-                                    <div x-show="medicalFlags.{{ $key }}" x-collapse class="mt-2 ml-8">
-                                        <input type="text" name="medical_{{ $key }}_detail"
-                                            placeholder="Précisez..."
-                                            class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm">
-                                    </div>
-                                @endif
-                            </div>
-                        @endforeach
-
-                        <div class="bg-noir-profond/30 rounded-lg p-3">
-                            <label class="text-xs text-titane block mb-1">Autres pathologies importantes</label>
-                            <textarea name="medical_other" rows="2" placeholder="Précisez toute autre condition médicale..."
-                                class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm resize-none"></textarea>
-                        </div>
-
-                        <div class="flex gap-2">
-                            <button type="button" @click="step = 1"
-                                class="flex-1 px-4 py-3 bg-noir-profond text-titane font-semibold rounded-lg text-sm">←
-                                Retour</button>
-                            <button type="button" @click="step = 3"
-                                class="flex-1 px-4 py-3 bg-beige-peau text-noir-profond font-bold rounded-lg text-sm">Continuer
-                                →</button>
-                        </div>
-                    </div>
-
-                    {{-- ═══ ÉTAPE 3 : FINANCIER + IMAGE ═══ --}}
-                    <div x-show="step === 3" class="space-y-4">
-                        <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider">4. Clause financière
-                        </h3>
-
-                        <div class="bg-noir-profond/50 rounded-lg p-3 space-y-2 text-sm text-ivoire-text">
-                            @if ($bookingRequest->price_estimate_max ?? $bookingRequest->estimated_total_price)
-                                <p>💰 <strong>Prix estimé :</strong>
-                                    @if (
-                                        ($bookingRequest->price_estimate_min ?? null) &&
-                                            $bookingRequest->price_estimate_min != ($bookingRequest->price_estimate_max ?? null))
-                                        {{ number_format($bookingRequest->price_estimate_min, 0) }}€ -
-                                        {{ number_format($bookingRequest->price_estimate_max, 0) }}€
-                                    @else
-                                        {{ number_format($bookingRequest->price_estimate_max ?? $bookingRequest->estimated_total_price, 0) }}€
-                                    @endif
-                                </p>
-                            @endif
-                            @if ($bookingRequest->total_deposit_amount)
-                                <p>🔒 <strong>Acompte versé :</strong>
-                                    {{ number_format($bookingRequest->total_deposit_amount, 0) }}€
-                                    @if ($bookingRequest->deposit_paid_at)
-                                        <span class="text-vert-succes">(payé)</span>
-                                    @endif
-                                </p>
-                            @endif
-                        </div>
-
-                        <label class="flex items-start gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
-
-                            <!-- Valeur réellement envoyée -->
-                            <input type="hidden" name="retouche_included" value="1">
-
-                            <!-- Case visible -->
-                            <input type="checkbox" checked disabled
-                                class="rounded border-titane/30 bg-noir-profond text-beige-peau w-5 h-5 mt-0.5">
-
-                            <span class="text-sm text-ivoire-text">
-                                🔄 Retouche incluse dans le prix (à demander dans les 3 semaines après le rendez-vous)
-                            </span>
-                        </label>
-
-                        <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider pt-2">5. Autorisation
-                            image</h3>
-                        <div class="space-y-2">
-                            <label class="flex items-center gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
-                                <input type="radio" name="image_authorization" value="1"
-                                    class="border-titane/30 bg-noir-profond text-beige-peau">
-                                <span class="text-sm text-ivoire-text">📸 J'autorise l'utilisation de photos à des fins
-                                    promotionnelles</span>
-                            </label>
-                            <label class="flex items-center gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
-                                <input type="radio" name="image_authorization" value="0"
-                                    class="border-titane/30 bg-noir-profond text-beige-peau">
-                                <span class="text-sm text-ivoire-text">🚫 Je refuse toute utilisation</span>
-                            </label>
-                        </div>
-
-                        <div class="flex gap-2">
-                            <button type="button" @click="step = 2"
-                                class="flex-1 px-4 py-3 bg-noir-profond text-titane font-semibold rounded-lg text-sm">←
-                                Retour</button>
-                            <button type="button" @click="step = 4"
-                                class="flex-1 px-4 py-3 bg-beige-peau text-noir-profond font-bold rounded-lg text-sm">Continuer
-                                →</button>
-                        </div>
-                    </div>
-
-                    {{-- ═══ ÉTAPE 4 : CONFIRMATIONS + SIGNATURE ═══ --}}
-                    <div x-show="step === 4" class="space-y-4">
-                        <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider">6. Confirmations
-                            obligatoires</h3>
-
-                        <div class="space-y-2">
-                            <label class="flex items-start gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
-                                <input type="checkbox" name="confirm_medical_sincere" value="1" required
-                                    class="rounded border-titane/30 bg-noir-profond text-beige-peau w-5 h-5 mt-0.5">
-                                <span class="text-sm text-ivoire-text">Je certifie avoir répondu de manière sincère et
-                                    complète au questionnaire médical.</span>
-                            </label>
-                            <label class="flex items-start gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
-                                <input type="checkbox" name="confirm_risks_informed" value="1" required
-                                    class="rounded border-titane/30 bg-noir-profond text-beige-peau w-5 h-5 mt-0.5">
-                                <span class="text-sm text-ivoire-text">Je reconnais avoir reçu toutes les informations
-                                    concernant la nature de l'acte, ses risques, ses suites normales et ses complications
-                                    éventuelles.</span>
-                            </label>
-                            <label class="flex items-start gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
-                                <input type="checkbox" name="confirm_info_sheet_read" value="1" required
-                                    class="rounded border-titane/30 bg-noir-profond text-beige-peau w-5 h-5 mt-0.5">
-                                <span class="text-sm text-ivoire-text">J'ai lu et compris la <span
-                                        class="text-beige-peau underline cursor-pointer"
-                                        @click.stop="showInfoSheet = true">fiche d'information préalable</span>.</span>
-                            </label>
-                            <label class="flex items-start gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
-                                <input type="checkbox" name="confirm_aftercare_received" value="1" required
-                                    class="rounded border-titane/30 bg-noir-profond text-beige-peau w-5 h-5 mt-0.5">
-                                <span class="text-sm text-ivoire-text">Une fiche de soins post-acte m'a été remise et
-                                    expliquée.</span>
-                            </label>
-                            <label class="flex items-start gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
-                                <input type="checkbox" name="confirm_not_intoxicated" value="1" required
-                                    class="rounded border-titane/30 bg-noir-profond text-beige-peau w-5 h-5 mt-0.5">
-                                <span class="text-sm text-ivoire-text">Je confirme ne pas être sous l'emprise d'alcool ou
-                                    de stupéfiants.</span>
-                            </label>
-                            <label class="flex items-start gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
-                                <input type="checkbox" name="confirm_over_18_or_authorized" value="1" required
-                                    class="rounded border-titane/30 bg-noir-profond text-beige-peau w-5 h-5 mt-0.5">
-                                <span class="text-sm text-ivoire-text">
-                                    @if ($isMinor)
-                                        Je confirme disposer d'une autorisation parentale valide.
-                                    @else
-                                        Je confirme avoir plus de 18 ans.
-                                    @endif
-                                </span>
-                            </label>
-                            <label class="flex items-start gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
-                                <input type="checkbox" name="confirm_rgpd" value="1" required
-                                    class="rounded border-titane/30 bg-noir-profond text-beige-peau w-5 h-5 mt-0.5">
-                                <span class="text-sm text-ivoire-text">J'accepte la conservation de mes données
-                                    conformément au RGPD.</span>
-                            </label>
-                        </div>
-
-                        {{-- Décharge --}}
-                        <div class="bg-noir-profond/50 rounded-lg p-3">
-                            <p class="text-xs text-ivoire-text/80 italic">
-                                « Je déclare accepter l'acte en pleine connaissance de cause et ne pourrai engager la
-                                responsabilité du professionnel en cas de complication liée au non-respect des soins
-                                post-acte ou à une omission dans mes déclarations médicales. »
-                            </p>
-                        </div>
-
-                        {{-- Mention manuscrite --}}
-                        <div>
-                            <label class="text-xs text-titane block mb-1">✏️ Écrivez : « Lu et approuvé, bon pour
-                                consentement » *</label>
-                            <input type="text" name="handwritten_mention" required
-                                placeholder="Lu et approuvé, bon pour consentement"
-                                class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
-                        </div>
-
-                        {{-- Signature --}}
-                        <div>
-                            <label class="text-xs text-titane block mb-2">✍️ Votre signature *</label>
-                            <canvas
-                                class="sig-canvas w-full bg-white rounded-lg border-2 border-beige-peau/30 cursor-crosshair"
-                                data-signature="client-{{ $bookingRequest->id }}"
-                                style="touch-action: none; height: 120px;"></canvas>
-                            <input type="hidden" name="signature_data"
-                                class="client-sig-data-{{ $bookingRequest->id }}">
-                            <button type="button"
-                                onclick="clearSigCanvas(document.querySelector('[data-signature=\'client-{{ $bookingRequest->id }}\']'))"
-                                class="text-xs text-titane hover:text-rouge-alerte mt-1">Effacer la signature</button>
-                        </div>
-
-                        <div class="flex gap-2">
-                            <button type="button" @click="step = 3"
-                                class="flex-1 px-4 py-3 bg-noir-profond text-titane font-semibold rounded-lg text-sm">←
-                                Retour</button>
-                            <button type="submit"
-                                class="flex-1 px-4 py-3 bg-vert-succes text-white font-bold rounded-lg text-sm hover:bg-vert-succes/90">
-                                ✅ Signer le consentement
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        {{-- ═══ SOUS-MODAL : FICHE D'INFORMATION PRÉALABLE SNAT 2026 ═══ --}}
-        <div x-show="showInfoSheet" x-cloak x-transition class="fixed inset-0 z-[70] overflow-y-auto bg-black/90"
-            @keydown.escape.window="showInfoSheet = false">
-
-            <div class="flex items-end sm:items-center justify-center min-h-screen p-0 sm:p-4">
+            <div class="flex min-h-full items-end sm:items-center justify-center p-0 sm:p-4">
                 <div class="bg-gris-fonde w-full sm:max-w-2xl sm:rounded-2xl rounded-t-2xl max-h-[95vh] overflow-y-auto">
 
+                    {{-- Header --}}
                     <div
                         class="sticky top-0 bg-gris-fonde z-10 p-4 border-b border-titane/20 flex items-center justify-between">
-                        <h2 class="text-lg font-bold text-ivoire-text">📄 Fiche d'information préalable</h2>
-                        <button type="button" @click="showInfoSheet = false"
+                        <div>
+                            <h2 class="text-lg font-bold text-ivoire-text">📝 Consentement éclairé</h2>
+                            <p class="text-xs text-titane">Étape <span x-text="step"></span> / <span
+                                    x-text="totalSteps"></span> — SNAT 2026</p>
+                        </div>
+                        <button type="button"
+                            onclick="this.closest('[id^=consent-modal]').classList.add('hidden'); document.body.style.overflow='';"
                             class="p-2 text-titane hover:text-ivoire-text">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1160,109 +727,596 @@
                         </button>
                     </div>
 
-                    <div class="p-4 space-y-4 text-sm text-ivoire-text/80">
+                    {{-- Progress bar --}}
+                    <div class="w-full bg-noir-profond h-1">
+                        <div class="bg-beige-peau h-1 transition-all duration-300"
+                            :style="'width:' + (step / totalSteps * 100) + '%'"></div>
+                    </div>
 
-                        {{-- Infos pro --}}
-                        <div class="bg-noir-profond/50 rounded-lg p-3">
-                            <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-2">1. Identification du
-                                professionnel</p>
-                            <p class="text-ivoire-text">
-                                {{ $tattooer?->studio_name ?? ($tattooer?->user?->name ?? 'Professionnel') }}</p>
-                            @if ($tattooer?->user?->name && $tattooer?->studio_name)
-                                <p class="text-xs text-titane">Praticien : {{ $tattooer->user->name }}</p>
+                    <form action="{{ route('consent.store', $bookingRequest) }}" method="POST"
+                        enctype="multipart/form-data" class="p-4 space-y-4" id="consent-form-{{ $bookingRequest->id }}"
+                        novalidate
+                        onsubmit="return prepareAndValidateConsent({{ $bookingRequest->id }}, {{ $isMinor ? 'true' : 'false' }})">
+                        @csrf
+
+                        {{-- Champs pré-remplis depuis BookingRequest (hidden, requis par le controller) --}}
+                        <input type="hidden" name="act_type" value="tatouage">
+                        <input type="hidden" name="body_zone"
+                            value="{{ $bookingRequest->body_zone ?? 'Non précisé' }}">
+                        <input type="hidden" name="act_description"
+                            value="{{ $bookingRequest->description ?? 'Non précisé' }}">
+                        <input type="hidden" name="total_price"
+                            value="{{ $bookingRequest->total_price ?? ($bookingRequest->estimated_total_price ?? 0) }}">
+                        <input type="hidden" name="deposit_amount"
+                            value="{{ $bookingRequest->deposit_amount ?? ($bookingRequest->total_deposit_amount ?? 0) }}">
+
+                        {{-- Erreurs de validation (visibles si le controller rejette) --}}
+                        @if ($errors->any())
+                            <div class="bg-rouge-alerte/10 border border-rouge-alerte/30 rounded-lg p-3">
+                                <p class="text-sm font-bold text-rouge-alerte mb-2">⚠️ Erreurs dans le formulaire :</p>
+                                <ul class="text-xs text-rouge-alerte space-y-1">
+                                    @foreach ($errors->all() as $error)
+                                        <li>• {{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
+                        {{-- ═══ ÉTAPE 1 : IDENTITÉ + ACTE ═══ --}}
+                        <div x-show="step === 1" class="space-y-4">
+
+                            {{-- Bandeau fiche d'information --}}
+                            <div class="bg-noir-profond/50 rounded-lg p-3 cursor-pointer hover:bg-noir-profond/70 transition-colors"
+                                @click="showInfoSheet = true">
+                                <div class="flex items-center gap-2">
+                                    <span>📄</span>
+                                    <div class="flex-1">
+                                        <p class="text-sm text-ivoire-text font-semibold">Fiche d'information préalable à
+                                            l'acte</p>
+                                        <p class="text-xs text-titane">Cliquez pour lire</p>
+                                    </div>
+                                    <svg class="w-5 h-5 text-beige-peau" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider">1. Votre identité
+                            </h3>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="text-xs text-titane block mb-1">Nom complet *</label>
+                                    <input type="text" name="client_full_name" required
+                                        value="{{ trim(($client->first_name ?? '') . ' ' . ($client->last_name ?? '')) }}"
+                                        class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-titane block mb-1">Date de naissance *</label>
+                                    <input type="date" name="client_birth_date" required
+                                        value="{{ $client->birth_date?->format('Y-m-d') }}"
+                                        class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="text-xs text-titane block mb-1">Adresse complète *</label>
+                                <input type="text" name="client_address" required
+                                    value="{{ $client->address ?? '' }}"
+                                    class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="text-xs text-titane block mb-1">Téléphone *</label>
+                                    <input type="tel" name="client_phone" required
+                                        value="{{ $client->phone ?? '' }}"
+                                        class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-titane block mb-1">Email *</label>
+                                    <input type="email" name="client_email" required
+                                        value="{{ $client->user?->email ?? ($client->email ?? '') }}"
+                                        class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
+                                </div>
+                            </div>
+
+                            {{-- Section mineur --}}
+                            @if ($isMinor)
+                                <div class="bg-ambre-warning/10 border border-ambre-warning/30 rounded-lg p-4 space-y-3">
+                                    <input type="hidden" name="is_minor" value="1">
+                                    <p class="text-sm font-bold text-ambre-warning">⚠️ Client mineur — Autorisation
+                                        parentale
+                                        obligatoire</p>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="text-xs text-titane block mb-1">Nom du représentant légal
+                                                *</label>
+                                            <input type="text" name="parent_name" required
+                                                class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm">
+                                        </div>
+                                        <div>
+                                            <label class="text-xs text-titane block mb-1">Lien de parenté *</label>
+                                            <select name="parent_relation" required
+                                                class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm">
+                                                <option value="">Choisir...</option>
+                                                <option value="pere">Père</option>
+                                                <option value="mere">Mère</option>
+                                                <option value="tuteur">Tuteur légal</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-titane block mb-1">N° pièce d'identité du représentant
+                                            *</label>
+                                        <input type="text" name="parent_id_number" required
+                                            class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-titane block mb-1">📎 Copie pièce d'identité du
+                                            représentant
+                                            *</label>
+                                        <input type="file" name="parent_id_document" required accept="image/*,.pdf"
+                                            class="w-full text-sm text-ivoire-text file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-ambre-warning/20 file:text-ambre-warning file:font-semibold file:text-xs">
+                                    </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="text-xs text-titane block mb-1">Type de pièce d'identité
+                                                *</label>
+                                            <select name="client_id_type" required
+                                                class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
+                                                <option value="">Choisir...</option>
+                                                <option value="cni">Carte nationale d'identité</option>
+                                                <option value="passeport">Passeport</option>
+                                                <option value="titre_sejour">Titre de séjour</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="text-xs text-titane block mb-1">Numéro de pièce *</label>
+                                            <input type="text" name="client_id_number" required
+                                                class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-titane block mb-1">📎 Copie pièce d'identité du client
+                                            *</label>
+                                        <input type="file" name="client_id_document" required accept="image/*,.pdf"
+                                            class="w-full text-sm text-ivoire-text file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-ambre-warning/20 file:text-ambre-warning file:font-semibold file:text-xs">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-titane block mb-1">✍️ Signature du représentant
+                                            *</label>
+                                        <canvas
+                                            class="sig-canvas w-full bg-white rounded-lg border-2 border-ambre-warning/30 cursor-crosshair"
+                                            data-signature="parent-{{ $bookingRequest->id }}"
+                                            style="touch-action: none; height: 100px;"></canvas>
+                                        <input type="hidden" name="parent_signature_data"
+                                            class="parent-sig-data-{{ $bookingRequest->id }}">
+                                        <button type="button"
+                                            onclick="clearSigCanvas(document.querySelector('[data-signature=\'parent-{{ $bookingRequest->id }}\']'))"
+                                            class="text-xs text-titane hover:text-rouge-alerte mt-1">Effacer</button>
+                                    </div>
+                                </div>
+                            @else
+                                <input type="hidden" name="is_minor" value="0">
                             @endif
-                            @if ($tattooer?->address)
-                                <p class="text-xs text-titane">{{ $tattooer->address }}</p>
-                            @endif
-                            @if ($tattooer?->siret)
-                                <p class="text-xs text-titane">SIRET : {{ $tattooer->siret }}</p>
-                            @endif
-                            @if ($tattooer?->ars_number)
-                                <p class="text-xs text-titane">ARS : {{ $tattooer->ars_number }}</p>
-                            @endif
-                            @if ($tattooer?->insurance_number)
-                                <p class="text-xs text-titane">RC Pro : {{ $tattooer->insurance_number }}</p>
-                            @endif
+
+                            <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider pt-2">2. Description
+                                de
+                                l'acte</h3>
+                            <div class="bg-noir-profond/50 rounded-lg p-3 space-y-1">
+                                <p class="text-sm text-ivoire-text"><strong>Type :</strong>
+                                    Tatouage</p>
+                                <p class="text-xs text-titane"><strong>Zone :</strong>
+                                    {{ $bookingRequest->body_zone ?? 'Non précisé' }} · <strong>Style :</strong>
+                                    Tatouage</p>
+                                @if ($bookingRequest->description)
+                                    <p class="text-xs text-titane">{{ $bookingRequest->description }}</p>
+                                @endif
+                            </div>
+
+                            <button type="button" @click="step = 2"
+                                class="w-full px-4 py-3 bg-beige-peau text-noir-profond font-bold rounded-lg text-sm hover:bg-beige-peau/90">
+                                Continuer → Questionnaire médical
+                            </button>
                         </div>
 
-                        <h4 class="font-bold text-ivoire-text">2. Objet du document</h4>
-                        <p>La présente fiche a pour objet de délivrer une information claire, loyale et appropriée sur la
-                            nature de l'acte envisagé, ses bénéfices attendus, ses contraintes, ses risques et ses
-                            complications possibles.</p>
-                        <p>Elle est remise avant toute réalisation de l'acte, afin de permettre une décision libre et
-                            éclairée.</p>
+                        {{-- ═══ ÉTAPE 2 : QUESTIONNAIRE MÉDICAL ═══ --}}
+                        <div x-show="step === 2" class="space-y-4">
+                            <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider">3. Questionnaire
+                                médical
+                            </h3>
+                            <p class="text-xs text-titane">Cochez les conditions qui vous concernent :</p>
 
-                        <h4 class="font-bold text-ivoire-text">3. Nature de l'acte</h4>
-                        <p><strong>Tatouage :</strong> Injection de pigments dans le derme au moyen d'aiguilles stériles à
-                            usage unique, entraînant une modification permanente de la peau.</p>
-                        <p><strong>Piercing :</strong> Perforation cutanée ou muqueuse afin d'y insérer un bijou.</p>
-                        <p><strong>Body modification :</strong> Acte modifiant l'intégrité corporelle (scarification,
-                            surface piercing, etc.).</p>
+                            @php
+                                $medicalItems = [
+                                    'allergies' => [
+                                        'label' => 'Allergies connues (métaux, latex, encres…)',
+                                        'icon' => '🤧',
+                                        'detail' => true,
+                                    ],
+                                    'anticoagulant' => [
+                                        'label' => 'Traitement anticoagulant',
+                                        'icon' => '💉',
+                                        'detail' => false,
+                                    ],
+                                    'diabetes' => ['label' => 'Diabète', 'icon' => '🩸', 'detail' => false],
+                                    'cicatrisation' => [
+                                        'label' => 'Troubles de cicatrisation',
+                                        'icon' => '🩹',
+                                        'detail' => false,
+                                    ],
+                                    'skin_disease' => [
+                                        'label' => 'Maladie de peau (eczéma, psoriasis…)',
+                                        'icon' => '🩹',
+                                        'detail' => true,
+                                    ],
+                                    'vih_hepatite' => ['label' => 'VIH / Hépatite', 'icon' => '🔬', 'detail' => false],
+                                    'pregnant' => [
+                                        'label' => 'Grossesse / allaitement',
+                                        'icon' => '🤰',
+                                        'detail' => false,
+                                    ],
+                                    'roaccutane' => [
+                                        'label' => 'Roaccutane (< 6 mois)',
+                                        'icon' => '💊',
+                                        'detail' => false,
+                                    ],
+                                    'cheloide' => [
+                                        'label' => 'Antécédents de chéloïdes',
+                                        'icon' => '⚕️',
+                                        'detail' => false,
+                                    ],
+                                ];
+                            @endphp
 
-                        <h4 class="font-bold text-ivoire-text">4. Caractère volontaire et esthétique</h4>
-                        <p>L'acte est réalisé à visée esthétique et n'a aucune finalité thérapeutique. Le résultat dépend de
-                            la morphologie, de la qualité de cicatrisation, du respect des soins post-acte, et de facteurs
-                            biologiques individuels. <strong>Aucun résultat esthétique précis ne peut être garanti.</strong>
-                        </p>
+                            @foreach ($medicalItems as $key => $item)
+                                <div class="bg-noir-profond/30 rounded-lg p-3">
+                                    <label class="flex items-center gap-3 cursor-pointer">
+                                        <input type="checkbox" name="medical_{{ $key }}" value="1"
+                                            x-model="medicalFlags.{{ $key }}"
+                                            class="rounded border-titane/30 bg-noir-profond text-beige-peau focus:ring-beige-peau w-5 h-5">
+                                        <span class="text-sm text-ivoire-text">{{ $item['icon'] }}
+                                            {{ $item['label'] }}</span>
+                                    </label>
+                                    @if ($item['detail'])
+                                        <div x-show="medicalFlags.{{ $key }}" x-collapse class="mt-2 ml-8">
+                                            <input type="text" name="medical_{{ $key }}_detail"
+                                                placeholder="Précisez..."
+                                                class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm">
+                                        </div>
+                                    @endif
+                                </div>
+                            @endforeach
 
-                        <h4 class="font-bold text-ivoire-text">5. Risques généraux connus</h4>
-                        <p>Même lorsque l'acte est pratiqué dans le respect strict des règles d'hygiène : douleur,
-                            saignement, œdème, rougeur, infection locale, réaction allergique, inflammation prolongée,
-                            retard de cicatrisation, cicatrice hypertrophique ou chéloïde, rejet ou migration (piercing),
-                            résultat esthétique différent des attentes subjectives.</p>
-                        <p>Dans de rares cas : infection systémique, complications nécessitant traitement médical, séquelles
-                            cicatricielles permanentes.</p>
-                        <p class="text-ambre-warning font-semibold">Toute complication doit entraîner une consultation
-                            médicale immédiate.</p>
+                            <div class="bg-noir-profond/30 rounded-lg p-3">
+                                <label class="text-xs text-titane block mb-1">Autres pathologies importantes</label>
+                                <textarea name="medical_other" rows="2" placeholder="Précisez toute autre condition médicale..."
+                                    class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm resize-none"></textarea>
+                            </div>
 
-                        <h4 class="font-bold text-ivoire-text">6. Contre-indications médicales</h4>
-                        <p>L'acte est déconseillé ou contre-indiqué notamment en cas de : grossesse/allaitement, diabète non
-                            stabilisé, troubles de la coagulation, traitement anticoagulant, immunodépression, dermatose
-                            active, prise d'isotrétinoïne récente, antécédents de chéloïdes.</p>
-                        <p>En cas de doute médical, un avis médical préalable est recommandé.</p>
+                            <div class="flex gap-2">
+                                <button type="button" @click="step = 1"
+                                    class="flex-1 px-4 py-3 bg-noir-profond text-titane font-semibold rounded-lg text-sm">←
+                                    Retour</button>
+                                <button type="button" @click="step = 3"
+                                    class="flex-1 px-4 py-3 bg-beige-peau text-noir-profond font-bold rounded-lg text-sm">Continuer
+                                    →</button>
+                            </div>
+                        </div>
 
-                        <h4 class="font-bold text-ivoire-text">7. Conditions d'hygiène</h4>
-                        <p>Le professionnel déclare utiliser du matériel stérile à usage unique, respecter les protocoles
-                            d'asepsie, porter des équipements de protection, appliquer les règles de gestion des déchets
-                            DASRI, et utiliser des encres conformes à la réglementation européenne REACH.</p>
+                        {{-- ═══ ÉTAPE 3 : FINANCIER + IMAGE ═══ --}}
+                        <div x-show="step === 3" class="space-y-4">
+                            <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider">4. Clause financière
+                            </h3>
 
-                        <h4 class="font-bold text-ivoire-text">8. Suites normales</h4>
-                        <p>Sensibilité locale, rougeur temporaire, suintement léger, formation de croûtes fines (tatouage),
-                            démangeaisons. Durée de cicatrisation variable selon la zone et l'individu.</p>
+                            <div class="bg-noir-profond/50 rounded-lg p-3 space-y-2 text-sm text-ivoire-text">
+                                @if ($bookingRequest->price_estimate_max ?? $bookingRequest->estimated_total_price)
+                                    <p>💰 <strong>Prix estimé :</strong>
+                                        @if (
+                                            ($bookingRequest->price_estimate_min ?? null) &&
+                                                $bookingRequest->price_estimate_min != ($bookingRequest->price_estimate_max ?? null))
+                                            {{ number_format($bookingRequest->price_estimate_min, 0) }}€ -
+                                            {{ number_format($bookingRequest->price_estimate_max, 0) }}€
+                                        @else
+                                            {{ number_format($bookingRequest->price_estimate_max ?? $bookingRequest->estimated_total_price, 0) }}€
+                                        @endif
+                                    </p>
+                                @endif
+                                @if ($bookingRequest->total_deposit_amount)
+                                    <p>🔒 <strong>Acompte versé :</strong>
+                                        {{ number_format($bookingRequest->total_deposit_amount, 0) }}€
+                                        @if ($bookingRequest->deposit_paid_at)
+                                            <span class="text-vert-succes">(payé)</span>
+                                        @endif
+                                    </p>
+                                @endif
+                            </div>
 
-                        <h4 class="font-bold text-ivoire-text">9. Soins post-acte</h4>
-                        <p>Le respect strict des soins post-acte conditionne le résultat final. Le non-respect augmente
-                            significativement le risque d'infection, peut altérer le résultat esthétique, et peut engager la
-                            responsabilité exclusive du client. Une fiche de soins détaillée est remise séparément.</p>
+                            <label class="flex items-start gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
 
-                        <h4 class="font-bold text-ivoire-text">10. Caractère permanent (Tatouage)</h4>
-                        <p>Le tatouage est un acte permanent. Le détatouage est long, coûteux, peut nécessiter plusieurs
-                            séances, peut laisser des cicatrices, et n'assure pas un effacement total.</p>
+                                <!-- Valeur réellement envoyée -->
+                                <input type="hidden" name="retouche_included" value="1">
 
-                        <h4 class="font-bold text-ivoire-text">11. Liberté de décision</h4>
-                        <p>Le client dispose d'un délai de réflexion libre, du droit de poser toutes questions, et du droit
-                            de renoncer à l'acte. Aucune pression commerciale n'est exercée.</p>
+                                <!-- Case visible -->
+                                <input type="checkbox" checked disabled
+                                    class="rounded border-titane/30 bg-noir-profond text-beige-peau w-5 h-5 mt-0.5">
 
-                        <h4 class="font-bold text-ivoire-text">12. Traçabilité</h4>
-                        <p>Les références des encres / bijoux utilisés sont enregistrées et conservées conformément aux
-                            obligations légales.</p>
+                                <span class="text-sm text-ivoire-text">
+                                    🔄 Retouche incluse dans le prix (à demander dans les 3 semaines après le rendez-vous)
+                                </span>
+                            </label>
 
-                        <div class="bg-noir-profond/50 rounded-lg p-3 mt-4">
-                            <p class="text-xs text-titane">
-                                ⚖️ Références : ARS (déclaration d'activité obligatoire), Code de la santé publique (art.
-                                R1311-1 à R1311-11), Normes européennes REACH 2022.
+                            <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider pt-2">5. Autorisation
+                                image</h3>
+                            <div class="space-y-2">
+                                <label class="flex items-center gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
+                                    <input type="radio" name="image_authorization" value="1"
+                                        class="border-titane/30 bg-noir-profond text-beige-peau">
+                                    <span class="text-sm text-ivoire-text">📸 J'autorise l'utilisation de photos à des fins
+                                        promotionnelles</span>
+                                </label>
+                                <label class="flex items-center gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
+                                    <input type="radio" name="image_authorization" value="0"
+                                        class="border-titane/30 bg-noir-profond text-beige-peau">
+                                    <span class="text-sm text-ivoire-text">🚫 Je refuse toute utilisation</span>
+                                </label>
+                            </div>
+
+                            <div class="flex gap-2">
+                                <button type="button" @click="step = 2"
+                                    class="flex-1 px-4 py-3 bg-noir-profond text-titane font-semibold rounded-lg text-sm">←
+                                    Retour</button>
+                                <button type="button" @click="step = 4"
+                                    class="flex-1 px-4 py-3 bg-beige-peau text-noir-profond font-bold rounded-lg text-sm">Continuer
+                                    →</button>
+                            </div>
+                        </div>
+
+                        {{-- ═══ ÉTAPE 4 : CONFIRMATIONS + SIGNATURE ═══ --}}
+                        <div x-show="step === 4" class="space-y-4">
+                            <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider">6. Confirmations
+                                obligatoires</h3>
+
+                            <div class="space-y-2">
+                                <label class="flex items-start gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
+                                    <input type="checkbox" name="confirm_medical_sincere" value="1" required
+                                        class="rounded border-titane/30 bg-noir-profond text-beige-peau w-5 h-5 mt-0.5">
+                                    <span class="text-sm text-ivoire-text">Je certifie avoir répondu de manière sincère et
+                                        complète au questionnaire médical.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
+                                    <input type="checkbox" name="confirm_risks_informed" value="1" required
+                                        class="rounded border-titane/30 bg-noir-profond text-beige-peau w-5 h-5 mt-0.5">
+                                    <span class="text-sm text-ivoire-text">Je reconnais avoir reçu toutes les informations
+                                        concernant la nature de l'acte, ses risques, ses suites normales et ses
+                                        complications
+                                        éventuelles.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
+                                    <input type="checkbox" name="confirm_info_sheet_read" value="1" required
+                                        class="rounded border-titane/30 bg-noir-profond text-beige-peau w-5 h-5 mt-0.5">
+                                    <span class="text-sm text-ivoire-text">J'ai lu et compris la <span
+                                            class="text-beige-peau underline cursor-pointer"
+                                            @click.stop="showInfoSheet = true">fiche d'information préalable</span>.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
+                                    <input type="checkbox" name="confirm_aftercare_received" value="1" required
+                                        class="rounded border-titane/30 bg-noir-profond text-beige-peau w-5 h-5 mt-0.5">
+                                    <span class="text-sm text-ivoire-text">Une fiche de soins post-acte m'a été remise et
+                                        expliquée.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
+                                    <input type="checkbox" name="confirm_not_intoxicated" value="1" required
+                                        class="rounded border-titane/30 bg-noir-profond text-beige-peau w-5 h-5 mt-0.5">
+                                    <span class="text-sm text-ivoire-text">Je confirme ne pas être sous l'emprise d'alcool
+                                        ou
+                                        de stupéfiants.</span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
+                                    <input type="checkbox" name="confirm_over_18_or_authorized" value="1" required
+                                        class="rounded border-titane/30 bg-noir-profond text-beige-peau w-5 h-5 mt-0.5">
+                                    <span class="text-sm text-ivoire-text">
+                                        @if ($isMinor)
+                                            Je confirme disposer d'une autorisation parentale valide.
+                                        @else
+                                            Je confirme avoir plus de 18 ans.
+                                        @endif
+                                    </span>
+                                </label>
+                                <label class="flex items-start gap-3 cursor-pointer bg-noir-profond/30 rounded-lg p-3">
+                                    <input type="checkbox" name="confirm_rgpd" value="1" required
+                                        class="rounded border-titane/30 bg-noir-profond text-beige-peau w-5 h-5 mt-0.5">
+                                    <span class="text-sm text-ivoire-text">J'accepte la conservation de mes données
+                                        conformément au RGPD.</span>
+                                </label>
+                            </div>
+
+                            {{-- Décharge --}}
+                            <div class="bg-noir-profond/50 rounded-lg p-3">
+                                <p class="text-xs text-ivoire-text/80 italic">
+                                    « Je déclare accepter l'acte en pleine connaissance de cause et ne pourrai engager la
+                                    responsabilité du professionnel en cas de complication liée au non-respect des soins
+                                    post-acte ou à une omission dans mes déclarations médicales. »
+                                </p>
+                            </div>
+
+                            {{-- Mention manuscrite --}}
+                            <div>
+                                <label class="text-xs text-titane block mb-1">✏️ Écrivez : « Lu et approuvé, bon pour
+                                    consentement » *</label>
+                                <input type="text" name="handwritten_mention" required
+                                    placeholder="Lu et approuvé, bon pour consentement"
+                                    class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
+                            </div>
+
+                            {{-- Signature --}}
+                            <div>
+                                <label class="text-xs text-titane block mb-2">✍️ Votre signature *</label>
+                                <canvas
+                                    class="sig-canvas w-full bg-white rounded-lg border-2 border-beige-peau/30 cursor-crosshair"
+                                    data-signature="client-{{ $bookingRequest->id }}"
+                                    style="touch-action: none; height: 120px;"></canvas>
+                                <input type="hidden" name="signature_data"
+                                    class="client-sig-data-{{ $bookingRequest->id }}">
+                                <button type="button"
+                                    onclick="clearSigCanvas(document.querySelector('[data-signature=\'client-{{ $bookingRequest->id }}\']'))"
+                                    class="text-xs text-titane hover:text-rouge-alerte mt-1">Effacer la signature</button>
+                            </div>
+
+                            <div class="flex gap-2">
+                                <button type="button" @click="step = 3"
+                                    class="flex-1 px-4 py-3 bg-noir-profond text-titane font-semibold rounded-lg text-sm">←
+                                    Retour</button>
+                                <button type="submit"
+                                    class="flex-1 px-4 py-3 bg-vert-succes text-white font-bold rounded-lg text-sm hover:bg-vert-succes/90">
+                                    ✅ Signer le consentement
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {{-- ═══ SOUS-MODAL : FICHE D'INFORMATION PRÉALABLE SNAT 2026 ═══ --}}
+            <div x-show="showInfoSheet" x-cloak x-transition class="fixed inset-0 z-[70] overflow-y-auto bg-black/90"
+                @keydown.escape.window="showInfoSheet = false">
+
+                <div class="flex items-end sm:items-center justify-center min-h-screen p-0 sm:p-4">
+                    <div
+                        class="bg-gris-fonde w-full sm:max-w-2xl sm:rounded-2xl rounded-t-2xl max-h-[95vh] overflow-y-auto">
+
+                        <div
+                            class="sticky top-0 bg-gris-fonde z-10 p-4 border-b border-titane/20 flex items-center justify-between">
+                            <h2 class="text-lg font-bold text-ivoire-text">📄 Fiche d'information préalable</h2>
+                            <button type="button" @click="showInfoSheet = false"
+                                class="p-2 text-titane hover:text-ivoire-text">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div class="p-4 space-y-4 text-sm text-ivoire-text/80">
+
+                            {{-- Infos pro --}}
+                            <div class="bg-noir-profond/50 rounded-lg p-3">
+                                <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-2">1. Identification du
+                                    professionnel</p>
+                                <p class="text-ivoire-text">
+                                    {{ $tattooer?->studio_name ?? ($tattooer?->user?->name ?? 'Professionnel') }}</p>
+                                @if ($tattooer?->user?->name && $tattooer?->studio_name)
+                                    <p class="text-xs text-titane">Praticien : {{ $tattooer->user->name }}</p>
+                                @endif
+                                @if ($tattooer?->address)
+                                    <p class="text-xs text-titane">{{ $tattooer->address }}</p>
+                                @endif
+                                @if ($tattooer?->siret)
+                                    <p class="text-xs text-titane">SIRET : {{ $tattooer->siret }}</p>
+                                @endif
+                                @if ($tattooer?->ars_number)
+                                    <p class="text-xs text-titane">ARS : {{ $tattooer->ars_number }}</p>
+                                @endif
+                                @if ($tattooer?->insurance_number)
+                                    <p class="text-xs text-titane">RC Pro : {{ $tattooer->insurance_number }}</p>
+                                @endif
+                            </div>
+
+                            <h4 class="font-bold text-ivoire-text">2. Objet du document</h4>
+                            <p>La présente fiche a pour objet de délivrer une information claire, loyale et appropriée sur
+                                la
+                                nature de l'acte envisagé, ses bénéfices attendus, ses contraintes, ses risques et ses
+                                complications possibles.</p>
+                            <p>Elle est remise avant toute réalisation de l'acte, afin de permettre une décision libre et
+                                éclairée.</p>
+
+                            <h4 class="font-bold text-ivoire-text">3. Nature de l'acte</h4>
+                            <p><strong>Tatouage :</strong> Injection de pigments dans le derme au moyen d'aiguilles stériles
+                                à
+                                usage unique, entraînant une modification permanente de la peau.</p>
+                            <p><strong>Piercing :</strong> Perforation cutanée ou muqueuse afin d'y insérer un bijou.</p>
+                            <p><strong>Body modification :</strong> Acte modifiant l'intégrité corporelle (scarification,
+                                surface piercing, etc.).</p>
+
+                            <h4 class="font-bold text-ivoire-text">4. Caractère volontaire et esthétique</h4>
+                            <p>L'acte est réalisé à visée esthétique et n'a aucune finalité thérapeutique. Le résultat
+                                dépend de
+                                la morphologie, de la qualité de cicatrisation, du respect des soins post-acte, et de
+                                facteurs
+                                biologiques individuels. <strong>Aucun résultat esthétique précis ne peut être
+                                    garanti.</strong>
                             </p>
-                        </div>
 
-                        <button type="button" @click="showInfoSheet = false"
-                            class="w-full px-4 py-3 bg-beige-peau text-noir-profond font-bold rounded-lg text-sm hover:bg-beige-peau/90 mt-4">
-                            ✅ J'ai lu cette fiche d'information
-                        </button>
+                            <h4 class="font-bold text-ivoire-text">5. Risques généraux connus</h4>
+                            <p>Même lorsque l'acte est pratiqué dans le respect strict des règles d'hygiène : douleur,
+                                saignement, œdème, rougeur, infection locale, réaction allergique, inflammation prolongée,
+                                retard de cicatrisation, cicatrice hypertrophique ou chéloïde, rejet ou migration
+                                (piercing),
+                                résultat esthétique différent des attentes subjectives.</p>
+                            <p>Dans de rares cas : infection systémique, complications nécessitant traitement médical,
+                                séquelles
+                                cicatricielles permanentes.</p>
+                            <p class="text-ambre-warning font-semibold">Toute complication doit entraîner une consultation
+                                médicale immédiate.</p>
+
+                            <h4 class="font-bold text-ivoire-text">6. Contre-indications médicales</h4>
+                            <p>L'acte est déconseillé ou contre-indiqué notamment en cas de : grossesse/allaitement, diabète
+                                non
+                                stabilisé, troubles de la coagulation, traitement anticoagulant, immunodépression, dermatose
+                                active, prise d'isotrétinoïne récente, antécédents de chéloïdes.</p>
+                            <p>En cas de doute médical, un avis médical préalable est recommandé.</p>
+
+                            <h4 class="font-bold text-ivoire-text">7. Conditions d'hygiène</h4>
+                            <p>Le professionnel déclare utiliser du matériel stérile à usage unique, respecter les
+                                protocoles
+                                d'asepsie, porter des équipements de protection, appliquer les règles de gestion des déchets
+                                DASRI, et utiliser des encres conformes à la réglementation européenne REACH.</p>
+
+                            <h4 class="font-bold text-ivoire-text">8. Suites normales</h4>
+                            <p>Sensibilité locale, rougeur temporaire, suintement léger, formation de croûtes fines
+                                (tatouage),
+                                démangeaisons. Durée de cicatrisation variable selon la zone et l'individu.</p>
+
+                            <h4 class="font-bold text-ivoire-text">9. Soins post-acte</h4>
+                            <p>Le respect strict des soins post-acte conditionne le résultat final. Le non-respect augmente
+                                significativement le risque d'infection, peut altérer le résultat esthétique, et peut
+                                engager la
+                                responsabilité exclusive du client. Une fiche de soins détaillée est remise séparément.</p>
+
+                            <h4 class="font-bold text-ivoire-text">10. Caractère permanent (Tatouage)</h4>
+                            <p>Le tatouage est un acte permanent. Le détatouage est long, coûteux, peut nécessiter plusieurs
+                                séances, peut laisser des cicatrices, et n'assure pas un effacement total.</p>
+
+                            <h4 class="font-bold text-ivoire-text">11. Liberté de décision</h4>
+                            <p>Le client dispose d'un délai de réflexion libre, du droit de poser toutes questions, et du
+                                droit
+                                de renoncer à l'acte. Aucune pression commerciale n'est exercée.</p>
+
+                            <h4 class="font-bold text-ivoire-text">12. Traçabilité</h4>
+                            <p>Les références des encres / bijoux utilisés sont enregistrées et conservées conformément aux
+                                obligations légales.</p>
+
+                            <div class="bg-noir-profond/50 rounded-lg p-3 mt-4">
+                                <p class="text-xs text-titane">
+                                    ⚖️ Références : ARS (déclaration d'activité obligatoire), Code de la santé publique
+                                    (art.
+                                    R1311-1 à R1311-11), Normes européennes REACH 2022.
+                                </p>
+                            </div>
+
+                            <button type="button" @click="showInfoSheet = false"
+                                class="w-full px-4 py-3 bg-beige-peau text-noir-profond font-bold rounded-lg text-sm hover:bg-beige-peau/90 mt-4">
+                                ✅ J'ai lu cette fiche d'information
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>{{-- fin consent-modal --}}
+        </div>{{-- fin consent-modal --}}
+    @endif
 
     {{-- ═══════════════════════════════════════════════════════════════
          JAVASCRIPT (UN SEUL BLOC)

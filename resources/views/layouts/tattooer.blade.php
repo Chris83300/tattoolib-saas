@@ -163,7 +163,7 @@
                     <img src="{{ auth()->user()->getFirstMediaUrl('avatar') ?: asset('images/default-avatar.png') }}"
                         alt="Avatar" class="w-10 h-10 rounded-full">
                     <div class="flex-1 min-w-0">
-                        <p class="text-ivoire-text font-semibold truncate">{{ auth()->user()->name }}</p>
+                        <p class="text-ivoire-text font-semibold truncate">{{ auth()->user()->pseudo }}</p>
                         <p class="text-ivoire-text/60 text-xs">{{ $artisan->city ?? '' }}</p>
                     </div>
                     <form action="{{ route('logout') }}" method="POST">

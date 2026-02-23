@@ -161,37 +161,6 @@ img-comparison-slider {
 /* ============================================
    COMPOSANTS DE BASE
    ============================================ */
-/* Background color */
-/* .bg-noir-profond {
-    background-color: var(--color-noir-profond);
-}
-.bg-beige-peau {
-    background-color: var(--color-beige-peau);
-}
-.bg-gris-fonde {
-    background-color: var(--color-gris-fonde);
-}
-.bg-vert-succes {
-    background-color: var(--color-vert-succes);
-}
-.bg-rouge-alerte {
-    background-color: var(--color-rouge-alerte);
-}
-.bg-ambre-warning {
-    background-color: var(--color-ambre-warning);
-}
-.bg-jaune-alerte {
-    background-color: var(--color-jaune-alerte);
-}
-.bg-orange-attention {
-    background-color: var(--color-orange-attention);
-}
-.bg-beige-fonce {
-    background-color: var(--color-beige-fonce);
-}
-.bg-titane {
-    background-color: var(--color-titane);
-} */
 
 /* Backdrop blur pour modals/headers */
 .backdrop-blur-dark {

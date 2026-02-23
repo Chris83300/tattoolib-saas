@@ -38,33 +38,105 @@
                                 <p class="text-ivoire-text">{{ $bookingRequest->description ?: 'Non définie' }}</p>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <span class="text-ivoire-text/70 block mb-1">Emplacement :</span>
-                                    <span
-                                        class="text-ivoire-text font-semibold">{{ $bookingRequest->body_zone ?: 'Non défini' }}</span>
-                                </div>
-                                <div>
-                                    <span class="text-ivoire-text/70 block mb-1">Taille :</span>
-                                    <span
-                                        class="text-ivoire-text font-semibold">{{ $bookingRequest->tattoo_size ?: 'Non défini' }}</span>
-                                </div>
-                            </div>
+                            @if ($bookingRequest->bookable_type === 'App\\Models\\Piercer')
+                                <!-- Champs spécifiques aux piercings -->
+                                <div class="bg-noir-profond/30 rounded-lg p-4">
+                                    <h4 class="text-ivoire-text font-semibold mb-3">💍 Détails du piercing</h4>
+                                    <div class="space-y-2 text-sm">
+                                        {{-- Parser la description pour extraire les infos de piercing --}}
+                                        @php
+                                            $description = $bookingRequest->description;
+                                            $type = '';
+                                            $precision = '';
+                                            $specialRequest = '';
 
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <span class="text-ivoire-text/70 block mb-1">Prix estimé :</span>
-                                    <span class="text-ivoire-text font-semibold">
-                                        {{ $bookingRequest->estimated_total_price ? number_format($bookingRequest->estimated_total_price, 2, ',', ' ') . ' €' : 'Non défini' }}
-                                    </span>
+                                            // Extraire les informations de la description formatée
+                                            if (preg_match('/Type\s*:\s*([^\n]+)/', $description, $matches)) {
+                                                $type = trim($matches[1]);
+                                            }
+                                            if (preg_match('/Précisions\s*:\s*([^\n]+)/', $description, $matches)) {
+                                                $precision = trim($matches[1]);
+                                            }
+                                            if (
+                                                preg_match(
+                                                    '/Demande spécifique\s*:\s*([^\n]+)/',
+                                                    $description,
+                                                    $matches,
+                                                )
+                                            ) {
+                                                $specialRequest = trim($matches[1]);
+                                            }
+                                        @endphp
+
+                                        @if ($type)
+                                            <div class="flex justify-between">
+                                                <span class="text-ivoire-text/60">Type :</span>
+                                                <span class="text-ivoire-text font-semibold">{{ $type }}</span>
+                                            </div>
+                                        @endif
+
+                                        @if ($precision)
+                                            <div class="flex justify-between">
+                                                <span class="text-ivoire-text/60">Précisions :</span>
+                                                <span class="text-ivoire-text font-semibold">{{ $precision }}</span>
+                                            </div>
+                                        @endif
+
+                                        @if ($specialRequest)
+                                            <div>
+                                                <span class="text-ivoire-text/60 block mb-1">Demande spécifique :</span>
+                                                <span class="text-ivoire-text">{{ $specialRequest }}</span>
+                                            </div>
+                                        @endif
+
+                                        {{-- Afficher le tarif si disponible --}}
+                                        @if ($type && $bookingRequest->bookable && method_exists($bookingRequest->bookable, 'getPricingForType'))
+                                            @php
+                                                $price = $bookingRequest->bookable->getPricingForType($type);
+                                            @endphp
+                                            @if ($price)
+                                                <div class="mt-3 pt-3 border-t border-titane/30">
+                                                    <div class="flex justify-between items-center">
+                                                        <span class="text-ivoire-text/60">Tarif :</span>
+                                                        <span
+                                                            class="text-beige-peau font-bold text-lg">{{ number_format($price, 2, ',', ' ') }}
+                                                            €</span>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        @endif
+                                    </div>
                                 </div>
-                                <div>
-                                    <span class="text-ivoire-text/70 block mb-1">Date souhaitée :</span>
-                                    <span class="text-ivoire-text font-semibold">
-                                        {{ $bookingRequest->preferred_date ? $bookingRequest->preferred_date->format('d/m/Y') : 'Non définie' }}
-                                    </span>
+                            @else
+                                <!-- Champs spécifiques aux tatouages -->
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <span class="text-ivoire-text/70 block mb-1">Emplacement :</span>
+                                        <span
+                                            class="text-ivoire-text font-semibold">{{ $bookingRequest->body_zone ?: 'Non défini' }}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-ivoire-text/70 block mb-1">Taille :</span>
+                                        <span
+                                            class="text-ivoire-text font-semibold">{{ $bookingRequest->tattoo_size ?: 'Non défini' }}</span>
+                                    </div>
                                 </div>
-                            </div>
+
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <span class="text-ivoire-text/70 block mb-1">Prix estimé :</span>
+                                        <span class="text-ivoire-text font-semibold">
+                                            {{ $bookingRequest->estimated_total_price ? number_format($bookingRequest->estimated_total_price, 2, ',', ' ') . ' €' : 'Non défini' }}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span class="text-ivoire-text/70 block mb-1">Date souhaitée :</span>
+                                        <span class="text-ivoire-text font-semibold">
+                                            {{ $bookingRequest->preferred_date ? $bookingRequest->preferred_date->format('d/m/Y') : 'Non définie' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            @endif
 
                             <div>
                                 <span class="text-ivoire-text/70 block mb-1">Statut :</span>
@@ -187,7 +259,7 @@
                             <div class="w-12 h-12 rounded-full overflow-hidden bg-beige-peau/10">
                                 @if ($bookingRequest->bookable->user->getFirstMediaUrl('avatar'))
                                     <img src="{{ $bookingRequest->bookable->user->getFirstMediaUrl('avatar') }}"
-                                        alt="Avatar de {{ $bookingRequest->bookable->user->first_name }}"
+                                        alt="Avatar de {{ $bookingRequest->bookable->user->pseudo }}"
                                         class="w-full h-full object-cover">
                                 @else
                                     <div class="w-full h-full bg-beige-peau rounded-full flex items-center justify-center">
@@ -200,13 +272,14 @@
                                 @endif
                             </div>
                             <div>
-                                <p class="font-semibold text-ivoire-text">{{ $bookingRequest->bookable->user->first_name }}
-                                    {{ $bookingRequest->bookable->user->last_name }}</p>
+                                <p class="font-semibold text-ivoire-text">{{ $bookingRequest->bookable->user->pseudo }}</p>
                                 <p class="text-sm text-ivoire-text/70">
-                                    @if ($bookingRequest->bookable_type === 'App\Models\Tattooer')
+                                    @if ($bookingRequest->bookable_type === 'App\\Models\\Tattooer')
                                         Tatoueur indépendant
-                                    @elseif($bookingRequest->bookable_type === 'App\Models\StudioArtist')
+                                    @elseif($bookingRequest->bookable_type === 'App\\Models\\StudioArtist')
                                         Artiste de studio
+                                    @elseif($bookingRequest->bookable_type === 'App\\Models\\Piercer')
+                                        Piercer professionnel
                                     @endif
                                 </p>
                             </div>
@@ -249,12 +322,24 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                Proposition du tattooer
+                                Proposition du @if ($bookingRequest->bookable_type === 'App\\Models\\Piercer')
+                                    piercer
+                                @else
+                                    tattooer
+                                @endif
                             </h3>
 
                             <div class="space-y-4">
                                 <!-- 💰 Fourchette prix -->
-                                @if ($bookingRequest->price_estimate_min || $bookingRequest->price_estimate_max)
+                                @if ($bookingRequest->bookable_type === 'App\\Models\\Piercer' && $bookingRequest->total_deposit_amount)
+                                    <div class="bg-noir-profond/50 rounded-lg p-4">
+                                        <h4 class="font-semibold text-ivoire-text/80 text-sm mb-2">💰 Tarif</h4>
+                                        <p class="text-ivoire-text">
+                                            <span
+                                                class="font-bold text-beige-peau">{{ number_format($bookingRequest->total_deposit_amount, 2, ',', ' ') }}€</span>
+                                        </p>
+                                    </div>
+                                @elseif ($bookingRequest->price_estimate_min || $bookingRequest->price_estimate_max)
                                     <div class="bg-noir-profond/50 rounded-lg p-4">
                                         <h4 class="font-semibold text-ivoire-text/80 text-sm mb-2">💰 Tarif estimé</h4>
                                         <p class="text-ivoire-text">
@@ -400,7 +485,7 @@
                                 @endif
 
                                 <!-- 🎨 Phase création -->
-                                @if ($bookingRequest->included_design_versions)
+                                @if ($bookingRequest->included_design_versions && $bookingRequest->bookable_type !== 'App\\Models\\Piercer')
                                     <div class="bg-noir-profond/50 rounded-lg p-4">
                                         <h4 class="font-semibold text-ivoire-text/80 text-sm mb-2">🎨 Phase création</h4>
                                         <div class="grid grid-cols-2 gap-3 text-sm">
@@ -413,6 +498,9 @@
                                                 <span class="text-ivoire-text/60">Modifs/dessin :</span>
                                                 <span
                                                     class="text-ivoire-text font-semibold ml-2">{{ $bookingRequest->modifications_per_design ?? 2 }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 @endif
 
                                 <!-- Acompte -->

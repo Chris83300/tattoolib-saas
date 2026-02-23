@@ -72,12 +72,7 @@
 
                         <!-- Badges rapides -->
                         <div class="flex flex-wrap justify-center gap-2 mt-3">
-                            {{-- @if ($artist->admin_verified_at)
-                                <span
-                                    class="px-3 py-1 bg-vert-succes/20 text-vert-succes rounded-full text-sm font-semibold">
-                                    ✓ Vérifié
-                                </span>
-                            @endif --}}
+
 
                             @if (isset($artist->years_of_experience) && $artist->years_of_experience)
                                 <span class="px-3 py-1 bg-titane/30 text-ivoire-text/80 rounded-full text-sm">
@@ -240,7 +235,7 @@ $displayStyles = array_filter(
 
             @if ($type === 'piercer')
                 {{-- Types de piercing --}}
-                @php
+                {{-- @php
                     $piercingTypes = is_array($artist->piercing_types)
                         ? $artist->piercing_types
                         : json_decode($artist->piercing_types ?? '[]', true) ?? [];
@@ -256,7 +251,7 @@ $displayStyles = array_filter(
                             @endforeach
                         </div>
                     </div>
-                @endif
+                @endif --}}
 
                 {{-- Grille tarifaire --}}
                 @php
@@ -264,18 +259,22 @@ $displayStyles = array_filter(
                 @endphp
                 @if (!empty($pricingGrid))
                     <div class="bg-titane/10 rounded-xl p-6 border border-titane/20">
-                        <h3 class="text-lg font-bold text-ivoire-text mb-4">💰 Grille tarifaire</h3>
+                        <h3 class="text-xl font-bold text-ivoire-text mb-4"> Grille tarifaire des Piercings</h3>
                         <div class="space-y-2">
                             @foreach ($pricingGrid as $entry)
                                 <div class="flex items-center justify-between py-2 border-b border-titane/10 last:border-0">
-                                    <span class="text-ivoire-text text-sm">{{ $entry['type'] ?? '' }}</span>
+                                    <span class="text-ivoire-text border bg-beige-peau/5 border-beige-peau/40 shadow-sm shadow-beige-peau/20 rounded-full px-3 py-1 text-sm">{{ $entry['type'] ?? '' }}</span>
                                     <span
                                         class="text-beige-peau font-semibold">{{ number_format($entry['price'] ?? 0, 0, ',', ' ') }}
                                         €</span>
                                 </div>
                             @endforeach
                         </div>
+                        <div class="mt-4 border-t border-titane/20 pt-4">
+                            <p class="text-md text-ivoire-text text-center align-middle bg-beige-peau/5 border border-beige-peau/20 shadow-sm shadow-beige-peau/20 rounded-full px-3 py-1">{{ $artist->custom_pricing_note }}</p>
+                        </div>
                     </div>
+
                 @endif
             @endif
 

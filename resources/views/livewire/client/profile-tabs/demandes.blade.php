@@ -146,11 +146,11 @@
                                 @if ($bookingRequest->bookable)
                                     <span class="flex items-center gap-1">
                                         <img src="{{ $bookingRequest->bookable->user->getFirstMediaUrl('avatar') }}"
-                                            alt="{{ $bookingRequest->bookable->user->name }}"
+                                            alt="{{ $bookingRequest->bookable->user->pseudo }}"
                                             class="w-8 h-8 rounded-full object-cover">
                                     </span>
                                     <span>
-                                        <span class="font-medium">{{ $bookingRequest->bookable->user->name }}</span>
+                                        <span class="font-medium">{{ $bookingRequest->bookable->user->pseudo }}</span>
                                         <span class="text-ivoire-text/60">•
                                             {{ $bookingRequest->bookable_type_label }}</span>
                                     </span>
@@ -273,7 +273,7 @@
                             <div>
                                 <h3
                                     class="font-semibold text-ivoire-text group-hover:text-beige-peau transition-colors">
-                                    {{ $booking->bookable->user->name }}</h3>
+                                    {{ $booking->bookable->user->pseudo }}</h3>
                                 <p class="text-sm text-ivoire-text/60">{{ $booking->description }}</p>
                             </div>
                         </div>

@@ -13,7 +13,7 @@ class ProfileController extends Controller
     public function index(Request $request)
     {
         // La vue Blade contient le composant Livewire
-        return view('livewire.client.profile');
+        return view('client.profile');
     }
 
     /**
@@ -56,7 +56,7 @@ class ProfileController extends Controller
     public function messages(Request $request)
     {
         // La vue Blade contient le composant Livewire
-        return view('livewire.client.messages');
+        return view('client.messages');
     }
 
     /**
@@ -65,6 +65,6 @@ class ProfileController extends Controller
     public function bookings(Request $request)
     {
         // La vue Blade contient le composant Livewire
-        return view('livewire.client.bookings');
+        return view('client.bookings');
     }
 }

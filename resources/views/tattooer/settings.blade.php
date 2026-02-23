@@ -676,16 +676,15 @@
                             class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm sm:text-base"
                             @if ($tattooer->isPiercer())
                             placeholder="- Nettoyer 2x/jour avec du sérum physiologique
-- Ne pas tourner ou manipuler le bijou
-- Éviter la piscine et les bains pendant 4 semaines
-- Ne pas appliquer d'alcool ou d'eau oxygénée
-- Contacter votre pierceur en cas de rougeur ou gonflement anormal"
+                                - Éviter la piscine et les bains pendant 4 semaines
+                                - Ne pas appliquer d'alcool ou d'eau oxygénée
+                                - Contacter votre pierceur en cas de rougeur ou gonflement anormal"
                             @else
                             placeholder="- Ne pas gratter la zone tatouée
-- Appliquer la crème cicatrisante 2x/jour pendant 15 jours
-- Éviter le soleil direct pendant 1 mois
-- Ne pas tremper (piscine, bain) pendant 2 semaines
-- Contacter votre tattooer en cas de rougeur anormale"
+                                - Appliquer la crème cicatrisante 2x/jour pendant 15 jours
+                                - Éviter le soleil direct pendant 1 mois
+                                - Ne pas tremper (piscine, bain) pendant 2 semaines
+                                - Contacter votre tattooer en cas de rougeur anormale"
                             @endif
                             >{{ $tattooer->aftercare_sheet ?? '' }}</textarea>
                         <p class="text-xs text-ivoire-text/60 mt-1">
@@ -734,7 +733,7 @@
     @if ($tattooer->isPiercer())
         <div id="tab-pricing" class="tab-content hidden">
             <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
-                <h3 class="text-xl font-bold text-ivoire-text mb-4">💰 Grille tarifaire</h3>
+                <h3 class="text-xl font-bold text-ivoire-text mb-4">💰 Grille tarifaire Piercing / Bodemode</h3>
                 <p class="text-sm text-ivoire-text/70 mb-6">
                     Définissez vos tarifs par type de piercing. Ces tarifs seront affichés sur votre profil public.
                 </p>

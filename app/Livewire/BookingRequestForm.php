@@ -250,8 +250,8 @@ class BookingRequestForm extends Component
                 'bookable_type'       => $this->getBookableModelClass(),
                 'status'              => BookingRequest::STATUS_PENDING,
                 'description'         => $descriptionValue,
-                'body_zone'           => $this->isPiercer() ? null : $this->location,
-                'tattoo_size'         => $this->isPiercer() ? null : ($this->tattoo_size ?? null),
+                'body_zone'           => $this->isPiercer() ? 'piercing' : $this->location,
+                'tattoo_size'         => $this->isPiercer() ? '0' : ($this->tattoo_size ?? '0'),
                 'estimated_total_price' => $this->isPiercer() ? null : $this->estimatedBudget,
                 'preferred_date'      => $this->preferredDate ? new \DateTime($this->preferredDate) : null,
             ]);

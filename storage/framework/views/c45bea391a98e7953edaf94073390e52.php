@@ -28,8 +28,20 @@ if (isset($__slots)) unset($__slots);
         <div class="bg-gris-fonde rounded-xl p-6">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
                 <div>
-                    <h1 class="text-2xl font-bold text-ivoire-text mb-2">Demandes de projet</h1>
-                    <p class="text-ivoire-text/70">Gérez vos demandes de réservation</p>
+                    <h1 class="text-2xl font-bold text-ivoire-text mb-2">
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->isPiercer()): ?>
+                            Demandes de piercing
+                        <?php else: ?>
+                            Demandes de projet
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    </h1>
+                    <p class="text-ivoire-text/70">
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->isPiercer()): ?>
+                            Gérez vos demandes de piercing
+                        <?php else: ?>
+                            Gérez vos demandes de réservation
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    </p>
                 </div>
             </div>
 
@@ -174,18 +186,56 @@ if (isset($__slots)) unset($__slots);
 
                             <!-- Description projet -->
                             <div class="mb-3">
-                                <p class="text-ivoire-text/80 line-clamp-2">
-                                    <strong>Projet :</strong> <?php echo e($request->description); ?>
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->isPiercer()): ?>
+                                    <?php
+                                        $descriptionLines = explode("\n", $request->description);
+                                        $typeLine = collect($descriptionLines)->first(
+                                            fn($line) => str_contains($line, 'Type :'),
+                                        );
+                                        $precisionsLine = collect($descriptionLines)->first(
+                                            fn($line) => str_contains($line, 'Précisions :'),
+                                        );
+                                        $specialRequestLine = collect($descriptionLines)->first(
+                                            fn($line) => str_contains($line, 'Demande spécifique :'),
+                                        );
+                                    ?>
+                                    <p class="text-ivoire-text/80 line-clamp-2">
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($typeLine): ?>
+                                            <strong>Type de piercing :</strong> <?php echo e(str_replace('Type : ', '', $typeLine)); ?>
 
-                                </p>
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($precisionsLine): ?>
+                                            <br><strong>Précisions :</strong>
+                                            <?php echo e(str_replace('Précisions : ', '', $precisionsLine)); ?>
+
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($specialRequestLine): ?>
+                                            <br><strong>Demande spécifique :</strong>
+                                            <?php echo e(str_replace('Demande spécifique : ', '', $specialRequestLine)); ?>
+
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                    </p>
+                                <?php else: ?>
+                                    <p class="text-ivoire-text/80 line-clamp-2">
+                                        <strong>Projet :</strong> <?php echo e($request->description); ?>
+
+                                    </p>
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </div>
 
                             <!-- Détails -->
                             <div class="flex flex-wrap gap-4 text-sm text-ivoire-text/60 mb-4">
                                 <span>📍 <?php echo e($request->body_zone); ?></span>
-                                <span>📏 <?php echo e($request->tattoo_size); ?></span>
-                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($request->estimated_total_price): ?>
-                                    <span>💰 <?php echo e(number_format($request->estimated_total_price, 2, ',', ' ')); ?>€</span>
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->isPiercer()): ?>
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($request->total_deposit_amount): ?>
+                                        <span>� Acompte :
+                                            <?php echo e(number_format($request->total_deposit_amount, 2, ',', ' ')); ?>€</span>
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                <?php else: ?>
+                                    <span>� <?php echo e($request->tattoo_size); ?></span>
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($request->estimated_total_price): ?>
+                                        <span>💰 <?php echo e(number_format($request->estimated_total_price, 2, ',', ' ')); ?>€</span>
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($request->preferred_date): ?>
                                     <span>📅 <?php echo e($request->preferred_date->format('d/m/Y')); ?></span>
@@ -225,8 +275,8 @@ if (isset($__slots)) unset($__slots);
                                         ✓ Accepter
                                     </button>
 
-                                    <form action="<?php echo e(route($tattooer->routePrefix() . '.request-reject', $request)); ?>" method="POST"
-                                        class="inline">
+                                    <form action="<?php echo e(route($tattooer->routePrefix() . '.request-reject', $request)); ?>"
+                                        method="POST" class="inline">
                                         <?php echo csrf_field(); ?>
                                         <button type="submit"
                                             class="px-4 py-2 bg-rouge-alerte/20 border border-rouge-alerte/30 text-rouge-alerte rounded-lg font-semibold hover:bg-rouge-alerte/30 transition-colors"
@@ -243,7 +293,13 @@ if (isset($__slots)) unset($__slots);
                 <div class="bg-gris-fonde rounded-xl p-12 text-center">
                     <div class="text-6xl mb-4">📭</div>
                     <h3 class="text-xl font-semibold text-ivoire-text mb-2">Aucune demande</h3>
-                    <p class="text-ivoire-text/60">Vous n'avez pas encore reçu de demandes de projet.</p>
+                    <p class="text-ivoire-text/60">
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->isPiercer()): ?>
+                            Vous n'avez pas encore reçu de demandes de piercing.
+                        <?php else: ?>
+                            Vous n'avez pas encore reçu de demandes de projet.
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    </p>
                 </div>
             <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
         </div>

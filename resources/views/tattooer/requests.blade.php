@@ -11,8 +11,20 @@
         <div class="bg-gris-fonde rounded-xl p-6">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
                 <div>
-                    <h1 class="text-2xl font-bold text-ivoire-text mb-2">Demandes de projet</h1>
-                    <p class="text-ivoire-text/70">Gérez vos demandes de réservation</p>
+                    <h1 class="text-2xl font-bold text-ivoire-text mb-2">
+                        @if (auth()->user()->isPiercer())
+                            Demandes de piercing
+                        @else
+                            Demandes de projet
+                        @endif
+                    </h1>
+                    <p class="text-ivoire-text/70">
+                        @if (auth()->user()->isPiercer())
+                            Gérez vos demandes de piercing
+                        @else
+                            Gérez vos demandes de réservation
+                        @endif
+                    </p>
                 </div>
             </div>
 
@@ -149,17 +161,52 @@
 
                             <!-- Description projet -->
                             <div class="mb-3">
-                                <p class="text-ivoire-text/80 line-clamp-2">
-                                    <strong>Projet :</strong> {{ $request->description }}
-                                </p>
+                                @if (auth()->user()->isPiercer())
+                                    @php
+                                        $descriptionLines = explode("\n", $request->description);
+                                        $typeLine = collect($descriptionLines)->first(
+                                            fn($line) => str_contains($line, 'Type :'),
+                                        );
+                                        $precisionsLine = collect($descriptionLines)->first(
+                                            fn($line) => str_contains($line, 'Précisions :'),
+                                        );
+                                        $specialRequestLine = collect($descriptionLines)->first(
+                                            fn($line) => str_contains($line, 'Demande spécifique :'),
+                                        );
+                                    @endphp
+                                    <p class="text-ivoire-text/80 line-clamp-2">
+                                        @if ($typeLine)
+                                            <strong>Type de piercing :</strong> {{ str_replace('Type : ', '', $typeLine) }}
+                                        @endif
+                                        @if ($precisionsLine)
+                                            <br><strong>Précisions :</strong>
+                                            {{ str_replace('Précisions : ', '', $precisionsLine) }}
+                                        @endif
+                                        @if ($specialRequestLine)
+                                            <br><strong>Demande spécifique :</strong>
+                                            {{ str_replace('Demande spécifique : ', '', $specialRequestLine) }}
+                                        @endif
+                                    </p>
+                                @else
+                                    <p class="text-ivoire-text/80 line-clamp-2">
+                                        <strong>Projet :</strong> {{ $request->description }}
+                                    </p>
+                                @endif
                             </div>
 
                             <!-- Détails -->
                             <div class="flex flex-wrap gap-4 text-sm text-ivoire-text/60 mb-4">
                                 <span>📍 {{ $request->body_zone }}</span>
-                                <span>📏 {{ $request->tattoo_size }}</span>
-                                @if ($request->estimated_total_price)
-                                    <span>💰 {{ number_format($request->estimated_total_price, 2, ',', ' ') }}€</span>
+                                @if (auth()->user()->isPiercer())
+                                    @if ($request->total_deposit_amount)
+                                        <span>� Acompte :
+                                            {{ number_format($request->total_deposit_amount, 2, ',', ' ') }}€</span>
+                                    @endif
+                                @else
+                                    <span>� {{ $request->tattoo_size }}</span>
+                                    @if ($request->estimated_total_price)
+                                        <span>💰 {{ number_format($request->estimated_total_price, 2, ',', ' ') }}€</span>
+                                    @endif
                                 @endif
                                 @if ($request->preferred_date)
                                     <span>📅 {{ $request->preferred_date->format('d/m/Y') }}</span>
@@ -198,8 +245,8 @@
                                         ✓ Accepter
                                     </button>
 
-                                    <form action="{{ route($tattooer->routePrefix() . '.request-reject', $request) }}" method="POST"
-                                        class="inline">
+                                    <form action="{{ route($tattooer->routePrefix() . '.request-reject', $request) }}"
+                                        method="POST" class="inline">
                                         @csrf
                                         <button type="submit"
                                             class="px-4 py-2 bg-rouge-alerte/20 border border-rouge-alerte/30 text-rouge-alerte rounded-lg font-semibold hover:bg-rouge-alerte/30 transition-colors"
@@ -216,7 +263,13 @@
                 <div class="bg-gris-fonde rounded-xl p-12 text-center">
                     <div class="text-6xl mb-4">📭</div>
                     <h3 class="text-xl font-semibold text-ivoire-text mb-2">Aucune demande</h3>
-                    <p class="text-ivoire-text/60">Vous n'avez pas encore reçu de demandes de projet.</p>
+                    <p class="text-ivoire-text/60">
+                        @if (auth()->user()->isPiercer())
+                            Vous n'avez pas encore reçu de demandes de piercing.
+                        @else
+                            Vous n'avez pas encore reçu de demandes de projet.
+                        @endif
+                    </p>
                 </div>
             @endforelse
         </div>

@@ -14,6 +14,7 @@ class AcceptBookingModal extends Component
     public bool $showModal = false;
     public ?int $bookingRequestId = null;
     public ?BookingRequest $bookingRequest = null;
+    public $tattooer = null; // Pour compatibilité avec la vue (peut être Tattooer ou Piercer)
 
     // Section 1 — Estimation
     public ?float $priceEstimateMin = null;
@@ -26,22 +27,30 @@ class AcceptBookingModal extends Component
     public array $proposedDates = [];
 
     // Section 3 — Design
+    public bool $needsDesignPreparation = false;
     public int $includedDesignVersions = 2;
     public int $modificationsPerDesign = 2;
 
     protected function rules(): array
     {
-        return [
-            'priceEstimateMin' => 'required|numeric|min:1',
-            'priceEstimateMax' => 'required|numeric|min:1|gte:priceEstimateMin',
+        $rules = [
             'totalDepositAmount' => 'required|numeric|min:1',
             'clientPaymentDeadlineDays' => 'required|integer|min:1|max:30',
             'proposedDates' => 'required|array|min:1|max:3',
-            'proposedDates.*.date' => 'required|date|after:today',
+            'proposedDates.*.date' => 'required|date|after_or_equal:today',
             'proposedDates.*.period' => 'nullable|string',
-            'includedDesignVersions' => 'required|integer|min:1|max:5',
-            'modificationsPerDesign' => 'required|integer|min:0|max:5',
+            'needsDesignPreparation' => 'boolean',
+            'includedDesignVersions' => 'required_if:needsDesignPreparation,true|integer|min:1|max:5',
+            'modificationsPerDesign' => 'required_if:needsDesignPreparation,true|integer|min:0|max:5',
         ];
+
+        // Ajouter les règles de prix seulement pour les tattooers
+        if ($this->tattooer && !($this->tattooer instanceof \App\Models\Piercer)) {
+            $rules['priceEstimateMin'] = 'required|numeric|min:1';
+            $rules['priceEstimateMax'] = 'required|numeric|min:1|gte:priceEstimateMin';
+        }
+
+        return $rules;
     }
 
     protected $messages = [
@@ -58,21 +67,38 @@ class AcceptBookingModal extends Component
     #[On('open-accept-modal')]
     public function openModal(int $bookingRequestId): void
     {
-        $tattooer = auth()->user()->tattooer;
+        $user = auth()->user();
+
+        // Récupérer l'artisan (tattooer ou piercer)
+        if ($user->isTattooer()) {
+            $artisan = $user->tattooer;
+        } elseif ($user->isPiercer()) {
+            $artisan = $user->piercer;
+        } else {
+            abort(403, 'Type d\'artisan non autorisé');
+        }
+
+        $this->tattooer = $artisan; // Assigner pour la vue
         $this->bookingRequest = BookingRequest::where('id', $bookingRequestId)
-            ->where('bookable_id', $tattooer->id)
-            ->where('bookable_type', $tattooer->getMorphClass())
+            ->where('bookable_id', $artisan->id)
+            ->where('bookable_type', get_class($artisan))
             ->firstOrFail();
 
+        $this->showModal = true;
         $this->bookingRequestId = $bookingRequestId;
 
-        // Pré-remplir avec les défauts du tattooer
-        $this->clientPaymentDeadlineDays = $tattooer->default_client_payment_deadline_days ?? 7;
-        $this->includedDesignVersions = $tattooer->default_design_versions_included ?? 2;
-        $this->totalDepositAmount = $tattooer->minimum_deposit ? (float) $tattooer->minimum_deposit : null;
-        $this->proposedDates = [];
+        // Réinitialiser les valeurs
+        $this->reset([
+            'priceEstimateMin', 'priceEstimateMax', 'totalDepositAmount',
+            'clientPaymentDeadlineDays', 'tattooerNotes', 'proposedDates',
+            'needsDesignPreparation', 'includedDesignVersions', 'modificationsPerDesign'
+        ]);
 
-        $this->showModal = true;
+        // Pré-remplir avec les défauts de l'artisan
+        $this->clientPaymentDeadlineDays = $artisan->default_client_payment_deadline_days ?? 7;
+        $this->includedDesignVersions = $artisan->default_design_versions_included ?? 2;
+        $this->totalDepositAmount = $artisan->minimum_deposit ? (float) $artisan->minimum_deposit : null;
+        $this->proposedDates = [];
     }
 
     /**
@@ -110,10 +136,12 @@ class AcceptBookingModal extends Component
                 ]
             ]);
 
-            // Vérifier cohérence prix
-            if ($this->totalDepositAmount > $this->priceEstimateMax * 0.5) {
-                $this->addError('totalDepositAmount', 'L\'acompte ne peut pas dépasser 50% du prix maximum.');
-                return;
+            // Vérifier cohérence prix (seulement pour les tattooers)
+            if ($this->tattooer && !($this->tattooer instanceof \App\Models\Piercer)) {
+                if ($this->totalDepositAmount > $this->priceEstimateMax * 0.5) {
+                    $this->addError('totalDepositAmount', 'L\'acompte ne peut pas dépasser 50% du prix maximum.');
+                    return;
+                }
             }
 
             // Mettre à jour directement le bookingRequest
@@ -133,37 +161,65 @@ class AcceptBookingModal extends Component
 
             // Créer la conversation si elle n'existe pas
             if (!$this->bookingRequest->conversation) {
+                $user = auth()->user();
+
+                // Récupérer l'artisan (tattooer ou piercer)
+                if ($user->isTattooer()) {
+                    $artisan = $user->tattooer;
+                } elseif ($user->isPiercer()) {
+                    $artisan = $user->piercer;
+                } else {
+                    abort(403, 'Type d\'artisan non autorisé');
+                }
+
                 $conversation = \App\Models\Conversation::create([
                     'booking_request_id' => $this->bookingRequest->id,
                     'client_id' => $this->bookingRequest->client_id,
-                    'tattooer_id' => auth()->user()->tattooer->id,
+                    'tattooer_id' => $artisan->id,
                     'status' => 'active',
                 ]);
 
                 // Envoyer le message d'acceptation
+                $messageContent = "Bonjour ! 🎨\n\n" .
+                                 "J'accepte votre demande avec plaisir !\n\n" .
+                                 "📍 Zone : {$this->bookingRequest->body_zone}\n";
+
+                // Ajouter les infos de prix selon le type d'artisan
+                if ($artisan instanceof \App\Models\Piercer) {
+                    // Pour les pierceurs, afficher le tarif total
+                    $messageContent .= "💰 Tarif : {$this->totalDepositAmount}€\n";
+                } else {
+                    // Pour les tattooers, afficher la fourchette de prix
+                    $messageContent .= "💰 Prix : {$this->priceEstimateMin}€ - {$this->priceEstimateMax}€\n";
+                }
+
+                $messageContent .= "💳 Acompte : {$this->totalDepositAmount}€\n\n" .
+                                 "Propositions de dates :\n";
+
+                foreach ($this->proposedDates as $date) {
+                    $dateObj = \Carbon\Carbon::parse($date['date']);
+                    $period = $date['period'] ? ' (' . ucfirst($date['period']) . ')' : '';
+                    $messageContent .= "📅 " . $dateObj->format('d/m/Y') . $period . "\n";
+                }
+
+                $messageContent .= "\nMerci de choisir une date et de procéder au paiement pour confirmer.\n" .
+                                 "À bientôt ! ✨";
+
                 $conversation->messages()->create([
                     'sender_type' => 'tattooer',
                     'sender_id' => auth()->id(),
-                    'content' => "Bonjour ! 🎨\n\n" .
-                               "J'accepte votre demande de tattoo avec plaisir !\n\n" .
-                               "📍 Zone : {$this->bookingRequest->body_zone}\n" .
-                               "💰 Prix : {$this->priceEstimateMin}€ - {$this->priceEstimateMax}€\n" .
-                               "💳 Acompte : {$this->totalDepositAmount}€\n\n" .
-                               "N'hésitez pas à me contacter si vous avez des questions !",
-                    'read_by_client_at' => null,
-                    'read_by_tattooer_at' => now(),
+                    'content' => $messageContent,
                 ]);
             }
 
-            // Fermer la modal puis rediriger (force le refresh de la page Blade)
-            $this->showModal = false;
+            // Fermer la modal
+            $this->closeModal();
 
+            // Message de succès
             session()->flash('success', '✅ Demande acceptée ! La conversation a été créée.');
 
-            $this->redirect(
-                route('tattooer.request.show', $this->bookingRequest),
-                navigate: false  // false = full page reload (nécessaire car page Blade, pas Livewire)
-            );
+            // Rafraîchir la page parente de manière fiable
+            $this->dispatch('booking-accepted')->self();
 
         } catch (\Exception $e) {
             \Log::error('AcceptBookingModal: submitAcceptance error', [

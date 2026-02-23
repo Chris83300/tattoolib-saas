@@ -5,6 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Dashboard') - Ink&Pik</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Satoshi:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
     @livewireStyles
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -119,12 +127,42 @@
                 </a>
             </nav>
 
+            @php
+                // Récupérer l'utilisateur et charger la relation client de manière plus robuste
+$user = auth()->user();
+$client = null;
+
+try {
+    // Essayer de récupérer le client directement
+    if ($user->id) {
+        $client = \App\Models\Client::where('user_id', $user->id)->first();
+    }
+} catch (\Exception $e) {
+    // En cas d'erreur, on continue sans avatar
+                    $client = null;
+                }
+            @endphp
+
             <!-- User info -->
             <div class="p-4 border-t border-titane/20">
                 <div class="flex items-center gap-3 p-3 rounded-lg bg-noir-profond">
-                    @if (auth()->user()->client && auth()->user()->client->getFirstMediaUrl('avatar'))
-                        <img src="{{ auth()->user()->client->getFirstMediaUrl('avatar') }}" alt="Avatar"
-                            class="w-10 h-10 rounded-full">
+                    @if ($client)
+                        @php
+                            $avatarUrl = $client->getFirstMediaUrl('avatar');
+                            // Si pas d'avatar, utiliser l'image par défaut
+                            if (!$avatarUrl || $avatarUrl === 'http://tattoolib-saas.test/images/default-avatar.png') {
+                                $avatarUrl = null; // Forcer l'affichage de l'avatar par défaut
+                            }
+                        @endphp
+                        @if ($avatarUrl)
+                            <img src="{{ auth()->user()->getFirstMediaUrl('avatar') ?: asset('images/default-avatar.png') }}"
+                        alt="Avatar" class="w-10 h-10 rounded-full">
+                        @else
+                            <svg class="w-10 h-10 text-beige-peau" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                                    clip-rule="evenodd"></path>
+                            </svg>
+                        @endif
                     @else
                         <svg class="w-10 h-10 text-beige-peau" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
@@ -132,7 +170,7 @@
                         </svg>
                     @endif
                     <div class="flex-1 min-w-0">
-                        <p class="text-ivoire-text font-semibold truncate">{{ auth()->user()->name }}</p>
+                        <p class="text-ivoire-text font-semibold truncate">{{ $user->name }}</p>
                         <p class="text-ivoire-text/60 text-xs">Client</p>
                     </div>
                     <form action="{{ route('logout') }}" method="POST">

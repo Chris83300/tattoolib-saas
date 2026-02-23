@@ -459,13 +459,8 @@
 
                     // Image
                     const image = card.querySelector('.artist-image');
-                    if (artist.portfolio_images && artist.portfolio_images.length > 0) {
-                        image.src = artist.portfolio_images[0].url;
-                        image.alt = `Portfolio de ${artist.name}`;
-                    } else {
-                        image.src = artist.avatar_url;
-                        image.alt = artist.name;
-                    }
+                    image.src = artist.avatar_url;
+                        image.alt = artist.name
 
                     // Infos de base
                     card.querySelector('.artist-name').textContent = artist.name;

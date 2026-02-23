@@ -150,6 +150,8 @@ class TattooerController extends Controller
             })
             ->count();
 
+        // Utiliser la vue tattooer.requests pour tout le monde (tattooers et pierceurs)
+        // La vue contient déjà les conditions pour adapter l'affichage selon le type d'artisan
         return view('tattooer.requests', compact('tattooer', 'requests', 'filter', 'counts', 'pendingCount', 'unreadCount'));
     }
 
@@ -158,11 +160,10 @@ class TattooerController extends Controller
      */
     public function requestShow(BookingRequest $bookingRequest)
     {
-        $tattooer = $this->artisan();
+        $artisan = $this->artisan();
 
-        // Vérifier que la demande appartient au tattooer
-        if ($bookingRequest->bookable_id !== $tattooer->id ||
-            $bookingRequest->bookable_type !== 'App\\Models\\Tattooer') {
+        // Vérifier que la demande appartient à l'artisan (tattooer ou piercer) via relation polymorphique
+        if ($bookingRequest->bookable_id !== $artisan->id) {
             abort(403);
         }
 
@@ -173,7 +174,37 @@ class TattooerController extends Controller
             'media'
         ]);
 
-        return view('tattooer.request-show', compact('bookingRequest'));
+        // Compteurs pour le layout
+        $pendingCount = \App\Models\BookingRequest::where('bookable_id', $artisan->id)
+            ->where('bookable_type', get_class($artisan))
+            ->where('status', 'pending')
+            ->count();
+
+        $unreadCount = \App\Models\Conversation::whereHas('messages', function ($query) {
+                $query->where(function ($q) {
+                    // Si l'utilisateur est un tattooer/piercer, vérifier read_by_tattooer_at
+                    if (auth()->user()->isTattooer() || auth()->user()->isPiercer()) {
+                        $q->whereNull('read_by_tattooer_at')
+                          ->where('sender_type', 'client');
+                    } else {
+                        // Pour les clients, vérifier read_by_client_at
+                        $q->whereNull('read_by_client_at')
+                          ->where('sender_type', 'tattooer');
+                    }
+                });
+            })
+            ->whereHas('bookingRequest', function($query) use ($artisan) {
+                $query->where('bookable_id', $artisan->id)
+                    ->where('bookable_type', get_class($artisan));
+            })
+            ->count();
+
+        return view('tattooer.request-show', [
+            'bookingRequest' => $bookingRequest,
+            'tattooer' => $artisan, // Passer l'artisan comme $tattooer pour la compatibilité avec la vue
+            'pendingCount' => $pendingCount,
+            'unreadCount' => $unreadCount
+        ]);
     }
 
     /**
@@ -786,9 +817,9 @@ class TattooerController extends Controller
     {
         $tattooer = $this->artisan();
 
-        // Vérifier que la demande appartient bien au tattooer
+        // Vérifier que la demande appartient bien à l'artisan (tattooer ou piercer)
         if ($bookingRequest->bookable_id !== $tattooer->id ||
-            $bookingRequest->bookable_type !== 'App\Models\Tattooer') {
+            $bookingRequest->bookable_type !== get_class($tattooer)) {
             abort(403, 'Non autorisé');
         }
 
@@ -822,7 +853,30 @@ class TattooerController extends Controller
         // Récupérer les messages pour la vue
         $messages = $conversation->messages;
 
-        return view('tattooer.message-show', compact('bookingRequest', 'conversation', 'messages'));
+        // Compteurs pour le layout
+        $pendingCount = \App\Models\BookingRequest::where('bookable_id', $tattooer->id)
+            ->where('bookable_type', get_class($tattooer))
+            ->where('status', 'pending')
+            ->count();
+
+        $unreadCount = \App\Models\Conversation::whereHas('messages', function ($query) {
+                $query->where(function ($q) {
+                    if (auth()->user()->isTattooer() || auth()->user()->isPiercer()) {
+                        $q->whereNull('read_by_tattooer_at')
+                          ->where('sender_type', 'client');
+                    } else {
+                        $q->whereNull('read_by_client_at')
+                          ->where('sender_type', 'tattooer');
+                    }
+                });
+            })
+            ->whereHas('bookingRequest', function($query) use ($tattooer) {
+                $query->where('bookable_id', $tattooer->id)
+                    ->where('bookable_type', get_class($tattooer));
+            })
+            ->count();
+
+        return view('tattooer.message-show', compact('bookingRequest', 'conversation', 'messages', 'tattooer', 'pendingCount', 'unreadCount'));
     }
 
     /**
@@ -836,7 +890,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
     $tattooer = $this->artisan();
 
     if ($bookingRequest->bookable_id !== $tattooer->id ||
-        $bookingRequest->bookable_type !== 'App\Models\Tattooer') {
+        $bookingRequest->bookable_type !== get_class($tattooer)) {
         abort(403, 'Non autorisé');
     }
 

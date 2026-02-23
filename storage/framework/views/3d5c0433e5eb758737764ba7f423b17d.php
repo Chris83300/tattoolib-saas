@@ -60,13 +60,13 @@
                         data-tab="aftercare">
                         🩹 Soins
                     </button>
-                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tattooer->isPiercer()): ?>
-                        <button onclick="switchTab('pricing')"
-                            class="tab-btn min-h-11 px-4 py-2.5 md:py-2 rounded-lg font-semibold whitespace-nowrap snap-start flex-shrink-0 text-sm md:text-base"
-                            data-tab="pricing">
-                            💰 Tarifs
-                        </button>
-                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tattooer->isPiercer()): ?>
+                    <button onclick="switchTab('pricing')"
+                        class="tab-btn min-h-11 px-4 py-2.5 md:py-2 rounded-lg font-semibold whitespace-nowrap snap-start flex-shrink-0 text-sm md:text-base"
+                        data-tab="pricing">
+                        💰 Tarifs
+                    </button>
                 <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 <button onclick="switchTab('password')"
                     class="tab-btn min-h-11 px-4 py-2.5 md:py-2 rounded-lg font-semibold whitespace-nowrap snap-start flex-shrink-0 text-sm md:text-base"
@@ -334,32 +334,6 @@
                                     Ajouter un style
                                 </button>
                             </div>
-                        </div>
-                    </div>
-                    <?php else: ?>
-                    <!-- Types de piercing (pierceur uniquement) -->
-                    <div>
-                        <label class="block font-semibold text-ivoire-text mb-2">Types de piercing pratiqués</label>
-                        <?php
-                            $allPiercingTypes = [
-                                'Lobe', 'Hélix', 'Tragus', 'Anti-tragus', 'Daith',
-                                'Conch', 'Rook', 'Industrial', 'Septum', 'Narine',
-                                'Sourcil', 'Labret', 'Langue', 'Nombril', 'Microdermal',
-                            ];
-                            $currentPiercingTypes = is_array($tattooer->piercing_types)
-                                ? $tattooer->piercing_types
-                                : json_decode($tattooer->piercing_types ?? '[]', true) ?? [];
-                        ?>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $allPiercingTypes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $type): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <label class="flex items-center gap-2 p-3 bg-noir-profond rounded-lg cursor-pointer hover:bg-noir-profond/80 transition-colors active:scale-95">
-                                    <input type="checkbox" name="piercing_types[]" value="<?php echo e($type); ?>"
-                                        <?php echo e(in_array($type, $currentPiercingTypes) ? 'checked' : ''); ?>
-
-                                        class="w-4 h-4 text-beige-peau focus:ring-beige-peau">
-                                    <span class="text-ivoire-text text-sm"><?php echo e($type); ?></span>
-                                </label>
-                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
                     </div>
                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
@@ -704,16 +678,15 @@
                             class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm sm:text-base"
                             <?php if($tattooer->isPiercer()): ?>
                             placeholder="- Nettoyer 2x/jour avec du sérum physiologique
-- Ne pas tourner ou manipuler le bijou
-- Éviter la piscine et les bains pendant 4 semaines
-- Ne pas appliquer d'alcool ou d'eau oxygénée
-- Contacter votre pierceur en cas de rougeur ou gonflement anormal"
+                                - Éviter la piscine et les bains pendant 4 semaines
+                                - Ne pas appliquer d'alcool ou d'eau oxygénée
+                                - Contacter votre pierceur en cas de rougeur ou gonflement anormal"
                             <?php else: ?>
                             placeholder="- Ne pas gratter la zone tatouée
-- Appliquer la crème cicatrisante 2x/jour pendant 15 jours
-- Éviter le soleil direct pendant 1 mois
-- Ne pas tremper (piscine, bain) pendant 2 semaines
-- Contacter votre tattooer en cas de rougeur anormale"
+                                - Appliquer la crème cicatrisante 2x/jour pendant 15 jours
+                                - Éviter le soleil direct pendant 1 mois
+                                - Ne pas tremper (piscine, bain) pendant 2 semaines
+                                - Contacter votre tattooer en cas de rougeur anormale"
                             <?php endif; ?>
                             ><?php echo e($tattooer->aftercare_sheet ?? ''); ?></textarea>
                         <p class="text-xs text-ivoire-text/60 mt-1">
@@ -765,7 +738,7 @@
     <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tattooer->isPiercer()): ?>
         <div id="tab-pricing" class="tab-content hidden">
             <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
-                <h3 class="text-xl font-bold text-ivoire-text mb-4">💰 Grille tarifaire</h3>
+                <h3 class="text-xl font-bold text-ivoire-text mb-4">💰 Grille tarifaire Piercing / Bodemode</h3>
                 <p class="text-sm text-ivoire-text/70 mb-6">
                     Définissez vos tarifs par type de piercing. Ces tarifs seront affichés sur votre profil public.
                 </p>

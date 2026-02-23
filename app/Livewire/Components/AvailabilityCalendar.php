@@ -94,22 +94,36 @@ class AvailabilityCalendar extends Component
      */
     public function computeCalendarDays(): void
     {
+        // Récupérer l'artisan (tattooer ou piercer)
+        $artisan = null;
+
+        // Essayer de trouver un tattooer
         $tattooer = Tattooer::find($this->tattooerId);
-        if (!$tattooer) {
+        if ($tattooer) {
+            $artisan = $tattooer;
+        } else {
+            // Essayer de trouver un piercer
+            $piercer = \App\Models\Piercer::find($this->tattooerId);
+            if ($piercer) {
+                $artisan = $piercer;
+            }
+        }
+
+        if (!$artisan) {
             $this->calendarDays = [];
             return;
         }
 
-        // ── 1. Lire les horaires depuis le JSON tattooers.working_hours ──
+        // ── 1. Lire les horaires depuis le JSON working_hours ──
         //
         // ⭐ C'EST ICI LA DIFFÉRENCE CRUCIALE ⭐
-        // On lit $tattooer->working_hours (colonne JSON de la table tattooers)
+        // On lit $artisan->working_hours (colonne JSON de la table)
         // PAS la table working_hours qui est VIDE.
         //
         // Format : ["lundi" => ["open" => "09:00", "close" => "18:00",
         //           "break_start" => "12:00", "break_end" => "14:00"], ...]
         //
-        $workingHoursJson = $tattooer->working_hours ?? [];
+        $workingHoursJson = $artisan->working_hours ?? [];
         // Si c'est un string JSON (non casté), décoder :
         if (is_string($workingHoursJson)) {
             $workingHoursJson = json_decode($workingHoursJson, true) ?? [];
@@ -119,8 +133,8 @@ class AvailabilityCalendar extends Component
         $monthStart = Carbon::create($this->currentYear, $this->currentMonth, 1)->startOfDay();
         $monthEnd = $monthStart->copy()->endOfMonth()->endOfDay();
 
-        $calendarEvents = CalendarEvent::where('bookable_type', Tattooer::class)
-            ->where('bookable_id', $tattooer->id)
+        $calendarEvents = CalendarEvent::where('bookable_type', get_class($artisan))
+            ->where('bookable_id', $artisan->id)
             ->where(function ($q) use ($monthStart, $monthEnd) {
                 $q->whereBetween('start_datetime', [$monthStart, $monthEnd])
                   ->orWhereBetween('end_datetime', [$monthStart, $monthEnd])
@@ -132,15 +146,15 @@ class AvailabilityCalendar extends Component
             ->get();
 
         // ── 3. Récupérer les Appointments du mois (RDV bookés) ──
-        $appointments = Appointment::where('bookable_type', Tattooer::class)
-            ->where('bookable_id', $tattooer->id)
+        $appointments = Appointment::where('bookable_type', get_class($artisan))
+            ->where('bookable_id', $artisan->id)
             ->whereBetween('start_datetime', [$monthStart, $monthEnd])
             ->whereNotIn('status', ['cancelled'])
             ->get();
 
         // ── 4. Récupérer les Availabilities bloquées du mois ──
-        $blockedAvailabilities = Availability::where('owner_type', Tattooer::class)
-            ->where('owner_id', $tattooer->id)
+        $blockedAvailabilities = Availability::where('owner_type', get_class($artisan))
+            ->where('owner_id', $artisan->id)
             ->whereIn('type', ['holiday', 'sick_leave', 'blocked', 'busy', 'external_booking'])
             ->whereBetween('date', [$monthStart->toDateString(), $monthEnd->toDateString()])
             ->get();
@@ -156,7 +170,20 @@ class AvailabilityCalendar extends Component
         foreach ($period as $date) {
             $dateString = $date->toDateString();
             $isOutsideMonth = ($date->month !== $this->currentMonth);
-            $isPast = $date->lt(now()->startOfDay());
+
+            // Pour les pierceurs, permettre le jour même. Pour les tattooers, bloquer les dates passées
+            $artisan = null;
+            if ($this->tattooerId) {
+                $artisan = \App\Models\Piercer::find($this->tattooerId) ?: \App\Models\Tattooer::find($this->tattooerId);
+            }
+
+            if ($artisan && $artisan instanceof \App\Models\Piercer) {
+                // Les pierceurs peuvent proposer le jour même
+                $isPast = $date->lt(now()->startOfDay()->subDay());
+            } else {
+                // Les tattooers ne peuvent pas proposer les dates passées
+                $isPast = $date->lt(now()->startOfDay());
+            }
 
             // ── 5a. Jour travaillé ? (depuis le JSON) ──
             $frenchDay = self::CARBON_TO_FRENCH_DAY[$date->dayOfWeek];
