@@ -46,10 +46,10 @@ unset($__defined_vars, $__key, $__value); ?>
 
 <?php
     $variantClasses = [
-        'primary' => 'bg-beige-peau text-noir-profond hover:bg-beige-peau/90 focus:ring-beige-peau',
-        'secondary' => 'bg-gris-fonde text-ivoire-text border border-titane hover:bg-titane/20 focus:ring-titane',
-        'ghost' => 'bg-transparent text-ivoire-text hover:bg-beige-peau/10 focus:ring-beige-peau',
-        'danger' => 'bg-rouge-alerte text-ivoire-text hover:bg-rouge-alerte/90 focus:ring-rouge-alerte',
+        'primary' => 'bg-beige-peau text-noir-profond hover:bg-beige-peau/80 shadow-md shadow-beige-peau/20 focus:ring-beige-peau',
+        'secondary' => 'bg-gris-fonde text-ivoire-text border border-titane/40 hover:bg-titane/20 shadow-md shadow-titane/20 focus:ring-titane',
+        'ghost' => 'bg-transparent text-ivoire-text hover:bg-beige-peau/10 shadow-md shadow-beige-peau/20 focus:ring-beige-peau',
+        'danger' => 'bg-rouge-alerte text-ivoire-text hover:bg-rouge-alerte/90 shadow-md shadow-rouge-alerte/20 focus:ring-rouge-alerte',
     ];
 
     $sizeClasses = [
@@ -59,7 +59,7 @@ unset($__defined_vars, $__key, $__value); ?>
     ];
 
     $classes = implode(' ', [
-        'inline-flex items-center justify-center font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-noir-profond',
+        'inline-flex items-center justify-center font-semibold btn-shadow rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-noir-profond',
         $variantClasses[$variant] ?? $variantClasses['primary'],
         $sizeClasses[$size] ?? $sizeClasses['md'],
         $fullWidth ? 'w-full' : '',

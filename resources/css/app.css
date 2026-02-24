@@ -162,6 +162,12 @@ img-comparison-slider {
    COMPOSANTS DE BASE
    ============================================ */
 
+.btn-shadow {
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.6),
+        inset 0 2px 4px rgba(255, 255, 255, 0.3),
+        inset 0 -2px 4px rgba(0, 0, 0, 0.8);
+}
+
 /* Backdrop blur pour modals/headers */
 .backdrop-blur-dark {
     backdrop-filter: blur(8px);

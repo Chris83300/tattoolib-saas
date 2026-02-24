@@ -12,9 +12,13 @@ use App\Http\Controllers\RegisterController;
 use App\Models\BookingRequest;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\LogoutController;
+use App\Services\CacheService;
 
 Route::get('/', function () {
-    return view('welcome');
+    $cacheService = app(CacheService::class);
+    $artists = $cacheService->getMarketplaceListings([]);
+
+    return view('welcome', compact('artists'));
 })->name('home');
 
 // Page professionnelle

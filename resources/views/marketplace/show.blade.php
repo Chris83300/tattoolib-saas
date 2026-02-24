@@ -28,7 +28,7 @@
 
                     <!-- Avatar grand -->
                     <div
-                        class="w-32 h-32 md:w-36 md:h-36 rounded-full border-4 border-cuivre/60 shadow-xl shadow-cuivre/20 overflow-hidden bg-titane/40 flex items-center justify-center flex-shrink-0">
+                        class="w-32 h-32 md:w-36 md:h-36 rounded-full border-2 border-titane/30 shadow-lg shadow-titane/20 overflow-hidden bg-titane/40 flex items-center justify-center flex-shrink-0">
                         @if ($artist->user->getFirstMediaUrl('avatar'))
                             <img src="{{ $artist->user->getFirstMediaUrl('avatar') }}"
                                 alt="{{ $artist->user->pseudo ?? $artist->user->first_name . ' ' . $artist->user->last_name }}"
@@ -45,13 +45,13 @@
                     <!-- Infos -->
                     <div class="flex-1 text-center pb-4">
                         <!-- PSEUDO -->
-                        <h1 class="text-2xl md:text-4xl font-bold text-ivoire-text drop-shadow-lg">
+                        <h1 class="text-2xl md:text-4xl mb-2 font-bold font-display text-ivoire-text drop-shadow-lg">
                             {{ $artist->user->pseudo ?? $artist->user->first_name . ' ' . $artist->user->last_name }}
                         </h1>
 
                         <!-- Nom du studio -->
                         @if ($artist->studio_name)
-                            <p class="text-lg md:text-xl text-beige-peau mb-2 drop-shadow">
+                            <p class="text-lg md:text-lg text-beige-peau mb-2 drop-shadow">
                                 {{ $artist->studio_name }}
                             </p>
                         @endif
@@ -111,7 +111,7 @@
 
                     <!-- Avis -->
                     @if ($type === 'tattooer')
-                        <div class="flex flex-col items-center gap-2 md:items-end">
+                        <div class="flex flex-col items-center gap-2 border-b border-titane/20 pb-2  md:items-end">
                             <!-- Étoiles -->
                             <div class="flex items-center gap-1">
                                 @php
@@ -176,24 +176,24 @@
                                 @endphp
 
                                 @if ($hasActive)
-                                    <span class="px-6 py-3 bg-beige-peau/20 text-beige-peau rounded-xl font-semibold">
+                                    <span class="px-6 py-3 bg-beige-peau/20 text-beige-peau rounded-full font-semibold">
                                         ✓ Demande déjà en cours
                                     </span>
                                 @else
                                     <a href="{{ route('booking-request.form', [$artist->id, $type]) }}"
-                                        class="inline-block px-8 py-4 bg-beige-peau text-noir-profond font-bold rounded-lg text-lg hover:bg-beige-peau/90 transition-colors">
+                                        class="inline-block px-8 py-4 bg-beige-peau btn-shadow text-noir-profond font-bold rounded-full text-lg hover:bg-beige-peau/90 transition-colors">
                                         📅 Prendre RDV
                                     </a>
                                 @endif
                             @else
                                 <a href="{{ route('booking-request.form', [$artist->id, $type]) }}"
-                                    class="inline-block px-8 py-4 bg-beige-peau text-noir-profond font-bold rounded-lg text-lg hover:bg-beige-peau/90 transition-colors">
+                                    class="inline-block px-8 py-4 bg-beige-peau btn-shadow text-noir-profond font-bold rounded-full text-lg hover:bg-beige-peau/90 transition-colors">
                                     📅 Prendre RDV
                                 </a>
                             @endif
                         @else
                             <a href="{{ route('login') }}"
-                                class="inline-block px-8 py-4 bg-beige-peau text-noir-profond font-bold rounded-lg text-lg hover:bg-beige-peau/90 transition-colors">
+                                class="inline-block px-8 py-4 bg-beige-peau btn-shadow text-noir-profond font-bold rounded-full text-lg hover:bg-beige-peau/90 transition-colors">
                                 📅 Prendre RDV
                             </a>
                         @endauth
@@ -225,7 +225,7 @@ $displayStyles = array_filter(
                     <h3 class="text-lg font-bold text-ivoire-text mb-4">🎨 Styles pratiqués</h3>
                     <div class="flex flex-wrap gap-2">
                         @foreach ($displayStyles as $style)
-                            <span class="px-3 py-1 bg-beige-peau/20 text-beige-peau rounded-full text-sm font-medium">
+                            <span class="px-3 py-1 bg-beige-peau/10 text-beige-peau rounded-full text-sm font-medium">
                                 {{ $style }}
                             </span>
                         @endforeach
@@ -234,25 +234,6 @@ $displayStyles = array_filter(
             @endif
 
             @if ($type === 'piercer')
-                {{-- Types de piercing --}}
-                {{-- @php
-                    $piercingTypes = is_array($artist->piercing_types)
-                        ? $artist->piercing_types
-                        : json_decode($artist->piercing_types ?? '[]', true) ?? [];
-                @endphp
-                @if (!empty($piercingTypes))
-                    <div class="bg-titane/10 rounded-xl p-6 border border-titane/20">
-                        <h3 class="text-lg font-bold text-ivoire-text mb-4">💉 Types de piercing</h3>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach ($piercingTypes as $type_p)
-                                <span class="px-3 py-1 bg-beige-peau/20 text-beige-peau rounded-full text-sm font-medium">
-                                    {{ $type_p }}
-                                </span>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif --}}
-
                 {{-- Grille tarifaire --}}
                 @php
                     $pricingGrid = method_exists($artist, 'getPricingGrid') ? $artist->getPricingGrid() : [];
@@ -349,7 +330,7 @@ $displayStyles = array_filter(
                                 @endphp
 
                                 <div
-                                    class="bg-noir-profond rounded-lg p-4 border border-titane/20 hover:border-beige-peau/30 transition-colors">
+                                    class="bg-noir-profond rounded-xl p-4 border border-titane/20 hover:border-beige-peau/30 shadow-md shadow-titane/10 transition-colors">
                                     <div class="flex items-center justify-between mb-2">
                                         <div class="font-semibold text-ivoire-text">
                                             {{ ucfirst($day) }}

@@ -41,7 +41,8 @@ class CacheService
      */
     public function getWorkingHours(Tattooer|Piercer $artist): array
     {
-        $cacheKey = "artist.{$artist->id}.working_hours";
+        $type = $artist instanceof Piercer ? 'piercer' : 'tattooer';
+        $cacheKey = "{$type}.{$artist->id}.working_hours";
 
         return Cache::remember($cacheKey, self::WORKING_HOURS_TTL, function() use ($artist) {
             return $artist->workingHours()
@@ -71,22 +72,24 @@ class CacheService
      */
     public function getArtistProfile(Tattooer|Piercer $artist): array
     {
-        $cacheKey = "artist.{$artist->id}.full_profile";
+        $type = $artist instanceof Piercer ? 'piercer' : 'tattooer';
+        $cacheKey = "{$type}.{$artist->id}.full_profile";
 
         return Cache::remember($cacheKey, self::ARTIST_PROFILE_TTL, function() use ($artist) {
-            $artist->load(['user', 'workingHours']);
+            $artist->load(['user', 'workingHours', 'media']);
 
             $isPiercer = $artist instanceof Piercer;
             return [
                 'id' => $artist->id,
                 'type' => $isPiercer ? 'piercer' : 'tattooer',
-                'name' => $artist->name,
+                'name' => $artist->pseudo,
                 'slug' => $artist->slug,
                 'bio' => $artist->bio,
+                'studio_name' => $artist->studio_name,
                 'styles' => $isPiercer ? ($artist->piercing_types ?? []) : ($artist->styles ?? []),
                 'city' => $artist->city,
-                'avatar_url' => $artist->getFirstMediaUrl('avatar'),
-                'banner_url' => $artist->getFirstMediaUrl('banner'),
+                'avatar_url' => $artist->hasMedia('avatar') ? $artist->getFirstMediaUrl('avatar') : '',
+                'banner_url' => $artist->hasMedia('banner') ? $artist->getFirstMediaUrl('banner') : '',
                 'portfolio_count' => $artist->getMedia('portfolio')->count(),
                 'portfolio_images' => $artist->getMedia('portfolio')->map(function($media) {
                     return [
@@ -99,6 +102,13 @@ class CacheService
                 'is_subscribed' => $artist->is_subscribed ?? false,
                 'siret_verified' => $artist->siret_verified ?? false,
                 'status' => $artist->user?->status ?? 'active',
+                'experience_years' => $artist->years_of_experience ?? 0,
+                'min_price' => $artist->minimum_price ?? 0,
+                'wait_time' => $artist->wait_time_weeks_min
+                    ? ($artist->wait_time_weeks_min . ($artist->wait_time_weeks_max ? '–' . $artist->wait_time_weeks_max : '') . ' sem.')
+                    : 'Non spécifié',
+                'opening_hours' => $artist->opening_hours ?? 'Non spécifié',
+                'open_days' => $artist->open_days ?? 'Non spécifié',
                 'created_at' => $artist->created_at,
             ];
         });
@@ -156,7 +166,8 @@ class CacheService
      */
     public function getDashboardStats(Tattooer|Piercer $artist): array
     {
-        $cacheKey = "artist.{$artist->id}.dashboard_stats";
+        $type = $artist instanceof Piercer ? 'piercer' : 'tattooer';
+        $cacheKey = "{$type}.{$artist->id}.dashboard_stats";
 
         return Cache::remember($cacheKey, self::STATS_TTL, function() use ($artist) {
             return app(\App\Services\TattooerStatsService::class)->getDashboardStats($artist);
@@ -207,10 +218,11 @@ class CacheService
      */
     public function invalidateArtist(Tattooer|Piercer $artist): void
     {
+        $type = $artist instanceof Piercer ? 'piercer' : 'tattooer';
         Cache::forget($this->portfolioKey($artist));
-        Cache::forget("artist.{$artist->id}.working_hours");
-        Cache::forget("artist.{$artist->id}.full_profile");
-        Cache::forget("artist.{$artist->id}.dashboard_stats");
+        Cache::forget("{$type}.{$artist->id}.working_hours");
+        Cache::forget("{$type}.{$artist->id}.full_profile");
+        Cache::forget("{$type}.{$artist->id}.dashboard_stats");
 
         // Invalider aussi marketplace si artiste y est présent
         $this->invalidateMarketplace();
