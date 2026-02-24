@@ -80,8 +80,8 @@
                                                     </a>
                                                 <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                             </div>
+                                        </div>
                                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                                </div>
                             </div>
                         </div>
             </div>
@@ -144,7 +144,7 @@
             </div>
 
             <!-- Gestion des dessins et modifications -->
-            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->deposit_paid_at): ?>
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->deposit_paid_at && (!$tattooer->isPiercer() || ($bookingRequest->included_design_versions ?? 0) > 0)): ?>
                 <div class="mt-4 bg-titane/20 rounded-xl p-4 border border-titane/30">
                     <h3 class="text-lg font-semibold text-ivoire-text mb-3 flex items-center">
                         <svg class="w-5 h-5 mr-2 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -372,15 +372,18 @@
         <div class="flex justify-center mb-4">
             <div class="max-w-sm">
                 <div class="bg-titane/20 border border-titane/30 text-ivoire-text/80 rounded-lg px-4 py-2 text-center">
-                    <p class="text-sm whitespace-pre-wrap"><?php echo e($message->content); ?></p>
+                    <p class="text-sm whitespace-pre-wrap"><?php echo e(preg_replace('/\[CONSENT_FORM:\d+\]/i', '', $message->content)); ?></p>
 
                     <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(str_contains($message->content, 'choisi la date')): ?>
-                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->isTattooer()
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if((auth()->user()->isTattooer() || auth()->user()->isPiercer())
                             && $bookingRequest->confirmed_date
                             && !$bookingRequest->appointment_datetime): ?>
-                            <a href="<?php echo e(route($tattooer->routePrefix() . '.calendar')); ?>?book=<?php echo e($bookingRequest->id); ?>&date=<?php echo e(\Carbon\Carbon::parse($bookingRequest->confirmed_date)->format('Y-m-d')); ?>&period=<?php echo e($bookingRequest->confirmed_period ?? 'morning'); ?>"
+                            <?php
+                                $routePrefix = auth()->user()->isTattooer() ? 'tattooer' : 'pierceur';
+                            ?>
+                            <a href="<?php echo e(route($routePrefix . '.calendar')); ?>?book=<?php echo e($bookingRequest->id); ?>&date=<?php echo e(\Carbon\Carbon::parse($bookingRequest->confirmed_date)->format('Y-m-d')); ?>&period=<?php echo e($bookingRequest->confirmed_period ?? 'morning'); ?>"
                                class="inline-flex items-center gap-2 mt-3 px-4 py-2.5 bg-beige-peau text-noir-profond font-bold rounded-lg hover:bg-beige-peau/90 transition">
-                                📅 Fixer l'horaire du rendez-vous →
+                                📅 Fixer le rendez-vous →
                             </a>
                         <?php elseif($bookingRequest->appointment_datetime): ?>
                             <p class="text-xs text-vert-succes mt-2">
@@ -440,7 +443,7 @@
                 <div class="<?php echo e($message->sender_type === 'client' ? 'bg-noir-profond text-ivoire-text' : 'bg-beige-peau text-noir-profond'); ?> rounded-lg px-3 py-2 sm:px-4">
                     <p class="text-sm whitespace-pre-wrap break-words">
                         <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!empty(trim($message->content))): ?>
-                            <?php echo e($message->content); ?>
+                            <?php echo e(preg_replace('/\[CONSENT_FORM:\d+\]/i', '', $message->content)); ?>
 
                         <?php elseif($message->getMedia('attachments')->isNotEmpty()): ?>
                             <span class="text-ivoire-text/60 italic">Dessin envoyé</span>
@@ -569,7 +572,7 @@
                 accept="image/*,application/pdf" class="hidden"
                 @change="handleFileSelect($event)">
 
-            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->tattooer->isPro()): ?>
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if((auth()->user()->tattooer && auth()->user()->tattooer->isPro()) || (auth()->user()->piercer && auth()->user()->piercer->isPro())): ?>
                 <button type="button" onclick="document.getElementById('attachments').click()"
                     class="px-4 py-3 bg-noir-profond text-ivoire-text rounded-lg hover:bg-noir-profond/80 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -618,7 +621,6 @@
     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 </form>
 
-<?php $summary = $bookingRequest->designTrackingSummary(); ?>
 <script>
 function messageForm() {
     return {
@@ -934,106 +936,6 @@ function messageForm() {
             }
         });
 
-        // Intercepter la sélection de fichiers pour ouvrir la modal design
-        function handleFileSelect(event) {
-            const files = Array.from(event.target.files);
-
-            // Vérifier s'il y a des images
-            const hasImages = files.some(file => file.type.startsWith('image/'));
-
-            if (hasImages && window.designSendModal) {
-                // Ouvrir la modal de sélection de type d'envoi
-                window.designSendModal.openModal(files);
-
-                // Vider l'input pour éviter double envoi
-                event.target.value = '';
-                event.preventDefault();
-                return false;
-            }
-
-            // Sinon, continuer avec le comportement normal (prévisualisation)
-            updateFilePreview(files);
-        }
-
-        // Fonction pour mettre à jour la prévisualisation des fichiers
-        function updateFilePreview(files) {
-            const preview = document.getElementById('filePreview');
-            const container = document.getElementById('previewContainer');
-
-            if (!preview || !container) return;
-
-            container.innerHTML = '';
-
-            if (files.length === 0) {
-                preview.classList.add('hidden');
-                return;
-            }
-
-            preview.classList.remove('hidden');
-
-            files.forEach((file, index) => {
-                const div = document.createElement('div');
-                div.className = 'flex items-center justify-between p-2 bg-noir-profond/50 rounded text-sm';
-
-                // Prévisualisation image
-                if (file.type.startsWith('image/')) {
-                    const img = document.createElement('img');
-                    img.src = URL.createObjectURL(file);
-                    img.className = 'w-12 h-12 object-cover rounded mr-3';
-                    div.appendChild(img);
-                } else {
-                    // Icône pour fichiers non-image
-                    const icon = document.createElement('div');
-                    icon.className = 'w-12 h-12 bg-titane/30 rounded mr-3 flex items-center justify-center';
-                    icon.innerHTML =
-                        '<svg class="w-6 h-6 text-ivoire-text/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>';
-                    div.appendChild(icon);
-                }
-
-                const info = document.createElement('div');
-                info.className = 'flex-1';
-                info.innerHTML = `
-                    <div class="text-ivoire-text font-medium">${file.name}</div>
-                    <div class="text-ivoire-text/50 text-xs">${(file.size / 1024).toFixed(1)} KB</div>
-                `;
-                div.appendChild(info);
-
-                // Bouton supprimer
-                const removeBtn = document.createElement('button');
-                removeBtn.type = 'button';
-                removeBtn.className = 'text-rouge-alerte hover:text-rouge-alerte/80 ml-2';
-                removeBtn.innerHTML =
-                    '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
-                removeBtn.onclick = function() {
-                    removeFile(index);
-                };
-                div.appendChild(removeBtn);
-
-                container.appendChild(div);
-            });
-        }
-
-        // Fonction pour supprimer un fichier
-        function removeFile(index) {
-            const input = document.getElementById('attachments');
-            const dt = new DataTransfer();
-            const files = Array.from(input.files);
-
-            files.splice(index, 1);
-            files.forEach(file => dt.items.add(file));
-
-            input.files = dt.files;
-
-            // Déclencher l'événement change pour mettre à jour la prévisualisation
-            input.dispatchEvent(new Event('change'));
-        }
-
-        // Rendre la fonction designSendModal accessible globalement
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof designSendModal === 'function') {
-                window.designSendModal = designSendModal();
-            }
-        });
     </script>
 
     

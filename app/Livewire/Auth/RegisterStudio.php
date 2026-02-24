@@ -58,59 +58,17 @@ class RegisterStudio extends AuthLayoutComponent
     public string $payment_mode = 'direct';
 
     /**
-     * Validation SIRET via API gouvernementale (GRATUITE)
+     * Validation automatique du SIRET
      */
-    public function validateSiret()
+    public function updatedSiret($value)
     {
-        $this->validate(['siret' => 'required|digits:14']);
-
-        $this->siret_loading = true;
-
-        try {
-            $response = Http::timeout(10)
-                ->get("https://entreprise.data.gouv.fr/api/sirene/v3/etablissements/{$this->siret}");
-
-            if ($response->successful()) {
-                $data = $response->json();
-                $etablissement = $data['etablissement'] ?? null;
-
-                if ($etablissement) {
-                    // Extraction données
-                    $uniteLegale = $etablissement['uniteLegale'] ?? [];
-                    $adresse = $etablissement['adresseEtablissement'] ?? [];
-
-                    $this->company_name = $uniteLegale['denominationUniteLegale']
-                        ?? $uniteLegale['nomUniteLegale']
-                        ?? 'Entreprise individuelle';
-
-                    // Adresse complète
-                    $this->company_address = trim(
-                        ($adresse['numeroVoieEtablissement'] ?? '') . ' ' .
-                        ($adresse['typeVoieEtablissement'] ?? '') . ' ' .
-                        ($adresse['libelleVoieEtablissement'] ?? '')
-                    );
-
-                    // Pré-remplir si vides
-                    if (empty($this->city)) {
-                        $this->city = $adresse['libelleCommuneEtablissement'] ?? '';
-                    }
-                    if (empty($this->postal_code)) {
-                        $this->postal_code = $adresse['codePostalEtablissement'] ?? '';
-                    }
-
-                    $this->siret_valid = true;
-
-                    session()->flash('siret_success', 'SIRET valide ! Studio reconnu.');
-                }
-            } else {
-                $this->siret_valid = false;
-                $this->addError('siret', 'SIRET non reconnu dans la base gouvernementale.');
-            }
-        } catch (\Exception $e) {
+        // Validation automatique si 14 chiffres
+        if (strlen($value) === 14 && is_numeric($value)) {
+            $this->siret_valid = true;
+            $this->company_name = 'Entreprise à vérifier manuellement';
+            $this->company_address = 'Adresse à compléter';
+        } else {
             $this->siret_valid = false;
-            $this->addError('siret', 'Erreur lors de la vérification du SIRET. Réessayez.');
-        } finally {
-            $this->siret_loading = false;
         }
     }
 
@@ -137,6 +95,8 @@ class RegisterStudio extends AuthLayoutComponent
 
         // Créer profil studio
         $studio = Studio::create([
+            'first_name' => $this->first_name,
+            'last_name' => $this->last_name,
             'name' => $this->studio_name,
             'slug' => Str::slug($this->studio_name . '-' . $this->city),
             'user_id' => $user->id, // Gérant

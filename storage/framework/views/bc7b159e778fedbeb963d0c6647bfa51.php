@@ -50,13 +50,13 @@
                                             <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->status === \App\Enums\BookingRequestStatus::DEPOSIT_REQUESTED && !$bookingRequest->deposit_paid_at): ?>
                                                 <?php
                                                     // Déterminer si c'est un paiement total ou un acompte
-                                                    $isTotalPayment =
-                                                        $bookingRequest->total_price &&
-                                                        $bookingRequest->total_price ==
-                                                            $bookingRequest->total_deposit_amount;
-                                                    $paymentText = $isTotalPayment
-                                                        ? 'Payer la totalité'
-                                                        : 'Payer l\'acompte';
+$isTotalPayment =
+    $bookingRequest->total_price &&
+    $bookingRequest->total_price ==
+        $bookingRequest->total_deposit_amount;
+$paymentText = $isTotalPayment
+    ? 'Payer la totalité'
+    : 'Payer l\'acompte';
                                                     $paymentUrgentText = $isTotalPayment
                                                         ? 'Payer la totalité avant la suppression du chat'
                                                         : 'Payer l\'acompte avant la suppression du chat';
@@ -123,7 +123,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h1 class="text-3xl font-bold text-ivoire-text">Chat avec
-                            <?php echo e($bookingRequest->bookable->user->name); ?></h1>
+                            <?php echo e($bookingRequest->bookable->user->pseudo); ?></h1>
                         <p class="text-ivoire-text/70 mt-1">Projet:
                             <?php echo e(Str::limit($bookingRequest->tattoo_description, 80)); ?></p>
                     </div>
@@ -457,7 +457,7 @@
                             </div>
 
                             
-                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->deposit_paid_at): ?>
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->deposit_paid_at && $bookingRequest->included_design_versions > 0): ?>
                                 <?php $summary = $bookingRequest->designTrackingSummary(); ?>
                                 <div class="mt-4 bg-titane/20 rounded-xl p-4 border border-titane/30">
                                     <h3 class="text-lg font-semibold text-ivoire-text mb-3 flex items-center">

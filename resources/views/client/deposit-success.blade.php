@@ -32,7 +32,7 @@
                         <div class="space-y-3">
                             <div class="flex justify-between">
                                 <span class="text-ivoire-text/70">Artiste:</span>
-                                <span class="text-ivoire-text">{{ $bookingRequest->bookable->user->name }}</span>
+                                <span class="text-ivoire-text">{{ $bookingRequest->bookable->user->pseudo }}</span>
                             </div>
 
                             @if ($bookingRequest->tattoo_size)

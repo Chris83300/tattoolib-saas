@@ -153,8 +153,8 @@ class AcceptBookingModal extends Component
                 'total_deposit_amount' => $this->totalDepositAmount,
                 'client_payment_deadline_days' => $this->clientPaymentDeadlineDays,
                 'proposed_dates' => $this->proposedDates,
-                'included_design_versions' => $this->includedDesignVersions,
-                'modifications_per_design' => $this->modificationsPerDesign,
+                'included_design_versions' => $this->needsDesignPreparation ? $this->includedDesignVersions : 0,
+                'modifications_per_design' => $this->needsDesignPreparation ? $this->modificationsPerDesign : 0,
                 'deposit_deadline' => now()->addDays($this->clientPaymentDeadlineDays),
                 'date_selection_deadline' => now()->addHours(48),
             ]);

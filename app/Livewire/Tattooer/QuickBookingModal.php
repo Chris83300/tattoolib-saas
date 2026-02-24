@@ -45,12 +45,17 @@ class QuickBookingModal extends Component
             'auth_id' => auth()->id(),
         ]);
 
-        $tattooer = auth()->user()->tattooer;
+        // Récupérer l'artisan connecté (tattooer ou piercer)
+        $artisan = auth()->user()->tattooer ?? auth()->user()->piercer;
+
+        if (!$artisan) {
+            throw new \Exception('Aucun artisan (tattooer/piercer) trouvé');
+        }
 
         $this->bookingRequest = BookingRequest::with(['client.user'])
             ->where('id', $bookingRequestId)
-            ->where('bookable_id', $tattooer->id)
-            ->where('bookable_type', $tattooer->getMorphClass())
+            ->where('bookable_id', $artisan->id)
+            ->where('bookable_type', get_class($artisan))
             ->firstOrFail();
 
         // Debug: Vérifier la demande
@@ -66,7 +71,13 @@ class QuickBookingModal extends Component
         $clientPseudo = $this->bookingRequest->client?->user?->pseudo
             ?? $this->bookingRequest->client?->user?->name
             ?? 'Client';
-        $this->appointmentTitle = "Tattoo → {$clientPseudo}";
+
+        // Adapter le titre selon le type d'artisan
+        if (auth()->user()->piercer) {
+            $this->appointmentTitle = "Piercing → {$clientPseudo}";
+        } else {
+            $this->appointmentTitle = "Tattoo → {$clientPseudo}";
+        }
 
         // Date verrouillée
         $this->appointmentDate = $date;
@@ -105,18 +116,23 @@ class QuickBookingModal extends Component
     {
         $this->validate();
 
-        $tattooer = auth()->user()->tattooer;
+        $artisan = auth()->user()->tattooer ?? auth()->user()->piercer;
+
+        if (!$artisan) {
+            throw new \Exception('Aucun artisan (tattooer/piercer) trouvé');
+        }
+
         $startDatetime = Carbon::parse("{$this->appointmentDate} {$this->startTime}");
         $endDatetime = Carbon::parse("{$this->appointmentDate} {$this->endTime}");
         $durationMinutes = $startDatetime->diffInMinutes($endDatetime);
 
-        DB::transaction(function () use ($tattooer, $startDatetime, $endDatetime, $durationMinutes) {
+        DB::transaction(function () use ($artisan, $startDatetime, $endDatetime, $durationMinutes) {
 
             // 1. Créer l'Appointment
             $appointment = Appointment::create([
                 'booking_request_id' => $this->bookingRequest->id,
-                'bookable_type'      => $tattooer->getMorphClass(),
-                'bookable_id'        => $tattooer->id,
+                'bookable_type'      => $artisan->getMorphClass(),
+                'bookable_id'        => $artisan->id,
                 'client_id'          => $this->bookingRequest->client_id,
                 'start_datetime'     => $startDatetime,
                 'end_datetime'       => $endDatetime,
@@ -130,8 +146,8 @@ class QuickBookingModal extends Component
 
             // 2. Créer le CalendarEvent associé
             CalendarEvent::create([
-                'bookable_type'  => $tattooer->getMorphClass(),
-                'bookable_id'    => $tattooer->id,
+                'bookable_type'  => $artisan->getMorphClass(),
+                'bookable_id'    => $artisan->id,
                 'type'           => 'appointment',
                 'title'          => $this->appointmentTitle,
                 'appointment_id' => $appointment->id,

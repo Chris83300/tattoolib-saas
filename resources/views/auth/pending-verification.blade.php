@@ -22,7 +22,13 @@
 
             <!-- Titre -->
             <h1 class="text-2xl font-display font-bold text-ivoire-text mb-4">
-                Inscription en cours de validation
+                @if ($role === 'studio')
+                    Votre studio est en cours de validation
+                @elseif($role === 'pierceur')
+                    Votre compte pierceur est en cours de validation
+                @else
+                    Votre compte tatoueur est en cours de validation
+                @endif
             </h1>
 
             <!-- Message -->
@@ -32,22 +38,29 @@
                 </p>
 
                 <p class="text-ivoire-text/70 mb-4">
-                    Votre compte {{ $role }} a bien été créé et est actuellement en attente de validation par notre
-                    équipe.
+                    @if ($role === 'studio')
+                        Votre studio a bien été créé et est actuellement en attente de validation par notre équipe.
+                    @elseif($role === 'pierceur')
+                        Votre compte pierceur a bien été créé et est actuellement en attente de validation par notre équipe.
+                    @else
+                        Votre compte tatoueur a bien été créé et est actuellement en attente de validation par notre équipe.
+                    @endif
                 </p>
 
                 <div class="space-y-3 text-left">
-                    <div class="flex items-start gap-3">
-                        <svg class="w-5 h-5 text-vert-succes mt-0.5 flex-shrink-0" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <div>
-                            <p class="text-ivoire-text font-medium">SIRET vérifié</p>
-                            <p class="text-ivoire-text/50 text-sm">Votre numéro SIRET a été validé avec succès</p>
+                    @if ($role === 'studio' || $role === 'pierceur')
+                        <div class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-vert-succes mt-0.5 flex-shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <div>
+                                <p class="text-ivoire-text font-medium">SIRET vérifié</p>
+                                <p class="text-ivoire-text/50 text-sm">Votre numéro SIRET a été validé avec succès</p>
+                            </div>
                         </div>
-                    </div>
+                    @endif
 
                     <div class="flex items-start gap-3">
                         <svg class="w-5 h-5 text-ambre-warning mt-0.5 flex-shrink-0" fill="none" stroke="currentColor"
@@ -65,6 +78,85 @@
                 </div>
             </div>
 
+            <!-- Informations reçues -->
+            @if ($role === 'studio')
+                <div class="bg-noir-profond rounded-lg p-6 mb-6 text-left">
+                    <h3 class="text-ivoire-text font-semibold mb-3">Informations reçues :</h3>
+                    <ul class="space-y-2 text-sm text-ivoire-text/70">
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-vert-succes flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span><strong class="text-ivoire-text">SIRET :</strong>
+                                {{ auth()->user()->studio?->siret ?? 'Non renseigné' }}</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-vert-succes flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span><strong class="text-ivoire-text">Nom du studio :</strong>
+                                {{ auth()->user()->studio?->name ?? 'Non renseigné' }}</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-vert-succes flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span><strong class="text-ivoire-text">Gérant :</strong>
+                                {{ auth()->user()->studio?->first_name ?? auth()->user()->first_name }}
+                                {{ auth()->user()->studio?->last_name ?? auth()->user()->last_name }}</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-vert-succes flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span><strong class="text-ivoire-text">Ville :</strong>
+                                {{ auth()->user()->studio?->city ?? 'Non renseignée' }}</span>
+                        </li>
+                    </ul>
+                </div>
+            @elseif($role === 'pierceur')
+                <div class="bg-noir-profond rounded-lg p-6 mb-6 text-left">
+                    <h3 class="text-ivoire-text font-semibold mb-3">Informations reçues :</h3>
+                    <ul class="space-y-2 text-sm text-ivoire-text/70">
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-vert-succes flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span><strong class="text-ivoire-text">SIRET :</strong>
+                                {{ auth()->user()->piercer?->siret ?? 'Non renseigné' }}</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-vert-succes flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span><strong class="text-ivoire-text">Nom :</strong>
+                                {{ auth()->user()->piercer?->name ?? auth()->user()->name }}</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-vert-succes flex-shrink-0 mt-0.5" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span><strong class="text-ivoire-text">Ville :</strong>
+                                {{ auth()->user()->piercer?->city ?? 'Non renseignée' }}</span>
+                        </li>
+                    </ul>
+                </div>
+            @endif
+
             <!-- Délai -->
             <div class="bg-beige-peau/5 border border-beige-peau/30 rounded-lg p-4 mb-6">
                 <p class="text-beige-peau font-medium mb-1">
@@ -77,10 +169,16 @@
 
             <!-- Actions -->
             <div class="space-y-3">
-                <button onclick="window.location.reload()"
-                    class="w-full bg-beige-peau hover:bg-beige-peau/90 text-noir-profond font-semibold py-3 rounded-lg transition-colors">
-                    Vérifier le statut
-                </button>
+                <a href="@if ($role === 'studio') {{ route('studio.profile') }}@elseif($role === 'pierceur'){{ route('piercer.profile') }}@else{{ route('tattooer.profile') }} @endif"
+                    class="w-full bg-beige-peau hover:bg-beige-peau/90 text-noir-profond font-semibold py-3 rounded-lg transition-colors text-center block">
+                    @if ($role === 'studio')
+                        Accéder à mon profil studio
+                    @elseif($role === 'pierceur')
+                        Accéder à mon profil pierceur
+                    @else
+                        Accéder à mon profil tatoueur
+                    @endif
+                </a>
 
                 <form action="{{ route('logout') }}" method="POST" class="inline">
                     @csrf

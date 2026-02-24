@@ -442,6 +442,7 @@
                                     <button type="submit"
                                         class="w-full px-4 py-3 bg-rouge-alerte/20 border border-rouge-alerte/30 text-rouge-alerte rounded-xl font-semibold text-center hover:bg-rouge-alerte/30 transition-all"
                                         onclick="return confirm('Annuler ce projet ? Cette action est irréversible.')">
+                                        ❌ Annuler la demande
                                     </button>
                                 </form>
 
@@ -643,32 +644,7 @@
                                                 <div>
                                                     <label class="flex items-center space-x-2">
                                                         <input type="radio" name="payment_type" value="full"
-                                                            class="text-beige-peau">
-                                                        <span class="text-ivoire-text">Paiement total</span>
-                                                    </label>
-                                                </div>
-                                                <div class="mt-3 pt-3 border-t border-titane/30">
-                                                </div>
-                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-
-                                    <!-- Acompte/Paiement pour pierceurs -->
-                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tattooer instanceof \App\Models\Piercer): ?>
-                                        <div class="bg-noir-profond/50 rounded-lg p-4">
-                                            <h4 class="font-semibold text-ivoire-text/80 text-sm mb-2">💰 Options de
-                                                paiement
-                                            </h4>
-                                            <div class="space-y-3 text-sm">
-                                                <div>
-                                                    <label class="flex items-center space-x-2">
-                                                        <input type="radio" name="payment_type" value="deposit"
                                                             class="text-beige-peau" checked>
-                                                        <span class="text-ivoire-text">Acompte uniquement</span>
-                                                    </label>
-                                                </div>
-                                                <div>
-                                                    <label class="flex items-center space-x-2">
-                                                        <input type="radio" name="payment_type" value="full"
-                                                            class="text-beige-peau">
                                                         <span class="text-ivoire-text">Paiement total</span>
                                                     </label>
                                                 </div>
@@ -712,8 +688,6 @@
                                         </div>
                                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 </div>
-
-                                <p class="text-ivoire-text/60">Acompte non encore défini</p>
                             <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
                 </div>
