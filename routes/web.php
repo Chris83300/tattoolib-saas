@@ -338,6 +338,11 @@ Route::middleware(['auth', 'role:pierceur,Piercer'])->prefix('pierceur')->name('
 // Routes Studio (protégées)
 // Profil public Studio (accessible sans auth)
 Route::get('/studios/{slug}', [App\Http\Controllers\StudioController::class, 'publicProfile'])->name('studio.public');
+Route::get('/salon/{slug}', [App\Http\Controllers\StudioController::class, 'publicProfile'])->name('studio.public.show');
+
+// Invitation artiste (publique, avec token)
+Route::get('/studio/invitation/{token}', [App\Http\Controllers\StudioController::class, 'acceptInvitation'])->name('studio.invitation.accept');
+Route::post('/studio/invitation/{token}', [App\Http\Controllers\StudioController::class, 'processInvitation'])->name('studio.invitation.process');
 
 // Routes Studio (protégées — fusionnées Controller + Livewire)
 Route::middleware(['auth', 'role:studio'])->prefix('studio')->name('studio.')->group(function () {
@@ -347,8 +352,18 @@ Route::middleware(['auth', 'role:studio'])->prefix('studio')->name('studio.')->g
     Route::get('/messages', App\Livewire\Studio\Messages::class)->name('messages');
     Route::get('/parametres', App\Livewire\Studio\Settings::class)->name('settings');
     Route::get('/calendar', App\Livewire\Studio\Calendar::class)->name('calendar');
+    // Artistes
     Route::get('/artists', [App\Http\Controllers\StudioController::class, 'artists'])->name('artists');
+    Route::get('/artists/create', [App\Http\Controllers\StudioController::class, 'createArtist'])->name('artists.create');
+    Route::post('/artists', [App\Http\Controllers\StudioController::class, 'storeArtist'])->name('artists.store');
     Route::post('/artists/invite', [App\Http\Controllers\StudioController::class, 'inviteArtist'])->name('artists.invite');
+    Route::delete('/artists/{studioArtist}', [App\Http\Controllers\StudioController::class, 'removeArtist'])->name('artists.remove');
+    Route::put('/artists/{studioArtist}/toggle', [App\Http\Controllers\StudioController::class, 'toggleArtist'])->name('artists.toggle');
+    // Planning
+    Route::get('/planning', [App\Http\Controllers\StudioController::class, 'planning'])->name('planning');
+    // Billing & Stats
+    Route::get('/billing', [App\Http\Controllers\StudioController::class, 'billing'])->name('billing');
+    Route::get('/stats', [App\Http\Controllers\StudioController::class, 'stats'])->name('stats');
     Route::get('/upgrade', function () {
         return view('professionnels.index');
     })->name('upgrade');
