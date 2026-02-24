@@ -254,6 +254,11 @@ class Tattooer extends Model implements HasMedia, ArtisanInterface
         return $this->belongsTo(Studio::class);
     }
 
+    public function isStudioArtist(): bool
+    {
+        return $this->studio_id !== null;
+    }
+
     public function workingHours(): MorphMany
     {
         return $this->morphMany(WorkingHour::class, 'owner');

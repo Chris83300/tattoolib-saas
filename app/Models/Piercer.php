@@ -197,6 +197,11 @@ class Piercer extends Model implements HasMedia, ArtisanInterface
         return $this->belongsTo(Studio::class);
     }
 
+    public function isStudioArtist(): bool
+    {
+        return $this->studio_id !== null;
+    }
+
     public function bookingRequests(): MorphMany
     {
         return $this->morphMany(BookingRequest::class, 'bookable');

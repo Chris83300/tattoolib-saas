@@ -132,14 +132,44 @@ class User extends Authenticatable implements HasMedia
         return $this->hasOne(Piercer::class);
     }
 
+    /**
+     * Le studio que cet utilisateur POSSÈDE (via studios.user_id)
+     * Pour les studio owners uniquement.
+     */
     public function studio()
     {
-        return $this->belongsTo(Studio::class);
+        return $this->hasOne(Studio::class, 'user_id');
     }
 
     public function studioArtist()
     {
         return $this->hasOne(StudioArtist::class);
+    }
+
+    /**
+     * Alias pour studioArtist() — utilisé dans les helpers prompt
+     */
+    public function studioArtistPivot()
+    {
+        return $this->hasOne(StudioArtist::class);
+    }
+
+    // ═══ STUDIO HELPERS ═══
+
+    /**
+     * Retourne le studio auquel cet artiste est rattaché (si applicable)
+     */
+    public function artistStudio(): ?Studio
+    {
+        return $this->studioArtist?->studio;
+    }
+
+    /**
+     * Est-ce un artiste indépendant (pas rattaché à un studio) ?
+     */
+    public function isIndependent(): bool
+    {
+        return $this->isArtisan() && !$this->isStudioArtist();
     }
 
     public function conversations()
