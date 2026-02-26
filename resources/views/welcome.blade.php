@@ -9,11 +9,11 @@
                 Ink <span class="text-beige-peau">& Pik</span>
             </h1>
             <h2 class="text-4xl md:text-6xl font-Satoshi font-bold text-ivoire-text mb-4">
-                Notre art, votre peau.
+             <span class="text-titane">Notre art,</span>  <span class="text-beige-peau">votre peau.</span>
             </h2>
 
             <!-- Sous-titre -->
-            <p class="text-lg md:text-xl text-ivoire-text/70 mb-8">
+            <p class="text-lg md:text-xl text-ivoire-text/90 mb-8">
                 La plateforme professionnelle qui connecte clients
                 et artistes des arts corporels.
             </p>
@@ -36,7 +36,7 @@
     <!-- Section Trust (pictogrammes) -->
     <section class="bg-gris-fonde py-16 px-4">
         <div class="container-custom">
-            <h2 class="text-3xl md:text-4xl font-display font-bold text-center text-ivoire-text mb-12">
+            <h2 class="text-3xl md:text-4xl font-display font-bold text-center text-beige-peau mb-12">
                 Une plateforme de confiance
             </h2>
 
@@ -46,13 +46,13 @@
                 <!-- Item 1 : Artistes vérifiés -->
                 <div class="text-center">
                     <div class="w-16 h-16 mx-auto mb-4 bg-beige-peau/10 btn-shadow rounded-full flex items-center justify-center">
-                        <svg class="w-8 h-8 text-beige-peau " fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-8 h-8 text-titane" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
                             </path>
                         </svg>
                     </div>
-                    <h3 class="text-lg font-semibold text-ivoire-text mb-2">
+                    <h3 class="text-lg font-semibold text-titane mb-2">
                         Artistes vérifiés
                     </h3>
                     <p class="text-ivoire-text/70 text-sm">
@@ -63,13 +63,13 @@
                 <!-- Item 2 : Paiements sécurisés -->
                 <div class="text-center">
                     <div class="w-16 h-16 mx-auto mb-4 bg-beige-peau/10 btn-shadow rounded-full flex items-center justify-center">
-                        <svg class="w-8 h-8 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-8 h-8 text-vert-succes" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
                             </path>
                         </svg>
                     </div>
-                    <h3 class="text-lg font-semibold text-ivoire-text mb-2">
+                    <h3 class="text-lg font-semibold text-vert-succes mb-2">
                         Paiements sécurisés
                     </h3>
                     <p class="text-ivoire-text/70 text-sm">
@@ -86,7 +86,7 @@
                             </path>
                         </svg>
                     </div>
-                    <h3 class="text-lg font-semibold text-ivoire-text mb-2">
+                    <h3 class="text-lg font-semibold text-beige-peau mb-2">
                         Conformité réglementaire
                     </h3>
                     <p class="text-ivoire-text/70 text-sm">
@@ -102,11 +102,11 @@
     <section class="bg-noir-profond py-16 px-4">
         <div class="container-custom">
             <div class="text-center mb-12">
-                <h2 class="text-3xl md:text-4xl font-display font-bold text-ivoire-text mb-4">
+                <h2 class="text-3xl md:text-4xl font-display font-bold text-beige-peau mb-4">
                     Découvrez nos artistes
                 </h2>
                 <p class="text-ivoire-text/70">
-                    Des professionnels vérifiés près de chez vous
+                    Des professionnels certifiés près de chez vous
                 </p>
             </div>
 
@@ -126,11 +126,11 @@
         <div class="container-custom max-w-3xl text-center">
 
             <!-- Titre teaser -->
-            <h2 class="text-3xl md:text-4xl font-display font-bold text-ivoire-text mb-4">
+            <h2 class="text-3xl md:text-4xl font-display font-bold text-beige-peau mb-4">
                 Vous êtes tatoueur, pierceur ou gérant de studio ?
             </h2>
 
-            <p class="text-lg text-ivoire-text/70 mb-8">
+            <p class="text-lg text-ivoire-text/80 mb-8">
                 Développez votre activité avec un outil professionnel tout-en-un
             </p>
 
@@ -138,7 +138,7 @@
             <div class="grid grid-cols-2 gap-4 max-w-xl mx-auto mb-10">
 
                 <div class="flex items-center gap-2 text-ivoire-text/80 text-sm">
-                    <svg class="w-5 h-5 text-beige-peau flex-shrink-0" fill="none" stroke="currentColor"
+                    <svg class="w-5 h-5 text-vert-succes flex-shrink-0" fill="none" stroke="currentColor"
                         viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
@@ -146,7 +146,7 @@
                 </div>
 
                 <div class="flex items-center gap-2 text-ivoire-text/80 text-sm">
-                    <svg class="w-5 h-5 text-beige-peau flex-shrink-0" fill="none" stroke="currentColor"
+                    <svg class="w-5 h-5 text-vert-succes flex-shrink-0" fill="none" stroke="currentColor"
                         viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
@@ -154,7 +154,7 @@
                 </div>
 
                 <div class="flex items-center gap-2 text-ivoire-text/80 text-sm">
-                    <svg class="w-5 h-5 text-beige-peau flex-shrink-0" fill="none" stroke="currentColor"
+                    <svg class="w-5 h-5 text-vert-succes flex-shrink-0" fill="none" stroke="currentColor"
                         viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
@@ -162,7 +162,7 @@
                 </div>
 
                 <div class="flex items-center gap-2 text-ivoire-text/80 text-sm">
-                    <svg class="w-5 h-5 text-beige-peau flex-shrink-0" fill="none" stroke="currentColor"
+                    <svg class="w-5 h-5 text-vert-succes flex-shrink-0" fill="none" stroke="currentColor"
                         viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
@@ -172,7 +172,7 @@
             </div>
 
             <!-- CTA unique vers page dédiée -->
-            <x-ui.button variant="primary" size="lg" href="/pour-les-professionnels">
+            <x-ui.button variant="secondary" size="lg" href="/pour-les-professionnels">
                 Découvrir l'offre professionnelle
             </x-ui.button>
 

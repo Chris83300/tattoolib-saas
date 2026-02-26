@@ -21,7 +21,7 @@
 
                 <!-- CLIENT -->
                 <button onclick="window.location.href='{{ route('register.client') }}'"
-                    class="bg-gris-fonde hover:bg-beige-peau/10 hover:border-beige-peau border-2 border-transparent rounded-xl p-6 text-center transition-all group">
+                    class="bg-gris-fonde hover:bg-beige-peau/10 hover:border-beige-peau hover:shadow-lg hover:shadow-beige-peau/20 border-2 border-titane/20 shadow-md shadow-titane/10 rounded-xl p-6 text-center transition-all group">
                     <div class="w-16 h-16 mx-auto mb-4 bg-beige-peau/10 rounded-full flex items-center justify-center">
                         <svg class="w-8 h-8 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -39,7 +39,7 @@
 
                 <!-- TATTOOER -->
                 <button onclick="window.location.href='{{ route('register.tattooer') }}'"
-                    class="bg-gris-fonde hover:bg-beige-peau/10 hover:border-beige-peau border-2 border-transparent rounded-xl p-6 text-center transition-all group">
+                    class="bg-gris-fonde hover:bg-beige-peau/10 hover:border-beige-peau hover:shadow-lg hover:shadow-beige-peau/20 border-2 border-titane/20 shadow-md shadow-titane/10 rounded-xl p-6 text-center transition-all group">
                     <div class="w-16 h-16 mx-auto mb-4 bg-beige-peau/10 rounded-full flex items-center justify-center">
                         <svg class="w-8 h-8 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -58,7 +58,7 @@
 
                 <!-- Piercer -->
                 <button onclick="window.location.href='{{ route('register.pierceur') }}'"
-                    class="bg-gris-fonde hover:bg-beige-peau/10 hover:border-beige-peau border-2 border-transparent rounded-xl p-6 text-center transition-all group">
+                    class="bg-gris-fonde hover:bg-beige-peau/10 hover:border-beige-peau hover:shadow-lg hover:shadow-beige-peau/20 border-2 border-titane/20 shadow-md shadow-titane/10 rounded-xl p-6 text-center transition-all group">
                     <div class="w-16 h-16 mx-auto mb-4 bg-beige-peau/10 rounded-full flex items-center justify-center">
                         <svg class="w-8 h-8 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -77,7 +77,7 @@
 
                 <!-- STUDIO -->
                 <button onclick="window.location.href='{{ route('register.studio') }}'"
-                    class="bg-gris-fonde hover:bg-beige-peau/10 hover:border-beige-peau border-2 border-transparent rounded-xl p-6 text-center transition-all group">
+                    class="bg-gris-fonde hover:bg-beige-peau/10 hover:border-beige-peau hover:shadow-lg hover:shadow-beige-peau/20 border-2 border-titane/20 shadow-md shadow-titane/10 rounded-xl p-6 text-center transition-all group">
                     <div class="w-16 h-16 mx-auto mb-4 bg-beige-peau/10 rounded-full flex items-center justify-center">
                         <svg class="w-8 h-8 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -92,7 +92,7 @@
                     <p class="text-ivoire-text/70 text-sm">
                         Je gère un salon avec plusieurs artistes
                     </p>
-                </button>
+                </button> 
 
             </div>
 
@@ -100,9 +100,9 @@
             <div class="text-center">
                 <p class="text-ivoire-text/70 text-sm">
                     Vous avez déjà un compte ?
-                    <a href="{{ route('login') }}" class="text-beige-peau font-semibold hover:underline">
+                    <x-ui.button type="submit" variant="secondary" size="sm" href="{{ route('login') }}">
                         Se connecter
-                    </a>
+                    </x-ui.button>
                 </p>
             </div>
         </div>

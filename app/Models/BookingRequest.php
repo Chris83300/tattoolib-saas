@@ -107,6 +107,9 @@ class BookingRequest extends Model implements HasMedia
         'surcharge_paid_at',
         'overage_reason',
 
+        // === 📢 NOTIFICATIONS ===
+        'viewed_by_artist_at',
+
         // Stripe
         'stripe_payment_intent_id',
 
@@ -945,9 +948,18 @@ class BookingRequest extends Model implements HasMedia
     public function confirmFinalPrice(float $finalPrice): void
     {
         $this->update([
-            'confirmed_final_price' => $finalPrice,
-            'final_price_confirmed' => true,
-            'final_price_confirmed_at' => now(),
+            'final_price' => $finalPrice,
+            'price_confirmed_at' => now(),
+        ]);
+    }
+
+    /**
+     * Marquer la demande comme vue par l'artiste
+     */
+    public function markAsViewedByArtist(): void
+    {
+        $this->update([
+            'viewed_by_artist_at' => now(),
         ]);
     }
 

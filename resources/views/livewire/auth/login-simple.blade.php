@@ -4,14 +4,15 @@
     <div class="min-h-screen bg-noir-profond flex items-center justify-center px-4">
         <div class="max-w-md w-full">
             <!-- Logo -->
-            <div class="text-center mb-8">
-                <a href="/" class="text-beige-peau font-Satoshi text-3xl font-bold">
-                    Ink&Pik
+            <div class="text-center flex flex-col items-center justify-center mb-8">
+                <img src="{{ asset('images/logo.png') }}" alt="Ink&Pik" class="w-30 h-30 mb-4">
+                <a href="/" class="text-beige-peau font-Satoshi text-4xl font-bold ">
+                    <span class="text-titane">Ink</span> & Pik
                 </a>
             </div>
 
             <!-- Titre -->
-            <h1 class="text-2xl md:text-3xl font-display font-bold text-ivoire-text mb-2 text-center">
+            <h1 class="text-2xl md:text-3xl font-display font-bold text-beige-peau mb-2 text-center">
                 Connexion
             </h1>
             <p class="text-ivoire-text/70 text-center mb-8">
@@ -60,19 +61,18 @@
                 </div>
 
                 <!-- Submit -->
-                <button type="submit"
-                    class="w-full bg-beige-peau hover:bg-beige-peau/90 text-noir-profond font-bold py-3 rounded-lg transition-colors">
+                <x-ui.button type="submit" variant="primary" size="md" class="w-full">
                     Se connecter
-                </button>
+                </x-ui.button>
             </form>
 
             <!-- Lien inscription -->
             <div class="text-center mt-6">
                 <p class="text-ivoire-text/70 text-sm">
                     Pas encore de compte ?
-                    <a href="{{ route('register') }}" class="text-beige-peau font-semibold hover:underline">
+                    <x-ui.button type="submit" variant="secondary" size="sm" href="{{ route('register') }}">
                         Créer un compte
-                    </a>
+                    </x-ui.button>
                 </p>
             </div>
 

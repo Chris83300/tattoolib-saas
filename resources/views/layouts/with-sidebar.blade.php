@@ -188,9 +188,9 @@
     <main class="lg:ml-64 min-h-screen">
         <!-- Mobile Header -->
         <div class="lg:hidden px-4 py-4 bg-noir-profonde border-b border-ivoire-text/10">
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between font-Satoshi">
                 <img src="{{ asset('images/logo.png') }}" alt="Ink&Pik" class="w-12 h-12">
-                <h1 class="text-xl font-bold text-beige-peau font-display">Ink&Pik</h1>
+                <h1 class="text-xl font-bold text-beige-peau"> <span class="text-titane">Ink </span>& Pik</h1>
                 <div class="text-ivoire-text/70 text-sm">
                     {{ auth()->user()->name }}
                 </div>

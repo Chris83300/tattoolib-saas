@@ -3,7 +3,7 @@
 
         <!-- Logo -->
         <a href="/" class="text-beige-peau font-Satoshi text-xl font-bold">
-            Ink&Pik
+           <span class="text-titane">Ink</span> & Pik
         </a>
 
         <!-- Navigation principale -->

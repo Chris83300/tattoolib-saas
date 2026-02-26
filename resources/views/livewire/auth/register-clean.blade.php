@@ -78,7 +78,7 @@
 
             <!-- STUDIO -->
             <button wire:click="selectRole('studio')"
-                class="bg-gris-fonde hover:bg-beige-peau/10 hover:border-beige-peau border-2 border-transparent rounded-xl p-6 text-center transition-all group">
+                class="bg-gris-fonde hover:bg-beige-peau/10 hover:border-beige-peau border rounded-xl p-6 text-center transition-all group">
                 <div class="w-16 h-16 mx-auto mb-4 bg-beige-peau/10 rounded-full flex items-center justify-center">
                     <svg class="w-8 h-8 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -101,9 +101,9 @@
         <div class="text-center">
             <p class="text-ivoire-text/70 text-sm">
                 Vous avez déjà un compte ?
-                <a href="{{ route('login') }}" class="text-beige-peau font-semibold hover:underline">
+                <x-ui.button type="submit" variant="secondary" size="sm" href="{{ route('login') }}">
                     Se connecter
-                </a>
+                </x-ui.button>
             </p>
         </div>
     </div>

@@ -1,7 +1,7 @@
 @extends('layouts.guest')
 
 @section('content')
-    <div class="min-h-screen bg-noir-profond flex items-center justify-center px-4 py-12">
+    <div class="min-h-screen bg-noir-profond flex items-center px-4 py-12">
         <div class="max-w-md w-full">
             <!-- Header -->
             <div class="text-center mb-8">
@@ -17,7 +17,7 @@
             </div>
 
             <!-- Formulaire -->
-            <form action="{{ route('register.client.submit') }}" method="POST" class="bg-gris-fonde rounded-xl p-6 space-y-4">
+            <form action="{{ route('register.client.submit') }}" method="POST" class="bg-gris-fonde justify-center border border-cuivre/40 shadow-md shadow-cuivre/20 rounded-xl p-6 space-y-4">
                 @csrf
 
                 <!-- Affichage des erreurs de validation -->
@@ -36,14 +36,14 @@
                 <!-- Nom complet -->
                 <div>
                     <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                        Nom *
+                        Nom <span class="text-rouge-alerte">*</span>
                     </label>
                     <input type="text" name="last_name" placeholder="Ex: Wick"
                         class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors">
                 </div>
                 <div>
                     <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                        Prénom *
+                        Prénom <span class="text-rouge-alerte">*</span>
                     </label>
                     <input type="text" name="first_name" placeholder="Ex: Jhon"
                         class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors">
@@ -64,7 +64,7 @@
                 {{-- Date de naissance --}}
                 <div>
                     <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                        Date de naissance * <span class="text-ivoire-text/50 font-normal">(Minimum 16 ans)</span>
+                        Date de naissance <span class="text-rouge-alerte">*</span> <span class="text-ambre-warning/80 font-normal">(Minimum 16 ans)</span>
                     </label>
                     <input type="date" name="birth_date" required placeholder="Ex: 10/08/2004"
                         class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors">
@@ -77,7 +77,7 @@
                 <!-- Email -->
                 <div>
                     <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                        Email *
+                        Email <span class="text-rouge-alerte">*</span>
                     </label>
                     <input type="email" name="email" required
                         class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors"
@@ -87,7 +87,7 @@
                 <!-- Téléphone (optionnel) -->
                 <div>
                     <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                        Téléphone (optionnel)
+                        Téléphone <span class="text-ivoire-text/60">(optionnel)</span>
                     </label>
                     <input type="tel" name="phone"
                         class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors"
@@ -97,7 +97,7 @@
                 <!-- Password -->
                 <div>
                     <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                        Mot de passe * <span class="text-ivoire-text/50 font-normal">(8 caractères minimum, 1 majuscule, 1
+                        Mot de passe <span class="text-rouge-alerte">*</span> <span class="text-ivoire-text/50 font-normal">(8 caractères minimum, 1 majuscule, 1
                             chiffre, 1 caractère spécial)</span>
                     </label>
                     <input type="password" name="password" required minlength="8"
@@ -111,7 +111,7 @@
                 <!-- Password confirmation -->
                 <div>
                     <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                        Confirmer mot de passe * <span class="text-ivoire-text/50 font-normal">(8 caractères minimum)</span>
+                        Confirmer mot de passe <span class="text-rouge-alerte">*</span> <span class="text-ivoire-text/50 font-normal">(8 caractères minimum)</span>
                     </label>
                     <input type="password" name="password_confirmation" required minlength="8"
                         class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors"
@@ -122,10 +122,9 @@
                 </div>
 
                 <!-- Submit -->
-                <button type="submit"
-                    class="w-full bg-beige-peau hover:bg-beige-peau/90 text-noir-profond font-bold py-3 rounded-lg transition-colors">
+                <x-ui.button type="submit" variant="primary" size="md" class="w-full">
                     Créer mon compte
-                </button>
+                </x-ui.button>
 
             </form>
         </div>

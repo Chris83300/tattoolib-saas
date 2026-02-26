@@ -4,11 +4,11 @@
     <div class="space-y-6">
 
         <!-- Header avec salutation -->
-        <div class="bg-gris-fonde rounded-xl p-6">
+        <div class="bg-gris-fonde rounded-xl border border-cuivre/10 shadow-md shadow-cuivre/20 p-6">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                     <h1 class="text-2xl md:text-3xl font-bold text-ivoire-text mb-2">
-                        Bonjour {{ auth()->user()->name }} 👋
+                        Bonjour <span class="font-bold text-4xl text-beige-peau">{{ auth()->user()->pseudo }}</span>
                     </h1>
                     <p class="text-ivoire-text/70">
                         Voici votre activité du jour
@@ -17,8 +17,7 @@
 
                 <!-- Actions rapides -->
                 <div class="flex flex-col sm:flex-row gap-2">
-                    <a href="{{ route('marketplace.tattooer.show', $tattooer->slug) }}" target="_blank"
-                        class="inline-flex items-center gap-2 px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
+                    <x-ui.button variant="primary" size="lg" href="{{ route('marketplace.tattooer.show', $tattooer->slug) }}" target="_blank">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -27,15 +26,14 @@
                             </path>
                         </svg>
                         Voir mon profil public
-                    </a>
-                    <a href="{{ route('marketplace.index') }}" target="_blank"
-                        class="inline-flex items-center gap-2 px-4 py-2 bg-noir-profond text-ivoire-text border border-titane/30 rounded-lg font-semibold hover:bg-noir-profond/80 transition-colors">
+                    </x-ui.button>
+                    <x-ui.button variant="secondary" size="lg" href="{{ route('marketplace.index') }}" target="_blank">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9"></path>
                         </svg>
                         Voir la marketplace
-                    </a>
+                    </x-ui.button>
                 </div>
             </div>
         </div>
@@ -44,7 +42,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
             <!-- Demandes en attente -->
-            <div class="bg-gris-fonde rounded-xl p-6 hover:ring-2 hover:ring-beige-peau transition-all cursor-pointer"
+            <div class="bg-ambre-warning/5 rounded-xl p-6 hover:ring-2 border border-ambre-warning/20 hover:border-ambre-warning shadow-md shadow-ambre-warning/20 hover:ring-ambre-warning transition-all cursor-pointer"
                 onclick="window.location.href='{{ route($tattooer->routePrefix() . '.requests') }}'">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 bg-ambre-warning/20 rounded-lg flex items-center justify-center">
@@ -67,7 +65,7 @@
             </div>
 
             <!-- RDV à venir -->
-            <div class="bg-gris-fonde rounded-xl p-6">
+            <div class="rounded-xl bg-beige-peau/5 border border-beige-peau/20 hover:border-beige-peau shadow-md shadow-beige-peau/20 p-6">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 bg-beige-peau/20 rounded-lg flex items-center justify-center">
                         <svg class="w-6 h-6 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,7 +82,7 @@
             </div>
 
             <!-- Clients totaux -->
-            <div class="bg-gris-fonde rounded-xl p-6">
+            <div class="rounded-xl bg-vert-succes/5 border border-vert-succes/20 hover:border-vert-succes shadow-md shadow-vert-succes/20 p-6">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 bg-vert-succes/20 rounded-lg flex items-center justify-center">
                         <svg class="w-6 h-6 text-vert-succes" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -101,10 +99,10 @@
             </div>
 
             <!-- Revenus du mois -->
-            <div class="bg-gris-fonde rounded-xl p-6">
+            <div class="rounded-xl bg-electric-blue/10 border border-electric-blue/50 hover:border-electric-blue shadow-md shadow-electric-blue/40 p-6">
                 <div class="flex items-center justify-between mb-4">
-                    <div class="w-12 h-12 bg-beige-peau/20 rounded-lg flex items-center justify-center">
-                        <svg class="w-6 h-6 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="w-12 h-12 bg-electric-blue/20 rounded-lg flex items-center justify-center">
+                        <svg class="w-12 h-12 text-vert-succes/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1">
                             </path>
@@ -122,7 +120,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
             <!-- Prochains rendez-vous -->
-            <div class="bg-gris-fonde rounded-xl p-6">
+            <div class="bg-gris-fonde rounded-xl border border-titane/20 hover:border-titane/50 shadow-md shadow-titane/20 p-6">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-xl font-bold text-ivoire-text">
                         📅 Prochains rendez-vous
@@ -231,14 +229,14 @@
             </div>
 
             <!-- Activité récente -->
-            <div class="bg-gris-fonde rounded-xl p-6">
+            <div class="bg-gris-fonde rounded-xl border border-titane/20 hover:border-titane/50 shadow-md shadow-titane/20 p-6">
                 <h2 class="text-xl font-bold text-ivoire-text mb-6">
                     📊 Activité cette semaine
                 </h2>
 
                 <div class="space-y-4">
                     <!-- Nouvelles demandes -->
-                    <div class="flex items-center justify-between p-4 bg-noir-profond rounded-lg">
+                    <div class="flex items-center justify-between p-4 bg-noir-profond rounded-xl border border-ambre-warning/40">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 bg-ambre-warning/20 rounded-lg flex items-center justify-center">
                                 <svg class="w-5 h-5 text-ambre-warning" fill="none" stroke="currentColor"
@@ -253,13 +251,13 @@
                                 <p class="text-ivoire-text/60 text-sm">7 derniers jours</p>
                             </div>
                         </div>
-                        <span class="text-2xl font-bold text-beige-peau">
+                        <span class="text-2xl font-bold text-ambre-warning">
                             {{ $recentActivity['new_requests'] }}
                         </span>
                     </div>
 
                     <!-- RDV réalisés -->
-                    <div class="flex items-center justify-between p-4 bg-noir-profond rounded-lg">
+                    <div class="flex items-center justify-between p-4 bg-noir-profond rounded-xl border border-vert-succes/40">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 bg-vert-succes/20 rounded-lg flex items-center justify-center">
                                 <svg class="w-5 h-5 text-vert-succes" fill="none" stroke="currentColor"
@@ -273,13 +271,13 @@
                                 <p class="text-ivoire-text/60 text-sm">7 derniers jours</p>
                             </div>
                         </div>
-                        <span class="text-2xl font-bold text-beige-peau">
+                        <span class="text-2xl font-bold text-vert-succes">
                             {{ $recentActivity['completed_appointments'] }}
                         </span>
                     </div>
 
                     <!-- Messages non lus -->
-                    <div class="flex items-center justify-between p-4 bg-noir-profond rounded-lg">
+                    <div class="flex items-center justify-between p-4 bg-noir-profond rounded-xl border border-beige-peau/40">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 bg-beige-peau/20 rounded-lg flex items-center justify-center">
                                 <svg class="w-5 h-5 text-beige-peau" fill="none" stroke="currentColor"
@@ -304,7 +302,7 @@
 
         <!-- Upgrade PRO (si FREE) -->
         @if ($tattooer->isFree())
-            <div class="bg-gradient-to-r from-beige-peau/20 to-beige-peau/5 border-2 border-beige-peau/30 rounded-xl p-6">
+            <div class="bg-gradient-to-r from-beige-peau/20 to-beige-peau/5 border-2 border-beige-peau/30 hover:border-beige-peau/50 shadow-md shadow-beige-peau/20 rounded-xl p-6">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div class="flex-1">
                         <div class="flex items-center gap-2 mb-2">
@@ -342,12 +340,10 @@
                         </ul>
                     </div>
                     <div class="text-center">
-                        <div class="text-4xl font-bold text-beige-peau mb-2">49,99€</div>
+                        <div class="text-4xl font-bold text-cuivre mb-2">49,99€</div>
                         <div class="text-ivoire-text/60 text-sm mb-4">/mois</div>
-                        <a href="{{ route($tattooer->routePrefix() . '.subscription.plans') }}"
-                            class="inline-block px-8 py-3 bg-beige-peau text-noir-profond rounded-lg font-bold hover:bg-beige-peau/90 transition-colors">
-                            Passer PRO maintenant
-                        </a>
+                        <x-ui.button variant="primary" size="lg" href="{{ route($tattooer->routePrefix() . '.subscription.plans') }}"
+                            >Passer PRO maintenant</x-ui.button>
                     </div>
                 </div>
             </div>

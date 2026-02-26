@@ -88,7 +88,7 @@ class CacheService
                 'studio_name' => $artist->studio_name,
                 'styles' => $isPiercer ? ($artist->piercing_types ?? []) : ($artist->styles ?? []),
                 'city' => $artist->city,
-                'avatar_url' => $artist->hasMedia('avatar') ? $artist->getFirstMediaUrl('avatar') : '',
+                'avatar_url' => $this->getAvatarUrl($artist),
                 'banner_url' => $artist->hasMedia('banner') ? $artist->getFirstMediaUrl('banner') : '',
                 'portfolio_count' => $artist->getMedia('portfolio')->count(),
                 'portfolio_images' => $artist->getMedia('portfolio')->map(function($media) {
@@ -317,5 +317,31 @@ class CacheService
         ];
 
         return $days[$day] ?? 'Inconnu';
+    }
+
+    /**
+     * Obtenir l'URL de l'avatar avec fallback UI Avatars
+     */
+    private function getAvatarUrl(Tattooer|Piercer $artist): ?string
+    {
+        // Essayer d'abord le media Spatie de l'artiste
+        if ($artist->hasMedia('avatar')) {
+            $avatar = $artist->getFirstMediaUrl('avatar');
+            if ($avatar && $avatar !== '/images/default-tattooer-avatar.png') {
+                return $avatar;
+            }
+        }
+
+        // Essayer le media Spatie de l'utilisateur associé
+        if ($artist->user && $artist->user->hasMedia('avatar')) {
+            $userAvatar = $artist->user->getFirstMediaUrl('avatar');
+            if ($userAvatar && $userAvatar !== '/images/default-tattooer-avatar.png') {
+                return $userAvatar;
+            }
+        }
+
+        // Fallback vers UI Avatars avec le pseudo ou nom
+        $name = $artist->pseudo ?: $artist->user?->first_name . ' ' . $artist->user?->last_name ?: 'Artiste';
+        return 'https://ui-avatars.com/api/?name=' . urlencode($name) . '&color=ffffff&background=8B7355&size=200';
     }
 }

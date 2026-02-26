@@ -63,20 +63,18 @@ unset($__defined_vars, $__key, $__value); ?>
     <div class="px-4 -mt-12 relative z-20">
         <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4">
             
-            <div class="flex-shrink-0">
-                <div
-                    class="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-2 border-titane/30 shadow-lg shadow-titane/20 overflow-hidden bg-titane/40 flex items-center justify-center">
-                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!empty($artist['avatar_url'])): ?>
-                        <img src="<?php echo e($artist['avatar_url']); ?>" alt="<?php echo e($artist['name']); ?>"
-                            class="w-full h-full object-cover">
-                    <?php else: ?>
-                        <svg class="w-12 h-12 sm:w-16 sm:h-16 text-ivoire-text/30" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                </div>
+            <div
+                class="w-32 h-32 md:w-36 md:h-36 rounded-full border-2 border-titane/30 shadow-lg shadow-titane/20 overflow-hidden bg-titane/40 flex items-center justify-center flex-shrink-0">
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!empty($artist['avatar_url'])): ?>
+                    <img src="<?php echo e($artist['avatar_url']); ?>" alt="<?php echo e($artist['name']); ?>"
+                        class="w-full h-full object-cover">
+                <?php else: ?>
+                    <svg class="w-16 h-16 md:w-18 md:h-18 text-ivoire-text/30" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             </div>
 
             
@@ -146,7 +144,7 @@ unset($__defined_vars, $__key, $__value); ?>
         </div>
 
         
-        <div class="flex flex-wrap gap-2 mb-3">
+        <div class="flex flex-wrap justify-center gap-3 mb-3">
             <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $artist['styles']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $style): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <span class="badge-style text-xs bg-beige-peau/10 text-beige-peau px-2 py-1 rounded-full">
                     <?php echo e($style); ?>

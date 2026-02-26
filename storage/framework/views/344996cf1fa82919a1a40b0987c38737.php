@@ -5,9 +5,9 @@
     <section class="bg-noir-profond py-16 px-4">
         <div class="container-custom px-4">
             <div class="text-center max-w-4xl mx-auto">
-                <h1 class="text-4xl md:text-6xl font-display font-bold text-ivoire-text mb-6">
+                <h1 class="text-4xl md:text-6xl font-display font-bold text-beige-peau mb-6">
                     Trouvez l'artiste<br>
-                    <span class="text-beige-peau">fait pour vous</span>
+                    <span class="text-titane">fait pour vous</span>
                 </h1>
                 <p class="text-xl text-ivoire-text/70 mb-8 max-w-2xl mx-auto">
                     Des artistes vérifiés et professionnels près de chez vous
@@ -37,29 +37,69 @@
     </section>
 
     <!-- Section Recherche et Filtres -->
-    <section class="bg-gris-fonde py-8 px-4 sticky top-0 z-40 border-b border-titane/20">
+    <section class="bg-gris-fonde py-8 px-4 border-b border-titane/20">
         <div class="container-custom px-4">
             <div class="max-w-6xl mx-auto">
                 <form id="search-form" class="space-y-4">
                     <!-- Barre de recherche principale -->
                     <div class="flex flex-col md:flex-row gap-4">
-                        <div class="flex-1">
-                            <input type="text" name="city" id="city-search" placeholder="Rechercher par ville..."
+                        <div class="flex-1 relative">
+                            <input type="text" name="search" id="search-input"
+                                placeholder="Rechercher par pseudo, nom, ville, région..."
                                 class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-ivoire-text/50 focus:outline-none focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
+                            <!-- Suggestions de recherche dynamiques -->
+                            <div id="search-suggestions"
+                                class="absolute top-full left-0 right-0 bg-noir-profond border border-titane/30 rounded-lg shadow-lg mt-1 hidden z-50 max-h-60 overflow-y-auto">
+                                <!-- Les suggestions seront chargées ici -->
+                            </div>
                         </div>
                         <div class="flex gap-2">
-                            <button type="submit"
-                                class="px-6 py-3 bg-beige-peau text-noir-profond font-semibold rounded-lg hover:bg-beige-peau/90 transition-colors">
+                            <?php if (isset($component)) { $__componentOriginala8bb031a483a05f647cb99ed3a469847 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginala8bb031a483a05f647cb99ed3a469847 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.ui.button','data' => ['type' => 'submit','variant' => 'primary','size' => 'lg']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('ui.button'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['type' => 'submit','variant' => 'primary','size' => 'lg']); ?>
                                 Rechercher
-                            </button>
-                            <button type="button" id="toggle-filters"
-                                class="px-6 py-3 bg-noir-profond text-ivoire-text border border-titane/30 rounded-lg hover:bg-noir-profond/80 transition-colors">
+                             <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginala8bb031a483a05f647cb99ed3a469847)): ?>
+<?php $attributes = $__attributesOriginala8bb031a483a05f647cb99ed3a469847; ?>
+<?php unset($__attributesOriginala8bb031a483a05f647cb99ed3a469847); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginala8bb031a483a05f647cb99ed3a469847)): ?>
+<?php $component = $__componentOriginala8bb031a483a05f647cb99ed3a469847; ?>
+<?php unset($__componentOriginala8bb031a483a05f647cb99ed3a469847); ?>
+<?php endif; ?>
+                            <?php if (isset($component)) { $__componentOriginala8bb031a483a05f647cb99ed3a469847 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginala8bb031a483a05f647cb99ed3a469847 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.ui.button','data' => ['type' => 'button','id' => 'toggle-filters','variant' => 'secondary','size' => 'lg']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('ui.button'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['type' => 'button','id' => 'toggle-filters','variant' => 'secondary','size' => 'lg']); ?>
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4">
                                     </path>
                                 </svg>
-                            </button>
+                             <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginala8bb031a483a05f647cb99ed3a469847)): ?>
+<?php $attributes = $__attributesOriginala8bb031a483a05f647cb99ed3a469847; ?>
+<?php unset($__attributesOriginala8bb031a483a05f647cb99ed3a469847); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginala8bb031a483a05f647cb99ed3a469847)): ?>
+<?php $component = $__componentOriginala8bb031a483a05f647cb99ed3a469847; ?>
+<?php unset($__componentOriginala8bb031a483a05f647cb99ed3a469847); ?>
+<?php endif; ?>
                         </div>
                     </div>
 
@@ -68,22 +108,28 @@
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <!-- Type d'artiste -->
                             <div>
-                                <label class="block text-ivoire-text/70 text-sm mb-2">Type d'artiste</label>
+                                <label class="block text-beige-peau text-sm mb-2">Type d'artiste</label>
                                 <select name="artisan_type"
                                     class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:outline-none focus:border-beige-peau">
                                     <option value="">Tous</option>
                                     <option value="tattooer"
-                                        <?php echo e(($filters['artisan_type'] ?? '') === 'tattooer' ? 'selected' : ''); ?>>🎨 Tatoueurs
+                                        <?php echo e(($filters['artisan_type'] ?? '') === 'tattooer' ? 'selected' : ''); ?>>Tatoueurs
                                     </option>
                                     <option value="piercer"
-                                        <?php echo e(($filters['artisan_type'] ?? '') === 'piercer' ? 'selected' : ''); ?>>💉 Pierceurs
+                                        <?php echo e(($filters['artisan_type'] ?? '') === 'piercer' ? 'selected' : ''); ?>>Pierceurs
+                                    </option>
+                                    <option value="bodemodeur"
+                                        <?php echo e(($filters['artisan_type'] ?? '') === 'bodemodeur' ? 'selected' : ''); ?>>Bodemodeurs
+                                    </option>
+                                    <option value="studio"
+                                        <?php echo e(($filters['artisan_type'] ?? '') === 'studio' ? 'selected' : ''); ?>>Studios
                                     </option>
                                 </select>
                             </div>
 
                             <!-- Styles -->
                             <div>
-                                <label class="block text-ivoire-text/70 text-sm mb-2">Styles</label>
+                                <label class="block text-beige-peau text-sm mb-2">Styles</label>
                                 <select name="styles" multiple
                                     class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:outline-none focus:border-beige-peau"
                                     size="4">
@@ -92,7 +138,7 @@
 
                             <!-- Région -->
                             <div>
-                                <label class="block text-ivoire-text/70 text-sm mb-2">Région</label>
+                                <label class="block text-beige-peau text-sm mb-2">Région</label>
                                 <select name="region"
                                     class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:outline-none focus:border-beige-peau">
                                     <option value="">Toutes</option>
@@ -101,7 +147,7 @@
 
                             <!-- Tri -->
                             <div>
-                                <label class="block text-ivoire-text/70 text-sm mb-2">Tri</label>
+                                <label class="block text-beige-peau text-sm mb-2">Tri</label>
                                 <select name="sort"
                                     class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:outline-none focus:border-beige-peau">
                                 </select>
@@ -122,11 +168,11 @@
     </section>
 
     <!-- Artistes mis en avant -->
-    <section class="bg-noir-profond py-12 px-4">
+    <section id="featured-section" class="bg-noir-profond py-12 px-4">
         <div class="container-custom px-4">
             <div class="max-w-6xl mx-auto">
                 <div class="text-center mb-8">
-                    <h2 class="text-3xl font-display font-bold text-ivoire-text mb-4">
+                    <h2 class="text-3xl font-display font-bold text-beige-peau mb-4">
                         Artistes mis en avant
                     </h2>
                     <p class="text-ivoire-text/70">
@@ -170,7 +216,7 @@
         <div class="container-custom px-4">
             <div class="max-w-6xl mx-auto">
                 <div class="flex justify-between items-center mb-8">
-                    <h2 class="text-2xl font-display font-bold text-ivoire-text">
+                    <h2 class="text-2xl font-display font-bold text-beige-peau">
                         <span id="results-count">-</span> artistes trouvés
                     </h2>
                     <div class="text-ivoire-text/70">
@@ -218,11 +264,37 @@
                         document.getElementById('advanced-filters').classList.toggle('hidden');
                     });
 
+                    // Recherche dynamique avec suggestions
+                    const searchInput = document.getElementById('search-input');
+                    const suggestionsContainer = document.getElementById('search-suggestions');
+                    let searchTimeout;
+
+                    searchInput.addEventListener('input', (e) => {
+                        clearTimeout(searchTimeout);
+                        const query = e.target.value.trim();
+
+                        if (query.length >= 2) {
+                            searchTimeout = setTimeout(() => {
+                                this.fetchSearchSuggestions(query);
+                            }, 300);
+                        } else {
+                            suggestionsContainer.classList.add('hidden');
+                        }
+                    });
+
+                    // Fermer les suggestions au clic extérieur
+                    document.addEventListener('click', (e) => {
+                        if (!suggestionsContainer.contains(e.target)) {
+                            suggestionsContainer.classList.add('hidden');
+                        }
+                    });
+
                     // Formulaire de recherche
                     document.getElementById('search-form').addEventListener('submit', (e) => {
                         e.preventDefault();
                         this.currentPage = 1;
                         this.performSearch();
+                        suggestionsContainer.classList.add('hidden');
                     });
 
                     // Changement de filtres
@@ -290,15 +362,54 @@
                     });
                 },
 
-                async loadFeaturedArtists() {
+                async fetchSearchSuggestions(query) {
                     try {
-                        const response = await fetch('/api/marketplace/featured?limit=6');
-                        const data = await response.json();
-
-                        this.renderArtists(data.data, 'featured-artists', 'artist-card-template');
+                        const response = await fetch(
+                            `/api/marketplace/suggestions?q=${encodeURIComponent(query)}`);
+                        const suggestions = await response.json();
+                        this.displaySearchSuggestions(suggestions);
                     } catch (error) {
-                        console.error('Erreur chargement featured:', error);
+                        console.error('Erreur suggestions:', error);
                     }
+                },
+
+                displaySearchSuggestions(suggestions) {
+                    const container = document.getElementById('search-suggestions');
+
+                    if (suggestions.length === 0) {
+                        container.classList.add('hidden');
+                        return;
+                    }
+
+                    const html = suggestions.map(suggestion => `
+                        <div class="px-4 py-3 hover:bg-titane/20 cursor-pointer transition-colors search-suggestion"
+                             onclick="marketplace.selectSuggestion('${suggestion.value}')">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-beige-peau/20 flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-noir-profond" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="font-semibold text-ivoire-text">${suggestion.label}</div>
+                                    <div class="text-xs text-ivoire-text/70">${suggestion.type}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    container.innerHTML = html;
+                    container.classList.remove('hidden');
+
+                    // Ajouter les écouteurs pour les suggestions
+                    container.querySelectorAll('.search-suggestion').forEach(item => {
+                        item.addEventListener('click', () => {
+                            const value = item.getAttribute('onclick').match(/'([^']+)'/)[1];
+                            document.getElementById('search-input').value = value;
+                            container.classList.add('hidden');
+                            this.performSearch();
+                        });
+                    });
                 },
 
                 async performSearch() {
@@ -321,306 +432,192 @@
                 },
 
                 getFormData() {
-                    const formData = new FormData(document.getElementById('search-form'));
+                    const form = document.getElementById('search-form');
                     const data = {};
 
-                    for (let [key, value] of formData.entries()) {
-                        if (value) {
-                            if (data[key]) {
-                                // Pour les selects multiples
-                                if (Array.isArray(data[key])) {
-                                    data[key].push(value);
-                                } else {
-                                    data[key] = [data[key], value];
-                                }
+                    // Parcourir tous les champs du formulaire, même cachés
+                    const allInputs = form.querySelectorAll('input, select, textarea');
+
+                    allInputs.forEach(input => {
+                        const name = input.name;
+                        if (!name) return;
+
+                        let value = input.value;
+
+                        // Gérer les checkboxes
+                        if (input.type === 'checkbox') {
+                            if (input.checked) {
+                                value = input.checked ? '1' : '';
                             } else {
-                                data[key] = value;
+                                return; // Skip unchecked checkboxes
                             }
                         }
-                    }
+
+                        // Gérer les selects multiples
+                        if (input.type === 'select-multiple') {
+                            const selectedOptions = Array.from(input.selectedOptions);
+                            value = selectedOptions.map(option => option.value);
+                        }
+
+                        // Pour artisan_type, toujours inclure la valeur (même vide pour "Tous")
+                        if (name === 'artisan_type') {
+                            data[name] = value;
+                        } else {
+                            // Pour les autres champs, ignorer les valeurs vides
+                            if (value) {
+                                if (data[name]) {
+                                    // Pour les selects multiples
+                                    if (Array.isArray(data[name])) {
+                                        data[name].push(value);
+                                    } else {
+                                        data[name] = [data[name], value];
+                                    }
+                                } else {
+                                    data[name] = value;
+                                }
+                            }
+                        }
+                    });
 
                     return data;
                 },
 
                 renderSearchResults(data) {
-                    // Afficher la section des résultats
+                    // Afficher la section des résultats et cacher featured
                     document.getElementById('search-results-section').classList.remove('hidden');
+                    document.getElementById('featured-section').classList.add('hidden');
 
+                    // Mettre à jour les compteurs
                     document.getElementById('results-count').textContent = data.pagination.total;
                     document.getElementById('current-page').textContent = data.pagination.current_page;
                     document.getElementById('total-pages').textContent = data.pagination.last_page;
 
-                    // Rendre tous les artistes ensemble (déjà triés par pertinence)
-                    this.renderArtists(data.data, 'all-artists', 'artist-card-template');
+                    // Générer le HTML pour les artistes
+                    const artistsHtml = data.data.map(artist => {
+                        return `
+                            <div class="bg-noir-profond rounded-[2rem] border border-titane/40 shadow-lg shadow-electric-blue/30 overflow-hidden hover:ring-2 hover:ring-beige-peau hover:shadow-cuivre/50 transition-all relative m-2 mb-4">
+                                <!-- Badges -->
+                                <div class="absolute top-2 left-2 space-y-1 z-10">
+                                    ${artist.is_subscribed ? '<span class="badge-pro">PRO</span>' : ''}
+                                    ${artist.is_verified ? '<span class="badge-verified">Vérifié</span>' : ''}
+                                </div>
 
-                    // Pagination
-                    this.renderPagination(data.pagination);
-                },
+                                <!-- Image de bannière -->
+                                <div class="h-64 md:h-80 bg-gradient-to-br from-titane/40 to-noir-profond relative overflow-hidden">
+                                    ${artist.avatar_url ?
+                                        `<img src="${artist.avatar_url}" alt="${artist.name}" class="w-full h-full object-cover">
+                                                                                         <div class="absolute inset-0 bg-gradient-to-t from-noir-profond/80 via-noir-profond/40 to-transparent"></div>` :
+                                        `<div class="absolute inset-0 bg-gradient-to-br from-beige-peau/20 via-titane/30 to-noir-profond"></div>
+                                                                                         <div class="absolute inset-0 bg-black/20"></div>`
+                                    }
+                                </div>
 
-                renderArtists(artists, containerId, templateId) {
-                    const container = document.getElementById(containerId);
-                    const template = document.getElementById(templateId);
+                                <!-- Avatar et Stats -->
+                                <div class="px-4 -mt-12 relative z-20">
+                                    <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+                                        <!-- Avatar -->
+                                        <div class="w-32 h-32 md:w-36 md:h-36 rounded-full border-2 border-titane/30 shadow-lg shadow-titane/20 overflow-hidden bg-titane/40 flex items-center justify-center flex-shrink-0">
+                                            ${artist.avatar_url ?
+                                                `<img src="${artist.avatar_url}" alt="${artist.name}" class="w-full h-full object-cover">` :
+                                                `<svg class="w-16 h-16 md:w-18 md:h-18 text-ivoire-text/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                                                                </svg>`
+                                            }
+                                        </div>
 
-                    if (!container || !template) return;
+                                        <!-- Stats compactes -->
+                                        <div class="flex-1 flex flex-wrap gap-2 text-xs text-ivoire-text/70">
+                                            <div class="flex items-center gap-1">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                </svg>
+                                                <span>${artist.wait_time_display || 'N/A'}</span>
+                                            </div>
+                                            <div class="flex items-center gap-1">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                </svg>
+                                                <span>${artist.minimum_price ? 'À partir de ' + artist.minimum_price + '€' : 'N/A'}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
 
-                    container.innerHTML = '';
+                                <div class="p-4 pt-2">
+                                    <!-- Header -->
+                                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
+                                        <div class="text-center sm:text-left">
+                                            <h3 class="text-beige-peau font-semibold text-lg mb-1">
+                                                ${artist.name}
+                                            </h3>
+                                            <p class="text-ivoire-text text-sm mb-1">
+                                                ${artist.specialization_label}
+                                            </p>
+                                            <p class="text-titane text-sm">
+                                                ${artist.city}
+                                            </p>
+                                        </div>
+                                        <div class="text-center sm:text-right">
+                                            <div class="flex items-center justify-center sm:justify-end gap-1 text-beige-peau text-sm mb-1">
+                                                ⭐ ${Number(artist.rating).toFixed(1)}
+                                            </div>
+                                            <div class="text-ivoire-text/60 text-xs">
+                                                ${artist.reviews_count} avis
+                                            </div>
+                                        </div>
+                                    </div>
 
-                    artists.forEach(artist => {
-                        const card = this.createArtistCard(artist, template);
-                        container.appendChild(card);
-                    });
-                },
+                                    <!-- Styles -->
+                                    <div class="flex flex-wrap justify-center gap-3 mb-3">
+                                        ${artist.styles.map(style =>
+                                            `<span class="badge-style text-xs bg-beige-peau/10 text-beige-peau px-2 py-1 rounded-full">${style}</span>`
+                                        ).join('')}
+                                    </div>
 
-                createArtistCard(artist, template) {
-                    const card = template.content.cloneNode(true);
+                                    <!-- Bio -->
+                                    ${artist.bio ?
+                                        `<div class="text-ivoire-text text-sm mb-3 line-clamp-2">
+                                                                                            ${artist.bio.length > 100 ? artist.bio.substring(0, 100) + '...' : artist.bio}
+                                                                                        </div>` : ''
+                                    }
 
-                    // Image
-                    const image = card.querySelector('.artist-image');
-                    image.src = artist.avatar_url;
-                    image.alt = artist.name
-
-                    // Infos de base
-                    card.querySelector('.artist-name').textContent = artist.name;
-                    card.querySelector('.artist-specialization').textContent = artist.specialization_label;
-                    card.querySelector('.artist-rating').textContent = artist.rating;
-                    card.querySelector('.artist-reviews').textContent = `(${artist.reviews_count} avis)`;
-                    card.querySelector('.artist-location').textContent =
-                        (artist.region_label || artist.city) + (artist.postal_code ? ` ${artist.postal_code}` :
-                            '');
-
-                    // Styles
-                    const stylesContainer = card.querySelector('.artist-styles');
-                    artist.styles.slice(0, 3).forEach(style => {
-                        const badge = document.createElement('span');
-                        badge.className = 'px-2 py-1 bg-titane/20 text-ivoire-text/80 text-xs rounded';
-                        badge.textContent = style;
-                        stylesContainer.appendChild(badge);
-                    });
-
-                    // Stats complètes
-                    card.querySelector('.artist-experience').textContent =
-                        `${artist.stats.years_experience} ans d'exp`;
-
-                    // Prix minimum
-                    const priceElement = card.querySelector('.artist-price');
-                    if (artist.minimum_price) {
-                        priceElement.textContent = `À partir de ${artist.minimum_price}€`;
-                    } else {
-                        priceElement.textContent = '';
-                    }
-
-                    // Délai d'attente
-                    const waitTimeElement = card.querySelector('.artist-wait-time');
-                    if (artist.wait_time_weeks_min) {
-                        if (artist.wait_time_weeks_max) {
-                            waitTimeElement.textContent =
-                                `${artist.wait_time_weeks_min} à ${artist.wait_time_weeks_max} semaines`;
-                        } else {
-                            waitTimeElement.textContent =
-                                `${artist.wait_time_weeks_min} semaine${artist.wait_time_weeks_min > 1 ? 's' : ''}`;
-                        }
-                    } else {
-                        waitTimeElement.textContent = '';
-                    }
-
-                    // Horaires d'ouverture
-                    const openingHoursElement = card.querySelector('.artist-opening-hours');
-
-                    if (artist.working_hours) {
-                        try {
-                            // Les horaires sont stockés en JSON dans le champ working_hours de la table tattooer
-                            const workingHoursData = typeof artist.working_hours === 'string' ?
-                                JSON.parse(artist.working_hours) :
-                                artist.working_hours;
-
-                            // Jours de la semaine en français (clés du JSON)
-                            const daysOfWeek = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi',
-                                'samedi'
-                            ];
-                            const today = daysOfWeek[new Date().getDay()];
-                            const todayData = workingHoursData[today];
-
-                            if (todayData && todayData.open && todayData.close) {
-                                // Vérifier si actuellement ouvert
-                                const now = new Date();
-                                const currentTime =
-                                    `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-                                const isOpenNow = currentTime >= todayData.open && currentTime <= todayData
-                                    .close;
-
-                                openingHoursElement.textContent = isOpenNow ? '🟢 Ouvert actuellement' :
-                                    '🕐 Horaires disponibles';
-                            } else if (todayData && (todayData.open === null || todayData.close === null)) {
-                                // L'artiste a des horaires mais pas pour aujourd'hui (valeurs null = fermé)
-                                openingHoursElement.textContent = '🔴 Fermé actuellement';
-                            } else {
-                                openingHoursElement.textContent = '🕐 Horaires disponibles';
-                            }
-
-                            // Jours d'ouverture
-                            const openDaysElement = card.querySelector('.artist-open-days');
-                            const openDays = [];
-
-                            daysOfWeek.forEach(day => {
-                                const dayData = workingHoursData[day];
-                                if (dayData && dayData.open && dayData.close) {
-                                    openDays.push(day.charAt(0).toUpperCase() + day.slice(1));
-                                }
-                            });
-
-                            if (openDays.length > 0) {
-                                openDaysElement.textContent = `Ouvert : ${openDays.join(', ')}`;
-                            } else {
-                                openDaysElement.textContent = 'Non spécifié';
-                            }
-
-                        } catch (error) {
-                            openingHoursElement.textContent = '🕐 Horaires disponibles';
-                        }
-                    } else {
-                        openingHoursElement.textContent = '';
-                    }
-
-                    // Badges (uniquement vérifié et top notes, pas de badge Pro/Free)
-                    const badgesContainer = card.querySelector('.absolute.top-2.left-2');
-                    artist.badges.forEach(badge => {
-                        if (badge.type === 'verified' || badge.type === 'top_rated') {
-                            const badgeElement = document.createElement('div');
-                            badgeElement.className =
-                                `bg-${badge.color}/10 text-${badge.color} px-2 py-1 rounded text-xs font-semibold`;
-                            badgeElement.textContent = badge.label;
-                            badgesContainer.appendChild(badgeElement);
-                        }
-                    });
-
-                    // Lien profil
-                    const profileLink = card.querySelector('.artist-profile-link');
-                    profileLink.href = artist.profile_url;
-
-                    // Bouton Contacter dynamique
-                    const contactContainer = card.querySelector('.artist-contact-container');
-
-                    if (artist.has_active_request) {
-                        // Badge "Demande en cours"
-                        contactContainer.innerHTML = `
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-beige-peau/20 text-beige-peau rounded-lg text-sm font-semibold w-full justify-center">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                                Demande en cours
-                            </span>
+                                    <!-- CTA -->
+                                    <div class="flex flex-col sm:flex-row gap-2">
+                                        <a href="${artist.profile_url}" class="flex-1 px-4 py-2 bg-noir-profond text-beige-peau border border-beige-peau/30 text-beige-peau font-semibold rounded-lg hover:bg-noir-profond/80 transition-colors text-center">
+                                            Voir le profil
+                                        </a>
+                                        <a href="${artist.contact_url}" class="flex-1 px-4 py-2 bg-beige-peau hover:bg-beige-peau/90 text-noir-profond font-semibold rounded-lg transition-colors text-center">
+                                            Contacter
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                         `;
-                    } else if (artist.contact_url) {
-                        // Bouton "Prendre RDV"
-                        contactContainer.innerHTML = `
-                            <?php if (isset($component)) { $__componentOriginala8bb031a483a05f647cb99ed3a469847 = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginala8bb031a483a05f647cb99ed3a469847 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.ui.button','data' => ['variant' => 'primary','size' => 'sm','href' => '${artist.contact_url}','class' => 'flex-1']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('ui.button'); ?>
-<?php if ($component->shouldRender()): ?>
-<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
-<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
-<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
-<?php endif; ?>
-<?php $component->withAttributes(['variant' => 'primary','size' => 'sm','href' => '${artist.contact_url}','class' => 'flex-1']); ?>
-                                Prendre RDV
-                             <?php echo $__env->renderComponent(); ?>
-<?php endif; ?>
-<?php if (isset($__attributesOriginala8bb031a483a05f647cb99ed3a469847)): ?>
-<?php $attributes = $__attributesOriginala8bb031a483a05f647cb99ed3a469847; ?>
-<?php unset($__attributesOriginala8bb031a483a05f647cb99ed3a469847); ?>
-<?php endif; ?>
-<?php if (isset($__componentOriginala8bb031a483a05f647cb99ed3a469847)): ?>
-<?php $component = $__componentOriginala8bb031a483a05f647cb99ed3a469847; ?>
-<?php unset($__componentOriginala8bb031a483a05f647cb99ed3a469847); ?>
-<?php endif; ?>
-                        `;
-                    } else {
-                        // Pas de bouton (non connecté ou autre)
-                        contactContainer.innerHTML = `
-                            <?php if (isset($component)) { $__componentOriginala8bb031a483a05f647cb99ed3a469847 = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginala8bb031a483a05f647cb99ed3a469847 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.ui.button','data' => ['variant' => 'secondary','size' => 'sm','href' => '/login','class' => 'flex-1']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('ui.button'); ?>
-<?php if ($component->shouldRender()): ?>
-<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
-<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
-<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
-<?php endif; ?>
-<?php $component->withAttributes(['variant' => 'secondary','size' => 'sm','href' => '/login','class' => 'flex-1']); ?>
-                                Se connecter
-                             <?php echo $__env->renderComponent(); ?>
-<?php endif; ?>
-<?php if (isset($__attributesOriginala8bb031a483a05f647cb99ed3a469847)): ?>
-<?php $attributes = $__attributesOriginala8bb031a483a05f647cb99ed3a469847; ?>
-<?php unset($__attributesOriginala8bb031a483a05f647cb99ed3a469847); ?>
-<?php endif; ?>
-<?php if (isset($__componentOriginala8bb031a483a05f647cb99ed3a469847)): ?>
-<?php $component = $__componentOriginala8bb031a483a05f647cb99ed3a469847; ?>
-<?php unset($__componentOriginala8bb031a483a05f647cb99ed3a469847); ?>
-<?php endif; ?>
-                        `;
-                    }
+                    }).join('');
 
-                    return card;
+                    // Insérer le HTML dans le conteneur
+                    document.getElementById('all-artists').innerHTML = artistsHtml;
+
+                    // Pagination (à implémenter si nécessaire)
+                    document.getElementById('pagination').innerHTML = '';
                 },
 
-                renderPagination(pagination) {
-                    const container = document.getElementById('pagination');
-                    container.innerHTML = '';
-
-                    if (pagination.last_page <= 1) return;
-
-                    const paginationDiv = document.createElement('div');
-                    paginationDiv.className = 'flex gap-2';
-
-                    // Bouton précédent
-                    if (pagination.current_page > 1) {
-                        const prevBtn = this.createPaginationButton(pagination.current_page - 1, 'Précédent');
-                        paginationDiv.appendChild(prevBtn);
-                    }
-
-                    // Pages
-                    const startPage = Math.max(1, pagination.current_page - 2);
-                    const endPage = Math.min(pagination.last_page, pagination.current_page + 2);
-
-                    for (let i = startPage; i <= endPage; i++) {
-                        const btn = this.createPaginationButton(i, i.toString(), i === pagination.current_page);
-                        paginationDiv.appendChild(btn);
-                    }
-
-                    // Bouton suivant
-                    if (pagination.current_page < pagination.last_page) {
-                        const nextBtn = this.createPaginationButton(pagination.current_page + 1, 'Suivant');
-                        paginationDiv.appendChild(nextBtn);
-                    }
-
-                    container.appendChild(paginationDiv);
+                goToPage(page) {
+                    this.currentPage = page;
+                    this.performSearch();
                 },
 
-                createPaginationButton(page, text, isActive = false) {
-                    const button = document.createElement('button');
-                    button.textContent = text;
-                    button.className = isActive ?
-                        'px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold' :
-                        'px-4 py-2 bg-noir-profond text-ivoire-text border border-titane/30 rounded-lg hover:bg-noir-profond/80';
-
-                    if (!isActive) {
-                        button.addEventListener('click', () => {
-                            this.currentPage = page;
-                            this.performSearch();
-                            window.scrollTo({
-                                top: 0,
-                                behavior: 'smooth'
-                            });
-                        });
-                    }
-
-                    return button;
+                // Initialisation
+                init() {
+                    this.loadStats();
+                    this.loadFilters();
+                    // Les artistes en vedette sont déjà chargés par PHP
+                    this.setupEventListeners();
+                    // Ne pas lancer de recherche automatiquement au chargement
                 }
             };
 
-            // Initialiser
+            // Démarrer le marketplace
             marketplace.init();
         });
     </script>

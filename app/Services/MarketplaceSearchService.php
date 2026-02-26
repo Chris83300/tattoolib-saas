@@ -8,53 +8,89 @@ use App\Models\StudioArtist;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class MarketplaceSearchService
 {
     protected array $specializations = ['tattooer', 'Piercer', 'bodemodeur'];
-    protected array $styles = ['japonais', 'realisme', 'traditionnel', 'geometrique', 'aquarelle', 'dotwork', 'blackwork', 'lettering', 'new_school', 'old_school'];
-    protected array $regions = ['ile-de-france', 'provence-alpes-cote-dazur', 'auvergne-rhone-alpes', 'occitanie', 'hauts-de-france', 'grand-est', 'bretagne', 'normandie', 'pays-de-la-loire', 'centre-val-de-loire', 'bourgogne-franche-comte', 'nouvelle-aquitaine', 'poitou-charentes', 'corse'];
+    protected array $styles = [
+        'aquarelle',
+        'blackwork',
+        'dotwork',
+        'geometrique',
+        'japonais',
+        'lettering',
+        'new_school',
+        'old_school',
+        'realisme',
+        'traditionnel'
+    ];
+    protected array $regions = [
+        'auvergne-rhone-alpes',
+        'bourgogne-franche-comte',
+        'bretagne',
+        'centre-val-de-loire',
+        'corse',
+        'grand-est',
+        'hauts-de-france',
+        'ile-de-france',
+        'normandie',
+        'nouvelle-aquitaine',
+        'occitanie',
+        'pays-de-la-loire',
+        'poitou-charentes',
+        'provence-alpes-cote-dazur'
+    ];
 
     public function search(array $filters = [], int $perPage = 12): LengthAwarePaginator
     {
-        $artistType = $filters['artist_type'] ?? $filters['artisan_type'] ?? '';
+        $artistType = $filters['artisan_type'] ?? $filters['artist_type'] ?? '';
 
-        if ($artistType === 'piercer') {
-            $query = $this->getPiercerBaseQuery();
-            $this->applyFilters($query, $filters);
-            $this->applySorting($query, $filters['sort'] ?? 'pro_first');
-            return $query->paginate($perPage);
-        } elseif ($artistType === 'tattooer') {
-            $query = $this->getBaseQuery();
-            $this->applyFilters($query, $filters);
-            $this->applySorting($query, $filters['sort'] ?? 'pro_first');
-            return $query->paginate($perPage);
+        try {
+            if ($artistType === 'piercer') {
+                Log::info('Using piercer branch');
+                $query = $this->getPiercerBaseQuery();
+                $this->applyFilters($query, $filters);
+                $this->applySorting($query, $filters['sort'] ?? 'pro_first');
+                return $query->paginate($perPage);
+            } elseif ($artistType === 'tattooer') {
+                Log::info('Using tattooer branch');
+                $query = $this->getBaseQuery();
+                $this->applyFilters($query, $filters);
+                $this->applySorting($query, $filters['sort'] ?? 'pro_first');
+                return $query->paginate($perPage);
+            }
+
+            Log::info('Using mixed branch (no type filter)');
+            // Sans filtre de type : merger tattooers + piercers en mémoire
+            $tattooerQuery = $this->getBaseQuery();
+            $piercerQuery  = $this->getPiercerBaseQuery();
+            $this->applyFilters($tattooerQuery, $filters);
+            $this->applyFilters($piercerQuery, $filters);
+
+            $tattooers = $tattooerQuery->get();
+            $piercers  = $piercerQuery->get();
+
+            $all = $tattooers->concat($piercers)
+                ->sortByDesc('siret_verified')
+                ->sortByDesc('rating')
+                ->values();
+
+            $page  = max(1, (int) request()->get('page', 1));
+            $total = $all->count();
+
+            return new LengthAwarePaginator(
+                $all->forPage($page, $perPage)->values(),
+                $total,
+                $perPage,
+                $page,
+                ['path' => request()->url()]
+            );
+        } catch (\Exception $e) {
+            Log::error('Search error: ' . $e->getMessage());
+            Log::error('Search trace: ' . $e->getTraceAsString());
+            throw $e;
         }
-
-        // Sans filtre de type : merger tattooers + piercers en mémoire
-        $tattooerQuery = $this->getBaseQuery();
-        $piercerQuery  = $this->getPiercerBaseQuery();
-        $this->applyFilters($tattooerQuery, $filters);
-        $this->applyFilters($piercerQuery, $filters);
-
-        $tattooers = $tattooerQuery->get();
-        $piercers  = $piercerQuery->get();
-
-        $all = $tattooers->concat($piercers)
-            ->sortByDesc('siret_verified')
-            ->sortByDesc('rating')
-            ->values();
-
-        $page  = max(1, (int) request()->get('page', 1));
-        $total = $all->count();
-
-        return new LengthAwarePaginator(
-            $all->forPage($page, $perPage)->values(),
-            $total,
-            $perPage,
-            $page,
-            ['path' => request()->url()]
-        );
     }
 
     public function getFeaturedArtists(int $limit = 6): Collection
@@ -179,9 +215,24 @@ class MarketplaceSearchService
 
     protected function applyFilters($query, array $filters)
     {
-        // Filtre par spécialisation (type d'artiste)
-        if (!empty($filters['specialization'])) {
-            $query->where('artist_type', $filters['specialization']);
+        // Filtre par type d'artiste (artisan_type ou specialization)
+        // NE PAS filtrer artist_type ici car c'est déjà dans la requête de base
+        $artistType = $filters['artisan_type'] ?? $filters['specialization'] ?? null;
+        if (!empty($artistType) && !in_array($artistType, ['tattooer', 'piercer'])) {
+            // Pour le filtrage par type, utiliser les requêtes de base spécifiques
+            // Le filtrage par type est géré dans la méthode search()
+            return;
+        }
+
+        // Filtre par recherche textuelle (pseudo, nom, studio, ville)
+        if (!empty($filters['search'])) {
+            $searchTerm = $filters['search'];
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('pseudo', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('name', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('studio_name', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('city', 'LIKE', "%{$searchTerm}%");
+            });
         }
 
         // Filtre par styles (pas implémenté pour l'instant)

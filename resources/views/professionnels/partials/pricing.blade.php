@@ -3,19 +3,19 @@
     <div class="container-custom px-4">
         <div class="max-w-6xl mx-auto">
             <div class="text-center mb-16">
-                <h2 class="text-4xl md:text-5xl font-display font-bold text-ivoire-text mb-6">
-                    Formules & Tarifs
+                <h2 class="text-4xl md:text-5xl font-Satoshi font-bold text-beige-peau mb-6">
+                    <span class="text-titane">Formules</span> & Tarifs
                 </h2>
                 <p class="text-xl text-ivoire-text/70 max-w-3xl mx-auto">
                     Des tarifs transparents, sans engagement ni pression commerciale
                 </p>
             </div>
 
-            <div class="grid md:grid-cols-3 gap-8 mb-12">
+            <div class="grid md:grid-cols-3gap-8 mb-12">
                 <!-- Formule Free -->
-                <div class="bg-gris-fonde rounded-2xl overflow-hidden hover:shadow-xl transition-shadow">
+                <div class="bg-gris-fonde rounded-2xl btn-shadow mb-10 overflow-hidden hover:shadow-xl transition-shadow">
                     <div class="p-8">
-                        <h3 class="text-2xl font-bold text-ivoire-text mb-2">Free</h3>
+                        <h3 class="text-2xl font-bold text-beige-peau mb-2">Free</h3>
                         <p class="text-ivoire-text/70 mb-6">Idéal pour découvrir</p>
                         <div class="mb-8">
                             <span class="text-4xl font-bold text-beige-peau">0€</span>
@@ -49,7 +49,7 @@
                                         d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
                                         clip-rule="evenodd"></path>
                                 </svg>
-                                <span>Planning de base</span>
+                                <span>Planning intéligent</span>
                             </li>
                             <li class="flex items-center text-ivoire-text/80">
                                 <svg class="w-5 h-5 text-titane mr-3 flex-shrink-0" fill="currentColor"
@@ -78,26 +78,26 @@
                 </div>
 
                 <!-- Formule Pro -->
-                <div class="bg-titane text-noir-profond rounded-2xl overflow-hidden transform scale-105 shadow-xl">
-                    <div class="bg-noir-profond text-cuivre text-sm font-semibold text-center py-2">
+                <div class="bg-cuivre/90 btn-shadow border border-cuivre/10 shadow-lg shadow-cuivre text-noir-profond mb-10 rounded-2xl overflow-hidden transform scale-105">
+                    <div class="bg-noir-profond text-cuivre text-lg font-bold text-center py-2">
                         LE PLUS CHOISI
                     </div>
                     <div class="p-8">
-                        <h3 class="text-2xl font-bold mb-2">Pro</h3>
-                        <p class="noir-profond/70 mb-6">Pour les professionnels établis</p>
-                        <div class="mb-8">
-                            <span class="text-4xl font-bold">49,99€</span>
-                            <span class="noir-profond/70">/mois</span>
+                        <h3 class="text-4xl text-ivoire-text text-center font-bold mb-2">Pro</h3>
+                        <p class="noir-profond text-center font-semibold mb-6">Pour les professionnels établis</p>
+                        <div class="mb-8 text-center">
+                            <span class="text-4xl text-ivoire-text font-bold">49,99€</span>
+                            <span class="text-titane">/mois</span>
                         </div>
 
-                        <div class="bg-noir-profond/10 rounded-lg p-3 mb-6 text-center">
+                        <div class="bg-ivoire-text/20 rounded-lg p-3 border border-beige-peau/40 mb-6 text-center">
                             <div class="font-bold">0% de commission</div>
                             <div class="noir-profond/60 text-sm">sur toutes les transactions</div>
                         </div>
 
-                        <ul class="space-y-4 mb-8">
+                        <ul class="space-y-4 mb-8 font-semibold">
                             <li class="flex items-center">
-                                <svg class="w-5 h-5 text-noir-profond mr-3 flex-shrink-0" fill="currentColor"
+                                <svg class="w-5 h-5 text-vert-succes mr-3 flex-shrink-0" fill="currentColor"
                                     viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -106,7 +106,7 @@
                                 <span>Tout inclus Free</span>
                             </li>
                             <li class="flex items-center">
-                                <svg class="w-5 h-5 text-noir-profond mr-3 flex-shrink-0" fill="currentColor"
+                                <svg class="w-5 h-5 text-vert-succes mr-3 flex-shrink-0" fill="currentColor"
                                     viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -115,7 +115,7 @@
                                 <span>Portfolio illimité</span>
                             </li>
                             <li class="flex items-center">
-                                <svg class="w-5 h-5 text-noir-profond mr-3 flex-shrink-0" fill="currentColor"
+                                <svg class="w-5 h-5 text-vert-succes mr-3 flex-shrink-0" fill="currentColor"
                                     viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -124,7 +124,7 @@
                                 <span>Traçabilité complète</span>
                             </li>
                             <li class="flex items-center">
-                                <svg class="w-5 h-5 text-noir-profond mr-3 flex-shrink-0" fill="currentColor"
+                                <svg class="w-5 h-5 text-vert-succes mr-3 flex-shrink-0" fill="currentColor"
                                     viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -133,7 +133,7 @@
                                 <span>Suivi client avancé</span>
                             </li>
                             <li class="flex items-center">
-                                <svg class="w-5 h-5 text-noir-profond mr-3 flex-shrink-0" fill="currentColor"
+                                <svg class="w-5 h-5 text-vert-succes mr-3 flex-shrink-0" fill="currentColor"
                                     viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -142,7 +142,7 @@
                                 <span>Historique et images conservés</span>
                             </li>
                             <li class="flex items-center">
-                                <svg class="w-5 h-5 text-noir-profond mr-3 flex-shrink-0" fill="currentColor"
+                                <svg class="w-5 h-5 text-vert-succes mr-3 flex-shrink-0" fill="currentColor"
                                     viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -151,7 +151,7 @@
                                 <span>Statistiques détaillées</span>
                             </li>
                             <li class="flex items-center">
-                                <svg class="w-5 h-5 text-noir-profond mr-3 flex-shrink-0" fill="currentColor"
+                                <svg class="w-5 h-5 text-vert-succes mr-3 flex-shrink-0" fill="currentColor"
                                     viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -160,7 +160,7 @@
                                 <span>Gestion de stock</span>
                             </li>
                             <li class="flex items-center">
-                                <svg class="w-5 h-5 text-noir-profond mr-3 flex-shrink-0" fill="currentColor"
+                                <svg class="w-5 h-5 text-vert-succes mr-3 flex-shrink-0" fill="currentColor"
                                     viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -170,101 +170,100 @@
                             </li>
                         </ul>
 
-                        <x-ui.button variant="primary" size="lg" href="/register/tattooer"
-                            class="w-full bg-cuivre text-noir-profond hover:bg-cuivre/90">
+                        <x-ui.button variant="primary" size="lg" href="/register/tattooer" class="w-full">
                             Choisir Pro
                         </x-ui.button>
                     </div>
                 </div>
 
                 <!-- Formule Studio -->
-                <div class="bg-gris-fonde rounded-2xl overflow-hidden hover:shadow-xl transition-shadow">
+                <div class="bg-gris-fonde rounded-2xl btn-shadow overflow-hidden hover:shadow-xl transition-shadow">
                     <div class="p-8">
-                        <h3 class="text-2xl font-bold text-ivoire-text mb-2">Studio</h3>
-                        <p class="text-ivoire-text/70 mb-6">Pour les équipes et studios</p>
-                        <div class="mb-8">
+                        <h3 class="text-4xl font-bold text-beige-peau text-center mb-2">Studio</h3>
+                        <p class="text-ivoire-text/70 mb-6 text-center">Pour les équipes et studios</p>
+                        <div class="mb-8 text-center">
                             <span class="text-4xl font-bold text-beige-peau">79,99€</span>
-                            <span class="text-ivoire-text/70">/mois</span>
-                            <div class="text-ivoire-text/60 text-sm mt-1">1 artiste inclus</div>
+                            <span class="text-titane">/mois</span>
+                            <div class="text-beige-peau text-sm mt-1">1 artiste inclus</div>
                             <div class="text-ivoire-text/80 text-sm">+ 39,99€ par artiste supplémentaire</div>
                         </div>
 
                         <ul class="space-y-4 mb-8">
                             <li class="flex items-center text-ivoire-text/80">
-                                <svg class="w-5 h-5 text-beige-peau mr-3 flex-shrink-0" fill="currentColor"
+                                <svg class="w-5 h-5 text-vert-succes mr-3 flex-shrink-0" fill="currentColor"
                                     viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
                                         clip-rule="evenodd"></path>
                                 </svg>
-                                <span>Tout inclus Pro</span>
+                                <span class="text-ivoire-text">Tout inclus Pro</span>
                             </li>
                             <li class="flex items-center text-ivoire-text/80">
-                                <svg class="w-5 h-5 text-beige-peau mr-3 flex-shrink-0" fill="currentColor"
+                                <svg class="w-5 h-5 text-vert-succes mr-3 flex-shrink-0" fill="currentColor"
                                     viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
                                         clip-rule="evenodd"></path>
                                 </svg>
-                                <span>Multi-planning</span>
+                                <span class="text-ivoire-text">Multi-planning</span>
                             </li>
                             <li class="flex items-center text-ivoire-text/80">
-                                <svg class="w-5 h-5 text-beige-peau mr-3 flex-shrink-0" fill="currentColor"
+                                <svg class="w-5 h-5 text-vert-succes mr-3 flex-shrink-0" fill="currentColor"
                                     viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
                                         clip-rule="evenodd"></path>
                                 </svg>
-                                <span>Statistiques par artiste</span>
+                                <span class="text-ivoire-text">Statistiques par artiste</span>
                             </li>
                             <li class="flex items-center text-ivoire-text/80">
-                                <svg class="w-5 h-5 text-beige-peau mr-3 flex-shrink-0" fill="currentColor"
+                                <svg class="w-5 h-5 text-vert-succes mr-3 flex-shrink-0" fill="currentColor"
                                     viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
                                         clip-rule="evenodd"></path>
                                 </svg>
-                                <span>Vision globale direction</span>
+                                <span class="text-ivoire-text">Vision globale direction</span>
                             </li>
                             <li class="flex items-center text-ivoire-text/80">
-                                <svg class="w-5 h-5 text-beige-peau mr-3 flex-shrink-0" fill="currentColor"
+                                <svg class="w-5 h-5 text-vert-succes mr-3 flex-shrink-0" fill="currentColor"
                                     viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
                                         clip-rule="evenodd"></path>
                                 </svg>
-                                <span>Organisation interne</span>
+                                <span class="text-ivoire-text">Organisation interne</span>
                             </li>
                             <li class="flex items-center text-ivoire-text/80">
-                                <svg class="w-5 h-5 text-beige-peau mr-3 flex-shrink-0" fill="currentColor"
+                                <svg class="w-5 h-5 text-vert-succes mr-3 flex-shrink-0" fill="currentColor"
                                     viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
                                         clip-rule="evenodd"></path>
                                 </svg>
-                                <span>Formation équipe</span>
+                                <span class="text-ivoire-text">Formation équipe</span>
                             </li>
                             <li class="flex items-center text-ivoire-text/80">
-                                <svg class="w-5 h-5 text-beige-peau mr-3 flex-shrink-0" fill="currentColor"
+                                <svg class="w-5 h-5 text-vert-succes mr-3 flex-shrink-0" fill="currentColor"
                                     viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
                                         clip-rule="evenodd"></path>
                                 </svg>
-                                <span>Et d'autres fonctionnalités avancées</span>
+                                <span class="text-ivoire-text">Et d'autres fonctionnalités avancées</span>
                             </li>
                         </ul>
 
-                        <x-ui.button variant="secondary" size="lg" href="/contact" class="w-full">
-                            Nous contacter
+                        <x-ui.button variant="secondary" size="lg" href="/register/studio" class="w-full">
+                            S'inscrire
                         </x-ui.button>
                     </div>
                 </div>
             </div>
 
             <!-- Tableau comparatif simplifié -->
-            <div class="bg-gris-fonde rounded-xl p-8">
-                <h3 class="text-2xl font-bold text-ivoire-text mb-6 text-center">Comparatif rapide</h3>
+            <div class="bg-gris-fonde rounded-xl btn-shadow p-8">
+                <h3 class="text-2xl font-bold text-beige-peau mb-6 text-center">Comparatif rapide</h3>
                 <div class="overflow-x-auto">
                     <table class="w-full">
                         <thead>

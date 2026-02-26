@@ -1,9 +1,9 @@
-<div x-data="{ showPrompt: false, deferredPrompt: null }" 
+<div x-data="{ showPrompt: false, deferredPrompt: null }"
      x-init="
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            
+
             // Ne montrer que si pas déjà installé et après 30 secondes
             setTimeout(() => {
                 if (!localStorage.getItem('pwa-installed') && !localStorage.getItem('pwa-dismissed')) {
@@ -11,7 +11,7 @@
                 }
             }, 30000);
         });
-        
+
         window.addEventListener('appinstalled', () => {
             localStorage.setItem('pwa-installed', 'true');
             showPrompt = false;
@@ -19,40 +19,71 @@
      "
      x-show="showPrompt && !localStorage.getItem('pwa-installed')"
      x-cloak
-     class="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-80 bg-gris-fonde border border-titane/20 rounded-lg shadow-lg z-40 p-4"
+     class="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-80 bg-gris-fonde border border-cuivre/20 rounded-xl shadow-lg shadow-cuivre/20 z-40 p-4"
      x-transition:enter="transition ease-out duration-300"
      x-transition:enter-start="opacity-0 translate-y-4"
      x-transition:enter-end="opacity-100 translate-y-0"
      x-transition:leave="transition ease-in duration-200"
      x-transition:leave-start="opacity-100 translate-y-0"
      x-transition:leave-end="opacity-0 translate-y-4">
-    
+
     <div class="flex items-start gap-3">
         <!-- Icon -->
-        <div class="w-12 h-12 bg-beige-peau/10 rounded-lg flex items-center justify-center flex-shrink-0">
-            <svg class="w-6 h-6 text-beige-peau" viewBox="0 0 32 32" fill="currentColor">
-                <path d="M8 4C8 4 8 8 12 8C16 8 16 4 16 4C16 4 16 8 20 8C24 8 24 4 24 4L24 12C24 16 20 20 16 20C12 20 8 16 8 12Z"/>
-                <circle cx="16" cy="24" r="2" fill="currentColor"/>
-            </svg>
+        <div class="flex items-center justify-center flex-shrink-0">
+            <img src="<?php echo e(asset('images/logo.png')); ?>" alt="Ink&Pik" class="w-10 h-10">
         </div>
-        
+
         <!-- Content -->
         <div class="flex-1">
-            <h3 class="text-ivoire-text font-semibold mb-1">Installez Ink&Pik</h3>
-            <p class="text-ivoire-text/70 text-sm mb-3">
+            <h3 class="text-beige-peau font-semibold mb-1">Installez Ink&Pik</h3>
+            <p class="text-ivoire-text/90 text-sm mb-3">
                 Accédez à l'application en un clic, même hors ligne
             </p>
-            
+
             <!-- Actions -->
             <div class="flex gap-2">
-                <button @click="deferredPrompt.prompt(); deferredPrompt.userChoice.then((choiceResult) => { showPrompt = false; });" 
-                        class="flex-1 bg-beige-peau hover:bg-beige-peau/90 text-noir-profond font-semibold py-2 px-4 rounded transition-colors text-sm">
+                <?php if (isset($component)) { $__componentOriginala8bb031a483a05f647cb99ed3a469847 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginala8bb031a483a05f647cb99ed3a469847 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.ui.button','data' => ['variant' => 'primary','size' => 'md','class' => 'w-1/2','@click' => 'deferredPrompt.prompt(); deferredPrompt.userChoice.then((choiceResult) => { showPrompt = false; });']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('ui.button'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['variant' => 'primary','size' => 'md','class' => 'w-1/2','@click' => 'deferredPrompt.prompt(); deferredPrompt.userChoice.then((choiceResult) => { showPrompt = false; });']); ?>
                     Installer
-                </button>
-                <button @click="showPrompt = false; localStorage.setItem('pwa-dismissed', 'true');" 
-                        class="text-ivoire-text/50 hover:text-ivoire-text py-2 px-3 text-sm transition-colors">
+                 <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginala8bb031a483a05f647cb99ed3a469847)): ?>
+<?php $attributes = $__attributesOriginala8bb031a483a05f647cb99ed3a469847; ?>
+<?php unset($__attributesOriginala8bb031a483a05f647cb99ed3a469847); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginala8bb031a483a05f647cb99ed3a469847)): ?>
+<?php $component = $__componentOriginala8bb031a483a05f647cb99ed3a469847; ?>
+<?php unset($__componentOriginala8bb031a483a05f647cb99ed3a469847); ?>
+<?php endif; ?>
+                <?php if (isset($component)) { $__componentOriginala8bb031a483a05f647cb99ed3a469847 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginala8bb031a483a05f647cb99ed3a469847 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.ui.button','data' => ['variant' => 'secondary','size' => 'md','@click' => 'showPrompt = false; localStorage.setItem(\'pwa-dismissed\', \'true\');']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('ui.button'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['variant' => 'secondary','size' => 'md','@click' => 'showPrompt = false; localStorage.setItem(\'pwa-dismissed\', \'true\');']); ?>
                     Plus tard
-                </button>
+                 <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginala8bb031a483a05f647cb99ed3a469847)): ?>
+<?php $attributes = $__attributesOriginala8bb031a483a05f647cb99ed3a469847; ?>
+<?php unset($__attributesOriginala8bb031a483a05f647cb99ed3a469847); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginala8bb031a483a05f647cb99ed3a469847)): ?>
+<?php $component = $__componentOriginala8bb031a483a05f647cb99ed3a469847; ?>
+<?php unset($__componentOriginala8bb031a483a05f647cb99ed3a469847); ?>
+<?php endif; ?>
             </div>
         </div>
     </div>

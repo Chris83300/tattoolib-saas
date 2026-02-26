@@ -44,6 +44,7 @@ Route::prefix('tattooers')->group(function () {
 // Routes publiques Marketplace
 Route::prefix('marketplace')->group(function () {
     Route::get('/search', [MarketplaceController::class, 'search']);
+    Route::get('/suggestions', [MarketplaceController::class, 'suggestions']);
     Route::get('/featured', [MarketplaceController::class, 'featured']);
     Route::get('/filters', [MarketplaceController::class, 'filters']);
     Route::get('/stats', [MarketplaceController::class, 'stats']);

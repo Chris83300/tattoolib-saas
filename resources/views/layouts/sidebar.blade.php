@@ -26,9 +26,9 @@
         <!-- Logo -->
         <div class="p-6 border-b border-ivoire-text/10">
             <a href="{{ getDashboardRoute() }}"
-                class="flex items-center space-x-3 text-beige-peau hover:text-beige-peau/80 transition-colors">
+                class="flex items-center space-x-3 font-Satoshi text-beige-peau hover:text-beige-peau/80 transition-colors">
                 <img src="{{ asset('images/logo.png') }}" alt="Ink&Pik" class="w-12 h-12">
-                <span class="text-xl font-bold font-display">Ink&Pik</span>
+                <span class="text-xl font-bold"> <span class="text-titane">Ink</span> & Pik</span>
             </a>
         </div>
 

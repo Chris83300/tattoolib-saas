@@ -40,7 +40,7 @@
                     <div class="w-12 h-12 rounded-lg flex items-center justify-center">
                         <img src="{{ asset('images/logo.png') }}" alt="Ink&Pik" class="w-12 h-12">
                     </div>
-                    <span class="text-ivoire-text font-bold text-lg">Ink&Pik</span>
+                    <span class="text-beige-peau font-bold font-Satoshi text-lg"> <span class="text-titane">Ink</span> & <span class="text-beige-peau">Pik</span></span>
                 </a>
             </div>
 
@@ -190,7 +190,7 @@
                         <div class="rounded-lg flex items-center justify-center">
                             <img src="{{ asset('images/logo.png') }}" alt="Ink&Pik" class="w-12 h-12">
                         </div>
-                        <span class="text-ivoire-text font-bold">Ink&Pik</span>
+                        <span class="text-beige-peau font-bold"> <span class="text-titane">Ink</span> & Pik</span>
                     </div>
 
                     <div class="flex items-center gap-3">

@@ -18,7 +18,7 @@
 
             <!-- Formulaire -->
             <form action="{{ route('register.tattooer.submit') }}" method="POST"
-                class="bg-gris-fonde rounded-xl p-6 md:p-8 space-y-6">
+                class="bg-gris-fonde rounded-xl border border-cuivre/40 shadow-md shadow-cuivre/20 p-6 md:p-8 space-y-6">
                 @csrf
 
                 <!-- Affichage des erreurs de validation -->
@@ -43,7 +43,7 @@
                     <!-- SIRET -->
                     <div>
                         <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                            Numéro SIRET * <span class="text-ivoire-text/50 font-normal">(14 chiffres)</span>
+                            Numéro SIRET <span class="text-rouge-alerte">*</span> <span class="text-ambre-warning/80 font-normal">(14 chiffres)</span>
                         </label>
                         <input type="text" name="siret" required maxlength="14" placeholder="12345678901234"
                             class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors font-mono">
@@ -63,7 +63,7 @@
                         <!-- Prénom -->
                         <div>
                             <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                                Prénom *
+                                Prénom <span class="text-rouge-alerte">*</span>
                             </label>
                             <input type="text" name="first_name" required placeholder="Jean"
                                 class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors">
@@ -72,7 +72,7 @@
                         <!-- Nom -->
                         <div>
                             <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                                Nom *
+                                Nom <span class="text-rouge-alerte">*</span>
                             </label>
                             <input type="text" name="last_name" required placeholder="Dupont"
                                 class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors">
@@ -93,7 +93,7 @@
                         <!-- Email -->
                         <div>
                             <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                                Email professionnel *
+                                Email professionnel <span class="text-rouge-alerte">*</span>
                             </label>
                             <input type="email" name="email" required
                                 class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors">
@@ -102,7 +102,7 @@
                         <!-- Password -->
                         <div>
                             <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                                Mot de passe * <span class="text-ivoire-text/50 font-normal">(8 caractères minimum, 1
+                                Mot de passe <span class="text-rouge-alerte">*</span> <span class="text-ivoire-text/50 font-normal">(8 caractères minimum, 1
                                     majuscule, 1 chiffre, 1 caractère spécial)</span>
                             </label>
                             <input type="password" name="password" required minlength="8"
@@ -116,7 +116,7 @@
                         <!-- Password confirmation -->
                         <div>
                             <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                                Confirmer mot de passe *
+                                Confirmer mot de passe <span class="text-rouge-alerte">*</span>
                             </label>
                             <input type="password" name="password_confirmation" required minlength="8"
                                 class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors"
@@ -138,7 +138,7 @@
                         <!-- Ville -->
                         <div>
                             <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                                Ville *
+                                Ville <span class="text-rouge-alerte">*</span>
                             </label>
                             <input type="text" name="city" required
                                 class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors">
@@ -147,7 +147,7 @@
                         <!-- Code postal -->
                         <div>
                             <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                                Code postal *
+                                Code postal <span class="text-rouge-alerte">*</span>
                             </label>
                             <input type="text" name="postal_code" required
                                 class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors">
@@ -157,7 +157,7 @@
                     <!-- Téléphone -->
                     <div class="mt-4">
                         <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                            Téléphone (optionnel)
+                            Téléphone <span class="text-ivoire-text/60 font-normal">(optionnel)</span>
                         </label>
                         <input type="tel" name="phone"
                             class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors">
@@ -165,10 +165,9 @@
                 </div>
 
                 <!-- Submit -->
-                <button type="submit"
-                    class="w-full bg-beige-peau hover:bg-beige-peau/90 text-noir-profond font-bold py-3 rounded-lg transition-colors">
-                    Créer mon compte tatoueur
-                </button>
+                <x-ui.button type="submit" variant="primary" size="md" class="w-full">
+                    Créer mon compte
+                </x-ui.button>
 
             </form>
         </div>

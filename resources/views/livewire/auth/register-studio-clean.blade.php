@@ -2,6 +2,12 @@
     <div class="max-w-2xl w-full">
 
         <!-- Header -->
+        <!-- Retour -->
+        <div class="text-center mt-6">
+            <a href="{{ route('register') }}" class="text-ivoire-text/70 text-sm hover:text-beige-peau mb-4 inline-block">
+                ← Retour au choix du rôle
+            </a>
+        </div>
         <div class="text-center mb-8">
             <a href="/" class="text-beige-peau font-Satoshi text-2xl font-bold">
                 Ink&Pik
@@ -15,7 +21,7 @@
         </div>
 
         <!-- Formulaire -->
-        <form wire:submit="register" class="bg-gris-fonde rounded-xl p-6 md:p-8 space-y-6">
+        <form wire:submit="register" class="bg-gris-fonde rounded-xl border border-cuivre/40 shadow-md shadow-cuivre/20 p-6 md:p-8 space-y-6">
 
             <!-- SECTION 1 : SIRET (PRIORITÉ) -->
             <div class="border-b border-titane/20 pb-6">
@@ -39,7 +45,7 @@
                 <!-- SIRET avec validation -->
                 <div>
                     <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                        Numéro SIRET * <span class="text-ivoire-text/50 font-normal">(14 chiffres)</span>
+                        Numéro SIRET <span class="text-rouge-alerte">*</span> <span class="text-ambre-warning/80 font-normal">(14 chiffres)</span>
                     </label>
 
                     <div class="flex gap-2">
@@ -198,7 +204,7 @@
                 <!-- Téléphone -->
                 <div class="mt-4">
                     <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                        Téléphone du studio (optionnel)
+                        Téléphone du studio <span class="text-ivoire-text/50 font-normal">(optionnel)</span>
                     </label>
                     <input type="tel" wire:model="phone"
                         class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors">
@@ -238,19 +244,13 @@
             </div>
 
             <!-- Submit -->
-            <button type="submit"
-                class="w-full bg-beige-peau hover:bg-beige-peau/90 text-noir-profond font-bold py-3 rounded-lg transition-colors">
-                Créer mon compte studio
-            </button>
+            <x-ui.button type="submit" variant="primary" size="md" class="w-full">
+                Créer mon compte
+            </x-ui.button>
 
         </form>
 
-        <!-- Retour -->
-        <div class="text-center mt-6">
-            <a href="{{ route('register') }}" class="text-ivoire-text/70 text-sm hover:text-beige-peau">
-                ← Retour au choix du rôle
-            </a>
-        </div>
+
 
     </div>
 </div>

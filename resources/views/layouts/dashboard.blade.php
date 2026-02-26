@@ -34,7 +34,7 @@
             <!-- Logo -->
             <a href="/dashboard" class="flex items-center gap-2 text-beige-peau font-Satoshi text-xl font-bold">
                 <img src="{{ asset('images/logo.png') }}" alt="Ink&Pik" class="w-12 h-12">
-                Ink&Pik
+                <span class="text-titane">Ink</span> <span class="text-beige-peau">& Pik</span>
             </a>
 
             <!-- Notifications -->

@@ -51,7 +51,7 @@
             <a href="/"
                 class="flex items-center gap-2 text-beige-peau font-Satoshi text-xl font-bold hover:text-beige-peau/90 transition-colors">
                 <img src="{{ asset('images/logo.png') }}" alt="Ink&Pik" class="w-12 h-12">
-                Ink&Pik
+                <span class="text-titane">Ink</span> & Pik
             </a>
 
             <!-- Menu Burger (Mobile) -->
