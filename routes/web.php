@@ -355,6 +355,7 @@ Route::middleware(['auth', 'role:studio'])->prefix('studio')->name('studio.')->g
     Route::get('/profil/edit', App\Livewire\Studio\Profile::class)->name('profile.edit');
     Route::get('/messages', App\Livewire\Studio\Messages::class)->name('messages');
     Route::get('/parametres', App\Livewire\Studio\Settings::class)->name('settings');
+    Route::put('/parametres', [App\Http\Controllers\StudioController::class, 'updateSettings'])->name('settings.update');
     Route::get('/calendar', App\Livewire\Studio\Calendar::class)->name('calendar');
     // Artistes
     Route::get('/artists', [App\Http\Controllers\StudioController::class, 'artists'])->name('artists');
