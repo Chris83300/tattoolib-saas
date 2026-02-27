@@ -24,6 +24,7 @@
     $artisanType = auth()->user()->artisanType(); // 'tattooer' ou 'piercer'
     $isPiercer = $artisanType === 'piercer';
     $routePrefix = $isPiercer ? 'pierceur' : 'tattooer';
+    $artistStudio = $artisan?->studio_id ? $artisan->studio : null;
 @endphp
 
 <body class="bg-noir-profond">
@@ -43,6 +44,20 @@
                     <span class="text-beige-peau font-bold font-Satoshi text-lg"> <span class="text-titane">Ink</span> & <span class="text-beige-peau">Pik</span></span>
                 </a>
             </div>
+
+            {{-- Badge studio si l'artiste est rattaché à un studio --}}
+            @if ($artistStudio)
+                <div class="px-4 py-2 bg-beige-peau/10 border-b border-beige-peau/20">
+                    <div class="flex items-center gap-2">
+                        @if ($artistStudio->getFirstMediaUrl('logo'))
+                            <img src="{{ $artistStudio->getFirstMediaUrl('logo') }}" alt="" class="w-6 h-6 rounded object-cover">
+                        @else
+                            <span class="text-sm">🏢</span>
+                        @endif
+                        <span class="text-xs text-beige-peau font-semibold truncate">{{ $artistStudio->name }}</span>
+                    </div>
+                </div>
+            @endif
 
             <!-- Navigation -->
             <nav class="flex-1 p-4 space-y-1 overflow-y-auto">

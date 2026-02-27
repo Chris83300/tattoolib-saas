@@ -31,9 +31,10 @@ class RedirectIfAuthenticated
                     case 'tattooer':
                         return redirect()->route('tattooer.dashboard');
                     case 'Piercer':
-                        return redirect()->route('tattooer.dashboard'); // Temporairement
+                    case 'pierceur':
+                        return redirect()->route('pierceur.dashboard');
                     case 'studio':
-                        return redirect()->route('tattooer.dashboard'); // Temporairement
+                        return redirect()->route('studio.dashboard');
                     default:
                         return redirect()->route('home');
                 }
