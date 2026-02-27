@@ -3,19 +3,16 @@
 namespace App\Filament\Studio\Pages;
 
 use Filament\Pages\Dashboard as BaseDashboard;
-use Filament\Widgets\AccountWidget;
+use Filament\Support\Icons\Heroicon;
 
 class Dashboard extends BaseDashboard
 {
-    protected static ?string $navigationIcon = 'heroicon-o-home';
-    protected static string $view = 'filament.studio.pages.dashboard';
-    
+    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedHome;
+
     public function getWidgets(): array
     {
         return [
-            AccountWidget::class,
-            \App\Filament\Studio\Widgets\StudioStatsWidget::class,
-            \App\Filament\Studio\Widgets\ArtistsOverviewWidget::class,
+            \App\Filament\Studio\Widgets\StudioStatsOverview::class,
         ];
     }
 }

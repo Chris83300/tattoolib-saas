@@ -5,5 +5,6 @@ return [
     App\Providers\EventServiceProvider::class,
     App\Providers\Filament\AdminPanelProvider::class,
     App\Providers\Filament\ShopPanelProvider::class,
+    App\Providers\Filament\StudioPanelProvider::class,
     App\Providers\FortifyServiceProvider::class,
 ];
