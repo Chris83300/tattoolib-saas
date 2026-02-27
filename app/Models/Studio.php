@@ -56,6 +56,7 @@ class Studio extends Model implements HasMedia
         'is_active'                  => 'boolean',
         'max_artists'                => 'integer',
         'joined_at'                  => 'datetime',
+        'trial_ends_at'              => 'datetime',
     ];
 
     // ═══ RELATIONS ═══
@@ -192,6 +193,40 @@ class Studio extends Model implements HasMedia
     public function getProfileUrl(): string
     {
         return route('studio.public.show', $this->slug);
+    }
+
+    // ═══ TRIAL ═══
+
+    public function onTrial(): bool
+    {
+        return $this->trial_ends_at !== null && $this->trial_ends_at->isFuture();
+    }
+
+    public function trialExpired(): bool
+    {
+        if ($this->trial_ends_at === null) return false;
+        return $this->trial_ends_at->isPast() && !$this->hasActiveSubscription();
+    }
+
+    public function trialDaysLeft(): int
+    {
+        if (!$this->trial_ends_at || $this->trial_ends_at->isPast()) return 0;
+        return (int) now()->diffInDays($this->trial_ends_at, false);
+    }
+
+    public function hasActiveSubscription(): bool
+    {
+        return $this->subscribed('studio');
+    }
+
+    public function canOperate(): bool
+    {
+        return $this->onTrial() || $this->hasActiveSubscription();
+    }
+
+    public function isReadOnly(): bool
+    {
+        return !$this->canOperate();
     }
 
     // ═══ MEDIA ═══

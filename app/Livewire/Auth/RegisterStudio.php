@@ -54,8 +54,8 @@ class RegisterStudio extends AuthLayoutComponent
     #[Validate('nullable|string|max:20')]
     public string $phone = '';
 
-    #[Validate('required|in:direct,centralized')]
-    public string $payment_mode = 'direct';
+    #[Validate('required|in:artist_direct,studio_managed')]
+    public string $payment_mode = 'artist_direct';
 
     /**
      * Validation automatique du SIRET
@@ -108,6 +108,7 @@ class RegisterStudio extends AuthLayoutComponent
             'phone' => $this->phone,
             'payment_mode' => $this->payment_mode,
             'subscription_plan' => 'free', // Plan FREE par défaut
+            'trial_ends_at' => now()->addDays(14),
         ]);
 
         // Associer le user au studio

@@ -318,7 +318,7 @@ class RegisterController extends Controller
                 'city' => 'required|string|max:255',
                 'postal_code' => 'required|string|max:10',
                 'phone' => 'nullable|string|max:20',
-                'payment_mode' => 'required|in:direct,centralized',
+                'payment_mode' => 'required|in:artist_direct,studio_managed',
             ], [
                 'password.regex' => 'Le mot de passe doit contenir au moins 8 caractères dont 1 majuscule, 1 minuscule, 1 chiffre et 1 caractère spécial (@$!%*?&)',
                 'password.confirmed' => 'Fait un effort, tu viens de le taper juste avant ! 😄',
@@ -358,6 +358,7 @@ class RegisterController extends Controller
                 'email' => $validated['email'],
                 'payment_mode' => $validated['payment_mode'],
                 'is_active' => false, // doit être activé manuellement par admin
+                'trial_ends_at' => now()->addDays(14),
             ]);
 
             Log::info('Studio créé: ' . json_encode($studio));

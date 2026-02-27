@@ -81,6 +81,7 @@ class CreateNewUser implements CreatesNewUsers
                     'current_plan' => 'free',
                     'is_subscribed' => false,
                     'is_active' => true,
+                    'trial_ends_at' => now()->addDays(14),
                 ]);
 
                 // Mettre à jour l'utilisateur comme propriétaire du studio
