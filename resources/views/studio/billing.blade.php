@@ -54,6 +54,16 @@
                 Gérer mon abonnement (Stripe)
             </a>
         </div>
+    @elseif (!$isSubscribed && $studio->trialExpired())
+        <a href="{{ route('studio.subscribe') }}"
+            class="w-full py-3.5 bg-beige-peau text-noir-profond rounded-xl font-bold text-center block hover:bg-beige-peau/90 transition-colors active:scale-95">
+            Activer l'abonnement — {{ number_format($monthlyPrice, 2, ',', ' ') }}€/mois
+        </a>
+    @elseif (!$isSubscribed && $studio->onTrial())
+        <a href="{{ route('studio.subscribe') }}"
+            class="w-full py-3 bg-gris-fonde text-ivoire-text rounded-xl font-semibold text-center block border border-beige-peau/30 hover:bg-beige-peau/10 transition-colors">
+            Activer maintenant ({{ $studio->trialDaysLeft() }} jours restants)
+        </a>
     @elseif (!$isSubscribed)
         <div class="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4">
             <p class="text-sm text-orange-400 font-semibold">Aucun abonnement actif</p>

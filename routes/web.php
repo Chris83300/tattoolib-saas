@@ -370,6 +370,8 @@ Route::middleware(['auth', 'role:studio', \App\Http\Middleware\EnsureStudioCanOp
     Route::get('/demandes', [App\Http\Controllers\StudioController::class, 'requests'])->name('requests');
     // Billing & Stats
     Route::get('/billing', [App\Http\Controllers\StudioController::class, 'billing'])->name('billing');
+    Route::get('/souscrire', [App\Http\Controllers\StudioController::class, 'showSubscribe'])->name('subscribe');
+    Route::post('/souscrire', [App\Http\Controllers\StudioController::class, 'processSubscribe'])->name('subscribe.process');
     Route::get('/stats', [App\Http\Controllers\StudioController::class, 'stats'])->name('stats');
     Route::get('/upgrade', function () {
         return view('professionnels.index');

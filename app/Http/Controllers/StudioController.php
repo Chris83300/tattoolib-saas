@@ -340,6 +340,70 @@ class StudioController extends Controller
         ]);
     }
 
+    // ═══ SOUSCRIPTION ═══
+
+    public function showSubscribe()
+    {
+        $studio = $this->studio();
+
+        if ($studio->hasActiveSubscription()) {
+            return redirect()->route('studio.billing')
+                ->with('info', 'Vous avez déjà un abonnement actif.');
+        }
+
+        return view('studio.subscribe', [
+            'studio'          => $studio,
+            'monthlyPrice'    => $studio->monthlyPrice(),
+            'paidArtistCount' => $studio->paidArtistCount(),
+        ]);
+    }
+
+    public function processSubscribe()
+    {
+        $studio = $this->studio();
+
+        if ($studio->hasActiveSubscription()) {
+            return redirect()->route('studio.billing');
+        }
+
+        $studioPriceId = config('services.stripe.studio_price_id');
+        $artistPriceId = config('services.stripe.studio_artist_price_id');
+
+        if (!$studioPriceId) {
+            return back()->with('error', 'Configuration Stripe incomplète. Contactez le support.');
+        }
+
+        // Créer le customer Stripe si nécessaire
+        if (!$studio->hasStripeId()) {
+            $studio->createAsStripeCustomer([
+                'name'     => $studio->name,
+                'email'    => $studio->stripeEmail(),
+                'metadata' => ['studio_id' => $studio->id],
+            ]);
+        }
+
+        $lineItems = [
+            ['price' => $studioPriceId, 'quantity' => 1],
+        ];
+
+        $paidArtists = $studio->paidArtistCount();
+        if ($paidArtists > 0 && $artistPriceId) {
+            $lineItems[] = ['price' => $artistPriceId, 'quantity' => $paidArtists];
+        }
+
+        // Stripe Checkout Session native (supporte multi-price avec quantity)
+        \Stripe\Stripe::setApiKey(config('cashier.secret'));
+        $session = \Stripe\Checkout\Session::create([
+            'customer'   => $studio->stripe_id,
+            'mode'       => 'subscription',
+            'line_items' => $lineItems,
+            'success_url' => route('studio.billing') . '?activated=1',
+            'cancel_url'  => route('studio.subscribe'),
+        ]);
+
+        return redirect($session->url);
+    }
+
     // ═══ STATS ═══
 
     public function stats()
