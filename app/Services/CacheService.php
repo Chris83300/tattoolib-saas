@@ -123,6 +123,12 @@ class CacheService
 
         return Cache::remember($cacheKey, self::MARKETPLACE_TTL, function() use ($filters) {
             $artisanType = $filters['artisan_type'] ?? '';
+
+            // Studios handled separately in MarketplaceController
+            if ($artisanType === 'studio') {
+                return [];
+            }
+
             $results = collect();
 
             // Tattooers

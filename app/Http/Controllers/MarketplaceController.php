@@ -7,6 +7,7 @@ use App\Models\Piercer;
 use App\Models\Appointment;
 use App\Models\Subscription;
 use App\Services\CacheService;
+use App\Services\MarketplaceSearchService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
@@ -23,6 +24,11 @@ class MarketplaceController extends Controller
         $filters = $request->only(['city', 'styles', 'rating', 'artisan_type']);
         $artists = $cacheService->getMarketplaceListings($filters);
 
+        $studios = collect();
+        if (($filters['artisan_type'] ?? '') === 'studio') {
+            $studios = app(MarketplaceSearchService::class)->getStudios($filters);
+        }
+
         $availableStyles = $cacheService->getAvailableStyles();
         $availableCities = $cacheService->getAvailableCities();
 
@@ -30,7 +36,8 @@ class MarketplaceController extends Controller
             'artists',
             'filters',
             'availableStyles',
-            'availableCities'
+            'availableCities',
+            'studios'
         ));
     }
 

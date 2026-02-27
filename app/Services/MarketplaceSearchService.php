@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Tattooer;
 use App\Models\Piercer;
+use App\Models\Studio;
 use App\Models\StudioArtist;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -91,6 +92,14 @@ class MarketplaceSearchService
             Log::error('Search trace: ' . $e->getTraceAsString());
             throw $e;
         }
+    }
+
+    public function getStudios(array $filters = []): Collection
+    {
+        return Studio::with(['studioArtists' => fn($q) => $q->where('is_active', true), 'media'])
+            ->where('is_active', true)
+            ->when($filters['city'] ?? null, fn($q, $city) => $q->where('city', 'like', "%{$city}%"))
+            ->get();
     }
 
     public function getFeaturedArtists(int $limit = 6): Collection

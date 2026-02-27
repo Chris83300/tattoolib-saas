@@ -133,6 +133,69 @@
         </div>
     </section>
 
+    @if (($filters['artisan_type'] ?? '') === 'studio')
+    <!-- Studios -->
+    <section class="bg-noir-profond py-12 px-4">
+        <div class="container-custom px-4">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-display font-bold text-beige-peau mb-4">
+                        Studios de tatouage
+                    </h2>
+                    <p class="text-ivoire-text/70">
+                        {{ $studios->count() }} studio{{ $studios->count() > 1 ? 's' : '' }} référencé{{ $studios->count() > 1 ? 's' : '' }}
+                    </p>
+                </div>
+
+                @if ($studios->isEmpty())
+                    <p class="text-center text-titane py-12">Aucun studio trouvé pour ces critères.</p>
+                @else
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        @foreach ($studios as $studio)
+                            <div class="bg-gris-fonde rounded-2xl border border-titane/20 overflow-hidden hover:border-beige-peau/40 transition-all">
+                                {{-- Cover --}}
+                                <div class="h-40 bg-gradient-to-br from-beige-peau/20 via-titane/30 to-noir-profond relative overflow-hidden">
+                                    @if ($studio->getFirstMediaUrl('cover'))
+                                        <img src="{{ $studio->getFirstMediaUrl('cover') }}" alt="{{ $studio->name }}"
+                                             class="w-full h-full object-cover">
+                                        <div class="absolute inset-0 bg-gradient-to-t from-noir-profond/70 to-transparent"></div>
+                                    @endif
+                                    {{-- Logo --}}
+                                    <div class="absolute bottom-0 left-4 translate-y-1/2 w-16 h-16 rounded-xl border-2 border-titane/30 bg-gris-fonde overflow-hidden flex items-center justify-center shadow-lg">
+                                        @if ($studio->getFirstMediaUrl('logo'))
+                                            <img src="{{ $studio->getFirstMediaUrl('logo') }}" alt="{{ $studio->name }}" class="w-full h-full object-cover">
+                                        @else
+                                            <span class="text-2xl">🏢</span>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="p-4 pt-10">
+                                    <h3 class="text-beige-peau font-semibold text-lg mb-1">{{ $studio->name }}</h3>
+                                    @if ($studio->city)
+                                        <p class="text-titane text-sm mb-2">📍 {{ $studio->city }}{{ $studio->postal_code ? ' (' . $studio->postal_code . ')' : '' }}</p>
+                                    @endif
+                                    @if ($studio->description || $studio->bio)
+                                        <p class="text-ivoire-text/70 text-sm mb-3 line-clamp-2">
+                                            {{ \Illuminate\Support\Str::limit($studio->description ?? $studio->bio, 100) }}
+                                        </p>
+                                    @endif
+                                    <p class="text-xs text-titane mb-4">
+                                        👥 {{ $studio->studioArtists->count() }} artiste{{ $studio->studioArtists->count() > 1 ? 's' : '' }}
+                                    </p>
+                                    <a href="{{ route('studio.public.show', $studio->slug) }}"
+                                       class="block w-full text-center px-4 py-2 bg-beige-peau hover:bg-beige-peau/90 text-noir-profond font-semibold rounded-lg transition-colors text-sm">
+                                        Voir le studio
+                                    </a>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+        </div>
+    </section>
+    @else
     <!-- Artistes mis en avant -->
     <section id="featured-section" class="bg-noir-profond py-12 px-4">
         <div class="container-custom px-4">
@@ -157,6 +220,7 @@
             </div>
         </div>
     </section>
+    @endif
 
     <!-- Résultats de recherche -->
     <section id="search-results-section" class="bg-gris-fonde py-12 px-4 hidden">
