@@ -46,11 +46,19 @@
         </div>
     </div>
 
-    {{-- TODO (Prompt 4) : Stripe Customer Portal, historique factures, changement de plan --}}
-    <div class="bg-gris-fonde/50 rounded-xl p-4 border border-titane/10">
-        <p class="text-xs text-titane">
-            💡 La gestion complète de la facturation (historique, factures, moyens de paiement) sera disponible prochainement via Stripe.
-        </p>
-    </div>
+    {{-- Stripe Customer Portal --}}
+    @if ($isSubscribed && $portalUrl)
+        <div class="flex flex-col sm:flex-row gap-3">
+            <a href="{{ $portalUrl }}" target="_blank"
+                class="w-full sm:w-auto px-6 py-3 bg-beige-peau text-noir-profond rounded-xl font-semibold hover:bg-beige-peau/90 transition-colors active:scale-95 text-center inline-block">
+                Gérer mon abonnement (Stripe)
+            </a>
+        </div>
+    @elseif (!$isSubscribed)
+        <div class="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4">
+            <p class="text-sm text-orange-400 font-semibold">Aucun abonnement actif</p>
+            <p class="text-xs text-titane mt-1">Pour activer votre studio, veuillez souscrire à l'abonnement.</p>
+        </div>
+    @endif
 </div>
 @endsection

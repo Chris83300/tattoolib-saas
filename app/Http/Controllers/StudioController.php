@@ -65,7 +65,7 @@ class StudioController extends Controller
             'email'         => 'nullable|email|max:255',
             'website'       => 'nullable|url|max:255',
             'siret'         => 'nullable|string|size:14',
-            'payment_mode'  => 'required|in:centralized,distributed',
+            'payment_mode'  => 'required|in:artist_direct,studio_managed',
             'opening_hours' => 'nullable|array',
             'social_media_links' => 'nullable|array',
         ]);
@@ -129,15 +129,15 @@ class StudioController extends Controller
         $validated = $request->validate([
             'name'         => 'required|string|max:255',
             'email'        => 'required|email|unique:users,email',
+            'password'     => 'required|string|min:8',
             'artisan_type' => 'required|in:tattooer,piercer',
         ]);
 
-        // Créer le User avec mot de passe temporaire
-        $tempPassword = Str::random(12);
+        // Créer le User avec le mot de passe fourni
         $user = User::create([
             'name'              => $validated['name'],
             'email'             => $validated['email'],
-            'password'          => Hash::make($tempPassword),
+            'password'          => bcrypt($validated['password']), // Utiliser le mot de passe fourni
             'email_verified_at' => now(),
             'role'              => $validated['artisan_type'] === 'piercer' ? 'pierceur' : 'tattooer',
         ]);
@@ -152,11 +152,19 @@ class StudioController extends Controller
             Piercer::create([
                 'user_id'   => $user->id,
                 'studio_id' => $studio->id,
+                'siret'     => null, // SIRET géré par le studio
+                'current_plan'      => 'pro', // Plan Pro car inclus dans l'abonnement studio
+                'is_subscribed'     => true, // Abonnement actif via le studio
+                'upgraded_to_pro_at' => now(), // Date de l'upgrade
             ]);
         } else {
             Tattooer::create([
                 'user_id'   => $user->id,
                 'studio_id' => $studio->id,
+                'siret'     => null, // SIRET géré par le studio
+                'current_plan'      => 'pro', // Plan Pro car inclus dans l'abonnement studio
+                'is_subscribed'     => true, // Abonnement actif via le studio
+                'upgraded_to_pro_at' => now(), // Date de l'upgrade
             ]);
         }
 
@@ -168,20 +176,22 @@ class StudioController extends Controller
             'role'         => 'artist',
             'is_active'    => true,
             'joined_at'    => now(),
+            'artist_name'  => $user->name, // Utiliser le nom de l'utilisateur
+            'slug'         => Str::slug($user->name), // Générer un slug à partir du nom
         ]);
 
         \Mail::to($validated['email'])->send(new \App\Mail\StudioArtistCreatedMail(
             $studio,
             $validated['name'],
             $validated['email'],
-            $tempPassword,
+            $validated['password'], // Utiliser le mot de passe fourni
             $validated['artisan_type']
         ));
 
-        // TODO (Prompt 4) : Mettre à jour la subscription Stripe (quantity)
+        app(\App\Services\StudioBillingService::class)->updateArtistQuantity($studio);
 
         return redirect()->route('studio.artists')
-            ->with('success', "Artiste {$validated['name']} créé. Un email avec les identifiants a été envoyé.");
+            ->with('success', "Artiste {$validated['name']} créé. Il peut maintenant se connecter avec le mot de passe que vous avez défini.");
     }
 
     /**
@@ -235,7 +245,7 @@ class StudioController extends Controller
             }
         }
 
-        // TODO (Prompt 4) : Mettre à jour la subscription Stripe (quantity -1)
+        app(\App\Services\StudioBillingService::class)->updateArtistQuantity($this->studio());
 
         return back()->with('success', 'Artiste retiré du studio');
     }
@@ -318,11 +328,15 @@ class StudioController extends Controller
     public function billing()
     {
         $studio = $this->studio();
+        $billingService = app(\App\Services\StudioBillingService::class);
+
         return view('studio.billing', [
             'studio'          => $studio,
             'monthlyPrice'    => $studio->monthlyPrice(),
             'artistCount'     => $studio->artistCount(),
             'paidArtistCount' => $studio->paidArtistCount(),
+            'isSubscribed'    => $billingService->isSubscribed($studio),
+            'portalUrl'       => $studio->hasStripeId() ? $billingService->billingPortalUrl($studio) : null,
         ]);
     }
 
@@ -390,7 +404,7 @@ class StudioController extends Controller
             'invitation_token' => null, // Token consommé
         ]);
 
-        // TODO (Prompt 4) : Mettre à jour subscription Stripe
+        app(\App\Services\StudioBillingService::class)->updateArtistQuantity($invitation->studio);
 
         auth()->login($user);
         $redirect = $roleSlug === 'pierceur' ? 'pierceur.dashboard' : 'tattooer.dashboard';
