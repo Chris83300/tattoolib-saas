@@ -337,6 +337,45 @@ class Tattooer extends Model implements HasMedia, ArtisanInterface
             && !empty($this->stripe_connect_account_id);
     }
 
+    /**
+     * Retourne le stripe_account_id à utiliser pour les paiements.
+     * Si artiste studio en mode centralisé → stripe du studio.
+     * Sinon → stripe de l'artiste.
+     */
+    public function getStripeAccountId(): ?string
+    {
+        if ($this->studio_id) {
+            $studio = $this->studio;
+            if ($studio && $studio->payment_mode === 'centralized') {
+                return $studio->stripe_account_id;
+            }
+        }
+        return $this->stripe_connect_account_id;
+    }
+
+    /**
+     * Vérifie si l'artiste a un Stripe Connect opérationnel
+     */
+    public function hasStripeConnect(): bool
+    {
+        return !empty($this->getStripeAccountId());
+    }
+
+    /**
+     * L'artiste a-t-il besoin de configurer son propre Stripe Connect ?
+     * Non si le studio est en mode centralisé.
+     */
+    public function needsOwnStripeConnect(): bool
+    {
+        if ($this->studio_id) {
+            $studio = $this->studio;
+            if ($studio && $studio->payment_mode === 'centralized') {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public function canAcceptBookings(): bool
     {
         return $this->siret_verified

@@ -50,7 +50,7 @@ class BalancePaymentController extends Controller
         Stripe::setApiKey(config('services.stripe.secret'));
 
         $tattooer = $bookingRequest->bookable;
-        $stripeAccountId = $tattooer?->user?->stripe_account_id;
+        $stripeAccountId = $tattooer?->getStripeAccountId();
         abort_unless($stripeAccountId, 500, 'Compte Stripe artiste non configuré.');
 
         // Calculer la commission (même logique que l'acompte)

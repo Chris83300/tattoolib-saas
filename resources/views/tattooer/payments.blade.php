@@ -73,7 +73,16 @@
             Stripe Connect
         </h2>
         
-        @if($tattooer->stripe_connect_account_id)
+        @if (!$tattooer->needsOwnStripeConnect())
+            {{-- Studio centralisé : paiements gérés par le studio --}}
+            <div class="bg-gris-fonde rounded-xl p-4">
+                <p class="text-sm text-titane">
+                    💳 Les paiements sont gérés par votre studio
+                    <strong class="text-ivoire-text">{{ $tattooer->studio?->name }}</strong>.
+                    Vous n'avez pas besoin de configurer Stripe Connect.
+                </p>
+            </div>
+        @elseif($tattooer->stripe_connect_account_id)
             <div class="space-y-4">
                 <div class="flex items-center justify-between p-4 bg-noir-profond rounded-lg">
                     <div class="flex items-center gap-3">
@@ -91,14 +100,14 @@
                         Gérer le compte
                     </button>
                 </div>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="p-4 bg-noir-profond rounded-lg">
                         <h4 class="font-semibold text-ivoire-text mb-2">Solde disponible</h4>
                         <p class="text-2xl font-bold text-vert-succes">0,00 €</p>
                         <p class="text-sm text-ivoire-text/50">Disponible immédiatement</p>
                     </div>
-                    
+
                     <div class="p-4 bg-noir-profond rounded-lg">
                         <h4 class="font-semibold text-ivoire-text mb-2">En attente</h4>
                         <p class="text-2xl font-bold text-ambre-warning">0,00 €</p>
