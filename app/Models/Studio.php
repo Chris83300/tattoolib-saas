@@ -229,6 +229,73 @@ class Studio extends Model implements HasMedia
         return !$this->canOperate();
     }
 
+    // ═══ ONBOARDING ═══
+
+    public function getOnboardingChecklist(): array
+    {
+        return [
+            [
+                'key'   => 'logo',
+                'label' => 'Ajouter le logo du studio',
+                'done'  => $this->getFirstMediaUrl('logo') !== '',
+                'icon'  => '🖼️',
+            ],
+            [
+                'key'   => 'artist',
+                'label' => 'Ajouter au moins 1 artiste',
+                'done'  => $this->studioArtists()->where('is_active', true)->exists(),
+                'icon'  => '👤',
+            ],
+            [
+                'key'   => 'payment',
+                'label' => 'Configurer le mode de paiement',
+                'done'  => $this->payment_mode !== null,
+                'icon'  => '💳',
+            ],
+            [
+                'key'   => 'profile',
+                'label' => 'Personnaliser la fiche studio',
+                'done'  => !empty($this->description) && !empty($this->address),
+                'icon'  => '📝',
+            ],
+            [
+                'key'   => 'booking',
+                'label' => 'Recevoir une première demande',
+                'done'  => $this->hasReceivedBookingRequest(),
+                'icon'  => '📋',
+            ],
+        ];
+    }
+
+    public function onboardingProgress(): int
+    {
+        $checklist = $this->getOnboardingChecklist();
+        $done = collect($checklist)->where('done', true)->count();
+        return (int) round(($done / count($checklist)) * 100);
+    }
+
+    public function onboardingComplete(): bool
+    {
+        return $this->onboardingProgress() === 100;
+    }
+
+    public function hasReceivedBookingRequest(): bool
+    {
+        $artistUserIds = $this->studioArtists()->where('is_active', true)->pluck('user_id')->filter();
+        if ($artistUserIds->isEmpty()) return false;
+
+        $tattooerIds = \App\Models\Tattooer::whereIn('user_id', $artistUserIds)->pluck('id');
+        $piercerIds  = \App\Models\Piercer::whereIn('user_id', $artistUserIds)->pluck('id');
+
+        return \App\Models\BookingRequest::where(function ($q) use ($tattooerIds, $piercerIds) {
+            $q->where(function ($q2) use ($tattooerIds) {
+                $q2->where('bookable_type', 'App\\Models\\Tattooer')->whereIn('bookable_id', $tattooerIds);
+            })->orWhere(function ($q2) use ($piercerIds) {
+                $q2->where('bookable_type', 'App\\Models\\Piercer')->whereIn('bookable_id', $piercerIds);
+            });
+        })->exists();
+    }
+
     // ═══ MEDIA ═══
 
     public function registerMediaCollections(): void
