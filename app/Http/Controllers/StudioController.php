@@ -170,11 +170,18 @@ class StudioController extends Controller
             'joined_at'    => now(),
         ]);
 
-        // TODO (Prompt 4) : Envoyer email avec identifiants temporaires
+        \Mail::to($validated['email'])->send(new \App\Mail\StudioArtistCreatedMail(
+            $studio,
+            $validated['name'],
+            $validated['email'],
+            $tempPassword,
+            $validated['artisan_type']
+        ));
+
         // TODO (Prompt 4) : Mettre à jour la subscription Stripe (quantity)
 
         return redirect()->route('studio.artists')
-            ->with('success', "Artiste {$validated['name']} créé. Mot de passe temporaire : {$tempPassword}");
+            ->with('success', "Artiste {$validated['name']} créé. Un email avec les identifiants a été envoyé.");
     }
 
     /**
