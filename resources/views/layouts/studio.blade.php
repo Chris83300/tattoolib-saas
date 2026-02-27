@@ -22,7 +22,8 @@
     <div class="flex min-h-screen max-w-full overflow-x-hidden">
 
         <!-- Sidebar Desktop (cachée sur mobile) -->
-        <aside class="hidden lg:flex lg:flex-col lg:w-64 bg-gris-fonde border-r border-titane/20 fixed h-full top-0 left-0 z-10">
+        <aside
+            class="hidden lg:flex lg:flex-col lg:w-64 bg-gris-fonde border-r border-titane/20 fixed h-full top-0 left-0 z-10">
 
             <!-- Logo -->
             <div class="p-6 border-b border-titane/20">
@@ -137,15 +138,31 @@
             <div class="p-4 border-t border-titane/20">
                 <div class="flex items-center gap-3 p-3 rounded-lg bg-noir-profond">
                     @if ($studio?->getFirstMediaUrl('logo'))
-                        <img src="{{ $studio->getFirstMediaUrl('logo') }}" alt="Logo" class="w-10 h-10 rounded-full object-cover">
+                        <img src="{{ $studio->getFirstMediaUrl('logo') }}" alt="Logo"
+                            class="w-10 h-10 rounded-full object-cover">
                     @else
-                        <div class="w-10 h-10 rounded-full bg-beige-peau/20 flex items-center justify-center text-beige-peau font-bold text-sm">
+                        <div
+                            class="w-10 h-10 rounded-full bg-beige-peau/20 flex items-center justify-center text-beige-peau font-bold text-sm">
                             {{ mb_substr($studioName, 0, 1) }}
                         </div>
                     @endif
                     <div class="flex-1 min-w-0">
                         <p class="text-ivoire-text font-semibold truncate text-sm">{{ $studioName }}</p>
-                        <p class="text-ivoire-text/60 text-xs">Studio</p>
+                        @if ($studio && $studio->onTrial())
+                            <span class="text-xs bg-beige-peau/20 text-beige-peau rounded-full px-2 py-0.5 font-semibold">
+                                Essai • {{ $studio->trialDaysLeft() }}j
+                            </span>
+                        @elseif ($studio && $studio->hasActiveSubscription())
+                            <span class="text-xs bg-green-500/20 text-green-400 rounded-full px-2 py-0.5 font-semibold">
+                                Pro
+                            </span>
+                        @elseif ($studio && $studio->trialExpired())
+                            <span class="text-xs bg-rouge-alerte/20 text-rouge-alerte rounded-full px-2 py-0.5 font-semibold">
+                                Expiré
+                            </span>
+                        @else
+                            <p class="text-ivoire-text/60 text-xs">Studio</p>
+                        @endif
                     </div>
                     <form action="{{ route('logout') }}" method="POST">
                         @csrf
@@ -171,15 +188,18 @@
                         <div class="rounded-lg flex items-center justify-center">
                             <img src="{{ asset('images/logo.png') }}" alt="Ink&Pik" class="w-10 h-10">
                         </div>
-                        <span class="text-beige-peau font-bold text-sm truncate max-w-[140px]">{{ $studioName }}</span>
+                        <span
+                            class="text-beige-peau font-bold text-sm truncate max-w-[140px]">{{ $studioName }}</span>
                     </div>
 
                     <div class="flex items-center gap-3">
                         <!-- Avatar -->
                         @if ($studio?->getFirstMediaUrl('logo'))
-                            <img src="{{ $studio->getFirstMediaUrl('logo') }}" alt="Logo" class="w-8 h-8 rounded-full object-cover">
+                            <img src="{{ $studio->getFirstMediaUrl('logo') }}" alt="Logo"
+                                class="w-8 h-8 rounded-full object-cover">
                         @else
-                            <div class="w-8 h-8 rounded-full bg-beige-peau/20 flex items-center justify-center text-beige-peau font-bold text-xs">
+                            <div
+                                class="w-8 h-8 rounded-full bg-beige-peau/20 flex items-center justify-center text-beige-peau font-bold text-xs">
                                 {{ mb_substr($studioName, 0, 1) }}
                             </div>
                         @endif
@@ -187,15 +207,47 @@
                 </div>
             </header>
 
+            {{-- Bannière trial actif --}}
+            @if ($studio && $studio->onTrial())
+                <div class="bg-beige-peau/10 border-b border-beige-peau/20 px-4 py-2">
+                    <div class="flex items-center justify-between">
+                        <p class="text-xs text-beige-peau">
+                            ⏳ <strong>Essai gratuit</strong> — {{ $studio->trialDaysLeft() }} jour{{ $studio->trialDaysLeft() > 1 ? 's' : '' }} restant{{ $studio->trialDaysLeft() > 1 ? 's' : '' }}
+                        </p>
+                        <a href="{{ route('studio.billing') }}" class="text-xs font-semibold text-beige-peau hover:text-beige-peau/80">
+                            Activer l'abonnement →
+                        </a>
+                    </div>
+                </div>
+            @endif
+
+            {{-- Bannière trial expiré (soft lock) --}}
+            @if ($studio && $studio->trialExpired())
+                <div class="bg-rouge-alerte/10 border-b border-rouge-alerte/30 px-4 py-3">
+                    <div class="flex items-center justify-between gap-4">
+                        <div>
+                            <p class="text-sm font-semibold text-rouge-alerte">⚠️ Votre essai est terminé</p>
+                            <p class="text-xs text-rouge-alerte/80 mt-0.5">Votre studio est en lecture seule. Activez votre abonnement pour continuer.</p>
+                        </div>
+                        <a href="{{ route('studio.billing') }}"
+                            class="shrink-0 px-4 py-2 bg-beige-peau text-noir-profond rounded-xl text-sm font-semibold hover:bg-beige-peau/90 transition-colors">
+                            Activer — 79,99€/mois
+                        </a>
+                    </div>
+                </div>
+            @endif
+
             <!-- Content -->
             <div class="p-4 lg:p-8 pb-24 lg:pb-8 max-w-full overflow-y-auto">
                 @if (session('success'))
-                    <div class="mb-4 p-3 bg-vert-validation/20 border border-vert-validation/40 rounded-lg text-sm text-vert-validation">
+                    <div
+                        class="mb-4 p-3 bg-vert-succes/20 border border-vert-succes/40 rounded-lg text-sm text-vert-succes">
                         {{ session('success') }}
                     </div>
                 @endif
                 @if (session('error'))
-                    <div class="mb-4 p-3 bg-rouge-alerte/20 border border-rouge-alerte/40 rounded-lg text-sm text-rouge-alerte">
+                    <div
+                        class="mb-4 p-3 bg-rouge-alerte/20 border border-rouge-alerte/40 rounded-lg text-sm text-rouge-alerte">
                         {{ session('error') }}
                     </div>
                 @endif
@@ -268,7 +320,8 @@
             <div class="absolute bottom-0 left-0 right-0 bg-gris-fonde border-t border-titane/20 rounded-t-2xl p-4">
                 <div class="flex items-center justify-between mb-3">
                     <div class="text-ivoire-text font-bold">Menu</div>
-                    <button type="button" class="text-ivoire-text/70 text-xl" onclick="closeStudioMoreMenu()">×</button>
+                    <button type="button" class="text-ivoire-text/70 text-xl"
+                        onclick="closeStudioMoreMenu()">×</button>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
