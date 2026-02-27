@@ -1,68 +1,303 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Studio - Tattoolib SaaS')</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'noir-profond': '#0a0a0a',
-                        'ivoire-text': '#f8f8f8',
-                        'beige-peau': '#f5e6d3',
-                        'gris-fonde': '#1a1a1a',
-                    }
-                }
-            }
-        }
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>@yield('title', 'Studio') - Ink&Pik</title>
+    @livewireStyles
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <!-- CSRF Token for AJAX -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
-<body class="bg-noir-profond text-ivoire-text">
-    <div class="min-h-screen flex flex-col">
-        <!-- Navigation Studio -->
-        <nav class="bg-gris-fonde border-b border-ivoire-text/20">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between h-16">
-                    <div class="flex items-center">
-                        <a href="{{ route('studio.dashboard') }}" class="text-beige-peau font-bold text-xl">Studio</a>
-                        <div class="ml-10 flex space-x-4">
-                            <a href="{{ route('studio.artists') }}" class="text-ivoire-text hover:text-beige-peau">Artistes</a>
-                            <a href="{{ route('studio.planning') }}" class="text-ivoire-text hover:text-beige-peau">Planning</a>
-                            <a href="{{ route('studio.requests') }}" class="text-ivoire-text hover:text-beige-peau">Demandes</a>
-                            <a href="{{ route('studio.transactions') }}" class="text-ivoire-text hover:text-beige-peau">Transactions</a>
-                            <a href="{{ route('studio.stats') }}" class="text-ivoire-text hover:text-beige-peau">Stats</a>
-                            <a href="{{ route('studio.exports') }}" class="text-ivoire-text hover:text-beige-peau">Exports</a>
-                            <a href="{{ route('studio.settings') }}" class="text-ivoire-text hover:text-beige-peau">Paramètres</a>
-                        </div>
+
+@php
+    $studio = auth()->user()->studio ?? null;
+    $studioName = $studio?->name ?? 'Mon Studio';
+@endphp
+
+<body class="bg-noir-profond">
+
+    <div class="flex min-h-screen max-w-full overflow-x-hidden">
+
+        <!-- Sidebar Desktop (cachée sur mobile) -->
+        <aside class="hidden lg:flex lg:flex-col lg:w-64 bg-gris-fonde border-r border-titane/20 fixed h-full top-0 left-0 z-10">
+
+            <!-- Logo -->
+            <div class="p-6 border-b border-titane/20">
+                <a href="{{ route('studio.dashboard') }}" class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-lg flex items-center justify-center">
+                        <img src="{{ asset('images/logo.png') }}" alt="Ink&Pik" class="w-12 h-12">
                     </div>
-                    <div class="flex items-center space-x-4">
-                        <span class="text-ivoire-text/70">{{ Auth::user()->name }}</span>
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="text-ivoire-text hover:text-beige-peau">Déconnexion</button>
-                        </form>
+                    <span class="text-beige-peau font-bold font-Satoshi text-lg">
+                        <span class="text-titane">Ink</span> & <span class="text-beige-peau">Pik</span>
+                    </span>
+                </a>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+                <a href="{{ route('studio.dashboard') }}"
+                    class="flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs('studio.dashboard') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text hover:bg-noir-profond' }} transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
+                        </path>
+                    </svg>
+                    <span class="font-semibold">Tableau de bord</span>
+                </a>
+
+                <a href="{{ route('studio.artists') }}"
+                    class="flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs('studio.artists*') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text hover:bg-noir-profond' }} transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                        </path>
+                    </svg>
+                    <span class="font-semibold">Artistes</span>
+                </a>
+
+                <a href="{{ route('studio.planning') }}"
+                    class="flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs('studio.planning') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text hover:bg-noir-profond' }} transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                        </path>
+                    </svg>
+                    <span class="font-semibold">Planning</span>
+                </a>
+
+                <a href="{{ route('studio.messages') }}"
+                    class="flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs('studio.messages*') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text hover:bg-noir-profond' }} transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z">
+                        </path>
+                    </svg>
+                    <span class="font-semibold">Messages</span>
+                </a>
+
+                <div class="pt-4 mt-4 border-t border-titane/20 space-y-1">
+                    <a href="{{ route('studio.settings') }}"
+                        class="flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs('studio.settings') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text hover:bg-noir-profond' }} transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                            </path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        <span class="font-semibold">Paramètres</span>
+                    </a>
+
+                    <a href="{{ route('studio.billing') }}"
+                        class="flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs('studio.billing') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text hover:bg-noir-profond' }} transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
+                            </path>
+                        </svg>
+                        <span class="font-semibold">Facturation</span>
+                    </a>
+
+                    <a href="{{ route('studio.stats') }}"
+                        class="flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs('studio.stats') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text hover:bg-noir-profond' }} transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                            </path>
+                        </svg>
+                        <span class="font-semibold">Statistiques</span>
+                    </a>
+
+                    <a href="{{ route('studio.profile') }}"
+                        class="flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs('studio.profile*') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text hover:bg-noir-profond' }} transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9">
+                            </path>
+                        </svg>
+                        <span class="font-semibold">Profil public</span>
+                    </a>
+                </div>
+            </nav>
+
+            <!-- User info -->
+            <div class="p-4 border-t border-titane/20">
+                <div class="flex items-center gap-3 p-3 rounded-lg bg-noir-profond">
+                    @if ($studio?->getFirstMediaUrl('logo'))
+                        <img src="{{ $studio->getFirstMediaUrl('logo') }}" alt="Logo" class="w-10 h-10 rounded-full object-cover">
+                    @else
+                        <div class="w-10 h-10 rounded-full bg-beige-peau/20 flex items-center justify-center text-beige-peau font-bold text-sm">
+                            {{ mb_substr($studioName, 0, 1) }}
+                        </div>
+                    @endif
+                    <div class="flex-1 min-w-0">
+                        <p class="text-ivoire-text font-semibold truncate text-sm">{{ $studioName }}</p>
+                        <p class="text-ivoire-text/60 text-xs">Studio</p>
+                    </div>
+                    <form action="{{ route('logout') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="text-ivoire-text/60 hover:text-rouge-alerte transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                                </path>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 lg:ml-64 overflow-x-hidden overflow-y-auto min-w-0 w-full h-screen">
+
+            <!-- Header Mobile (visible uniquement sur mobile) -->
+            <header class="lg:hidden bg-gris-fonde border-b border-titane/20 p-4 sticky top-0 z-40">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="rounded-lg flex items-center justify-center">
+                            <img src="{{ asset('images/logo.png') }}" alt="Ink&Pik" class="w-10 h-10">
+                        </div>
+                        <span class="text-beige-peau font-bold text-sm truncate max-w-[140px]">{{ $studioName }}</span>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <!-- Avatar -->
+                        @if ($studio?->getFirstMediaUrl('logo'))
+                            <img src="{{ $studio->getFirstMediaUrl('logo') }}" alt="Logo" class="w-8 h-8 rounded-full object-cover">
+                        @else
+                            <div class="w-8 h-8 rounded-full bg-beige-peau/20 flex items-center justify-center text-beige-peau font-bold text-xs">
+                                {{ mb_substr($studioName, 0, 1) }}
+                            </div>
+                        @endif
                     </div>
                 </div>
+            </header>
+
+            <!-- Content -->
+            <div class="p-4 lg:p-8 pb-24 lg:pb-8 max-w-full overflow-y-auto">
+                @if (session('success'))
+                    <div class="mb-4 p-3 bg-vert-validation/20 border border-vert-validation/40 rounded-lg text-sm text-vert-validation">
+                        {{ session('success') }}
+                    </div>
+                @endif
+                @if (session('error'))
+                    <div class="mb-4 p-3 bg-rouge-alerte/20 border border-rouge-alerte/40 rounded-lg text-sm text-rouge-alerte">
+                        {{ session('error') }}
+                    </div>
+                @endif
+
+                {{ $slot ?? '' }}
+                @yield('content')
+            </div>
+        </main>
+
+        <!-- Bottom Navigation Mobile (visible uniquement sur mobile) -->
+        <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-gris-fonde border-t border-titane/20 z-50">
+            <div class="grid grid-cols-5 gap-1 p-2">
+                <a href="{{ route('studio.dashboard') }}"
+                    class="flex flex-col items-center gap-1 p-2 rounded-lg {{ request()->routeIs('studio.dashboard') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text' }}">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
+                        </path>
+                    </svg>
+                    <span class="text-[10px] font-semibold">Accueil</span>
+                </a>
+
+                <a href="{{ route('studio.artists') }}"
+                    class="flex flex-col items-center gap-1 p-2 rounded-lg {{ request()->routeIs('studio.artists*') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text' }}">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                        </path>
+                    </svg>
+                    <span class="text-[10px] font-semibold">Artistes</span>
+                </a>
+
+                <a href="{{ route('studio.planning') }}"
+                    class="flex flex-col items-center gap-1 p-2 rounded-lg {{ request()->routeIs('studio.planning') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text' }}">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                        </path>
+                    </svg>
+                    <span class="text-[10px] font-semibold">Planning</span>
+                </a>
+
+                <a href="{{ route('studio.messages') }}"
+                    class="flex flex-col items-center gap-1 p-2 rounded-lg {{ request()->routeIs('studio.messages*') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text' }}">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z">
+                        </path>
+                    </svg>
+                    <span class="text-[10px] font-semibold">Messages</span>
+                </a>
+
+                <button type="button" onclick="openStudioMoreMenu()"
+                    class="flex flex-col items-center gap-1 p-2 rounded-lg {{ request()->routeIs('studio.settings') || request()->routeIs('studio.billing') || request()->routeIs('studio.stats') || request()->routeIs('studio.profile*') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text' }}">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                        </path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    <span class="text-[10px] font-semibold">Plus</span>
+                </button>
             </div>
         </nav>
 
-        <!-- Main Content -->
-        <main class="flex-grow">
-            @yield('content')
-        </main>
+        <!-- Menu mobile overlay "Plus" -->
+        <div id="studio-more-menu" class="hidden lg:hidden fixed inset-0 bg-black/80 z-[60]">
+            <div class="absolute inset-0" onclick="closeStudioMoreMenu()"></div>
+            <div class="absolute bottom-0 left-0 right-0 bg-gris-fonde border-t border-titane/20 rounded-t-2xl p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="text-ivoire-text font-bold">Menu</div>
+                    <button type="button" class="text-ivoire-text/70 text-xl" onclick="closeStudioMoreMenu()">×</button>
+                </div>
 
-        <!-- Footer -->
-        <footer class="bg-gris-fonde border-t border-ivoire-text/20 py-4">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <p class="text-center text-ivoire-text/70">
-                    &copy; {{ date('Y') }} Tattoolib SaaS. Tous droits réservés.
-                </p>
+                <div class="grid grid-cols-2 gap-2">
+                    <a href="{{ route('studio.settings') }}"
+                        class="p-4 rounded-xl bg-noir-profond text-ivoire-text border border-titane/20 hover:border-beige-peau/40 transition-colors">
+                        <div class="font-semibold text-sm">⚙️ Paramètres</div>
+                    </a>
+                    <a href="{{ route('studio.billing') }}"
+                        class="p-4 rounded-xl bg-noir-profond text-ivoire-text border border-titane/20 hover:border-beige-peau/40 transition-colors">
+                        <div class="font-semibold text-sm">💳 Facturation</div>
+                    </a>
+                    <a href="{{ route('studio.stats') }}"
+                        class="p-4 rounded-xl bg-noir-profond text-ivoire-text border border-titane/20 hover:border-beige-peau/40 transition-colors">
+                        <div class="font-semibold text-sm">📈 Statistiques</div>
+                    </a>
+                    <a href="{{ route('studio.profile') }}"
+                        class="p-4 rounded-xl bg-noir-profond text-ivoire-text border border-titane/20 hover:border-beige-peau/40 transition-colors">
+                        <div class="font-semibold text-sm">🌐 Profil public</div>
+                    </a>
+                </div>
             </div>
-        </footer>
+        </div>
+
     </div>
+
+    <script>
+        function openStudioMoreMenu() {
+            const el = document.getElementById('studio-more-menu');
+            if (el) el.classList.remove('hidden');
+        }
+
+        function closeStudioMoreMenu() {
+            const el = document.getElementById('studio-more-menu');
+            if (el) el.classList.add('hidden');
+        }
+    </script>
+
+    @stack('scripts')
+    @livewireScripts
 </body>
+
 </html>
