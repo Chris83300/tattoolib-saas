@@ -203,8 +203,12 @@ class StudioController extends Controller
             'invited_at'       => now(),
         ]);
 
-        // TODO (Prompt 3) : Envoyer email d'invitation avec lien
-        // Mail::to($validated['email'])->send(new StudioInvitationMail($studio, $token));
+        \Mail::to($validated['email'])->send(new \App\Mail\StudioInvitationMail(
+            $studio,
+            $token,
+            $validated['artisan_type'],
+            $validated['email']
+        ));
 
         return back()->with('success', "Invitation envoyée à {$validated['email']}");
     }
