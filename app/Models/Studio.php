@@ -5,12 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Laravel\Cashier\Billable;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Studio extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia;
+    use HasFactory, SoftDeletes, InteractsWithMedia, Billable;
 
     protected $fillable = [
         'user_id',
@@ -32,7 +33,7 @@ class Studio extends Model implements HasMedia
         'ars_declaration_number',
         'logo_url',
         'banner_url',
-        'payment_mode',        // 'centralized' ou 'distributed' (colonne DB existante)
+        'payment_mode',        // 'artist_direct' ou 'studio_managed' (colonne DB existante)
         'stripe_account_id',   // Stripe Connect du studio
         'stripe_onboarding_complete',
         'max_artists',         // Limite contractuelle (null = illimité)
@@ -40,6 +41,11 @@ class Studio extends Model implements HasMedia
         'opening_hours',       // JSON : {"monday": {"open": "09:00", "close": "19:00"}, ...}
         'social_media_links',  // JSON : {"instagram": "...", "facebook": "...", ...}
         'social_links',        // Alias pour compatibilité prompt
+        // Cashier
+        'stripe_id',
+        'pm_type',
+        'pm_last_four',
+        'trial_ends_at',
     ];
 
     protected $casts = [
@@ -126,14 +132,19 @@ class Studio extends Model implements HasMedia
 
     // ═══ HELPERS ═══
 
-    public function isCentralized(): bool
+    public function stripeEmail(): ?string
     {
-        return $this->payment_mode === 'centralized';
+        return $this->email ?? $this->user?->email;
     }
 
-    public function isDistributed(): bool
+    public function isStudioManaged(): bool
     {
-        return $this->payment_mode === 'distributed';
+        return $this->payment_mode === 'studio_managed';
+    }
+
+    public function isArtistDirect(): bool
+    {
+        return $this->payment_mode === 'artist_direct';
     }
 
     /**
