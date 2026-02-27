@@ -366,6 +366,8 @@ Route::middleware(['auth', 'role:studio'])->prefix('studio')->name('studio.')->g
     Route::put('/artists/{studioArtist}/toggle', [App\Http\Controllers\StudioController::class, 'toggleArtist'])->name('artists.toggle');
     // Planning
     Route::get('/planning', [App\Http\Controllers\StudioController::class, 'planning'])->name('planning');
+    // Demandes
+    Route::get('/demandes', [App\Http\Controllers\StudioController::class, 'requests'])->name('requests');
     // Billing & Stats
     Route::get('/billing', [App\Http\Controllers\StudioController::class, 'billing'])->name('billing');
     Route::get('/stats', [App\Http\Controllers\StudioController::class, 'stats'])->name('stats');

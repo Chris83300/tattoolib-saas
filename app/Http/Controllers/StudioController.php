@@ -260,6 +260,39 @@ class StudioController extends Controller
         ]);
     }
 
+    // ═══ DEMANDES ═══
+
+    public function requests()
+    {
+        $studio = $this->studio();
+        $artistIds = $studio->studioArtists()
+            ->where('is_active', true)
+            ->pluck('user_id')
+            ->filter();
+
+        // Récupérer les IDs des profils artisan (tattooers + piercers)
+        $tattooerIds = \App\Models\Tattooer::whereIn('user_id', $artistIds)->pluck('id');
+        $piercerIds  = \App\Models\Piercer::whereIn('user_id', $artistIds)->pluck('id');
+
+        $requests = \App\Models\BookingRequest::where(function ($q) use ($tattooerIds, $piercerIds) {
+            $q->where(function ($q2) use ($tattooerIds) {
+                $q2->where('bookable_type', 'App\\Models\\Tattooer')
+                   ->whereIn('bookable_id', $tattooerIds);
+            })->orWhere(function ($q2) use ($piercerIds) {
+                $q2->where('bookable_type', 'App\\Models\\Piercer')
+                   ->whereIn('bookable_id', $piercerIds);
+            });
+        })
+        ->with(['bookable.user', 'client'])
+        ->latest()
+        ->paginate(20);
+
+        return view('studio.requests', [
+            'studio'   => $studio,
+            'requests' => $requests,
+        ]);
+    }
+
     // ═══ PROFIL PUBLIC ═══
 
     public function profile()
