@@ -24,6 +24,7 @@ class EventServiceProvider extends ServiceProvider
         ],
         WebhookReceived::class => [
             StripeSubscriptionListener::class,
+            \App\Listeners\HandleStudioSubscriptionCreated::class,
         ],
     ];
 
