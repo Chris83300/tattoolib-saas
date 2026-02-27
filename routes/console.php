@@ -19,3 +19,6 @@ Schedule::command('app:send-booking-reminders')->dailyAt('09:00');
 
 // Notifications post-tattoo (soins, suivi, avis) — toutes les heures
 Schedule::command('app:send-post-tattoo-notifications')->hourly();
+
+// Rappels trial studio — J-4 avant expiration (tous les jours à 9h)
+Schedule::command('studios:send-trial-reminders')->dailyAt('09:00');
