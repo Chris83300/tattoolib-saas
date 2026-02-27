@@ -349,7 +349,7 @@ Route::get('/studio/invitation/{token}', [App\Http\Controllers\StudioController:
 Route::post('/studio/invitation/{token}', [App\Http\Controllers\StudioController::class, 'processInvitation'])->name('studio.invitation.process');
 
 // Routes Studio (protégées — fusionnées Controller + Livewire)
-Route::middleware(['auth', 'role:studio'])->prefix('studio')->name('studio.')->group(function () {
+Route::middleware(['auth', 'role:studio', \App\Http\Middleware\EnsureStudioCanOperate::class])->prefix('studio')->name('studio.')->group(function () {
     Route::get('/dashboard', App\Livewire\Studio\Dashboard::class)->name('dashboard');
     Route::get('/profil', App\Livewire\Studio\Profile::class)->name('profile');
     Route::get('/profil/edit', App\Livewire\Studio\Profile::class)->name('profile.edit');
