@@ -144,5 +144,55 @@
                 </button>
             </div>
         </form>
+
+        {{-- Section SIRET — visible uniquement pour les artistes studio --}}
+        @php
+            $artisanUser = auth()->user()->artisan();
+            $studioForSiret = $artisanUser?->studio;
+            $siretRequired = $studioForSiret && $studioForSiret->payment_mode === 'artist_direct';
+        @endphp
+
+        @if ($artisanUser?->studio_id)
+            <form wire:submit="updateProfessional" class="mt-6 pt-6 border-t border-titane/20">
+                <h3 class="text-ivoire-text font-semibold mb-4">
+                    📄 Informations légales
+                </h3>
+
+                <div class="mb-4">
+                    <label class="block text-ivoire-text font-medium mb-2">
+                        Numéro SIRET
+                        @if ($siretRequired)
+                            <span class="text-rouge-alerte">*</span>
+                        @else
+                            <span class="text-titane/60 text-sm">(optionnel)</span>
+                        @endif
+                    </label>
+                    <input type="text" wire:model="siret" maxlength="14" placeholder="14 chiffres"
+                        class="w-full px-4 py-2 bg-noir-profond border border-titane/20 rounded-lg text-ivoire-text focus:border-beige-peau focus:outline-none"
+                        {{ $siretRequired ? 'required' : '' }}>
+                    @error('siret')
+                        <p class="text-rouge-alerte text-sm mt-1">{{ $message }}</p>
+                    @enderror
+
+                    @if ($siretRequired)
+                        <p class="text-xs text-orange-400 mt-1">
+                            ⚠️ Votre studio utilise le paiement par artiste. Le SIRET est requis pour recevoir les paiements via Stripe Connect.
+                        </p>
+                    @else
+                        <p class="text-xs text-titane/60 mt-1">
+                            Les paiements sont gérés par votre studio. Le SIRET est optionnel mais recommandé pour votre comptabilité.
+                        </p>
+                    @endif
+                </div>
+
+                <div class="flex gap-4">
+                    <button type="submit" wire:loading.attr="disabled"
+                        class="px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 disabled:opacity-50">
+                        <span wire:loading>Enregistrement...</span>
+                        <span wire:loading.remove>Enregistrer le SIRET</span>
+                    </button>
+                </div>
+            </form>
+        @endif
     </div>
 </div>

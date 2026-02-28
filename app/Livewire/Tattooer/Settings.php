@@ -249,9 +249,13 @@ class Settings extends Component
 
     public function updateProfessional()
     {
+        $artisan = Auth::user()->artisan();
+        $studio = $artisan?->studio;
+        $siretRequired = $studio && $studio->payment_mode === 'artist_direct';
+
         $this->validate([
             'artistName' => 'required|string|max:255',
-            'siret' => 'nullable|string|max:14',
+            'siret' => $siretRequired ? 'required|string|size:14' : 'nullable|string|max:14',
             'address' => 'nullable|string|max:255',
             'postalCode' => 'nullable|string|max:10',
             'city' => 'nullable|string|max:255',
