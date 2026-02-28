@@ -93,6 +93,14 @@ class Studio extends Model implements HasMedia
         return $this->hasMany(StudioArtist::class);
     }
 
+    /**
+     * Studio subscriptions relationship
+     */
+    public function studioSubscriptions()
+    {
+        return $this->hasMany(StudioSubscription::class);
+    }
+
     public function activeArtists()
     {
         return $this->artists()->where('is_active', true);
@@ -183,11 +191,47 @@ class Studio extends Model implements HasMedia
 
     /**
      * Peut ajouter un artiste ?
+     * - En trial : max 1 artiste (l'inclus)
+     * - Trial expiré sans abonnement : aucun ajout
+     * - Avec abonnement actif : selon max_artists (null = illimité)
      */
     public function canAddArtist(): bool
     {
-        if ($this->max_artists === null) return true;
-        return $this->artistCount() < $this->max_artists;
+        $currentCount = $this->artistCount();
+
+        // En période d'essai sans abonnement : max 1 artiste
+        if ($this->onTrial() && !$this->hasActiveSubscription()) {
+            return $currentCount < 1;
+        }
+
+        // Trial expiré sans abonnement : aucun ajout
+        if ($this->trialExpired()) {
+            return false;
+        }
+
+        // Avec abonnement actif : vérifier la limite contractuelle
+        if ($this->max_artists !== null) {
+            return $currentCount < $this->max_artists;
+        }
+
+        return true; // Abonnement actif, pas de limite
+    }
+
+    /**
+     * Le studio doit-il souscrire pour ajouter un artiste ?
+     * True si trial avec déjà 1 artiste, ou trial expiré.
+     */
+    public function needsSubscriptionForNewArtist(): bool
+    {
+        if ($this->hasActiveSubscription()) return false;
+
+        // Trial avec déjà 1 artiste
+        if ($this->onTrial() && $this->artistCount() >= 1) return true;
+
+        // Trial expiré
+        if ($this->trialExpired()) return true;
+
+        return false;
     }
 
     public function getProfileUrl(): string
@@ -216,7 +260,9 @@ class Studio extends Model implements HasMedia
 
     public function hasActiveSubscription(): bool
     {
-        return $this->subscribed('studio');
+        return $this->studioSubscriptions()
+            ->where('status', 'active')
+            ->exists();
     }
 
     public function canOperate(): bool

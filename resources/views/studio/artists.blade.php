@@ -17,6 +17,11 @@
                 class="px-4 py-2.5 bg-beige-peau text-noir-profond rounded-xl font-semibold text-sm hover:bg-beige-peau/90 transition-colors active:scale-95">
                 + Ajouter
             </a>
+        @elseif ($needsSubscriptionForNewArtist)
+            <a href="{{ route('studio.subscribe') }}"
+                class="px-4 py-2.5 bg-beige-peau text-noir-profond rounded-xl font-semibold text-sm hover:bg-beige-peau/90 transition-colors active:scale-95">
+                🔓 Souscrire pour ajouter
+            </a>
         @endif
     </div>
 

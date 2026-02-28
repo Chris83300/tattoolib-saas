@@ -10,6 +10,7 @@ use App\Models\Piercer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 class StudioController extends Controller
 {
@@ -98,19 +99,26 @@ class StudioController extends Controller
         $activeArtists = $artists->whereNotNull('user_id');
 
         return view('studio.artists', [
-            'studio'             => $studio,
-            'artists'            => $artists,
-            'activeArtists'      => $activeArtists,
-            'pendingInvitations' => $pendingInvitations,
-            'canAddArtist'       => $studio->canAddArtist(),
-            'paidArtistCount'    => $studio->paidArtistCount(),
-            'monthlyPrice'       => $studio->monthlyPrice(),
+            'studio'                        => $studio,
+            'artists'                       => $artists,
+            'activeArtists'                 => $activeArtists,
+            'pendingInvitations'            => $pendingInvitations,
+            'canAddArtist'                  => $studio->canAddArtist(),
+            'needsSubscriptionForNewArtist' => $studio->needsSubscriptionForNewArtist(),
+            'paidArtistCount'               => $studio->paidArtistCount(),
+            'monthlyPrice'                  => $studio->monthlyPrice(),
         ]);
     }
 
     public function createArtist()
     {
         $studio = $this->studio();
+
+        if ($studio->needsSubscriptionForNewArtist()) {
+            return redirect()->route('studio.subscribe')
+                ->with('info', 'Votre essai inclut 1 artiste. Activez votre abonnement pour en ajouter davantage.');
+        }
+
         abort_unless($studio->canAddArtist(), 403, 'Limite d\'artistes atteinte');
 
         return view('studio.artists-create', [
@@ -124,6 +132,12 @@ class StudioController extends Controller
     public function storeArtist(Request $request)
     {
         $studio = $this->studio();
+
+        if ($studio->needsSubscriptionForNewArtist()) {
+            return redirect()->route('studio.subscribe')
+                ->with('info', 'Votre essai inclut 1 artiste. Activez votre abonnement pour en ajouter davantage.');
+        }
+
         abort_unless($studio->canAddArtist(), 403);
 
         $validated = $request->validate([
@@ -152,7 +166,11 @@ class StudioController extends Controller
             Piercer::create([
                 'user_id'   => $user->id,
                 'studio_id' => $studio->id,
-                'siret'     => null, // SIRET géré par le studio
+                'siret'     => $studio->siret ?: 'STUDIO_' . $studio->id, // SIRET du studio ou placeholder
+                'name'      => $studio->name, // Nom du studio
+                'slug'      => Str::slug($user->name) . '-' . uniqid(),
+                'city'      => $studio->city,
+                'postal_code' => $studio->postal_code,
                 'current_plan'      => 'pro', // Plan Pro car inclus dans l'abonnement studio
                 'is_subscribed'     => true, // Abonnement actif via le studio
                 'upgraded_to_pro_at' => now(), // Date de l'upgrade
@@ -161,7 +179,7 @@ class StudioController extends Controller
             Tattooer::create([
                 'user_id'   => $user->id,
                 'studio_id' => $studio->id,
-                'siret'     => null, // SIRET géré par le studio
+                'siret'     => $studio->siret ?: 'STUDIO_' . $studio->id, // SIRET du studio ou placeholder
                 'current_plan'      => 'pro', // Plan Pro car inclus dans l'abonnement studio
                 'is_subscribed'     => true, // Abonnement actif via le studio
                 'upgraded_to_pro_at' => now(), // Date de l'upgrade
@@ -200,6 +218,12 @@ class StudioController extends Controller
     public function inviteArtist(Request $request)
     {
         $studio = $this->studio();
+
+        if ($studio->needsSubscriptionForNewArtist()) {
+            return redirect()->route('studio.subscribe')
+                ->with('info', 'Votre essai inclut 1 artiste. Activez votre abonnement pour en ajouter davantage.');
+        }
+
         abort_unless($studio->canAddArtist(), 403);
 
         $validated = $request->validate([
