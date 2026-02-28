@@ -193,7 +193,7 @@ class StudioController extends Controller
             'artisan_type' => $validated['artisan_type'],
             'role'         => 'artist',
             'is_active'    => true,
-            'joined_at'    => now(),
+            'joined_at'    => now()->toDateString(), // Utiliser seulement la date
             'artist_name'  => $user->name, // Utiliser le nom de l'utilisateur
             'slug'         => Str::slug($user->name), // Générer un slug à partir du nom
         ]);

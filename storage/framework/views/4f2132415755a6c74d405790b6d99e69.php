@@ -21,7 +21,8 @@
         </div>
 
         <!-- Formulaire -->
-        <form wire:submit="register" class="bg-gris-fonde rounded-xl border border-cuivre/40 shadow-md shadow-cuivre/20 p-6 md:p-8 space-y-6">
+        <form wire:submit="register"
+            class="bg-gris-fonde rounded-xl border border-cuivre/40 shadow-md shadow-cuivre/20 p-6 md:p-8 space-y-6">
 
             <!-- SECTION 1 : SIRET (PRIORITÉ) -->
             <div class="border-b border-titane/20 pb-6">
@@ -52,7 +53,8 @@ unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendB
                 <!-- SIRET avec validation -->
                 <div>
                     <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                        Numéro SIRET <span class="text-rouge-alerte">*</span> <span class="text-ambre-warning/80 font-normal">(14 chiffres)</span>
+                        Numéro SIRET <span class="text-rouge-alerte">*</span> <span
+                            class="text-ambre-warning/80 font-normal">(14 chiffres)</span>
                     </label>
 
                     <div class="flex gap-2">
@@ -277,7 +279,7 @@ unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendB
 
                 <div class="space-y-3">
                     <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="radio" wire:model="payment_mode" value="direct"
+                        <input type="radio" wire:model="payment_mode" value="artist_direct"
                             class="w-4 h-4 text-beige-peau bg-noir-profond border-titane focus:ring-beige-peau">
                         <div>
                             <span class="text-ivoire-text font-medium">Direct (recommandé)</span>
@@ -286,10 +288,10 @@ unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendB
                     </label>
 
                     <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="radio" wire:model="payment_mode" value="centralized"
+                        <input type="radio" wire:model="payment_mode" value="studio_managed"
                             class="w-4 h-4 text-beige-peau bg-noir-profond border-titane focus:ring-beige-peau">
                         <div>
-                            <span class="text-ivoire-text font-medium">Centralisé</span>
+                            <span class="text-ivoire-text font-medium">Géré par le studio</span>
                             <p class="text-ivoire-text/50 text-sm">Le studio reçoit tous les paiements et reverse aux
                                 artistes</p>
                         </div>

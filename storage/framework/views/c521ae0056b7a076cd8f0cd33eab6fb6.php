@@ -1,14 +1,12 @@
-@extends('layouts.studio')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="max-w-xl mx-auto space-y-6" x-data="{ mode: 'create' }">
         <div>
-            <a href="{{ route('studio.artists') }}" class="text-xs text-titane hover:text-ivoire-text transition-colors">←
+            <a href="<?php echo e(route('studio.artists')); ?>" class="text-xs text-titane hover:text-ivoire-text transition-colors">←
                 Retour</a>
             <h1 class="text-2xl font-bold text-ivoire-text mt-2">Ajouter un artiste</h1>
         </div>
 
-        {{-- Choix du mode --}}
+        
         <div class="flex gap-2">
             <button @click="mode = 'create'"
                 :class="mode === 'create' ? 'bg-beige-peau text-noir-profond' : 'bg-gris-fonde text-titane'"
@@ -22,36 +20,57 @@
             </button>
         </div>
 
-        {{-- Mode : Création directe --}}
-        <form x-show="mode === 'create'" action="{{ route('studio.artists.store') }}" method="POST"
+        
+        <form x-show="mode === 'create'" action="<?php echo e(route('studio.artists.store')); ?>" method="POST"
             class="bg-gris-fonde rounded-xl p-4 md:p-6 space-y-4">
-            @csrf
+            <?php echo csrf_field(); ?>
             <p class="text-xs text-titane">Créez un compte pour votre artiste. Définissez un mot de passe qu'il utilisera
                 pour se connecter.</p>
 
             <div>
                 <label class="text-xs text-titane block mb-1">Nom complet *</label>
-                <input type="text" name="name" required placeholder="Prénom Nom" value="{{ old('name') }}"
+                <input type="text" name="name" required placeholder="Prénom Nom" value="<?php echo e(old('name')); ?>"
                     class="w-full px-3 py-2.5 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm placeholder-titane focus:border-beige-peau focus:outline-none">
-                @error('name')
-                    <p class="text-xs text-rouge-alerte mt-1">{{ $message }}</p>
-                @enderror
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['name'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                    <p class="text-xs text-rouge-alerte mt-1"><?php echo e($message); ?></p>
+                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             </div>
             <div>
                 <label class="text-xs text-titane block mb-1">Email *</label>
-                <input type="email" name="email" required placeholder="artiste@email.com" value="{{ old('email') }}"
+                <input type="email" name="email" required placeholder="artiste@email.com" value="<?php echo e(old('email')); ?>"
                     class="w-full px-3 py-2.5 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm placeholder-titane focus:border-beige-peau focus:outline-none">
-                @error('email')
-                    <p class="text-xs text-rouge-alerte mt-1">{{ $message }}</p>
-                @enderror
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['email'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                    <p class="text-xs text-rouge-alerte mt-1"><?php echo e($message); ?></p>
+                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             </div>
             <div>
                 <label class="text-xs text-titane block mb-1">Mot de passe *</label>
                 <input type="password" name="password" required placeholder="Définir un mot de passe"
                     class="w-full px-3 py-2.5 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm placeholder-titane focus:border-beige-peau focus:outline-none">
-                @error('password')
-                    <p class="text-xs text-rouge-alerte mt-1">{{ $message }}</p>
-                @enderror
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['password'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                    <p class="text-xs text-rouge-alerte mt-1"><?php echo e($message); ?></p>
+                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 <p class="text-xs text-titane mt-1">Le mot de passe sera communiqué à l'artiste</p>
             </div>
             <div>
@@ -81,20 +100,27 @@
             </button>
         </form>
 
-        {{-- Mode : Invitation --}}
-        <form x-show="mode === 'invite'" action="{{ route('studio.artists.invite') }}" method="POST"
+        
+        <form x-show="mode === 'invite'" action="<?php echo e(route('studio.artists.invite')); ?>" method="POST"
             class="bg-gris-fonde rounded-xl p-4 md:p-6 space-y-4">
-            @csrf
+            <?php echo csrf_field(); ?>
             <p class="text-xs text-titane">Envoyez une invitation par email. L'artiste créera son propre compte et sera
                 automatiquement rattaché à votre studio.</p>
 
             <div>
                 <label class="text-xs text-titane block mb-1">Email de l'artiste *</label>
-                <input type="email" name="email" required placeholder="artiste@email.com" value="{{ old('email') }}"
+                <input type="email" name="email" required placeholder="artiste@email.com" value="<?php echo e(old('email')); ?>"
                     class="w-full px-3 py-2.5 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm placeholder-titane focus:border-beige-peau focus:outline-none">
-                @error('email')
-                    <p class="text-xs text-rouge-alerte mt-1">{{ $message }}</p>
-                @enderror
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['email'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                    <p class="text-xs text-rouge-alerte mt-1"><?php echo e($message); ?></p>
+                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             </div>
             <div>
                 <label class="text-xs text-titane block mb-1">Type de profil *</label>
@@ -123,4 +149,6 @@
             </button>
         </form>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.studio', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\tattoolib-saas\resources\views/studio/artists-create.blade.php ENDPATH**/ ?>

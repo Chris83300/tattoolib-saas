@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Studio;
+use App\Models\StudioSubscription;
 
 class StudioBillingService
 {
@@ -31,15 +32,24 @@ class StudioBillingService
 
         $paidArtists = $studio->paidArtistCount();
 
-        $subscriptionItems = [
-            ['price' => $studioPriceId, 'quantity' => 1],
-        ];
+        // Create StudioSubscription record instead of using Cashier
+        $studioSubscription = StudioSubscription::create([
+            'studio_id' => $studio->id,
+            'stripe_subscription_id' => 'temp_' . uniqid(), // Will be updated by Stripe webhook
+            'stripe_customer_id' => $studio->stripe_id,
+            'stripe_price_id' => $studioPriceId,
+            'status' => 'active',
+            'base_price' => 79.99,
+            'price_per_artist' => 39.99,
+            'included_artists' => 1,
+            'current_artists' => $paidArtists + 1,
+            'currency' => 'EUR',
+            'billing_interval' => 'month',
+            'current_period_start' => now(),
+            'current_period_end' => now()->addMonth(),
+        ]);
 
-        if ($paidArtists > 0 && $artistPriceId) {
-            $subscriptionItems[] = ['price' => $artistPriceId, 'quantity' => $paidArtists];
-        }
-
-        $studio->newSubscription('studio', $subscriptionItems)->create($paymentMethodId);
+        $studioSubscription->updatePricing();
     }
 
     /**
@@ -48,31 +58,20 @@ class StudioBillingService
      */
     public function updateArtistQuantity(Studio $studio): void
     {
-        $subscription = $studio->subscription('studio');
-        if (!$subscription || !$subscription->active()) {
-            return;
-        }
+        // Use studio_subscriptions table instead of Cashier's subscriptions
+        $subscription = $studio->studioSubscriptions()
+            ->where('status', 'active')
+            ->first();
 
-        $artistPriceId = config('services.stripe.studio_artist_price_id');
-        if (!$artistPriceId) {
+        if (!$subscription) {
             return;
         }
 
         $paidArtists = $studio->paidArtistCount();
 
-        $artistItem = $subscription->items->first(
-            fn ($item) => $item->stripe_price === $artistPriceId
-        );
-
-        if ($paidArtists > 0) {
-            if ($artistItem) {
-                $subscription->updateQuantity($paidArtists, $artistItem->stripe_price);
-            } else {
-                $subscription->addPrice($artistPriceId, $paidArtists);
-            }
-        } elseif ($artistItem) {
-            $subscription->updateQuantity(0, $artistItem->stripe_price);
-        }
+        // Update the subscription with new artist count
+        $subscription->current_artists = $paidArtists + $subscription->included_artists;
+        $subscription->updatePricing();
     }
 
     /**
@@ -80,14 +79,17 @@ class StudioBillingService
      */
     public function billingPortalUrl(Studio $studio): string
     {
-        return $studio->billingPortalUrl(route('studio.billing'));
+        // For now, return a placeholder since we're not using Cashier's billing portal
+        return route('studio.billing');
     }
 
     /**
-     * Le studio a-t-il un abonnement Cashier actif ?
+     * Le studio a-t-il un abonnement actif ?
      */
     public function isSubscribed(Studio $studio): bool
     {
-        return $studio->subscribed('studio');
+        return $studio->studioSubscriptions()
+            ->where('status', 'active')
+            ->exists();
     }
 }

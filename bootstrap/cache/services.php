@@ -57,7 +57,8 @@
     53 => 'App\\Providers\\EventServiceProvider',
     54 => 'App\\Providers\\Filament\\AdminPanelProvider',
     55 => 'App\\Providers\\Filament\\ShopPanelProvider',
-    56 => 'App\\Providers\\FortifyServiceProvider',
+    56 => 'App\\Providers\\Filament\\StudioPanelProvider',
+    57 => 'App\\Providers\\FortifyServiceProvider',
   ),
   'eager' => 
   array (
@@ -102,7 +103,8 @@
     38 => 'App\\Providers\\EventServiceProvider',
     39 => 'App\\Providers\\Filament\\AdminPanelProvider',
     40 => 'App\\Providers\\Filament\\ShopPanelProvider',
-    41 => 'App\\Providers\\FortifyServiceProvider',
+    41 => 'App\\Providers\\Filament\\StudioPanelProvider',
+    42 => 'App\\Providers\\FortifyServiceProvider',
   ),
   'deferred' => 
   array (

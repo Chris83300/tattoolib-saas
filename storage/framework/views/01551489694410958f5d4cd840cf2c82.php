@@ -1,6 +1,4 @@
-@extends('layouts.guest')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="min-h-screen bg-noir-profond flex items-center justify-center px-4 py-12">
         <div class="max-w-md w-full text-center">
 
@@ -22,33 +20,33 @@
 
             <!-- Titre -->
             <h1 class="text-2xl font-display font-bold text-ivoire-text mb-4">
-                @if ($role === 'studio')
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($role === 'studio'): ?>
                     Votre studio est en cours de validation
-                @elseif($role === 'pierceur')
+                <?php elseif($role === 'pierceur'): ?>
                     Votre compte pierceur est en cours de validation
-                @else
+                <?php else: ?>
                     Votre compte tatoueur est en cours de validation
-                @endif
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             </h1>
 
             <!-- Message -->
             <div class="bg-gris-fonde rounded-xl p-6 mb-6">
                 <p class="text-ivoire-text mb-4">
-                    Bonjour {{ auth()->user()->displayName() }},
+                    Bonjour <?php echo e(auth()->user()->displayName()); ?>,
                 </p>
 
                 <p class="text-ivoire-text/70 mb-4">
-                    @if ($role === 'studio')
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($role === 'studio'): ?>
                         Votre studio a bien été créé et est actuellement en attente de validation par notre équipe.
-                    @elseif($role === 'pierceur')
+                    <?php elseif($role === 'pierceur'): ?>
                         Votre compte pierceur a bien été créé et est actuellement en attente de validation par notre équipe.
-                    @else
+                    <?php else: ?>
                         Votre compte tatoueur a bien été créé et est actuellement en attente de validation par notre équipe.
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </p>
 
                 <div class="space-y-3 text-left">
-                    @if ($role === 'studio' || $role === 'pierceur')
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($role === 'studio' || $role === 'pierceur'): ?>
                         <div class="flex items-start gap-3">
                             <svg class="w-5 h-5 text-ambre-warning mt-0.5 flex-shrink-0" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
@@ -60,7 +58,7 @@
                                 <p class="text-ivoire-text/50 text-sm">Votre numéro SIRET vas être validé dans les plus brefs délais</p>
                             </div>
                         </div>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                     <div class="flex items-start gap-3">
                         <svg class="w-5 h-5 text-ambre-warning mt-0.5 flex-shrink-0" fill="none" stroke="currentColor"
@@ -79,7 +77,7 @@
             </div>
 
             <!-- Informations reçues -->
-            @if ($role === 'studio')
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($role === 'studio'): ?>
                 <div class="bg-noir-profond rounded-lg p-6 mb-6 text-left">
                     <h3 class="text-ivoire-text font-semibold mb-3">Informations reçues :</h3>
                     <ul class="space-y-2 text-sm text-ivoire-text/70">
@@ -90,7 +88,7 @@
                                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                             <span><strong class="text-ivoire-text">SIRET :</strong>
-                                {{ auth()->user()->studio?->siret ?? 'Non renseigné' }}</span>
+                                <?php echo e(auth()->user()->studio?->siret ?? 'Non renseigné'); ?></span>
                         </li>
                         <li class="flex items-start gap-2">
                             <svg class="w-5 h-5 text-vert-succes flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
@@ -99,7 +97,7 @@
                                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                             <span><strong class="text-ivoire-text">Nom du studio :</strong>
-                                {{ auth()->user()->studio?->name ?? 'Non renseigné' }}</span>
+                                <?php echo e(auth()->user()->studio?->name ?? 'Non renseigné'); ?></span>
                         </li>
                         <li class="flex items-start gap-2">
                             <svg class="w-5 h-5 text-vert-succes flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
@@ -108,8 +106,9 @@
                                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                             <span><strong class="text-ivoire-text">Gérant :</strong>
-                                {{ auth()->user()->studio?->first_name ?? auth()->user()->first_name }}
-                                {{ auth()->user()->studio?->last_name ?? auth()->user()->last_name }}</span>
+                                <?php echo e(auth()->user()->studio?->first_name ?? auth()->user()->first_name); ?>
+
+                                <?php echo e(auth()->user()->studio?->last_name ?? auth()->user()->last_name); ?></span>
                         </li>
                         <li class="flex items-start gap-2">
                             <svg class="w-5 h-5 text-vert-succes flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
@@ -118,11 +117,11 @@
                                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                             <span><strong class="text-ivoire-text">Ville :</strong>
-                                {{ auth()->user()->studio?->city ?? 'Non renseignée' }}</span>
+                                <?php echo e(auth()->user()->studio?->city ?? 'Non renseignée'); ?></span>
                         </li>
                     </ul>
                 </div>
-            @elseif($role === 'pierceur')
+            <?php elseif($role === 'pierceur'): ?>
                 <div class="bg-noir-profond rounded-lg p-6 mb-6 text-left">
                     <h3 class="text-ivoire-text font-semibold mb-3">Informations reçues :</h3>
                     <ul class="space-y-2 text-sm text-ivoire-text/70">
@@ -133,7 +132,7 @@
                                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                             <span><strong class="text-ivoire-text">SIRET :</strong>
-                                {{ auth()->user()->piercer?->siret ?? 'Non renseigné' }}</span>
+                                <?php echo e(auth()->user()->piercer?->siret ?? 'Non renseigné'); ?></span>
                         </li>
                         <li class="flex items-start gap-2">
                             <svg class="w-5 h-5 text-vert-succes flex-shrink-0 mt-0.5" fill="none" stroke="currentColor"
@@ -142,7 +141,7 @@
                                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                             <span><strong class="text-ivoire-text">Nom :</strong>
-                                {{ auth()->user()->piercer?->name ?? auth()->user()->name }}</span>
+                                <?php echo e(auth()->user()->piercer?->name ?? auth()->user()->name); ?></span>
                         </li>
                         <li class="flex items-start gap-2">
                             <svg class="w-5 h-5 text-vert-succes flex-shrink-0 mt-0.5" fill="none"
@@ -151,11 +150,11 @@
                                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                             <span><strong class="text-ivoire-text">Ville :</strong>
-                                {{ auth()->user()->piercer?->city ?? 'Non renseignée' }}</span>
+                                <?php echo e(auth()->user()->piercer?->city ?? 'Non renseignée'); ?></span>
                         </li>
                     </ul>
                 </div>
-            @endif
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
             <!-- Délai -->
             <div class="bg-beige-peau/5 border border-beige-peau/30 rounded-lg p-4 mb-6">
@@ -169,19 +168,19 @@
 
             <!-- Actions -->
             <div class="space-y-3">
-                <a href="@if ($role === 'studio') {{ route('studio.profile') }}@elseif($role === 'pierceur'){{ route('piercer.profile') }}@else{{ route('tattooer.profile') }} @endif"
+                <a href="<?php if($role === 'studio'): ?> <?php echo e(route('studio.profile')); ?><?php elseif($role === 'pierceur'): ?><?php echo e(route('piercer.profile')); ?><?php else: ?><?php echo e(route('tattooer.profile')); ?> <?php endif; ?>"
                     class="w-full bg-beige-peau hover:bg-beige-peau/90 text-noir-profond font-semibold py-3 rounded-lg transition-colors text-center block">
-                    @if ($role === 'studio')
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($role === 'studio'): ?>
                         Accéder à mon profil studio
-                    @elseif($role === 'pierceur')
+                    <?php elseif($role === 'pierceur'): ?>
                         Accéder à mon profil pierceur
-                    @else
+                    <?php else: ?>
                         Accéder à mon profil tatoueur
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </a>
 
-                <form action="{{ route('logout') }}" method="POST" class="inline">
-                    @csrf
+                <form action="<?php echo e(route('logout')); ?>" method="POST" class="inline">
+                    <?php echo csrf_field(); ?>
                     <button type="submit" onclick="return confirm('Êtes-vous sûr de vouloir vous déconnecter ?')"
                         class="w-full border border-titane text-ivoire-text hover:border-beige-peau hover:text-beige-peau font-semibold py-3 rounded-lg transition-colors">
                         Se déconnecter
@@ -201,4 +200,6 @@
 
         </div>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.guest', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\tattoolib-saas\resources\views/auth/pending-verification.blade.php ENDPATH**/ ?>

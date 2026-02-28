@@ -152,7 +152,14 @@ class StudioArtistService
      */
     private function updateStudioSubscription(Studio $studio): void
     {
-        $subscription = $studio->subscription;
+        $subscription = $studio->studioSubscriptions()
+            ->where('status', 'active')
+            ->first();
+
+        if (!$subscription) {
+            return;
+        }
+
         $activeCount = $studio->activeArtists()->count();
 
         // Mettre à jour compteurs

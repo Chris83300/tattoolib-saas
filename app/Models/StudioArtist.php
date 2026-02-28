@@ -25,7 +25,7 @@ class StudioArtist extends Model
 
     protected $casts = [
         'is_active'       => 'boolean',
-        'joined_at'       => 'datetime',
+        'joined_at'       => 'date',
         'invited_at'      => 'datetime',
         'commission_rate' => 'decimal:2',
     ];

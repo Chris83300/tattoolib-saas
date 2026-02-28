@@ -1,41 +1,48 @@
 <div class="space-y-6">
     <h1 class="text-2xl font-bold text-ivoire-text">Paramètres du studio</h1>
 
-    <form action="{{ route('studio.settings.update') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
-        @csrf
-        @method('PUT')
+    <form action="<?php echo e(route('studio.settings.update')); ?>" method="POST" enctype="multipart/form-data" class="space-y-6">
+        <?php echo csrf_field(); ?>
+        <?php echo method_field('PUT'); ?>
 
-        {{-- ═══ INFORMATIONS DE BASE ═══ --}}
+        
         <div class="bg-gris-fonde rounded-xl p-4 md:p-6 space-y-4">
             <h2 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider">🏢 Informations</h2>
 
             <div>
                 <label class="text-xs text-titane block mb-1">Nom du studio *</label>
-                <input type="text" name="name" value="{{ old('name', $studio->name) }}" required
+                <input type="text" name="name" value="<?php echo e(old('name', $studio->name)); ?>" required
                     class="w-full px-3 py-2.5 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau focus:outline-none">
-                @error('name')
-                    <p class="text-xs text-rouge-alerte mt-1">{{ $message }}</p>
-                @enderror
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['name'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                    <p class="text-xs text-rouge-alerte mt-1"><?php echo e($message); ?></p>
+                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             </div>
             <div>
                 <label class="text-xs text-titane block mb-1">Description</label>
                 <textarea name="description" rows="4" placeholder="Présentez votre studio..."
-                    class="w-full px-3 py-2.5 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm placeholder-titane focus:border-beige-peau focus:outline-none resize-none">{{ old('description', $studio->description) }}</textarea>
+                    class="w-full px-3 py-2.5 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm placeholder-titane focus:border-beige-peau focus:outline-none resize-none"><?php echo e(old('description', $studio->description)); ?></textarea>
             </div>
             <div>
                 <label class="text-xs text-titane block mb-1">Adresse</label>
-                <input type="text" name="address" value="{{ old('address', $studio->address) }}"
+                <input type="text" name="address" value="<?php echo e(old('address', $studio->address)); ?>"
                     class="w-full px-3 py-2.5 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau focus:outline-none">
             </div>
             <div class="flex flex-col sm:flex-row gap-3">
                 <div class="flex-1">
                     <label class="text-xs text-titane block mb-1">Ville</label>
-                    <input type="text" name="city" value="{{ old('city', $studio->city) }}"
+                    <input type="text" name="city" value="<?php echo e(old('city', $studio->city)); ?>"
                         class="w-full px-3 py-2.5 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau focus:outline-none">
                 </div>
                 <div class="w-full sm:w-32">
                     <label class="text-xs text-titane block mb-1">Code postal</label>
-                    <input type="text" name="postal_code" value="{{ old('postal_code', $studio->postal_code) }}"
+                    <input type="text" name="postal_code" value="<?php echo e(old('postal_code', $studio->postal_code)); ?>"
                         maxlength="5"
                         class="w-full px-3 py-2.5 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau focus:outline-none">
                 </div>
@@ -43,73 +50,73 @@
             <div class="flex flex-col sm:flex-row gap-3">
                 <div class="flex-1">
                     <label class="text-xs text-titane block mb-1">Téléphone</label>
-                    <input type="text" name="phone" value="{{ old('phone', $studio->phone) }}"
+                    <input type="text" name="phone" value="<?php echo e(old('phone', $studio->phone)); ?>"
                         class="w-full px-3 py-2.5 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau focus:outline-none">
                 </div>
                 <div class="flex-1">
                     <label class="text-xs text-titane block mb-1">Email professionnel</label>
-                    <input type="email" name="email" value="{{ old('email', $studio->email) }}"
+                    <input type="email" name="email" value="<?php echo e(old('email', $studio->email)); ?>"
                         class="w-full px-3 py-2.5 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau focus:outline-none">
                 </div>
             </div>
             <div class="flex flex-col sm:flex-row gap-3">
                 <div class="flex-1">
                     <label class="text-xs text-titane block mb-1">Site web</label>
-                    <input type="url" name="website" value="{{ old('website', $studio->website) }}"
+                    <input type="url" name="website" value="<?php echo e(old('website', $studio->website)); ?>"
                         placeholder="https://..."
                         class="w-full px-3 py-2.5 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm placeholder-titane focus:border-beige-peau focus:outline-none">
                 </div>
                 <div class="flex-1">
                     <label class="text-xs text-titane block mb-1">SIRET</label>
-                    <input type="text" name="siret" value="{{ old('siret', $studio->siret) }}" maxlength="14"
+                    <input type="text" name="siret" value="<?php echo e(old('siret', $studio->siret)); ?>" maxlength="14"
                         placeholder="14 chiffres"
                         class="w-full px-3 py-2.5 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm placeholder-titane focus:border-beige-peau focus:outline-none">
                 </div>
             </div>
         </div>
 
-        {{-- ═══ PHOTOS ═══ --}}
+        
         <div class="bg-gris-fonde rounded-xl p-4 md:p-6 space-y-4">
             <h2 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider">📸 Photos</h2>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="text-xs text-titane block mb-2">Logo</label>
-                    @if ($studio->getFirstMediaUrl('logo'))
-                        <img src="{{ $studio->getFirstMediaUrl('logo') }}" alt="Logo"
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($studio->getFirstMediaUrl('logo')): ?>
+                        <img src="<?php echo e($studio->getFirstMediaUrl('logo')); ?>" alt="Logo"
                             class="w-24 h-24 rounded-lg object-cover mb-2">
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     <input type="file" name="logo" accept="image/*"
                         class="w-full text-sm text-titane file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-beige-peau file:text-noir-profond file:font-semibold file:text-sm file:cursor-pointer hover:file:bg-beige-peau/90">
                 </div>
                 <div>
                     <label class="text-xs text-titane block mb-2">Photo de couverture</label>
-                    @if ($studio->getFirstMediaUrl('cover'))
-                        <img src="{{ $studio->getFirstMediaUrl('cover') }}" alt="Couverture"
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($studio->getFirstMediaUrl('cover')): ?>
+                        <img src="<?php echo e($studio->getFirstMediaUrl('cover')); ?>" alt="Couverture"
                             class="w-full h-24 rounded-lg object-cover mb-2">
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     <input type="file" name="cover" accept="image/*"
                         class="w-full text-sm text-titane file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-beige-peau file:text-noir-profond file:font-semibold file:text-sm file:cursor-pointer hover:file:bg-beige-peau/90">
                 </div>
             </div>
             <div>
                 <label class="text-xs text-titane block mb-2">Photos du salon (multiples)</label>
-                @if ($studio->getMedia('photos')->count() > 0)
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($studio->getMedia('photos')->count() > 0): ?>
                     <div class="flex flex-wrap gap-2 mb-2">
-                        @foreach ($studio->getMedia('photos') as $photo)
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $studio->getMedia('photos'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $photo): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <div class="relative group">
-                                <img src="{{ $photo->getUrl() }}" alt="Photo salon"
+                                <img src="<?php echo e($photo->getUrl()); ?>" alt="Photo salon"
                                     class="w-20 h-20 rounded-lg object-cover">
                             </div>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </div>
-                @endif
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 <input type="file" name="photos[]" accept="image/*" multiple
                     class="w-full text-sm text-titane file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-beige-peau file:text-noir-profond file:font-semibold file:text-sm file:cursor-pointer hover:file:bg-beige-peau/90">
             </div>
         </div>
 
-        {{-- ═══ MODÈLE DE PAIEMENT ═══ --}}
+        
         <div class="bg-gris-fonde rounded-xl p-4 md:p-6 space-y-4">
             <h2 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider">💳 Paiement</h2>
             <p class="text-xs text-titane">Comment les clients paient-ils les prestations de vos artistes ?</p>
@@ -117,7 +124,8 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <label class="cursor-pointer">
                     <input type="radio" name="payment_mode" value="studio_managed"
-                        {{ old('payment_mode', $studio->payment_mode ?? 'artist_direct') === 'studio_managed' ? 'checked' : '' }}
+                        <?php echo e(old('payment_mode', $studio->payment_mode ?? 'artist_direct') === 'studio_managed' ? 'checked' : ''); ?>
+
                         class="peer hidden">
                     <div
                         class="peer-checked:border-beige-peau peer-checked:bg-beige-peau/10 border-2 border-titane/30 rounded-xl p-4 transition-colors">
@@ -128,7 +136,8 @@
                 </label>
                 <label class="cursor-pointer">
                     <input type="radio" name="payment_mode" value="artist_direct"
-                        {{ old('payment_mode', $studio->payment_mode ?? '') === 'artist_direct' ? 'checked' : '' }}
+                        <?php echo e(old('payment_mode', $studio->payment_mode ?? '') === 'artist_direct' ? 'checked' : ''); ?>
+
                         class="peer hidden">
                     <div
                         class="peer-checked:border-beige-peau peer-checked:bg-beige-peau/10 border-2 border-titane/30 rounded-xl p-4 transition-colors">
@@ -140,10 +149,10 @@
             </div>
         </div>
 
-        {{-- ═══ HORAIRES ═══ --}}
+        
         <div class="bg-gris-fonde rounded-xl p-4 md:p-6" x-data="{
             daysOrder: ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'],
-            hours: {{ Js::from(
+            hours: <?php echo e(Js::from(
                 $studio->opening_hours ?? [
                     'lundi' => ['open' => '09:00', 'close' => '19:00', 'closed' => true],
                     'mardi' => ['open' => '09:00', 'close' => '19:00', 'closed' => false],
@@ -153,7 +162,7 @@
                     'samedi' => ['open' => '10:00', 'close' => '18:00', 'closed' => false],
                     'dimanche' => ['open' => '', 'close' => '', 'closed' => true],
                 ],
-            ) }},
+            )); ?>,
             toggleDay(dayName, isClosed) {
                 const day = this.hours[dayName];
                 if (isClosed) {
@@ -205,10 +214,11 @@
             </div>
         </div>
 
-        {{-- Bouton sauvegarder --}}
+        
         <button type="submit"
             class="w-full sm:w-auto px-6 py-3 bg-beige-peau text-noir-profond rounded-xl font-semibold hover:bg-beige-peau/90 transition-colors active:scale-95">
             Sauvegarder
         </button>
     </form>
 </div>
+<?php /**PATH C:\laragon\www\tattoolib-saas\resources\views/livewire/studio/settings.blade.php ENDPATH**/ ?>
