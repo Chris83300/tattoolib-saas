@@ -346,7 +346,7 @@ class Tattooer extends Model implements HasMedia, ArtisanInterface
     {
         if ($this->studio_id) {
             $studio = $this->studio;
-            if ($studio && $studio->payment_mode === 'centralized') {
+            if ($studio && $studio->payment_mode === 'studio_managed') {
                 return $studio->stripe_account_id;
             }
         }
@@ -369,7 +369,7 @@ class Tattooer extends Model implements HasMedia, ArtisanInterface
     {
         if ($this->studio_id) {
             $studio = $this->studio;
-            if ($studio && $studio->payment_mode === 'centralized') {
+            if ($studio && $studio->payment_mode === 'studio_managed') {
                 return false;
             }
         }
@@ -481,6 +481,16 @@ class Tattooer extends Model implements HasMedia, ArtisanInterface
 
     public function isPro(): bool
     {
+        // Artiste studio = toujours PRO (le studio paie, is_subscribed=true)
+        if ($this->studio_id) {
+            return true;
+        }
+
+        // Artiste indépendant : vérifier via is_subscribed ou activeSubscription
+        if ($this->is_subscribed) {
+            return true;
+        }
+
         return $this->activeSubscription !== null
             && $this->activeSubscription->plan === 'pro';
     }
@@ -493,5 +503,34 @@ class Tattooer extends Model implements HasMedia, ArtisanInterface
     public function commissionRate(): float
     {
         return $this->isPro() ? 0.0 : 7.0;
+    }
+
+    /**
+     * Override HasSubscription::getCurrentPlan() pour les artistes studio.
+     */
+    public function getCurrentPlan(): string
+    {
+        if ($this->studio_id) {
+            return \App\Models\Subscription::PLAN_PRO;
+        }
+
+        return $this->subscription?->plan ?? \App\Models\Subscription::PLAN_FREE;
+    }
+
+    /**
+     * Override HasSubscription::getCommissionRate() pour les artistes studio.
+     */
+    public function getCommissionRate(): float
+    {
+        if ($this->studio_id) {
+            return 0.0;
+        }
+
+        $subscription = $this->subscription;
+        if (!$subscription) {
+            return \App\Models\Subscription::COMMISSION_FREE;
+        }
+
+        return (float) $subscription->commission_rate;
     }
 }
