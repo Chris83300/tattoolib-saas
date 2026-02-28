@@ -55,6 +55,7 @@ class TraceabilityRecord extends Model implements HasMedia
         'tattooer_verified_traceability',
         'verified_at',
         'verification_notes',
+        'studio_id',
     ];
 
     protected $casts = [
@@ -95,7 +96,24 @@ class TraceabilityRecord extends Model implements HasMedia
         return $this->belongsTo(Client::class);
     }
 
+    public function studio(): BelongsTo
+    {
+        return $this->belongsTo(Studio::class);
+    }
+
     // ===== SCOPES =====
+
+    /**
+     * Scope : artiste indépendant voit ses records, artiste studio voit ceux du studio.
+     */
+    public function scopeForArtisan($query, $artisan)
+    {
+        if ($artisan->studio_id) {
+            return $query->where('studio_id', $artisan->studio_id);
+        }
+
+        return $query->where('tattooer_id', $artisan->id);
+    }
 
     public function scopeForTattooer($query, int $userId)
     {

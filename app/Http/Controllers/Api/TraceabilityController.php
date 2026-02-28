@@ -111,11 +111,13 @@ class TraceabilityController extends Controller
         $isAdult = $birthDate->age >= 18;
         $isMinor = !$isAdult;
 
+        $bookableArtisan = $appointment->bookable ?? null;
         $consentForm = ClientConsentForm::create([
             'client_id' => $user->client->id,
             'user_id' => $appointment->bookable->user_id,
             'tattooer_id' => $appointment->bookable->id,
             'appointment_id' => $appointment->id,
+            'studio_id' => $bookableArtisan?->studio_id,
             'is_minor' => $isMinor,
             'client_full_name' => $validated['client_full_name'],
             'client_birth_date' => $validated['birth_date'],
@@ -289,11 +291,13 @@ class TraceabilityController extends Controller
             return response()->json(['message' => 'Consentement non vérifié'], 400);
         }
 
+        $artisanForTrace = $user->artisan();
         $traceabilityRecord = TraceabilityRecord::create([
             'user_id' => $user->id,
             'tattooer_id' => $user->tattooer->id,
             'appointment_id' => $appointment->id,
             'client_consent_form_id' => $consentForm->id,
+            'studio_id' => $artisanForTrace?->studio_id,
             ...$validated,
         ]);
 

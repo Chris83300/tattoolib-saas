@@ -15,6 +15,7 @@ class ClientCareSheet extends Model
         'client_id',
         'user_id',
         'appointment_id',
+        'studio_id',
 
         // Informations tattoo
         'tattoo_description',
@@ -110,6 +111,23 @@ class ClientCareSheet extends Model
     public function tattooer(): BelongsTo
     {
         return $this->belongsTo(Tattooer::class);
+    }
+
+    public function studio(): BelongsTo
+    {
+        return $this->belongsTo(Studio::class);
+    }
+
+    /**
+     * Scope : artiste indépendant voit ses fiches, artiste studio voit celles du studio.
+     */
+    public function scopeForArtisan($query, $artisan)
+    {
+        if ($artisan->studio_id) {
+            return $query->where('studio_id', $artisan->studio_id);
+        }
+
+        return $query->where('tattooer_id', $artisan->id);
     }
 
     public function appointment(): BelongsTo

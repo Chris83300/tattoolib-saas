@@ -118,10 +118,12 @@ class ClientCareSheetController extends Controller
             return response()->json(['message' => 'Accès non autorisé'], 403);
         }
 
+        $artisan = $user->artisan();
         $careSheet = ClientCareSheet::create([
             'user_id' => $user->id,
             'client_id' => $appointment->client_id,
             'appointment_id' => $appointment->id,
+            'studio_id' => $artisan?->studio_id,
             ...$validated,
         ]);
 

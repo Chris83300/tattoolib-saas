@@ -57,6 +57,7 @@ class ClientConsentForm extends Model implements HasMedia
         'consents_to_tattoo', 'understands_risks', 'understands_aftercare',
         'consents_to_photos', 'consents_to_data_processing',
         'id_document_photos', 'consent_signature', 'ip_address', 'user_agent',
+        'studio_id',
     ];
 
     protected $casts = [
@@ -161,6 +162,11 @@ class ClientConsentForm extends Model implements HasMedia
         return $this->belongsTo(User::class, 'verified_by');
     }
 
+    public function studio(): BelongsTo
+    {
+        return $this->belongsTo(Studio::class);
+    }
+
     // ===== MEDIA =====
 
     public function registerMediaCollections(): void
@@ -184,6 +190,18 @@ class ClientConsentForm extends Model implements HasMedia
     public function scopeForClient($query, int $clientId)
     {
         return $query->where('client_id', $clientId);
+    }
+
+    /**
+     * Scope : artiste indépendant voit ses formulaires, artiste studio voit ceux du studio.
+     */
+    public function scopeForArtisan($query, $artisan)
+    {
+        if ($artisan->studio_id) {
+            return $query->where('studio_id', $artisan->studio_id);
+        }
+
+        return $query->where('tattooer_id', $artisan->id);
     }
 
     public function scopeSigned($query)

@@ -576,13 +576,6 @@ class TattooerController extends Controller
         // Fusionner tous les events
         $events = array_merge($calendarEvents, $appointments, $bookingEvents);
 
-        // Debug
-        Log::info('Calendar Events count: ' . count($calendarEvents));
-        Log::info('Appointments count: ' . count($appointments));
-        Log::info('Booking Events count: ' . count($bookingEvents));
-        Log::info('Total Events count: ' . count($events));
-        Log::info('Sample events: ' . json_encode(array_slice($events, 0, 2)));
-
         // Compteurs pour le layout
         $pendingCount = BookingRequest::where('bookable_id', $tattooer->id)
             ->where('bookable_type', get_class($tattooer))
@@ -1415,6 +1408,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
             'tattooer_id' => $tattooer->id,
             'client_id' => $client->id, // Lien direct avec le client
             'appointment_id' => null, // Pas d'appointment lié
+            'studio_id' => $tattooer->studio_id,
             'session_date' => $validated['session_date'],
             'tattoo_description' => $validated['tattoo_description'],
             'body_zone' => $validated['body_zone'],
@@ -2574,9 +2568,11 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
         ]);
 
         // Créer le consentement numérique
+        $artisanForConsent = $this->artisan();
         $consent = \App\Models\ClientConsentForm::create([
             'client_id' => $client->id,
             'booking_request_id' => null, // Consentement manuel
+            'studio_id' => $artisanForConsent?->studio_id,
             'client_full_name' => $validated['client_full_name'],
             'client_birth_date' => $validated['client_birth_date'],
             'client_phone' => $validated['client_phone'],
