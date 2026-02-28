@@ -529,7 +529,22 @@
         <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
             <h3 class="text-xl font-bold text-ivoire-text mb-4">Configuration Stripe Connect</h3>
 
-            @if ($tattooer->stripe_connect_id ?? false)
+            @if ($tattooer->isStudioArtist() && !$tattooer->needsOwnStripeConnect())
+                {{-- Artiste studio en mode centralisé : paiements gérés par le studio --}}
+                <div class="bg-gris-fonde border border-titane/20 rounded-xl p-4 sm:p-6 mb-6">
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">💳</span>
+                        <div>
+                            <p class="text-sm font-semibold text-ivoire-text">Paiements gérés par le studio</p>
+                            <p class="text-xs text-titane mt-1">
+                                Les paiements clients sont encaissés par
+                                <strong class="text-beige-peau">{{ $tattooer->studio?->name }}</strong>.
+                                Vous n'avez pas besoin de configurer Stripe Connect.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            @elseif ($tattooer->stripe_connect_id ?? false)
                 <div class="bg-vert-succes/20 border border-vert-succes/30 rounded-xl p-4 sm:p-6 mb-6">
                     <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4">
                         <svg class="w-8 h-8 text-vert-succes flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
