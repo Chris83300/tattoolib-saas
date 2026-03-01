@@ -4,6 +4,8 @@ namespace App\Livewire\Client;
 
 use Livewire\Component;
 use App\Models\BookingRequest;
+use App\Notifications\AppointmentConfirmedNotification;
+use App\Notifications\BookingModifiedNotification;
 use Livewire\Attributes\On;
 
 class DateSelection extends Component
@@ -67,7 +69,10 @@ class DateSelection extends Component
             ]);
         }
 
-        // TODO: Notification tattooer (sera implémenté plus tard)
+        // Notifier l'artiste que le client a envoyé ses disponibilités
+        if ($this->bookingRequest->bookable?->user) {
+            $this->bookingRequest->bookable->user->notify(new AppointmentConfirmedNotification($this->bookingRequest));
+        }
 
         session()->flash('success', 'Dates envoyées au tatoueur !');
         
@@ -86,8 +91,11 @@ class DateSelection extends Component
             ]);
         }
 
-        // TODO: Notification tattooer (sera implémenté plus tard)
-        
+        // Notifier l'artiste que le client demande des dates alternatives
+        if ($this->bookingRequest->bookable?->user) {
+            $this->bookingRequest->bookable->user->notify(new BookingModifiedNotification($this->bookingRequest));
+        }
+
         session()->flash('success', 'Demande d\'autres dates envoyée au tatoueur');
     }
 

@@ -8,6 +8,7 @@ use App\Models\Conversation;
 use App\Models\Message;
 use App\Enums\BookingRequestStatus;
 use App\Enums\AppointmentStatus;
+use App\Notifications\AppointmentConfirmedNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -45,8 +46,11 @@ class ConfirmAppointmentDate
             // 6. Logger l'événement
             $this->logAppointmentConfirmation($bookingRequest, $appointment);
 
-            // 7. TODO: Envoyer notification au tattooer
-            // $this->notifyTattooer($bookingRequest, $appointment);
+            // 7. Notifier l'artiste que le client a confirmé la date
+            $artisan = $bookingRequest->bookable;
+            if ($artisan?->user) {
+                $artisan->user->notify(new AppointmentConfirmedNotification($bookingRequest));
+            }
         });
     }
 

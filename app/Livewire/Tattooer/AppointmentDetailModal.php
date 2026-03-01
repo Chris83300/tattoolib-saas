@@ -8,6 +8,8 @@ use App\Models\CalendarEvent;
 use App\Models\BookingRequest;
 use App\Enums\AppointmentStatus;
 use App\Enums\BookingRequestStatus;
+use App\Notifications\BookingModifiedNotification;
+use App\Notifications\BookingCancelledNotification;
 use Carbon\Carbon;
 use Livewire\Attributes\On;
 use Illuminate\Support\Facades\DB;
@@ -90,7 +92,11 @@ class AppointmentDetailModal extends Component
                 ]);
             }
 
-            // TODO: Notification client (sera implémenté plus tard)
+            // Notifier le client que le rendez-vous a été modifié
+            $bookingRequest = $this->appointment->bookingRequest;
+            if ($bookingRequest?->client?->user) {
+                $bookingRequest->client->user->notify(new BookingModifiedNotification($bookingRequest));
+            }
         });
 
         session()->flash('success', 'Rendez-vous modifié !');
@@ -130,7 +136,10 @@ class AppointmentDetailModal extends Component
                 ]);
             }
 
-            // TODO: Notification client (sera implémenté plus tard)
+            // Notifier le client que le rendez-vous a été annulé
+            if ($bookingRequest?->client?->user) {
+                $bookingRequest->client->user->notify(new BookingCancelledNotification($bookingRequest));
+            }
         });
 
         $this->showCancelConfirm = false;

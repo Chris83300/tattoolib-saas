@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\Tattooer;
 use App\Models\StudioArtist;
+use App\Notifications\StripeAccountDeactivatedNotification;
 
 class DeactivateInactiveStripeAccounts extends Command
 {
@@ -31,8 +32,10 @@ class DeactivateInactiveStripeAccounts extends Command
 
                         $this->warn("  ⏸️ Désactivé: {$tattooer->name} (Tattooer #{$tattooer->id})");
 
-                        // TODO: Envoyer notification email
-                        // Mail::to($tattooer->user)->send(new StripeConnectDeactivatedMail($tattooer));
+                        // Notifier l'artiste de la désactivation
+                        if ($tattooer->user) {
+                            $tattooer->user->notify(new StripeAccountDeactivatedNotification($tattooer));
+                        }
                     }
                 }
             });
@@ -54,6 +57,11 @@ class DeactivateInactiveStripeAccounts extends Command
                         $deactivatedCount++;
 
                         $this->warn("  ⏸️ Désactivé: {$artist->name} (StudioArtist #{$artist->id})");
+
+                        // Notifier l'artiste studio de la désactivation
+                        if ($artist->user) {
+                            $artist->user->notify(new StripeAccountDeactivatedNotification($artist));
+                        }
                     }
                 }
             });

@@ -8,6 +8,7 @@ use App\Models\Appointment;
 use App\Models\CalendarEvent;
 use App\Enums\AppointmentStatus;
 use App\Enums\BookingRequestStatus;
+use App\Notifications\AppointmentConfirmedNotification;
 use Carbon\Carbon;
 use Livewire\Attributes\On;
 use Illuminate\Support\Facades\DB;
@@ -126,7 +127,10 @@ class BookingQuickCreate extends Component
                 ]);
             }
 
-            // TODO: Notification client (sera implémenté plus tard)
+            // Notifier le client que son rendez-vous a été confirmé
+            if ($bookingRequest->client?->user) {
+                $bookingRequest->client->user->notify(new AppointmentConfirmedNotification($bookingRequest));
+            }
         });
 
         // Reset form

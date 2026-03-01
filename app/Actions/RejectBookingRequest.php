@@ -5,6 +5,7 @@ namespace App\Actions;
 use App\Models\BookingRequest;
 use App\Models\Conversation;
 use App\Enums\BookingRequestStatus;
+use App\Notifications\BookingRejectedNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -32,8 +33,10 @@ class RejectBookingRequest
             // 3. Log the rejection
             $this->logRejection($bookingRequest, $reason);
 
-            // 4. TODO: Send notification to client
-            // $this->notifyClient($bookingRequest, $reason);
+            // 4. Notifier le client que sa demande a été refusée
+            if ($bookingRequest->client?->user) {
+                $bookingRequest->client->user->notify(new BookingRejectedNotification($bookingRequest, $reason));
+            }
         });
     }
 
@@ -81,12 +84,4 @@ class RejectBookingRequest
         ]);
     }
 
-    /**
-     * TODO: Send notification to client
-     */
-    private function notifyClient(BookingRequest $bookingRequest, ?string $reason): void
-    {
-        // Implementation for email and in-app notifications
-        // This will be implemented in a future phase
-    }
 }

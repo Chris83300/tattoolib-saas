@@ -5,6 +5,7 @@ namespace App\Livewire\Tattooer;
 use App\Models\BookingRequest;
 use App\Models\Appointment;
 use App\Models\CalendarEvent;
+use App\Notifications\AppointmentConfirmedNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -182,11 +183,10 @@ class QuickBookingModal extends Component
                 ]);
             }
 
-            // 5. Notification au client (utiliser les notifications de rappel existantes)
-            // Chercher les notifications existantes :
-            // find app/Notifications -name "*Appointment*" -o -name "*Reminder*" -o -name "*Rappel*" 2>/dev/null
-            // et déclencher AppointmentConfirmedNotification si elle existe.
-            // Sinon TODO: créer la notification.
+            // 5. Notifier le client que son rendez-vous a été confirmé
+            if ($this->bookingRequest->client?->user) {
+                $this->bookingRequest->client->user->notify(new AppointmentConfirmedNotification($this->bookingRequest));
+            }
         });
 
         $this->showModal = false;

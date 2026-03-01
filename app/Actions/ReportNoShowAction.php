@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use App\Models\Appointment;
+use App\Models\User;
 use App\Enums\AppointmentStatus;
 use App\Enums\BookingRequestStatus;
 use App\Notifications\NoShowReportedNotification;
@@ -69,6 +70,9 @@ class ReportNoShowAction
             $target->notify(new NoShowReportedNotification($appointment, $reportedBy));
         }
 
-        // TODO: Notifier admin via Filament notification
+        // Notifier les admins
+        User::role('admin')->get()->each(function ($admin) use ($appointment, $reportedBy) {
+            $admin->notify(new NoShowReportedNotification($appointment, $reportedBy));
+        });
     }
 }

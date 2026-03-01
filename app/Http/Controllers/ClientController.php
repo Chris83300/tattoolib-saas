@@ -15,6 +15,8 @@ use App\Enums\BookingRequestStatus;
 use App\Enums\ConversationStatus;
 use App\Enums\AppointmentStatus;
 use App\Actions\ReportNoShowAction;
+use App\Notifications\NewMessageNotification;
+use App\Notifications\AppointmentConfirmedNotification;
 use Illuminate\Support\Facades\Auth;
 
 
@@ -382,8 +384,10 @@ class ClientController extends Controller
             'last_message_at' => now(),
         ]);
 
-        // TODO: Notification au tattooer
-        // $bookingRequest->bookable->user->notify(new NewMessageNotification($message));
+        // Notifier l'artiste du nouveau message
+        if ($bookingRequest->bookable?->user) {
+            $bookingRequest->bookable->user->notify(new NewMessageNotification($message));
+        }
 
         return back()->with('success', 'Message envoyé');
     }
@@ -451,7 +455,10 @@ class ClientController extends Controller
             ]);
         }
 
-        // TODO: Notification au tattooer (ex: ClientSelectedDateNotification)
+        // Notifier l'artiste que le client a sélectionné une date
+        if ($bookingRequest->bookable?->user) {
+            $bookingRequest->bookable->user->notify(new AppointmentConfirmedNotification($bookingRequest));
+        }
 
         return redirect()->back()
             ->with('success', 'Date sélectionnée ! L\'artiste va fixer l\'horaire.');

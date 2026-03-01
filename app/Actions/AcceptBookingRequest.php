@@ -7,6 +7,7 @@ use App\Models\Conversation;
 use App\Models\Message;
 use App\Enums\BookingRequestStatus;
 use App\Enums\ConversationStatus;
+use App\Notifications\BookingRequestAcceptedNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -50,8 +51,10 @@ class AcceptBookingRequest
             // 6. Log the acceptance
             $this->logAcceptance($bookingRequest, $data);
 
-            // 7. TODO: Send notification to client
-            // $this->notifyClient($bookingRequest, $conversation);
+            // 7. Notifier le client que sa demande a été acceptée
+            if ($bookingRequest->client?->user) {
+                $bookingRequest->client->user->notify(new BookingRequestAcceptedNotification($bookingRequest));
+            }
         });
     }
 
@@ -178,12 +181,4 @@ class AcceptBookingRequest
         ]);
     }
 
-    /**
-     * TODO: Send notification to client
-     */
-    private function notifyClient(BookingRequest $bookingRequest, Conversation $conversation): void
-    {
-        // Implementation for email and in-app notifications
-        // This will be implemented in a future phase
-    }
 }
