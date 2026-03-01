@@ -505,4 +505,14 @@ Route::middleware(['auth'])->prefix('booking-request/{bookingRequest}/deposit')-
     Route::get('/request', App\Livewire\RequestDeposit::class)->name('request');
 });
 
+// Pages légales — accessibles sans authentification
+Route::prefix('legal')->name('legal.')->group(function () {
+    Route::get('/mentions-legales', [App\Http\Controllers\LegalController::class, 'mentionsLegales'])->name('mentions-legales');
+    Route::get('/cgu', [App\Http\Controllers\LegalController::class, 'cgu'])->name('cgu');
+    Route::get('/cgv-artistes', [App\Http\Controllers\LegalController::class, 'cgvArtistes'])->name('cgv-artistes');
+    Route::get('/cgv-clients', [App\Http\Controllers\LegalController::class, 'cgvClients'])->name('cgv-clients');
+    Route::get('/politique-de-confidentialite', [App\Http\Controllers\LegalController::class, 'politiqueConfidentialite'])->name('politique-confidentialite');
+    Route::get('/politique-de-cookies', [App\Http\Controllers\LegalController::class, 'politiqueCookies'])->name('politique-cookies');
+});
+
 require __DIR__.'/settings.php';
