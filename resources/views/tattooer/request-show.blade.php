@@ -469,6 +469,12 @@
                             <div class="bg-vert-succes/10 border border-vert-succes/30 rounded-xl p-6">
                                 <h3 class="text-lg font-bold text-ivoire-text mb-4">✅ Projet terminé</h3>
                                 <p class="text-ivoire-text">Ce projet a été réalisé avec succès.</p>
+                                <div class="mt-4">
+                                    @include('partials.pdf-download-button', [
+                                        'url'   => route('pdf.receipt', $bookingRequest),
+                                        'label' => 'Télécharger le reçu (PDF)',
+                                    ])
+                                </div>
                             </div>
                         @elseif (in_array($bookingRequest->status->value, ['cancelled', 'rejected']))
                             <!-- Afficher statut final avec raison -->

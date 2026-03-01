@@ -64,6 +64,13 @@
                             </span>
                         @endif
                     </div>
+                    <div class="mt-3">
+                        @include('partials.pdf-download-button', [
+                            'url'   => route('pdf.client-summary', $client),
+                            'label' => 'Fiche client PDF',
+                            'size'  => 'xs',
+                        ])
+                    </div>
                 </div>
             </div>
         </div>
@@ -696,6 +703,12 @@
                                         </div>
                                     </div>
                                     <p class="text-xs text-titane text-center">Consentement verrouillé après signature.</p>
+                                    <div class="flex justify-center mt-3">
+                                        @include('partials.pdf-download-button', [
+                                            'url'   => route('pdf.consent-form', $consent),
+                                            'label' => 'Télécharger le consentement (PDF)',
+                                        ])
+                                    </div>
                                 </div>
                             @else
                                 <div class="text-center py-6">
@@ -919,7 +932,14 @@
                                             <p class="font-semibold text-ivoire-text">{{ $trace->tattoo_description ?? 'Tatouage' }}</p>
                                             <p class="text-sm text-titane">{{ $trace->body_zone ?? '' }} · {{ $trace->session_date?->format('d/m/Y') ?? '' }}</p>
                                         </div>
-                                        <span class="px-2 py-1 bg-vert-succes/20 text-vert-succes rounded text-xs">✅ Validée</span>
+                                        <div class="flex items-center gap-2">
+                                            <span class="px-2 py-1 bg-vert-succes/20 text-vert-succes rounded text-xs">✅ Validée</span>
+                                            @include('partials.pdf-download-button', [
+                                                'url'   => route('pdf.traceability', $trace),
+                                                'label' => 'PDF',
+                                                'size'  => 'xs',
+                                            ])
+                                        </div>
                                     </div>
                                     @if ($trace->procedure_notes) <p class="text-sm text-ivoire-text/80 mt-2">{{ $trace->procedure_notes }}</p> @endif
                                 </div>
