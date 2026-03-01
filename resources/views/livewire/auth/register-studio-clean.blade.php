@@ -245,6 +245,8 @@
                 @enderror
             </div>
 
+            @include('partials.legal-checkboxes', ['isPro' => true])
+
             <!-- Submit -->
             <x-ui.button type="submit" variant="primary" size="md" class="w-full">
                 Créer mon compte

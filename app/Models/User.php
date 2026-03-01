@@ -66,6 +66,8 @@ class User extends Authenticatable implements HasMedia
         'last_name', // 🆕 Nom de famille
         'phone', // 🆕 Téléphone
         'birth_date', // 🆕 Date de naissance
+        'cgu_accepted_at', // Acceptation CGU
+        'privacy_accepted_at', // Acceptation politique de confidentialité
     ];
 
     protected $hidden = [

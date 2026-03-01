@@ -57,6 +57,12 @@ class RegisterStudio extends AuthLayoutComponent
     #[Validate('required|in:artist_direct,studio_managed')]
     public string $payment_mode = 'artist_direct';
 
+    #[Validate('accepted')]
+    public bool $acceptCgu = false;
+
+    #[Validate('accepted')]
+    public bool $acceptPrivacy = false;
+
     /**
      * Validation automatique du SIRET
      */
@@ -83,6 +89,7 @@ class RegisterStudio extends AuthLayoutComponent
         $this->validate();
 
         // Créer user (gérant)
+        $now = now();
         $user = User::create([
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
@@ -91,6 +98,8 @@ class RegisterStudio extends AuthLayoutComponent
             'password' => Hash::make($this->password),
             'role' => 'studio',
             'status' => 'pending_verification', // ⚠️ En attente validation admin
+            'cgu_accepted_at' => $now,
+            'privacy_accepted_at' => $now,
         ]);
 
         // Créer profil studio

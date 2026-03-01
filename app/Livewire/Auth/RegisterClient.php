@@ -30,11 +30,18 @@ class RegisterClient extends AuthLayoutComponent
     #[Validate('nullable|string|max:20')]
     public string $phone = '';
 
+    #[Validate('accepted')]
+    public bool $acceptCgu = false;
+
+    #[Validate('accepted')]
+    public bool $acceptPrivacy = false;
+
     public function register()
     {
         $this->validate();
 
         // Créer user
+        $now = now();
         $user = User::create([
             'name' => $this->first_name . ' ' . $this->last_name,
             'pseudo' => $this->pseudo,
@@ -42,6 +49,8 @@ class RegisterClient extends AuthLayoutComponent
             'password' => Hash::make($this->password),
             'role' => 'client',
             'status' => 'active', // Client directement actif
+            'cgu_accepted_at' => $now,
+            'privacy_accepted_at' => $now,
         ]);
 
         // Créer profil client

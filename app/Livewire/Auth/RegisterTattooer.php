@@ -45,6 +45,12 @@ class RegisterTattooer extends AuthLayoutComponent
     #[Validate('nullable|string|max:20')]
     public string $phone = '';
 
+    #[Validate('accepted')]
+    public bool $acceptCgu = false;
+
+    #[Validate('accepted')]
+    public bool $acceptPrivacy = false;
+
     /**
      * Validation SIRET via API gouvernementale (GRATUITE)
      */
@@ -113,6 +119,7 @@ class RegisterTattooer extends AuthLayoutComponent
         $this->validate();
 
         // Créer user
+        $now = now();
         $user = User::create([
             'name' => $this->name,
             'pseudo' => $this->pseudo,
@@ -120,6 +127,8 @@ class RegisterTattooer extends AuthLayoutComponent
             'password' => Hash::make($this->password),
             'role' => 'tattooer',
             'status' => 'pending_verification', // ⚠️ En attente validation admin
+            'cgu_accepted_at' => $now,
+            'privacy_accepted_at' => $now,
         ]);
 
         // Créer profil tattooer

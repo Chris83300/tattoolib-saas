@@ -202,6 +202,8 @@
                 </div>
             </div>
 
+            @include('partials.legal-checkboxes', ['isPro' => true])
+
             <!-- Submit -->
             <button type="submit"
                 class="w-full bg-beige-peau hover:bg-beige-peau/90 text-noir-profond font-bold py-3 rounded-lg transition-colors">
