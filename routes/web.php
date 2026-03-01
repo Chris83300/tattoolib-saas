@@ -337,6 +337,7 @@ Route::middleware(['auth', 'role:pierceur,Piercer'])->prefix('pierceur')->name('
     Route::get('/demandes', App\Livewire\Tattooer\BookingRequests::class)->name('demandes');
     Route::get('/reservations', App\Livewire\Tattooer\Bookings::class)->name('bookings');
     Route::get('/statistiques', App\Livewire\Tattooer\Analytics::class)->name('analytics');
+    Route::get('/messages-livewire', App\Livewire\Tattooer\Messages::class)->name('messages.livewire');
 });
 
 // Routes Studio (protégées)
