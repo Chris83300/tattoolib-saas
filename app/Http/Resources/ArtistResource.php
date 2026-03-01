@@ -73,7 +73,7 @@ class ArtistResource extends JsonResource
             'stats' => [
                 'years_experience' => (int) ($this->years_of_experience ?? 1),
                 'completed_appointments' => (int) ($this->appointments_count ?? 0),
-                'portfolio_count' => 0, // TODO: implementer
+                'portfolio_count' => $this->getMedia('portfolio')->count(),
             ],
         ];
     }
