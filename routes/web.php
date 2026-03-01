@@ -515,4 +515,14 @@ Route::prefix('legal')->name('legal.')->group(function () {
     Route::get('/politique-de-cookies', [App\Http\Controllers\LegalController::class, 'politiqueCookies'])->name('politique-cookies');
 });
 
+// Export PDF — réservé aux professionnels authentifiés
+Route::middleware(['auth'])->prefix('pdf')->name('pdf.')->group(function () {
+    Route::get('/care-sheet/{careSheet}', [App\Http\Controllers\PdfExportController::class, 'careSheet'])->name('care-sheet');
+    Route::get('/consent-form/{consentForm}', [App\Http\Controllers\PdfExportController::class, 'consentForm'])->name('consent-form');
+    Route::get('/parental-consent/{parentalConsent}', [App\Http\Controllers\PdfExportController::class, 'parentalConsent'])->name('parental-consent');
+    Route::get('/traceability/{traceabilityRecord}', [App\Http\Controllers\PdfExportController::class, 'traceabilityRecord'])->name('traceability');
+    Route::get('/client-summary/{client}', [App\Http\Controllers\PdfExportController::class, 'clientSummary'])->name('client-summary');
+    Route::get('/receipt/{booking}', [App\Http\Controllers\PdfExportController::class, 'receipt'])->name('receipt');
+});
+
 require __DIR__.'/settings.php';
