@@ -95,12 +95,13 @@
                     @endif
 
                     @if (auth()->user()->role === 'studio')
-                        <a href="/admin/studio" class="hover:text-beige-peau transition-colors">Dashboard Studio</a>
+                        <a href="{{ route('studio.dashboard') }}" class="hover:text-beige-peau transition-colors">Dashboard
+                            Studio</a>
                     @endif
 
                     <!-- Lien profil direct + Déconnexion -->
-                    <a href="{{ auth()->user()->role === 'client' ? '/client/profile' : '/tattooer/profil' }}"
-                        class="hover:text-beige-peau transition-colors">Mon profil</a>
+                    <a href="{{ auth()->user()->getDashboardRoute() }}" class="hover:text-beige-peau transition-colors">Mon
+                        profil</a>
 
                     <form method="POST" action="{{ route('logout') }}" class="inline">
                         @csrf
@@ -144,12 +145,12 @@
                     @endif
 
                     @if (auth()->user()->role === 'studio')
-                        <a href="/admin/studio"
+                        <a href="{{ route('studio.dashboard') }}"
                             class="block py-2 text-ivoire-text hover:text-beige-peau transition-colors">Dashboard Studio</a>
                     @endif
 
                     <!-- Lien profil direct + Déconnexion -->
-                    <a href="{{ auth()->user()->role === 'client' ? '/client/profile' : '/tattooer/profil' }}"
+                    <a href="{{ auth()->user()->getDashboardRoute() }}"
                         class="block py-2 text-ivoire-text hover:text-beige-peau transition-colors">Mon profil</a>
 
                     <form method="POST" action="{{ route('logout') }}" class="block">

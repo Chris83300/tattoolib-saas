@@ -3,7 +3,7 @@
 
         <!-- Logo -->
         <a href="/" class="text-beige-peau font-Satoshi text-xl font-bold">
-           <span class="text-titane">Ink</span> & Pik
+            <span class="text-titane">Ink</span> & Pik
         </a>
 
         <!-- Navigation principale -->
@@ -57,13 +57,14 @@
                 @endif
 
                 @if (auth()->user()->role === 'studio')
-                    <a href="/admin/studio" class="text-ivoire-text hover:text-beige-peau transition-colors">
+                    <a href="{{ route('studio.dashboard') }}"
+                        class="text-ivoire-text hover:text-beige-peau transition-colors">
                         Dashboard Studio
                     </a>
                 @endif
 
                 <!-- Lien profil direct + Déconnexion -->
-                <a href="{{ auth()->user()->role === 'client' ? route('client.profile') : route(($artisanPrefix ?? 'tattooer') . '.profile') }}"
+                <a href="{{ auth()->user()->getDashboardRoute() }}"
                     class="text-ivoire-text hover:text-beige-peau transition-colors">
                     Mon profil
                 </a>

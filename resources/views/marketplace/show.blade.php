@@ -76,7 +76,7 @@
 
                             @if (isset($artist->years_of_experience) && $artist->years_of_experience)
                                 <span class="px-3 py-1 bg-titane/30 text-ivoire-text/80 rounded-full text-sm">
-                                    ✏️ {{ $artist->years_of_experience }} ans d'expérience
+                                    {{ $artist->years_of_experience }} ans d'expérience
                                 </span>
                             @endif
 
@@ -85,18 +85,18 @@
                                     $artist->wait_time_weeks_min &&
                                     $artist->wait_time_weeks_max)
                                 <span class="px-3 py-1 bg-titane/30 text-ivoire-text/80 rounded-full text-sm">
-                                    ⏱️ {{ $artist->wait_time_weeks_min }} à {{ $artist->wait_time_weeks_max }} semaines
+                                    {{ $artist->wait_time_weeks_min }} à {{ $artist->wait_time_weeks_max }} semaines d'attente
                                 </span>
                             @elseif (isset($artist->wait_time_weeks_min) && $artist->wait_time_weeks_min)
                                 <span class="px-3 py-1 bg-titane/30 text-ivoire-text/80 rounded-full text-sm">
-                                    ⏱️ {{ $artist->wait_time_weeks_min }}
-                                    semaine{{ $artist->wait_time_weeks_min > 1 ? 's' : '' }}
+                                    {{ $artist->wait_time_weeks_min }}
+                                    semaine d'attente{{ $artist->wait_time_weeks_min > 1 ? 's' : '' }}
                                 </span>
                             @endif
 
                             @if (isset($artist->minimum_price) && $artist->minimum_price)
                                 <span class="px-3 py-1 bg-titane/30 text-ivoire-text/80 rounded-full text-sm">
-                                    💰 À partir de {{ number_format($artist->minimum_price, 2, ',', ' ') }} €
+                                    À partir de {{ number_format($artist->minimum_price, 2, ',', ' ') }} €
                                 </span>
                             @endif
 
@@ -222,7 +222,7 @@ $displayStyles = array_filter(
 
             @if ($type === 'tattooer' && !empty($displayStyles))
                 <div class="bg-titane/10 rounded-xl p-6 border border-titane/20">
-                    <h3 class="text-lg font-bold text-ivoire-text mb-4">🎨 Styles pratiqués</h3>
+                    <h3 class="text-lg font-bold text-ivoire-text mb-4"> Styles pratiqués</h3>
                     <div class="flex flex-wrap gap-2">
                         @foreach ($displayStyles as $style)
                             <span class="px-3 py-1 bg-beige-peau/10 text-beige-peau rounded-full text-sm font-medium">
@@ -244,7 +244,8 @@ $displayStyles = array_filter(
                         <div class="space-y-2">
                             @foreach ($pricingGrid as $entry)
                                 <div class="flex items-center justify-between py-2 border-b border-titane/10 last:border-0">
-                                    <span class="text-ivoire-text border bg-beige-peau/5 border-beige-peau/40 shadow-sm shadow-beige-peau/20 rounded-full px-3 py-1 text-sm">{{ $entry['type'] ?? '' }}</span>
+                                    <span
+                                        class="text-ivoire-text border bg-beige-peau/5 border-beige-peau/40 shadow-sm shadow-beige-peau/20 rounded-full px-3 py-1 text-sm">{{ $entry['type'] ?? '' }}</span>
                                     <span
                                         class="text-beige-peau font-semibold">{{ number_format($entry['price'] ?? 0, 0, ',', ' ') }}
                                         €</span>
@@ -252,7 +253,9 @@ $displayStyles = array_filter(
                             @endforeach
                         </div>
                         <div class="mt-4 border-t border-titane/20 pt-4">
-                            <p class="text-md text-ivoire-text text-center align-middle bg-beige-peau/5 border border-beige-peau/20 shadow-sm shadow-beige-peau/20 rounded-full px-3 py-1">{{ $artist->custom_pricing_note }}</p>
+                            <p
+                                class="text-md text-ivoire-text text-center align-middle bg-beige-peau/5 border border-beige-peau/20 shadow-sm shadow-beige-peau/20 rounded-full px-3 py-1">
+                                {{ $artist->custom_pricing_note }}</p>
                         </div>
                     </div>
 
@@ -437,21 +440,21 @@ $displayStyles = array_filter(
                     (isset($drawings) && $drawings->isNotEmpty()) ||
                     (isset($beforeAfter) && $beforeAfter->isNotEmpty()))
                 <div class="space-y-12">
-                    <h2 class="text-2xl font-display font-bold text-ivoire-text mb-8">Portfolio</h2>
+                    <h2 class="text-2xl font-display font-bold text-beige-peau flex justify-center underline underline-offset-8 mt-10 mb-8">Portfolio</h2>
 
                     <!-- Section 1 : Réalisations -->
                     @if ($portfolio->isNotEmpty())
                         <div>
-                            <h3 class="text-xl font-bold text-ivoire-text mb-6 flex items-center gap-2">
-                                <span class="text-2xl">✏️</span>
+                            <h3 class="text-xl font-bold text-cuivre justify-center mb-6 flex items-center gap-2">
                                 Réalisations
                             </h3>
                             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                 @foreach ($portfolio as $media)
                                     <div class="aspect-square rounded-xl overflow-hidden bg-titane/20 cursor-pointer hover:opacity-90 transition-opacity group"
                                         onclick="openLightbox('{{ $media->getUrl() }}')">
-                                        <img src="{{ $media->getUrl() }}" alt="Tatouage"
-                                            class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300">
+                                        <img src="{{ $media->getUrl() }}" data-full="{{ $media->getUrl() }}"
+                                            alt="Tatouage"
+                                            class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300 portfolio-photo">
                                     </div>
                                 @endforeach
                             </div>
@@ -462,15 +465,15 @@ $displayStyles = array_filter(
                     @if ($type === 'tattooer' && isset($drawings) && $drawings->isNotEmpty())
                         <div>
                             <h3 class="text-xl font-bold text-ivoire-text mb-6 flex items-center gap-2">
-                                <span class="text-2xl">🎨</span>
-                                Dessins / Sketches
+                                Flash Dispo
                             </h3>
                             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                 @foreach ($drawings as $media)
                                     <div class="aspect-square rounded-xl overflow-hidden bg-titane/20 cursor-pointer hover:opacity-90 transition-opacity group"
                                         onclick="openLightbox('{{ $media->getUrl() }}')">
-                                        <img src="{{ $media->getUrl() }}" alt="Dessin / Sketch"
-                                            class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300">
+                                        <img src="{{ $media->getUrl() }}" data-full="{{ $media->getUrl() }}"
+                                            alt="Dessin / Sketch"
+                                            class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300 portfolio-photo">
                                     </div>
                                 @endforeach
                             </div>
@@ -481,7 +484,6 @@ $displayStyles = array_filter(
                     @if ($type === 'tattooer' && isset($beforeAfter) && $beforeAfter->isNotEmpty())
                         <div>
                             <h3 class="text-xl font-bold text-ivoire-text mb-6 flex items-center gap-2">
-                                <span class="text-2xl">📸</span>
                                 Avant / Après
                             </h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -572,7 +574,6 @@ $displayStyles = array_filter(
                             $artist->getMedia('drawings')->isEmpty() &&
                             $artist->getMedia('before_after')->isEmpty())))
                 <div class="text-center py-12">
-                    <div class="text-6xl mb-4">🎨</div>
                     <h3 class="text-xl font-semibold text-ivoire-text mb-2">Portfolio en construction</h3>
                     <p class="text-ivoire-text/60">Ce tatoueur ajoutera bientôt ses réalisations</p>
                 </div>
@@ -623,27 +624,183 @@ $displayStyles = array_filter(
         @endforelse
     </section>
 
-    <!-- Lightbox simple -->
-    <div id="lightbox" class="fixed inset-0 bg-black/90 z-50 hidden items-center justify-center"
-        onclick="closeLightbox()">
-        <img id="lightbox-image" src="" alt="" class="max-w-full max-h-full">
+    <!-- Lightbox avancée -->
+    <div id="lightbox"
+        class="fixed inset-0 bg-black/90 z-50 opacity-0 invisible transition-all duration-300 flex items-center justify-center p-4">
+        <div class="relative max-w-4xl max-h-full">
+            <!-- Bouton fermer -->
+            <button id="close-lightbox"
+                class="absolute -top-12 right-0 text-white hover:text-beige-peau transition-colors">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                    </path>
+                </svg>
+            </button>
+
+            <!-- Bouton précédent -->
+            <button id="prev-photo"
+                class="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-beige-peau transition-colors bg-black/50 rounded-full p-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </button>
+
+            <!-- Bouton suivant -->
+            <button id="next-photo"
+                class="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-beige-peau transition-colors bg-black/50 rounded-full p-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </button>
+
+            <!-- Image -->
+            <img id="lightbox-image" src="" alt="" class="max-w-full max-h-full rounded-lg">
+
+            <!-- Compteur de photos -->
+            <div id="photo-counter"
+                class="absolute bottom-4 left-1/2 -translate-x-1/2 text-white text-sm bg-black/50 px-3 py-1 rounded-full">
+                1 / 1
+            </div>
+        </div>
     </div>
 
     @push('scripts')
         <script>
-            function openLightbox(url) {
-                document.getElementById('lightbox-image').src = url;
-                document.getElementById('lightbox').classList.remove('hidden');
-                document.getElementById('lightbox').classList.add('flex');
-            }
-
-            function closeLightbox() {
-                document.getElementById('lightbox').classList.add('hidden');
-                document.getElementById('lightbox').classList.remove('flex');
-            }
-
-            // Before/After Slider
             document.addEventListener('DOMContentLoaded', function() {
+                const lightbox = document.getElementById('lightbox');
+                const lightboxImage = document.getElementById('lightbox-image');
+                const closeLightbox = document.getElementById('close-lightbox');
+                const prevPhoto = document.getElementById('prev-photo');
+                const nextPhoto = document.getElementById('next-photo');
+                const photoCounter = document.getElementById('photo-counter');
+                const portfolioPhotos = document.querySelectorAll('.portfolio-photo');
+
+                let currentPhotoIndex = 0;
+                const photosArray = Array.from(portfolioPhotos);
+
+                // Fonction pour afficher une photo spécifique
+                function showPhoto(index) {
+                    if (index < 0) index = photosArray.length - 1;
+                    if (index >= photosArray.length) index = 0;
+
+                    currentPhotoIndex = index;
+                    const photo = photosArray[index];
+                    const fullUrl = photo.getAttribute('data-full');
+
+                    lightboxImage.src = fullUrl;
+                    photoCounter.textContent = `${index + 1} / ${photosArray.length}`;
+
+                    // Afficher/masquer les boutons de navigation si une seule photo
+                    if (photosArray.length <= 1) {
+                        prevPhoto.style.display = 'none';
+                        nextPhoto.style.display = 'none';
+                        photoCounter.style.display = 'none';
+                    } else {
+                        // Sur mobile, les flèches sont cachées par CSS (hidden md:flex)
+                        // Sur desktop, on les affiche
+                        if (window.innerWidth >= 768) {
+                            prevPhoto.style.display = 'flex';
+                            nextPhoto.style.display = 'flex';
+                        }
+                        photoCounter.style.display = 'block';
+                    }
+                }
+
+                // Fonction openLightbox pour compatibilité avec les onclick existants
+                window.openLightbox = function(url) {
+                    const index = photosArray.findIndex(photo => photo.getAttribute('data-full') === url);
+                    if (index !== -1) {
+                        showPhoto(index);
+                    } else {
+                        // Si la photo n'est pas dans le tableau (cas rare), on l'affiche directement
+                        lightboxImage.src = url;
+                        photoCounter.style.display = 'none';
+                        prevPhoto.style.display = 'none';
+                        nextPhoto.style.display = 'none';
+                    }
+                    lightbox.classList.remove('opacity-0', 'invisible');
+                    lightbox.classList.add('opacity-100', 'visible');
+                    document.body.style.overflow = 'hidden';
+                };
+
+                // Navigation photo précédente
+                function prevPhotoFunc() {
+                    showPhoto(currentPhotoIndex - 1);
+                }
+
+                // Navigation photo suivante
+                function nextPhotoFunc() {
+                    showPhoto(currentPhotoIndex + 1);
+                }
+
+                // Fermer la lightbox
+                function closeLightboxFunc() {
+                    lightbox.classList.add('opacity-0', 'invisible');
+                    lightbox.classList.remove('opacity-100', 'visible');
+                    document.body.style.overflow = 'auto';
+                }
+
+                // Fonction closeLightbox pour compatibilité
+                window.closeLightbox = closeLightboxFunc;
+
+                // Événements
+                closeLightbox.addEventListener('click', closeLightboxFunc);
+                prevPhoto.addEventListener('click', prevPhotoFunc);
+                nextPhoto.addEventListener('click', nextPhotoFunc);
+
+                // Fermer au clic en dehors de l'image
+                lightbox.addEventListener('click', function(e) {
+                    if (e.target === lightbox) {
+                        closeLightboxFunc();
+                    }
+                });
+
+                // Navigation au clavier
+                document.addEventListener('keydown', function(e) {
+                    if (lightbox.classList.contains('invisible')) return;
+
+                    switch (e.key) {
+                        case 'Escape':
+                            closeLightboxFunc();
+                            break;
+                        case 'ArrowLeft':
+                            prevPhotoFunc();
+                            break;
+                        case 'ArrowRight':
+                            nextPhotoFunc();
+                            break;
+                    }
+                });
+
+                // Navigation avec swipe/touch (mobile)
+                let touchStartX = 0;
+                let touchEndX = 0;
+
+                lightbox.addEventListener('touchstart', function(e) {
+                    touchStartX = e.changedTouches[0].screenX;
+                });
+
+                lightbox.addEventListener('touchend', function(e) {
+                    touchEndX = e.changedTouches[0].screenX;
+                    handleSwipe();
+                });
+
+                function handleSwipe() {
+                    const swipeThreshold = 50;
+                    const diff = touchStartX - touchEndX;
+
+                    if (Math.abs(diff) > swipeThreshold) {
+                        if (diff > 0) {
+                            // Swipe vers la gauche = photo suivante
+                            nextPhotoFunc();
+                        } else {
+                            // Swipe vers la droite = photo précédente
+                            prevPhotoFunc();
+                        }
+                    }
+                }
+
+                // Before/After Slider (code existant préservé)
                 const sliders = document.querySelectorAll('.before-after-slider');
 
                 sliders.forEach(slider => {
@@ -677,7 +834,7 @@ $displayStyles = array_filter(
 
                     // Initialize at 50%
                     updateSlider(slider.getBoundingClientRect().left + slider.getBoundingClientRect().width /
-                        2);
+                    2);
                 });
             });
         </script>

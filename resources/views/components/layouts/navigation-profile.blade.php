@@ -40,19 +40,19 @@
                 @endif
 
                 @if (in_array(auth()->user()->role, ['tattooer', 'pierceur', 'studio_artist']))
-                    @php $artisanPrefix = auth()->user()->isPiercer() ? 'pierceur' : 'tattooer'; @endphp
-                    <a href="{{ route($artisanPrefix . '.dashboard') }}"
+                    <a href="{{ auth()->user()->getDashboardRoute() }}"
                         class="text-ivoire-text hover:text-beige-peau transition-colors">
                         Mon espace pro
                     </a>
-                    <a href="{{ route($artisanPrefix . '.demandes') }}"
+                    <a href="{{ route(auth()->user()->isPiercer() ? 'pierceur.demandes' : 'tattooer.demandes') }}"
                         class="text-ivoire-text hover:text-beige-peau transition-colors">
                         Demandes
                     </a>
                 @endif
 
                 @if (auth()->user()->role === 'studio')
-                    <a href="/admin/studio" class="text-ivoire-text hover:text-beige-peau transition-colors">
+                    <a href="{{ route('studio.dashboard') }}"
+                        class="text-ivoire-text hover:text-beige-peau transition-colors">
                         Dashboard Studio
                     </a>
                 @endif
@@ -124,18 +124,19 @@
                     @endif
 
                     @if (in_array(auth()->user()->role, ['tattooer', 'pierceur', 'studio_artist']))
-                        <a href="{{ route('tattooer.dashboard') }}"
+                        <a href="{{ auth()->user()->getDashboardRoute() }}"
                             class="block px-4 py-2 text-ivoire-text hover:bg-titane/20 rounded-lg">
                             Mon espace pro
                         </a>
-                        <a href="{{ route('tattooer.demandes') }}"
+                        <a href="{{ route(auth()->user()->isPiercer() ? 'pierceur.demandes' : 'tattooer.demandes') }}"
                             class="block px-4 py-2 text-ivoire-text hover:bg-titane/20 rounded-lg">
                             Demandes
                         </a>
                     @endif
 
                     @if (auth()->user()->role === 'studio')
-                        <a href="/admin/studio" class="block px-4 py-2 text-ivoire-text hover:bg-titane/20 rounded-lg">
+                        <a href="{{ route('studio.dashboard') }}"
+                            class="block px-4 py-2 text-ivoire-text hover:bg-titane/20 rounded-lg">
                             Dashboard Studio
                         </a>
                     @endif

@@ -102,6 +102,11 @@ class MarketplaceSearchService
             ->get();
     }
 
+    public function getTotalStudiosCount(): int
+    {
+        return Studio::where('is_active', true)->count();
+    }
+
     public function getFeaturedArtists(int $limit = 6): Collection
     {
         $tattooers = $this->getBaseQuery()

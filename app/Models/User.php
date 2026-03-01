@@ -273,6 +273,18 @@ class User extends Authenticatable implements HasMedia
         return $this->is_studio_owner && $this->studio_id;
     }
 
+    public function getDashboardRoute(): string
+    {
+        return match($this->role) {
+            'client' => route('client.dashboard'),
+            'tattooer' => route('tattooer.dashboard'),
+            'pierceur' => route('pierceur.dashboard'),
+            'studio_artist' => route('studio-artist.dashboard'),
+            'studio' => route('studio.dashboard'),
+            default => '/'
+        };
+    }
+
     public function getUserType(): ?string
     {
         return $this->role;

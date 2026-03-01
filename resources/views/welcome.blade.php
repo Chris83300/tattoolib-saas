@@ -9,7 +9,7 @@
                 Ink <span class="text-beige-peau">& Pik</span>
             </h1>
             <h2 class="text-4xl md:text-6xl font-Satoshi font-bold text-ivoire-text mb-4">
-             <span class="text-titane">Notre art,</span>  <span class="text-beige-peau">votre peau.</span>
+                <span class="text-titane">Notre art,</span> <span class="text-beige-peau">votre peau.</span>
             </h2>
 
             <!-- Sous-titre -->
@@ -45,7 +45,8 @@
 
                 <!-- Item 1 : Artistes vérifiés -->
                 <div class="text-center">
-                    <div class="w-16 h-16 mx-auto mb-4 bg-beige-peau/10 btn-shadow rounded-full flex items-center justify-center">
+                    <div
+                        class="w-16 h-16 mx-auto mb-4 bg-beige-peau/10 btn-shadow rounded-full flex items-center justify-center">
                         <svg class="w-8 h-8 text-titane" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
@@ -62,7 +63,8 @@
 
                 <!-- Item 2 : Paiements sécurisés -->
                 <div class="text-center">
-                    <div class="w-16 h-16 mx-auto mb-4 bg-beige-peau/10 btn-shadow rounded-full flex items-center justify-center">
+                    <div
+                        class="w-16 h-16 mx-auto mb-4 bg-beige-peau/10 btn-shadow rounded-full flex items-center justify-center">
                         <svg class="w-8 h-8 text-vert-succes" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
@@ -79,7 +81,8 @@
 
                 <!-- Item 3 : Conformité -->
                 <div class="text-center">
-                    <div class="w-16 h-16 mx-auto mb-4 bg-beige-peau/10 btn-shadow rounded-full flex items-center justify-center">
+                    <div
+                        class="w-16 h-16 mx-auto mb-4 bg-beige-peau/10 btn-shadow rounded-full flex items-center justify-center">
                         <svg class="w-8 h-8 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
@@ -114,7 +117,7 @@
             <div id="featured-artists" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <!-- Les cartes d'artistes seront chargées ici -->
                 <div class="text-center col-span-full py-8">
-                    @foreach($artists as $artist)
+                    @foreach ($artists as $artist)
                         <x-ui.artistCard :artist="$artist" />
                     @endforeach
                 </div>
@@ -245,7 +248,7 @@
                     // Image
                     const image = card.querySelector('.artist-image');
                     image.src = artist.avatar_url;
-                        image.alt = artist.name;
+                    image.alt = artist.name;
 
                     // Infos de base
                     card.querySelector('.artist-name').textContent = artist.name;

@@ -98,12 +98,13 @@
                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                     <?php if(auth()->user()->role === 'studio'): ?>
-                        <a href="/admin/studio" class="hover:text-beige-peau transition-colors">Dashboard Studio</a>
+                        <a href="<?php echo e(route('studio.dashboard')); ?>" class="hover:text-beige-peau transition-colors">Dashboard
+                            Studio</a>
                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                     <!-- Lien profil direct + Déconnexion -->
-                    <a href="<?php echo e(auth()->user()->role === 'client' ? '/client/profile' : '/tattooer/profil'); ?>"
-                        class="hover:text-beige-peau transition-colors">Mon profil</a>
+                    <a href="<?php echo e(auth()->user()->getDashboardRoute()); ?>" class="hover:text-beige-peau transition-colors">Mon
+                        profil</a>
 
                     <form method="POST" action="<?php echo e(route('logout')); ?>" class="inline">
                         <?php echo csrf_field(); ?>
@@ -147,12 +148,12 @@
                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                     <?php if(auth()->user()->role === 'studio'): ?>
-                        <a href="/admin/studio"
+                        <a href="<?php echo e(route('studio.dashboard')); ?>"
                             class="block py-2 text-ivoire-text hover:text-beige-peau transition-colors">Dashboard Studio</a>
                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                     <!-- Lien profil direct + Déconnexion -->
-                    <a href="<?php echo e(auth()->user()->role === 'client' ? '/client/profile' : '/tattooer/profil'); ?>"
+                    <a href="<?php echo e(auth()->user()->getDashboardRoute()); ?>"
                         class="block py-2 text-ivoire-text hover:text-beige-peau transition-colors">Mon profil</a>
 
                     <form method="POST" action="<?php echo e(route('logout')); ?>" class="block">

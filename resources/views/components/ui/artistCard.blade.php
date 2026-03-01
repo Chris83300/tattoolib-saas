@@ -67,7 +67,7 @@
             <div class="absolute bottom-4 left-4">
                 <span class="text-beige-peau/40 text-sm font-semibold">
                     {{ $type === 'piercer' ? 'Pierceur' : 'Tatoueur' }}
-                </span> 
+                </span>
             </div>
         @endif
     </div>
@@ -90,45 +90,33 @@
             </div>
 
             {{-- Stats compactes --}}
-            <div class="flex-1 flex flex-wrap gap-2 text-xs text-ivoire-text/70">
+            <div class="flex-1 mt-4 flex flex-wrap justify-center lg:mt-20 md:mt-20 gap-2 text-xs text-ivoire-text">
                 @if ($isMarketplace)
                     <!-- Stats marketplace -->
-                    <div class="flex items-center gap-1">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <span>{{ $artist['experience_years'] ?? 'N/A' }} ans</span>
+                    <div class="flex items-center border border-titane/30 bg-titane/10 p-1 rounded-full gap-1">
+
+                        <span>{{ $artist['experience_years'] ?? 'N/A' }} ans</span> <span class="text-titane"> d'expérience</span>
                     </div>
 
-                    <div class="flex items-center gap-1">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
-                            </path>
-                        </svg>
+                    <div class="flex items-center border border-titane/30 bg-titane/10 p-1 rounded-full gap-1">
                         <span>{{ $artist['min_price'] ? 'À partir de ' . $artist['min_price'] . '€' : 'N/A' }}</span>
                     </div>
 
-                    <div class="flex items-center gap-1">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        <span>{{ $artist['wait_time'] ?? 'N/A' }}</span>
+                    <div class="flex items-center border border-titane/30 bg-titane/10 p-1 rounded-full gap-1">
+                        <span>{{ $artist['wait_time'] ?? 'N/A' }}</span><span class="text-titane"> d'attente</span>
                     </div>
                 @else
                     <!-- Stats studio -->
-                    <div class="flex items-center gap-1">
+                    <div class="flex items-center border border-titane/30 bg-titane/10 p-1 rounded-full gap-1">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
                             </path>
                         </svg>
-                        <span>{{ $type === 'piercer' ? '💎 Pierceur' : '🎨 Tatoueur' }}</span>
+                        <span>{{ $type === 'piercer' ? ' Pierceur' : ' Tatoueur' }}</span>
                     </div>
 
-                    <div class="flex items-center gap-1">
+                    <div class="flex items-center border border-titane/30 bg-titane/10 p-1 rounded-full gap-1">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
@@ -138,12 +126,12 @@
                     </div>
 
                     @if (!$studioArtist->user)
-                        <div class="flex items-center gap-1">
+                        <div class="flex items-center border border-titane/30 bg-titane/10 p-1 rounded-full gap-1">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            <span class="text-ambre-warning">⏳ En attente</span>
+                            <span class="text-ambre-warning"> En attente</span>
                         </div>
                     @endif
                 @endif

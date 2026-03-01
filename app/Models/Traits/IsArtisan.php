@@ -50,4 +50,13 @@ trait IsArtisan
     {
         return $this instanceof \App\Models\Piercer;
     }
+
+    /**
+     * Retourne l'URL du profil public de l'artisan
+     */
+    public function getProfileUrl(): string
+    {
+        $routeName = $this->isTattooer() ? 'marketplace.tattooer.show' : 'marketplace.piercer.show';
+        return route($routeName, $this->slug);
+    }
 }
