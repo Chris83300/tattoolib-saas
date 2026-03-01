@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\BookingRequest;
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Notifications\DepositExpiredNotification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -165,9 +166,11 @@ class CheckExpiredBookingRequests implements ShouldQueue
 
         // Conserver les médias dans la fiche client avant suppression
         if ($request->hasMedia('attachments')) {
+            $client = $request->client;
             foreach ($request->getMedia('attachments') as $media) {
-                // Copier vers le client si nécessaire
-                // TODO: Implémenter la copie des médias vers la fiche client
+                if ($client) {
+                    $media->copy($client, 'reference_images');
+                }
                 $media->delete();
             }
         }
@@ -182,10 +185,14 @@ class CheckExpiredBookingRequests implements ShouldQueue
     private function notifyDepositExpired(BookingRequest $request, bool $isPro): void
     {
         // Notification client
-        // TODO: Implémenter le système de notifications
+        if ($request->client?->user) {
+            $request->client->user->notify(new DepositExpiredNotification($request));
+        }
 
-        // Notification tattooer
-        // TODO: Implémenter le système de notifications
+        // Notification artiste
+        if ($request->bookable?->user) {
+            $request->bookable->user->notify(new DepositExpiredNotification($request));
+        }
 
         Log::info("Notifications envoyées pour expiration délai acompte", [
             'request_id' => $request->id,
