@@ -35,7 +35,7 @@ Route::middleware(['auth'])->prefix('tattooer')->name('tattooer.')->group(functi
     Route::get('/dashboard', [TattooerController::class, 'dashboard'])->name('dashboard');
     Route::get('/requests', [TattooerController::class, 'requests'])->name('requests');
     Route::get('/requests/{bookingRequest}', [TattooerController::class, 'requestShow'])->name('request.show');
-    Route::get('/pricing', [TattooerController::class, 'pricing'])->name('tattooer.pricing');
+    Route::get('/pricing', [TattooerController::class, 'pricing'])->name('pricing');
     Route::get('/requests/{bookingRequest}/accept', function (BookingRequest $bookingRequest) {
         return redirect()->route('tattooer.request.show', $bookingRequest)
             ->with('info', 'Veuillez utiliser la modale d\'acceptation sur cette page.');
@@ -68,7 +68,7 @@ Route::middleware(['auth'])->prefix('tattooer')->name('tattooer.')->group(functi
 
     // Consentement tattooer
     Route::post('/consent/{bookingRequest}', [TattooerController::class, 'storeConsent'])
-        ->name('tattooer.consent.store');
+        ->name('consent.store');
 
     // Traçabilité
     Route::post('/traceability/{appointment}', [TattooerController::class, 'storeTraceability'])
@@ -91,7 +91,7 @@ Route::middleware(['auth'])->prefix('tattooer')->name('tattooer.')->group(functi
     Route::delete('/client/{client}/media/{media}', [TattooerController::class, 'deleteClientMedia'])
         ->name('client.media.delete');
 
-    Route::get('/clients/{clientId}/requests', [TattooerController::class, 'clientRequests'])->name('tattooer.client-requests');
+    Route::get('/clients/{clientId}/requests', [TattooerController::class, 'clientRequests'])->name('client-requests');
     Route::get('/portfolio', [TattooerController::class, 'portfolio'])->name('portfolio');
     Route::post('/portfolio/upload', [TattooerController::class, 'portfolioUpload'])->name('portfolio.upload');
     Route::post('/portfolio/before-after/store', [TattooerController::class, 'portfolioBeforeAfterStore'])->name('portfolio.before-after.store');
@@ -105,7 +105,7 @@ Route::middleware(['auth'])->prefix('tattooer')->name('tattooer.')->group(functi
     Route::delete('/settings/banner', [TattooerController::class, 'deleteBanner'])->name('settings.delete-banner');
     Route::post('/settings/schedule', [TattooerController::class, 'settingsUpdateSchedule'])->name('settings.update-schedule');
     Route::post('/settings/password', [TattooerController::class, 'settingsUpdatePassword'])->name('settings.update-password');
-    Route::post('/settings/hours', [TattooerController::class, 'updateHours'])->name('tattooer.settings.hours.update');
+    Route::post('/settings/hours', [TattooerController::class, 'updateHours'])->name('settings.hours.update');
     Route::get('/payments', [TattooerController::class, 'payments'])->name('payments');
 
     // ═══ Subscription ═══
@@ -378,7 +378,7 @@ Route::middleware(['auth', 'role:studio', \App\Http\Middleware\EnsureStudioCanOp
     })->name('upgrade');
     Route::get('/compliance', function () {
         return view('studio.compliance');
-    })->name('studio.compliance');
+    })->name('compliance');
 });
 
 // Routes Studio Artist (protégées)
