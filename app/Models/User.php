@@ -280,6 +280,18 @@ class User extends Authenticatable implements HasMedia
             'tattooer' => route('tattooer.dashboard'),
             'pierceur' => route('pierceur.dashboard'),
             'studio_artist' => route('studio-artist.dashboard'),
+            'studio' => '/admin/studio',
+            default => '/'
+        };
+    }
+
+    public function getProfileRoute(): string
+    {
+        return match($this->role) {
+            'client' => route('client.dashboard'),
+            'tattooer' => route('tattooer.dashboard'),
+            'pierceur' => route('pierceur.dashboard'),
+            'studio_artist' => route('studio-artist.dashboard'),
             'studio' => route('studio.dashboard'),
             default => '/'
         };

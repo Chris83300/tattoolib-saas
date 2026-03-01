@@ -57,14 +57,14 @@
                 @endif
 
                 @if (auth()->user()->role === 'studio')
-                    <a href="{{ route('studio.dashboard') }}"
+                    <a href="/admin/studio" target="_blank"
                         class="text-ivoire-text hover:text-beige-peau transition-colors">
                         Dashboard Studio
                     </a>
                 @endif
 
                 <!-- Lien profil direct + Déconnexion -->
-                <a href="{{ auth()->user()->getDashboardRoute() }}"
+                <a href="{{ auth()->user()->getProfileRoute() }}"
                     class="text-ivoire-text hover:text-beige-peau transition-colors">
                     Mon profil
                 </a>

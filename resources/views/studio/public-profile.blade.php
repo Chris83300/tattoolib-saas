@@ -72,12 +72,12 @@
         {{-- Artistes du studio --}}
         <section>
             <h2 class="text-xl text-center flex justify-center font-bold text-beige-peau mb-4">Nos artistes</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 border border-beige-peau/60 rounded-xl gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 @forelse ($artists as $sa)
                     @if ($sa->user && $sa->is_active)
                         @php $artisan = $sa->user->artisan(); @endphp
                         <a href="{{ $artisan?->getProfileUrl() ?? '#' }}"
-                            class="bg-gris-fonde rounded-xl overflow-hidden hover:ring-2 hover:ring-beige-peau/50 transition-all group">
+                            class="bg-gris-fonde rounded-xl overflow-hidden border border-beige-peau/60 hover:ring-2 hover:ring-beige-peau/50 transition-all group">
                             {{-- Photo portfolio ou avatar --}}
                             <div class="h-40 bg-noir-profond overflow-hidden">
                                 @php

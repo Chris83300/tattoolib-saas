@@ -40,7 +40,7 @@
                 @endif
 
                 @if (in_array(auth()->user()->role, ['tattooer', 'pierceur', 'studio_artist']))
-                    <a href="{{ auth()->user()->getDashboardRoute() }}"
+                    <a href="{{ auth()->user()->getProfileRoute() }}"
                         class="text-ivoire-text hover:text-beige-peau transition-colors">
                         Mon espace pro
                     </a>
@@ -51,7 +51,7 @@
                 @endif
 
                 @if (auth()->user()->role === 'studio')
-                    <a href="{{ route('studio.dashboard') }}"
+                    <a href="/admin/studio" target="_blank"
                         class="text-ivoire-text hover:text-beige-peau transition-colors">
                         Dashboard Studio
                     </a>
@@ -124,7 +124,7 @@
                     @endif
 
                     @if (in_array(auth()->user()->role, ['tattooer', 'pierceur', 'studio_artist']))
-                        <a href="{{ auth()->user()->getDashboardRoute() }}"
+                        <a href="{{ auth()->user()->getProfileRoute() }}"
                             class="block px-4 py-2 text-ivoire-text hover:bg-titane/20 rounded-lg">
                             Mon espace pro
                         </a>
@@ -135,7 +135,7 @@
                     @endif
 
                     @if (auth()->user()->role === 'studio')
-                        <a href="{{ route('studio.dashboard') }}"
+                        <a href="/admin/studio" target="_blank"
                             class="block px-4 py-2 text-ivoire-text hover:bg-titane/20 rounded-lg">
                             Dashboard Studio
                         </a>

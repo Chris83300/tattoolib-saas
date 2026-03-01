@@ -22,7 +22,7 @@ class StudioPanelProvider extends PanelProvider
     {
         return $panel
             ->id('studio')
-            ->path('studio/admin')
+            ->path('admin/studio')
             ->login()
             ->colors([
                 'primary' => Color::hex('#c4956a'), // beige-peau

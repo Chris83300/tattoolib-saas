@@ -95,12 +95,12 @@
                     @endif
 
                     @if (auth()->user()->role === 'studio')
-                        <a href="{{ route('studio.dashboard') }}" class="hover:text-beige-peau transition-colors">Dashboard
+                        <a href="/admin/studio" target="_blank" class="hover:text-beige-peau transition-colors">Dashboard
                             Studio</a>
                     @endif
 
                     <!-- Lien profil direct + Déconnexion -->
-                    <a href="{{ auth()->user()->getDashboardRoute() }}" class="hover:text-beige-peau transition-colors">Mon
+                    <a href="{{ auth()->user()->getProfileRoute() }}" class="hover:text-beige-peau transition-colors">Mon
                         profil</a>
 
                     <form method="POST" action="{{ route('logout') }}" class="inline">
@@ -145,12 +145,12 @@
                     @endif
 
                     @if (auth()->user()->role === 'studio')
-                        <a href="{{ route('studio.dashboard') }}"
+                        <a href="/admin/studio" target="_blank"
                             class="block py-2 text-ivoire-text hover:text-beige-peau transition-colors">Dashboard Studio</a>
                     @endif
 
                     <!-- Lien profil direct + Déconnexion -->
-                    <a href="{{ auth()->user()->getDashboardRoute() }}"
+                    <a href="{{ auth()->user()->getProfileRoute() }}"
                         class="block py-2 text-ivoire-text hover:text-beige-peau transition-colors">Mon profil</a>
 
                     <form method="POST" action="{{ route('logout') }}" class="block">

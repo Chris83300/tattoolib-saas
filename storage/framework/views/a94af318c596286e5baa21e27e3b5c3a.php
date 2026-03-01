@@ -1,23 +1,22 @@
-@extends('layouts.tattooer')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="space-y-6">
 
-        @if (session('success'))
+        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(session('success')): ?>
             <div class="bg-vert-succes/20 border border-vert-succes/50 text-vert-succes px-4 py-3 rounded-lg">
-                {{ session('success') }}
-            </div>
-        @endif
+                <?php echo e(session('success')); ?>
 
-        @if ($errors->any())
+            </div>
+        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
+        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($errors->any()): ?>
             <div class="bg-ambre-warning/20 border border-ambre-warning/50 text-ambre-warning px-4 py-3 rounded-lg">
                 <ul class="list-disc list-inside">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <li><?php echo e($error); ?></li>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </ul>
             </div>
-        @endif
+        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
         <div id="upload-feedback" class="hidden px-4 py-3 rounded-lg"></div>
 
@@ -27,35 +26,36 @@
                 <div>
                     <h1 class="text-2xl font-bold text-ivoire-text">Mon Portfolio</h1>
                     <p class="text-ivoire-text/70">
-                        @if ($tattooer->isFree())
-                            {{ $tattooer->getMedia('portfolio')->count() + $tattooer->getMedia('drawings')->count() + $tattooer->getMedia('before_after')->count() }}/15
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tattooer->isFree()): ?>
+                            <?php echo e($tattooer->getMedia('portfolio')->count() + $tattooer->getMedia('drawings')->count() + $tattooer->getMedia('before_after')->count()); ?>/15
                             images (Plan Free)
-                        @else
-                            {{ $tattooer->getMedia('portfolio')->count() + $tattooer->getMedia('drawings')->count() + $tattooer->getMedia('before_after')->count() }}
+                        <?php else: ?>
+                            <?php echo e($tattooer->getMedia('portfolio')->count() + $tattooer->getMedia('drawings')->count() + $tattooer->getMedia('before_after')->count()); ?>
+
                             images (Plan Pro)
-                        @endif
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </p>
                 </div>
 
-                @if (
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(
                     $tattooer->isFree() &&
                         $tattooer->getMedia('portfolio')->count() +
                             $tattooer->getMedia('drawings')->count() +
                             $tattooer->getMedia('before_after')->count() >=
-                            15)
-                    <a href="{{ route($tattooer->routePrefix() . '.subscription.plans') }}"
+                            15): ?>
+                    <a href="<?php echo e(route($tattooer->routePrefix() . '.subscription.plans')); ?>"
                         class="px-4 py-2 bg-vert-succes text-white rounded-lg font-semibold hover:bg-vert-succes/90 transition-colors">
                         Passer au plan Pro
                     </a>
-                @endif
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             </div>
 
-            @if (
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(
                 $tattooer->isFree() &&
                     $tattooer->getMedia('portfolio')->count() +
                         $tattooer->getMedia('drawings')->count() +
                         $tattooer->getMedia('before_after')->count() >=
-                        15)
+                        15): ?>
                 <div
                     class="bg-ambre-warning/20 border border-ambre-warning/30 text-ambre-warning px-4 py-3 rounded-lg mb-4">
                     <p class="text-sm">
@@ -64,7 +64,7 @@
                         pour un portfolio illimité.
                     </p>
                 </div>
-            @endif
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
         </div>
 
         <!-- Tabs -->
@@ -72,18 +72,18 @@
             <div class="flex gap-2">
                 <button onclick="switchTab('tattoos')"
                     class="tab-btn flex-1 px-4 py-2 rounded-lg font-semibold transition-colors" data-tab="tattoos">
-                    {{ $tattooer->isPiercer() ? ' Piercings' : 'Tattoos' }} ({{ $tattoos->count() }})
+                    <?php echo e($tattooer->isPiercer() ? ' Piercings' : 'Tattoos'); ?> (<?php echo e($tattoos->count()); ?>)
                 </button>
                 <button onclick="switchTab('drawings')"
                     class="tab-btn flex-1 px-4 py-2 rounded-lg font-semibold transition-colors" data-tab="drawings">
-                    Flash dispos ({{ $drawings->count() }})
+                    Flash dispos (<?php echo e($drawings->count()); ?>)
                 </button>
-                @if (!$tattooer->isPiercer())
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!$tattooer->isPiercer()): ?>
                 <button onclick="switchTab('before-after')"
                     class="tab-btn flex-1 px-4 py-2 rounded-lg font-semibold transition-colors" data-tab="before-after">
-                    Avant/Après ({{ $beforeAfter->count() }})
+                    Avant/Après (<?php echo e($beforeAfter->count()); ?>)
                 </button>
-                @endif
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             </div>
         </div>
 
@@ -91,37 +91,37 @@
         <div id="tab-tattoos" class="tab-content">
             <div class="bg-gris-fonde rounded-xl p-6">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-bold text-ivoire-text">{{ $tattooer->isPiercer() ? 'Photos de piercings' : 'Photos de tattoos' }}</h2>
-                    @if (
+                    <h2 class="text-xl font-bold text-ivoire-text"><?php echo e($tattooer->isPiercer() ? 'Photos de piercings' : 'Photos de tattoos'); ?></h2>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(
                         $tattooer->isFree() &&
                             $tattooer->getMedia('portfolio')->count() +
                                 $tattooer->getMedia('drawings')->count() +
                                 $tattooer->getMedia('before_after')->count() >=
-                                15)
+                                15): ?>
                         <div
                             class="px-4 py-2 bg-gris-clair text-gris-foncé rounded-lg font-semibold cursor-not-allowed opacity-60">
                             ⚠️ Limite atteinte (15/15)
                         </div>
-                    @else
+                    <?php else: ?>
                         <label
                             class="px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold cursor-pointer hover:bg-beige-peau/90">
                             + Ajouter photos
                             <input type="file" accept="image/*" multiple class="hidden"
                                 onchange="uploadImages(this, 'portfolio')">
                         </label>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
 
                 <div id="tattoos-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    @foreach ($tattoos as $media)
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $tattoos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $media): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <div class="relative group aspect-square rounded-lg overflow-hidden bg-noir-profond"
-                            draggable="true" data-media-id="{{ $media->id }}">
-                            <img src="{{ $media->getUrl() }}" alt="{{ $tattooer->isPiercer() ? 'Piercing' : 'Tattoo' }}" class="w-full h-full object-contain">
+                            draggable="true" data-media-id="<?php echo e($media->id); ?>">
+                            <img src="<?php echo e($media->getUrl()); ?>" alt="<?php echo e($tattooer->isPiercer() ? 'Piercing' : 'Tattoo'); ?>" class="w-full h-full object-contain">
 
                             <!-- Overlay actions -->
                             <div
                                 class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                <button onclick="viewImage('{{ $media->getUrl() }}')"
+                                <button onclick="viewImage('<?php echo e($media->getUrl()); ?>')"
                                     class="p-2 bg-beige-peau text-noir-profond rounded-lg">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -131,7 +131,7 @@
                                         </path>
                                     </svg>
                                 </button>
-                                <button onclick="deleteImage({{ $media->id }})"
+                                <button onclick="deleteImage(<?php echo e($media->id); ?>)"
                                     class="p-2 bg-rouge-alerte text-noir-profond rounded-lg">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -141,13 +141,14 @@
                                 </button>
                             </div>
                         </div>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                    @if ($tattoos->isEmpty())
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tattoos->isEmpty()): ?>
                         <div class="col-span-full text-center py-12 text-ivoire-text/60">
-                            {{ $tattooer->isPiercer() ? 'Aucune photo de piercing. Ajoutez-en pour enrichir votre portfolio !' : 'Aucune photo de tattoo. Ajoutez-en pour enrichir votre portfolio !' }}
+                            <?php echo e($tattooer->isPiercer() ? 'Aucune photo de piercing. Ajoutez-en pour enrichir votre portfolio !' : 'Aucune photo de tattoo. Ajoutez-en pour enrichir votre portfolio !'); ?>
+
                         </div>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
             </div>
         </div>
@@ -166,20 +167,20 @@
                 </div>
 
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    @foreach ($drawings as $media)
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $drawings; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $media): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <div class="relative group aspect-square rounded-lg overflow-hidden bg-noir-profond">
-                            <img src="{{ $media->getUrl() }}" alt="Dessin" class="w-full h-full object-contain">
+                            <img src="<?php echo e($media->getUrl()); ?>" alt="Dessin" class="w-full h-full object-contain">
 
                             <div
                                 class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                <button onclick="viewImage('{{ $media->getUrl() }}')"
+                                <button onclick="viewImage('<?php echo e($media->getUrl()); ?>')"
                                     class="p-2 bg-beige-peau text-noir-profond rounded-lg">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                     </svg>
                                 </button>
-                                <button onclick="deleteImage({{ $media->id }})"
+                                <button onclick="deleteImage(<?php echo e($media->id); ?>)"
                                     class="p-2 bg-rouge-alerte text-noir-profond rounded-lg">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -189,18 +190,18 @@
                                 </button>
                             </div>
                         </div>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                    @if ($drawings->isEmpty())
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($drawings->isEmpty()): ?>
                         <div class="col-span-full text-center py-12 text-ivoire-text/60">
                             Aucun dessin. Montrez vos créations !
                         </div>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
             </div>
         </div>
 
-        @if (!$tattooer->isPiercer())
+        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!$tattooer->isPiercer()): ?>
         <!-- Tab Content: Before/After (tatoueur uniquement) -->
         <div id="tab-before-after" class="tab-content hidden">
             <div class="bg-gris-fonde rounded-xl p-6">
@@ -217,7 +218,7 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                    @php
+                    <?php
                         $pairs = collect();
 
                         // Paires robustes (nouveau format): groupé par pair_id + type
@@ -246,16 +247,16 @@ $legacy = $beforeAfter
                                 $pairs->push([$pair[0], $pair[1]]);
                             }
                         }
-                    @endphp
+                    ?>
 
-                    @foreach ($pairs as $pair)
-                        @if (is_array($pair) && count($pair) === 2)
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $pairs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pair): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(is_array($pair) && count($pair) === 2): ?>
                             <div class="bg-noir-profond rounded-xl p-4">
                                 <!-- Before/After Slider -->
                                 <div class="relative aspect-video rounded-lg overflow-hidden mb-4 before-after-slider">
-                                    <img src="{{ $pair[0]->getUrl() }}"
+                                    <img src="<?php echo e($pair[0]->getUrl()); ?>"
                                         class="absolute inset-0 w-full h-full object-contain before-image" alt="Avant">
-                                    <img src="{{ $pair[1]->getUrl() }}"
+                                    <img src="<?php echo e($pair[1]->getUrl()); ?>"
                                         class="absolute inset-0 w-full h-full object-contain after-image" alt="Après"
                                         style="clip-path: inset(0 50% 0 0);">
 
@@ -277,36 +278,36 @@ $legacy = $beforeAfter
                                 </div>
 
                                 <div class="flex justify-end gap-2">
-                                    <button onclick="deleteBeforeAfterPair({{ $pair[0]->id }}, {{ $pair[1]->id }})"
+                                    <button onclick="deleteBeforeAfterPair(<?php echo e($pair[0]->id); ?>, <?php echo e($pair[1]->id); ?>)"
                                         class="px-3 py-1 bg-rouge-alerte/20 text-rouge-alerte rounded text-sm">
                                         Supprimer
                                     </button>
                                 </div>
                             </div>
-                        @endif
-                    @endforeach
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                    @if ($pairs->isEmpty())
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($pairs->isEmpty()): ?>
                         <div class="col-span-full text-center py-12 text-ivoire-text/60">
                             Aucune photo avant/après. Montrez l'évolution de vos réalisations !
                         </div>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
             </div>
         </div>
 
     </div>
-        @endif {{-- !isPiercer (before/after tab) --}}
+        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?> 
 
     <!-- Modal Upload Before/After (tatoueur uniquement) -->
-    @if (!$tattooer->isPiercer())
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!$tattooer->isPiercer()): ?>
     <div id="before-after-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
         <div class="bg-gris-fonde rounded-xl p-6 max-w-2xl w-full">
             <h3 class="text-xl font-bold text-ivoire-text mb-4">Ajouter photo Avant/Après</h3>
             <div id="before-after-feedback" class="hidden px-4 py-3 rounded-lg mb-4"></div>
-            <form id="before-after-form" action="{{ route($tattooer->routePrefix() . '.portfolio.before-after.store') }}" method="POST"
+            <form id="before-after-form" action="<?php echo e(route($tattooer->routePrefix() . '.portfolio.before-after.store')); ?>" method="POST"
                 enctype="multipart/form-data">
-                @csrf
+                <?php echo csrf_field(); ?>
                 <div class="grid grid-cols-2 gap-4 mb-6">
 
                     <div>
@@ -348,9 +349,9 @@ $legacy = $beforeAfter
             </form>
         </div>
     </div>
-    @endif {{-- !isPiercer (before/after modal) --}}
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?> 
 
-    @push('scripts')
+    <?php $__env->startPush('scripts'); ?>
         <script>
             // Tabs
             function switchTab(tabName) {
@@ -484,7 +485,7 @@ $legacy = $beforeAfter
                             method: 'POST',
                             credentials: 'same-origin',
                             headers: {
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
                                 'Accept': 'application/json'
                             },
                             body: formData
@@ -595,10 +596,10 @@ $legacy = $beforeAfter
                 });
                 formData.append('collection', collection);
 
-                fetch('{{ route($tattooer->routePrefix() . '.portfolio.upload') }}', {
+                fetch('<?php echo e(route($tattooer->routePrefix() . '.portfolio.upload')); ?>', {
                     method: 'POST',
                     headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
                         'Accept': 'application/json'
                     },
                     body: formData
@@ -644,7 +645,7 @@ $legacy = $beforeAfter
                 fetch(`/tattooer/portfolio/${mediaId}`, {
                     method: 'DELETE',
                     headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
                         'Accept': 'application/json'
                     }
                 }).then(async (res) => {
@@ -692,7 +693,7 @@ $legacy = $beforeAfter
                 fetch(`/tattooer/portfolio/before-after/${beforeId}/${afterId}`, {
                     method: 'DELETE',
                     headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
                         'Accept': 'application/json'
                     }
                 }).then(async (res) => {
@@ -748,5 +749,7 @@ $legacy = $beforeAfter
                 document.body.appendChild(lightbox);
             }
         </script>
-    @endpush
-@endsection
+    <?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.tattooer', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\tattoolib-saas\resources\views/tattooer/portfolio.blade.php ENDPATH**/ ?>

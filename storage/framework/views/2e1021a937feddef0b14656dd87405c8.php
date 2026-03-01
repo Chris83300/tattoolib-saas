@@ -98,12 +98,12 @@
                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                     <?php if(auth()->user()->role === 'studio'): ?>
-                        <a href="<?php echo e(route('studio.dashboard')); ?>" class="hover:text-beige-peau transition-colors">Dashboard
+                        <a href="/admin/studio" target="_blank" class="hover:text-beige-peau transition-colors">Dashboard
                             Studio</a>
                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                     <!-- Lien profil direct + Déconnexion -->
-                    <a href="<?php echo e(auth()->user()->getDashboardRoute()); ?>" class="hover:text-beige-peau transition-colors">Mon
+                    <a href="<?php echo e(auth()->user()->getProfileRoute()); ?>" class="hover:text-beige-peau transition-colors">Mon
                         profil</a>
 
                     <form method="POST" action="<?php echo e(route('logout')); ?>" class="inline">
@@ -148,12 +148,12 @@
                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                     <?php if(auth()->user()->role === 'studio'): ?>
-                        <a href="<?php echo e(route('studio.dashboard')); ?>"
+                        <a href="/admin/studio" target="_blank"
                             class="block py-2 text-ivoire-text hover:text-beige-peau transition-colors">Dashboard Studio</a>
                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                     <!-- Lien profil direct + Déconnexion -->
-                    <a href="<?php echo e(auth()->user()->getDashboardRoute()); ?>"
+                    <a href="<?php echo e(auth()->user()->getProfileRoute()); ?>"
                         class="block py-2 text-ivoire-text hover:text-beige-peau transition-colors">Mon profil</a>
 
                     <form method="POST" action="<?php echo e(route('logout')); ?>" class="block">

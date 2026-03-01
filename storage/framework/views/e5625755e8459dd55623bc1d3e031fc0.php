@@ -1,26 +1,24 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', ($artist->user->pseudo ?? $artist->user->first_name . ' ' . $artist->user->last_name) . ' - ' . ($type
+    === 'tattooer' ? 'Tatoueur' : 'Pierceur') . ' - Ink&Pik'); ?>
 
-@section('title', ($artist->user->pseudo ?? $artist->user->first_name . ' ' . $artist->user->last_name) . ' - ' . ($type
-    === 'tattooer' ? 'Tatoueur' : 'Pierceur') . ' - Ink&Pik')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="min-h-screen bg-noir-profond">
 
         <!-- HERO — Image bannière + infos principales -->
         <div class="relative">
             <!-- Image de bannière -->
             <div class="h-64 md:h-80 bg-gradient-to-br from-titane/40 to-noir-profond relative overflow-hidden">
-                @if ($artist->getFirstMediaUrl('banner'))
-                    <img src="{{ $artist->getFirstMediaUrl('banner') }}"
-                        alt="Bannière de {{ $artist->user->pseudo ?? $artist->user->first_name . ' ' . $artist->user->last_name }}"
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($artist->getFirstMediaUrl('banner')): ?>
+                    <img src="<?php echo e($artist->getFirstMediaUrl('banner')); ?>"
+                        alt="Bannière de <?php echo e($artist->user->pseudo ?? $artist->user->first_name . ' ' . $artist->user->last_name); ?>"
                         class="w-full h-full object-cover">
                     <div class="absolute inset-0 bg-gradient-to-t from-noir-profond/80 via-noir-profond/40 to-transparent">
                     </div>
-                @else
+                <?php else: ?>
                     <!-- Bannière par défaut avec gradient -->
                     <div class="absolute inset-0 bg-gradient-to-br from-beige-peau/20 via-titane/30 to-noir-profond"></div>
                     <div class="absolute inset-0 bg-black/20"></div>
-                @endif
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             </div>
 
             <div class="max-w-6xl mx-auto px-4 -mt-16 relative z-10">
@@ -29,54 +27,58 @@
                     <!-- Avatar grand -->
                     <div
                         class="w-32 h-32 md:w-36 md:h-36 rounded-full border-2 border-titane/30 shadow-lg shadow-titane/20 overflow-hidden bg-titane/40 flex items-center justify-center flex-shrink-0">
-                        @if ($artist->user->getFirstMediaUrl('avatar'))
-                            <img src="{{ $artist->user->getFirstMediaUrl('avatar') }}"
-                                alt="{{ $artist->user->pseudo ?? $artist->user->first_name . ' ' . $artist->user->last_name }}"
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($artist->user->getFirstMediaUrl('avatar')): ?>
+                            <img src="<?php echo e($artist->user->getFirstMediaUrl('avatar')); ?>"
+                                alt="<?php echo e($artist->user->pseudo ?? $artist->user->first_name . ' ' . $artist->user->last_name); ?>"
                                 class="w-full h-full object-cover">
-                        @else
+                        <?php else: ?>
                             <svg class="w-16 h-16 md:w-18 md:h-18 text-ivoire-text/30" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                     d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
-                        @endif
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </div>
 
                     <!-- Infos -->
                     <div class="flex-1 text-center pb-4">
                         <!-- PSEUDO -->
                         <h1 class="text-2xl md:text-4xl mb-2 font-bold font-display text-ivoire-text drop-shadow-lg">
-                            {{ $artist->user->pseudo ?? $artist->user->first_name . ' ' . $artist->user->last_name }}
+                            <?php echo e($artist->user->pseudo ?? $artist->user->first_name . ' ' . $artist->user->last_name); ?>
+
                         </h1>
 
                         <!-- Nom du studio -->
-                        @if ($artist->studio_name)
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($artist->studio_name): ?>
                             <p class="text-lg md:text-lg text-beige-peau mb-2 drop-shadow">
-                                {{ $artist->studio_name }}
+                                <?php echo e($artist->studio_name); ?>
+
                             </p>
-                        @endif
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                         <!-- Téléphone -->
-                        @if ($artist->studio_id && $artist->studio)
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($artist->studio_id && $artist->studio): ?>
                             <!-- Artiste de studio : afficher le téléphone du studio -->
                             <p class="text-lg md:text-lg text-titane mb-2 drop-shadow">
-                                <a href="tel:{{ $artist->studio->phone }}"
+                                <a href="tel:<?php echo e($artist->studio->phone); ?>"
                                     class="md:no-underline hover:text-cuivre transition-colors">
-                                    {{ $artist->studio->phone }}
+                                    <?php echo e($artist->studio->phone); ?>
+
                                 </a>
                             </p>
-                        @elseif ($artist->phone)
+                        <?php elseif($artist->phone): ?>
                             <!-- Artiste indépendant : afficher son téléphone personnel -->
                             <p class="text-lg md:text-lg text-titane mb-2 drop-shadow">
-                                <a href="tel:{{ $artist->phone }}"
+                                <a href="tel:<?php echo e($artist->phone); ?>"
                                     class="md:no-underline hover:text-cuivre transition-colors">
-                                    {{ $artist->phone }}
+                                    <?php echo e($artist->phone); ?>
+
                                 </a>
                             </p>
-                        @endif
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                         <!-- Localisation -->
-                        @if ($artist->city || $artist->postal_code)
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($artist->city || $artist->postal_code): ?>
                             <div class="flex items-center justify-center gap-2 text-ivoire-text/80 mb-2">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -85,100 +87,102 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 </svg>
-                                <span>{{ $artist->city }}{{ $artist->postal_code ? ', ' . $artist->postal_code : '' }}</span>
+                                <span><?php echo e($artist->city); ?><?php echo e($artist->postal_code ? ', ' . $artist->postal_code : ''); ?></span>
                             </div>
-                        @endif
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                         <!-- Badges rapides -->
                         <div class="flex flex-wrap justify-center gap-2 mt-3">
 
 
-                            @if (isset($artist->years_of_experience) && $artist->years_of_experience)
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(isset($artist->years_of_experience) && $artist->years_of_experience): ?>
                                 <span class="px-3 py-1 bg-titane/30 text-ivoire-text/80 rounded-full text-sm">
-                                    {{ $artist->years_of_experience }} ans d'expérience
+                                    <?php echo e($artist->years_of_experience); ?> ans d'expérience
                                 </span>
-                            @endif
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                            @if (isset($artist->wait_time_weeks_min) &&
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(isset($artist->wait_time_weeks_min) &&
                                     isset($artist->wait_time_weeks_max) &&
                                     $artist->wait_time_weeks_min &&
-                                    $artist->wait_time_weeks_max)
+                                    $artist->wait_time_weeks_max): ?>
                                 <span class="px-3 py-1 bg-titane/30 text-ivoire-text/80 rounded-full text-sm">
-                                    {{ $artist->wait_time_weeks_min }} à {{ $artist->wait_time_weeks_max }} semaines
+                                    <?php echo e($artist->wait_time_weeks_min); ?> à <?php echo e($artist->wait_time_weeks_max); ?> semaines
                                     d'attente
                                 </span>
-                            @elseif (isset($artist->wait_time_weeks_min) && $artist->wait_time_weeks_min)
+                            <?php elseif(isset($artist->wait_time_weeks_min) && $artist->wait_time_weeks_min): ?>
                                 <span class="px-3 py-1 bg-titane/30 text-ivoire-text/80 rounded-full text-sm">
-                                    {{ $artist->wait_time_weeks_min }}
-                                    semaine d'attente{{ $artist->wait_time_weeks_min > 1 ? 's' : '' }}
-                                </span>
-                            @endif
+                                    <?php echo e($artist->wait_time_weeks_min); ?>
 
-                            @if (isset($artist->minimum_price) && $artist->minimum_price)
+                                    semaine d'attente<?php echo e($artist->wait_time_weeks_min > 1 ? 's' : ''); ?>
+
+                                </span>
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(isset($artist->minimum_price) && $artist->minimum_price): ?>
                                 <span class="px-3 py-1 bg-titane/30 text-ivoire-text/80 rounded-full text-sm">
-                                    À partir de {{ number_format($artist->minimum_price, 2, ',', ' ') }} €
+                                    À partir de <?php echo e(number_format($artist->minimum_price, 2, ',', ' ')); ?> €
                                 </span>
-                            @endif
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                            @if ($type === 'tattooer' && isset($artist->is_certified) && $artist->is_certified)
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($type === 'tattooer' && isset($artist->is_certified) && $artist->is_certified): ?>
                                 <span
                                     class="px-3 py-1 bg-vert-succes/20 text-vert-succes rounded-full text-sm font-semibold">
                                     ✓ Badge conformité
                                 </span>
-                            @endif
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
                     </div>
 
                     <!-- Avis -->
-                    @if ($type === 'tattooer')
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($type === 'tattooer'): ?>
                         <div class="flex flex-col items-center gap-2 border-b border-titane/20 pb-2  md:items-end">
                             <!-- Étoiles -->
                             <div class="flex items-center gap-1">
-                                @php
+                                <?php
                                     $rating = $artist->reviews_avg_rating ?? 0;
                                     $fullStars = floor($rating);
                                     $hasHalfStar = $rating - $fullStars >= 0.5;
                                     $emptyStars = 5 - $fullStars - ($hasHalfStar ? 1 : 0);
-                                @endphp
+                                ?>
 
                                 <!-- Étoiles pleines -->
-                                @for ($i = 0; $i < $fullStars; $i++)
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php for($i = 0; $i < $fullStars; $i++): ?>
                                     <span class="text-yellow-400 text-xl">★</span>
-                                @endfor
+                                <?php endfor; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                                 <!-- Demi-étoile -->
-                                @if ($hasHalfStar)
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($hasHalfStar): ?>
                                     <span class="text-yellow-400 text-xl">☆</span>
-                                @endif
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                                 <!-- Étoiles vides -->
-                                @for ($i = 0; $i < $emptyStars; $i++)
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php for($i = 0; $i < $emptyStars; $i++): ?>
                                     <span class="text-gray-600 text-xl">☆</span>
-                                @endfor
+                                <?php endfor; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                                <span class="text-ivoire-text font-semibold ml-2">{{ number_format($rating, 1) }}/5</span>
+                                <span class="text-ivoire-text font-semibold ml-2"><?php echo e(number_format($rating, 1)); ?>/5</span>
                             </div>
 
                             <!-- Nombre d'avis et lien -->
-                            @if (isset($artist->reviews_count) && $artist->reviews_count > 0)
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(isset($artist->reviews_count) && $artist->reviews_count > 0): ?>
                                 <a href="#reviews"
                                     onclick="document.getElementById('reviews').scrollIntoView({behavior: 'smooth', block: 'start'}); return false;"
                                     class="text-beige-peau hover:text-beige-peau/80 text-sm underline transition-colors cursor-pointer">
-                                    Voir les {{ $artist->reviews_count }} avis
+                                    Voir les <?php echo e($artist->reviews_count); ?> avis
                                 </a>
-                            @else
+                            <?php else: ?>
                                 <span class="text-ivoire-text/60 text-sm">Aucun avis pour le moment</span>
-                            @endif
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                     <!-- Stats et CTA -->
                     <div class="flex flex-col items-center gap-4 mb-4 md:items-end">
 
                         <!-- CTA -->
-                        @auth
-                            @if (auth()->user()->client)
-                                @php
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->guard()->check()): ?>
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->client): ?>
+                                <?php
                                     $hasActive = auth()
                                         ->user()
                                         ->client->bookingRequests()
@@ -193,30 +197,30 @@
                                             'confirmed',
                                         ])
                                         ->exists();
-                                @endphp
+                                ?>
 
-                                @if ($hasActive)
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($hasActive): ?>
                                     <span class="px-6 py-3 bg-beige-peau/20 text-beige-peau rounded-full font-semibold">
                                         ✓ Demande déjà en cours
                                     </span>
-                                @else
-                                    <a href="{{ route('booking-request.form', [$artist->id, $type]) }}"
+                                <?php else: ?>
+                                    <a href="<?php echo e(route('booking-request.form', [$artist->id, $type])); ?>"
                                         class="inline-block px-8 py-4 bg-beige-peau btn-shadow text-noir-profond font-bold rounded-full text-lg hover:bg-beige-peau/90 transition-colors">
                                         📅 Prendre RDV
                                     </a>
-                                @endif
-                            @else
-                                <a href="{{ route('booking-request.form', [$artist->id, $type]) }}"
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                            <?php else: ?>
+                                <a href="<?php echo e(route('booking-request.form', [$artist->id, $type])); ?>"
                                     class="inline-block px-8 py-4 bg-beige-peau btn-shadow text-noir-profond font-bold rounded-full text-lg hover:bg-beige-peau/90 transition-colors">
                                     📅 Prendre RDV
                                 </a>
-                            @endif
-                        @else
-                            <a href="{{ route('login') }}"
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                        <?php else: ?>
+                            <a href="<?php echo e(route('login')); ?>"
                                 class="inline-block px-8 py-4 bg-beige-peau btn-shadow text-noir-profond font-bold rounded-full text-lg hover:bg-beige-peau/90 transition-colors">
                                 📅 Prendre RDV
                             </a>
-                        @endauth
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -226,7 +230,7 @@
         <div class="max-w-4xl mx-auto px-4 py-8 space-y-8">
 
             <!-- Styles pratiqués -->
-            @php
+            <?php
                 $currentStyles = is_array($artist->styles)
                     ? $artist->styles
                     : json_decode($artist->styles ?? '[]', true) ?? [];
@@ -238,61 +242,63 @@ $displayStyles = array_filter(
     array_unique(array_merge($currentStyles, $customStyles)),
     fn($s) => $s !== 'Autres' && trim($s) !== '',
                 );
-            @endphp
+            ?>
 
-            @if ($type === 'tattooer' && !empty($displayStyles))
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($type === 'tattooer' && !empty($displayStyles)): ?>
                 <div class="bg-titane/10 rounded-xl p-6 border border-titane/20">
                     <h3 class="text-lg font-bold text-ivoire-text mb-4"> Styles pratiqués</h3>
                     <div class="flex flex-wrap gap-2">
-                        @foreach ($displayStyles as $style)
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $displayStyles; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $style): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <span class="px-3 py-1 bg-beige-peau/10 text-beige-peau rounded-full text-sm font-medium">
-                                {{ $style }}
+                                <?php echo e($style); ?>
+
                             </span>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </div>
                 </div>
-            @endif
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-            @if ($type === 'piercer')
-                {{-- Grille tarifaire --}}
-                @php
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($type === 'piercer'): ?>
+                
+                <?php
                     $pricingGrid = method_exists($artist, 'getPricingGrid') ? $artist->getPricingGrid() : [];
-                @endphp
-                @if (!empty($pricingGrid))
+                ?>
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!empty($pricingGrid)): ?>
                     <div class="bg-titane/10 rounded-xl p-6 border border-titane/20">
                         <h3 class="text-xl font-bold text-ivoire-text mb-4"> Grille tarifaire des Piercings</h3>
                         <div class="space-y-2">
-                            @foreach ($pricingGrid as $entry)
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $pricingGrid; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $entry): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <div class="flex items-center justify-between py-2 border-b border-titane/10 last:border-0">
                                     <span
-                                        class="text-ivoire-text border bg-beige-peau/5 border-beige-peau/40 shadow-sm shadow-beige-peau/20 rounded-full px-3 py-1 text-sm">{{ $entry['type'] ?? '' }}</span>
+                                        class="text-ivoire-text border bg-beige-peau/5 border-beige-peau/40 shadow-sm shadow-beige-peau/20 rounded-full px-3 py-1 text-sm"><?php echo e($entry['type'] ?? ''); ?></span>
                                     <span
-                                        class="text-beige-peau font-semibold">{{ number_format($entry['price'] ?? 0, 0, ',', ' ') }}
+                                        class="text-beige-peau font-semibold"><?php echo e(number_format($entry['price'] ?? 0, 0, ',', ' ')); ?>
+
                                         €</span>
                                 </div>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
                         <div class="mt-4 border-t border-titane/20 pt-4">
                             <p
                                 class="text-md text-ivoire-text text-center align-middle bg-beige-peau/5 border border-beige-peau/20 shadow-sm shadow-beige-peau/20 rounded-full px-3 py-1">
-                                {{ $artist->custom_pricing_note }}</p>
+                                <?php echo e($artist->custom_pricing_note); ?></p>
                         </div>
                     </div>
 
-                @endif
-            @endif
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
             <!-- Bio -->
-            @if ($artist->bio)
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($artist->bio): ?>
                 <div class="bg-titane/10 rounded-xl p-6 border border-titane/20">
                     <h2 class="text-2xl font-display font-bold text-ivoire-text mb-4">À propos</h2>
-                    <p class="text-ivoire-text/80 leading-relaxed whitespace-pre-line">{{ $artist->bio }}</p>
+                    <p class="text-ivoire-text/80 leading-relaxed whitespace-pre-line"><?php echo e($artist->bio); ?></p>
                 </div>
-            @endif
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
             <!-- Horaires d'ouverture -->
-            @if ($artist->working_hours)
-                @php
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($artist->working_hours): ?>
+                <?php
                     $workingHoursData = [];
                     if ($artist->working_hours) {
                         if (is_string($artist->working_hours)) {
@@ -302,7 +308,7 @@ $displayStyles = array_filter(
                         }
                     }
                     $daysOrder = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
-                @endphp
+                ?>
 
                 <div class="bg-titane/10 rounded-xl p-6 border border-titane/20">
                     <h2 class="text-2xl font-display font-bold text-ivoire-text mb-4 flex items-center gap-2">
@@ -312,64 +318,68 @@ $displayStyles = array_filter(
                     <!-- Mobile: Carousel -->
                     <div class="md:hidden">
                         <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                            @foreach ($daysOrder as $day)
-                                @php
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $daysOrder; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $day): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <?php
                                     $dayData = $workingHoursData[$day] ?? null;
                                     $isOpen = $dayData && !empty($dayData['open']) && !empty($dayData['close']);
-                                @endphp
+                                ?>
 
                                 <div class="flex-shrink-0 w-32 p-3 bg-noir-profond rounded-lg border border-titane/20">
                                     <div class="text-center">
                                         <div class="font-semibold text-ivoire-text text-sm mb-1">
-                                            {{ ucfirst($day) }}
+                                            <?php echo e(ucfirst($day)); ?>
+
                                         </div>
-                                        <div class="text-xs {{ $isOpen ? 'text-vert-succes' : 'text-rouge-alerte' }} mb-1">
-                                            {{ $isOpen ? 'Ouvert' : 'Fermé' }}
+                                        <div class="text-xs <?php echo e($isOpen ? 'text-vert-succes' : 'text-rouge-alerte'); ?> mb-1">
+                                            <?php echo e($isOpen ? 'Ouvert' : 'Fermé'); ?>
+
                                         </div>
-                                        @if ($isOpen && $dayData)
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($isOpen && $dayData): ?>
                                             <div class="text-ivoire-text/70 text-xs">
-                                                <div>{{ $dayData['open'] ?? '' }}</div>
-                                                @if ($dayData['break_start'] && $dayData['break_end'])
+                                                <div><?php echo e($dayData['open'] ?? ''); ?></div>
+                                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($dayData['break_start'] && $dayData['break_end']): ?>
                                                     <div class="text-amber-warning mt-1">
-                                                        🍴 {{ $dayData['break_start'] }}-{{ $dayData['break_end'] }}
+                                                        🍴 <?php echo e($dayData['break_start']); ?>-<?php echo e($dayData['break_end']); ?>
+
                                                     </div>
-                                                @endif
-                                                <div>{{ $dayData['close'] ?? '' }}</div>
+                                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                                <div><?php echo e($dayData['close'] ?? ''); ?></div>
                                             </div>
-                                        @endif
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                     </div>
                                 </div>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
                     </div>
 
                     <!-- Desktop: Grid -->
                     <div class="hidden md:block">
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                            @foreach ($daysOrder as $day)
-                                @php
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $daysOrder; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $day): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <?php
                                     $dayData = $workingHoursData[$day] ?? null;
                                     $isOpen = $dayData && !empty($dayData['open']) && !empty($dayData['close']);
-                                @endphp
+                                ?>
 
                                 <div
                                     class="bg-noir-profond rounded-xl p-4 border border-titane/20 hover:border-beige-peau/30 shadow-md shadow-titane/10 transition-colors">
                                     <div class="flex items-center justify-between mb-2">
                                         <div class="font-semibold text-ivoire-text">
-                                            {{ ucfirst($day) }}
+                                            <?php echo e(ucfirst($day)); ?>
+
                                         </div>
                                         <div class="flex items-center gap-1">
-                                            @if ($isOpen)
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($isOpen): ?>
                                                 <div class="w-2 h-2 bg-vert-succes rounded-full"></div>
                                                 <span class="text-xs text-vert-succes font-medium">Ouvert</span>
-                                            @else
+                                            <?php else: ?>
                                                 <div class="w-2 h-2 bg-rouge-alerte rounded-full"></div>
                                                 <span class="text-xs text-rouge-alerte font-medium">Fermé</span>
-                                            @endif
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                         </div>
                                     </div>
 
-                                    @if ($isOpen && $dayData)
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($isOpen && $dayData): ?>
                                         <div class="space-y-1">
                                             <div class="flex items-center gap-2 text-ivoire-text/80 text-sm">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor"
@@ -377,10 +387,10 @@ $displayStyles = array_filter(
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                                 </svg>
-                                                <span>{{ $dayData['open'] }} - {{ $dayData['close'] }}</span>
+                                                <span><?php echo e($dayData['open']); ?> - <?php echo e($dayData['close']); ?></span>
                                             </div>
 
-                                            @if ($dayData['break_start'] && $dayData['break_end'])
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($dayData['break_start'] && $dayData['break_end']): ?>
                                                 <div class="flex items-center gap-2 text-amber-warning/80 text-xs">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor"
                                                         viewBox="0 0 24 24">
@@ -389,18 +399,18 @@ $displayStyles = array_filter(
                                                             d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332-.477-4.5-1.253">
                                                         </path>
                                                     </svg>
-                                                    <span>Pause: {{ $dayData['break_start'] }} -
-                                                        {{ $dayData['break_end'] }}</span>
+                                                    <span>Pause: <?php echo e($dayData['break_start']); ?> -
+                                                        <?php echo e($dayData['break_end']); ?></span>
                                                 </div>
-                                            @endif
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                         </div>
-                                    @else
+                                    <?php else: ?>
                                         <div class="text-ivoire-text/40 text-sm italic">
                                             Fermé aujourd'hui
                                         </div>
-                                    @endif
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 </div>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
                     </div>
 
@@ -411,10 +421,10 @@ $displayStyles = array_filter(
                         </p>
                     </div>
                 </div>
-            @endif
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
             <!-- Adresse — CLIQUABLE avec modal Google Maps -->
-            @if ($artist->address)
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($artist->address): ?>
                 <div class="bg-titane/10 rounded-xl p-6 border border-titane/20">
                     <h3 class="text-lg font-bold text-ivoire-text mb-3">📍 Adresse</h3>
 
@@ -431,14 +441,15 @@ $displayStyles = array_filter(
                             <div>
                                 <span
                                     class="text-beige-peau hover:text-beige-peau/80 transition-colors cursor-pointer underline"
-                                    onclick="window.open('https://maps.google.com/maps?q={{ urlencode($artist->address) }}', '_blank')">
-                                    {{ $artist->address }}
+                                    onclick="window.open('https://maps.google.com/maps?q=<?php echo e(urlencode($artist->address)); ?>', '_blank')">
+                                    <?php echo e($artist->address); ?>
+
                                 </span>
                             </div>
                         </div>
 
                         <!-- Ville et code postal -->
-                        @if ($artist->city || $artist->postal_code)
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($artist->city || $artist->postal_code): ?>
                             <div class="flex items-center gap-2 text-ivoire-text/80">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -447,69 +458,69 @@ $displayStyles = array_filter(
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 </svg>
-                                <span>{{ $artist->city }}{{ $artist->postal_code ? ', ' . $artist->postal_code : '' }}</span>
+                                <span><?php echo e($artist->city); ?><?php echo e($artist->postal_code ? ', ' . $artist->postal_code : ''); ?></span>
                             </div>
-                        @endif
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </div>
                 </div>
-            @endif
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
             <!-- PORTFOLIO -->
-            @if (
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(
                 $portfolio->isNotEmpty() ||
                     (isset($drawings) && $drawings->isNotEmpty()) ||
-                    (isset($beforeAfter) && $beforeAfter->isNotEmpty()))
+                    (isset($beforeAfter) && $beforeAfter->isNotEmpty())): ?>
                 <div class="space-y-12">
                     <h2
                         class="text-4xl font-display font-bold text-beige-peau flex justify-center underline underline-offset-8 mt-16 mb-8">
                         Portfolio</h2>
 
                     <!-- Section 1 : Réalisations -->
-                    @if ($portfolio->isNotEmpty())
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($portfolio->isNotEmpty()): ?>
                         <div>
                             <h3 class="text-2xl font-bold text-cuivre justify-center mb-6 flex items-center gap-2">
                                 Réalisations
                             </h3>
                             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                @foreach ($portfolio as $media)
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $portfolio; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $media): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <div class="aspect-square rounded-xl overflow-hidden bg-titane/20 cursor-pointer hover:opacity-90 transition-opacity group"
-                                        onclick="openLightbox('{{ $media->getUrl() }}')">
-                                        <img src="{{ $media->getUrl() }}" data-full="{{ $media->getUrl() }}"
+                                        onclick="openLightbox('<?php echo e($media->getUrl()); ?>')">
+                                        <img src="<?php echo e($media->getUrl()); ?>" data-full="<?php echo e($media->getUrl()); ?>"
                                             alt="Tatouage"
                                             class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300 portfolio-photo">
                                     </div>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </div>
                         </div>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                     <!-- Section 2 : Dessins / Sketches -->
-                    @if ($type === 'tattooer' && isset($drawings) && $drawings->isNotEmpty())
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($type === 'tattooer' && isset($drawings) && $drawings->isNotEmpty()): ?>
                         <div>
                             <h3 class="text-2xl font-bold text-cuivre justify-center mb-6 flex items-center gap-2">
                                 Flash Dispo
                             </h3>
                             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                @foreach ($drawings as $media)
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $drawings; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $media): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <div class="aspect-square rounded-xl overflow-hidden bg-titane/20 cursor-pointer hover:opacity-90 transition-opacity group"
-                                        onclick="openLightbox('{{ $media->getUrl() }}')">
-                                        <img src="{{ $media->getUrl() }}" data-full="{{ $media->getUrl() }}"
+                                        onclick="openLightbox('<?php echo e($media->getUrl()); ?>')">
+                                        <img src="<?php echo e($media->getUrl()); ?>" data-full="<?php echo e($media->getUrl()); ?>"
                                             alt="Dessin / Sketch"
                                             class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300 portfolio-photo">
                                     </div>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </div>
                         </div>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                     <!-- Section 3 : Avant / Après -->
-                    @if ($type === 'tattooer' && isset($beforeAfter) && $beforeAfter->isNotEmpty())
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($type === 'tattooer' && isset($beforeAfter) && $beforeAfter->isNotEmpty()): ?>
                         <div>
                             <h3 class="text-2xl font-bold text-cuivre justify-center mb-6 flex items-center gap-2">
                                 Avant / Après
                             </h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                @php
+                                <?php
                                     $beforeAfterSorted = $beforeAfter->sortBy('id')->values();
                                     $pairs = [];
 
@@ -519,19 +530,19 @@ $displayStyles = array_filter(
                                             $pairs[] = [$beforeAfterSorted[$i], $beforeAfterSorted[$i + 1]];
                                         }
                                     }
-                                @endphp
+                                ?>
 
-                                @if (!empty($pairs))
-                                    @foreach ($pairs as $pair)
-                                        @if (is_array($pair) && count($pair) === 2)
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!empty($pairs)): ?>
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $pairs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pair): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(is_array($pair) && count($pair) === 2): ?>
                                             <div class="bg-titane/10 rounded-xl p-4 border border-titane/30">
                                                 <!-- Before/After Slider -->
                                                 <div
                                                     class="relative aspect-video rounded-lg overflow-hidden mb-4 before-after-slider">
-                                                    <img src="{{ $pair[0]->getUrl() }}"
+                                                    <img src="<?php echo e($pair[0]->getUrl()); ?>"
                                                         class="absolute inset-0 w-full h-full object-contain before-image"
                                                         alt="Avant">
-                                                    <img src="{{ $pair[1]->getUrl() }}"
+                                                    <img src="<?php echo e($pair[1]->getUrl()); ?>"
                                                         class="absolute inset-0 w-full h-full object-contain after-image"
                                                         alt="Après" style="clip-path: inset(0 50% 100% 100%);">
 
@@ -562,44 +573,44 @@ $displayStyles = array_filter(
                                                     </div>
                                                 </div>
                                             </div>
-                                        @endif
-                                    @endforeach
-                                @else
-                                    @if ($beforeAfter->isNotEmpty())
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                <?php else: ?>
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($beforeAfter->isNotEmpty()): ?>
                                         <!-- Afficher les images individuellement si nombre impair -->
                                         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                            @foreach ($beforeAfter as $media)
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $beforeAfter; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $media): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                 <div class="aspect-square rounded-xl overflow-hidden bg-titane/20 cursor-pointer hover:opacity-90 transition-opacity group"
-                                                    onclick="openLightbox('{{ $media->getUrl() }}')">
-                                                    <img src="{{ $media->getUrl() }}" alt="Avant/Après"
+                                                    onclick="openLightbox('<?php echo e($media->getUrl()); ?>')">
+                                                    <img src="<?php echo e($media->getUrl()); ?>" alt="Avant/Après"
                                                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
                                                 </div>
-                                            @endforeach
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                         </div>
-                                    @else
+                                    <?php else: ?>
                                         <p class="text-ivoire-text/50 text-center py-8">Aucune image avant/après disponible
                                         </p>
-                                    @endif
-                                @endif
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </div>
                         </div>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
-            @endif
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
             <!-- Message si portfolio vide -->
-            @if (
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(
                 $type === 'tattooer' &&
                     (!isset($artist) ||
                         (method_exists($artist, 'getMedia') &&
                             $artist->getMedia('portfolio')->isEmpty() &&
                             $artist->getMedia('drawings')->isEmpty() &&
-                            $artist->getMedia('before_after')->isEmpty())))
+                            $artist->getMedia('before_after')->isEmpty()))): ?>
                 <div class="text-center py-12">
                     <h3 class="text-xl font-semibold text-ivoire-text mb-2">Portfolio en construction</h3>
                     <p class="text-ivoire-text/60">Ce tatoueur ajoutera bientôt ses réalisations</p>
                 </div>
-            @endif
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
         </div>
 
         <!-- Labels -->
@@ -613,37 +624,38 @@ $displayStyles = array_filter(
     <section id="reviews" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h2 class="text-2xl font-bold text-cuivre justify-center mb-6 flex items-center gap-2">
             Avis clients
-            @if ($artist->reviews->where('is_visible', true)->count() > 0)
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($artist->reviews->where('is_visible', true)->count() > 0): ?>
                 <span class="text-sm font-normal text-titane">
-                    ({{ number_format($artist->reviews->where('is_visible', true)->avg('rating'), 1) }}/5 —
-                    {{ $artist->reviews->where('is_visible', true)->count() }} avis)
+                    (<?php echo e(number_format($artist->reviews->where('is_visible', true)->avg('rating'), 1)); ?>/5 —
+                    <?php echo e($artist->reviews->where('is_visible', true)->count()); ?> avis)
                 </span>
-            @endif
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
         </h2>
 
-        @forelse ($artist->reviews->where('is_visible', true)->sortByDesc('created_at') as $review)
+        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__empty_1 = true; $__currentLoopData = $artist->reviews->where('is_visible', true)->sortByDesc('created_at'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $review): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
             <div class="bg-gris-fonde rounded-xl p-4 mb-3">
                 <div class="flex items-center justify-between mb-2">
                     <div class="flex items-center gap-2">
                         <div class="flex">
-                            @for ($i = 1; $i <= 5; $i++)
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php for($i = 1; $i <= 5; $i++): ?>
                                 <span
-                                    class="{{ $i <= $review->rating ? 'text-ambre-warning' : 'text-titane/30' }}">&#9733;</span>
-                            @endfor
+                                    class="<?php echo e($i <= $review->rating ? 'text-ambre-warning' : 'text-titane/30'); ?>">&#9733;</span>
+                            <?php endfor; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
                         <span class="text-sm font-semibold text-ivoire-text">
-                            {{ $review->client?->name ?? 'Client' }}
+                            <?php echo e($review->client?->name ?? 'Client'); ?>
+
                         </span>
                     </div>
-                    <span class="text-xs text-titane">{{ $review->created_at->diffForHumans() }}</span>
+                    <span class="text-xs text-titane"><?php echo e($review->created_at->diffForHumans()); ?></span>
                 </div>
-                @if ($review->comment)
-                    <p class="text-sm text-ivoire-text/80">{{ $review->comment }}</p>
-                @endif
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($review->comment): ?>
+                    <p class="text-sm text-ivoire-text/80"><?php echo e($review->comment); ?></p>
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             </div>
-        @empty
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
             <p class="text-titane text-sm text-center py-6">Aucun avis pour le moment</p>
-        @endforelse
+        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
     </section>
 
     <!-- Lightbox avancée -->
@@ -686,7 +698,7 @@ $displayStyles = array_filter(
         </div>
     </div>
 
-    @push('scripts')
+    <?php $__env->startPush('scripts'); ?>
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 const lightbox = document.getElementById('lightbox');
@@ -860,5 +872,7 @@ $displayStyles = array_filter(
                 });
             });
         </script>
-    @endpush
-@endsection
+    <?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\tattoolib-saas\resources\views/marketplace/show.blade.php ENDPATH**/ ?>
