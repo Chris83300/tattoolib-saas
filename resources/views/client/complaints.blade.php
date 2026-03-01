@@ -26,11 +26,12 @@
             <!-- Formulaire de réclamation -->
             <div class="bg-titane/20 rounded-xl p-6 border border-titane/30 mb-8">
                 <h2 class="text-xl font-bold text-ivoire-text mb-4">Nouvelle réclamation</h2>
-                <form action="{{ route('client.complaints.create') }}" method="POST" class="space-y-4">
+                <form action="{{ route('client.complaints.store') }}" method="POST" class="space-y-4">
                     @csrf
                     <div>
                         <label class="block text-ivoire-text font-semibold mb-2">Type de réclamation</label>
-                        <select name="type" class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-2 focus:ring-beige-peau">
+                        <select name="type"
+                            class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-2 focus:ring-beige-peau">
                             <option value="">Choisir un type...</option>
                             <option value="no_show">No-show (artiste absent)</option>
                             <option value="quality">Qualité du travail</option>
@@ -41,19 +42,24 @@
                     </div>
                     <div>
                         <label class="block text-ivoire-text font-semibold mb-2">Description</label>
-                        <textarea name="description" rows="4" class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-2 focus:ring-beige-peau" placeholder="Décrivez votre réclamation..."></textarea>
+                        <textarea name="description" rows="4"
+                            class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-2 focus:ring-beige-peau"
+                            placeholder="Décrivez votre réclamation..."></textarea>
                     </div>
                     <div>
                         <label class="block text-ivoire-text font-semibold mb-2">Demande concernée (optionnel)</label>
-                        <select name="booking_request_id" class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-2 focus:ring-beige-peau">
+                        <select name="booking_request_id"
+                            class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-2 focus:ring-beige-peau">
                             <option value="">Choisir une demande...</option>
                             @foreach (auth()->user()->client->bookingRequests as $bookingRequest)
-                                <option value="{{ $bookingRequest->id }}">{{ $bookingRequest->description }} - {{ $bookingRequest->bookable->user->name }}</option>
+                                <option value="{{ $bookingRequest->id }}">{{ $bookingRequest->description }} -
+                                    {{ $bookingRequest->bookable->user->name }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div class="flex justify-end">
-                        <button type="submit" class="px-6 py-3 bg-rouge-alerte hover:bg-rouge-alerte/90 text-noir-profond rounded-lg font-semibold transition-colors">
+                        <button type="submit"
+                            class="px-6 py-3 bg-rouge-alerte hover:bg-rouge-alerte/90 text-noir-profond rounded-lg font-semibold transition-colors">
                             Soumettre la réclamation
                         </button>
                     </div>
@@ -65,8 +71,10 @@
                 @if ($complaints->isEmpty())
                     <div class="text-center py-12">
                         <div class="w-16 h-16 bg-titane/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg class="w-8 h-8 text-ivoire-text/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <svg class="w-8 h-8 text-ivoire-text/30" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
                         <h3 class="text-xl font-semibold text-ivoire-text mb-2">Aucune réclamation</h3>
@@ -85,7 +93,8 @@
                                     </p>
                                 </div>
                                 <div>
-                                    <span class="px-3 py-1 rounded-full text-xs font-semibold
+                                    <span
+                                        class="px-3 py-1 rounded-full text-xs font-semibold
                                         @switch($complaint->status)
                                             @case('pending')
                                                 bg-jaune-alerte/20 text-jaune-alerte
@@ -107,21 +116,23 @@
                                     </span>
                                 </div>
                             </div>
-                            <div class="text-ivoire-text mb-4">
-                                {{ $complaint->description }}
+                            <div class="text-ivoire-text
+                                        mb-4">
+                                        {{ $complaint->description }}
+                                </div>
+                                @if ($complaint->admin_notes)
+                                    <div class="bg-noir-profond rounded-lg p-4 border border-titane/30">
+                                        <h4 class="text-sm font-semibold text-ivoire-text mb-2">Notes de l'administrateur
+                                        </h4>
+                                        <p class="text-ivoire-text/70 text-sm">{{ $complaint->admin_notes }}</p>
+                                    </div>
+                                @endif
+                                @if ($complaint->resolved_at)
+                                    <div class="text-ivoire-text/70 text-sm">
+                                        Résolu le {{ $complaint->resolved_at->format('d/m/Y à H:i') }}
+                                    </div>
+                                @endif
                             </div>
-                            @if ($complaint->admin_notes)
-                                <div class="bg-noir-profond rounded-lg p-4 border border-titane/30">
-                                    <h4 class="text-sm font-semibold text-ivoire-text mb-2">Notes de l'administrateur</h4>
-                                    <p class="text-ivoire-text/70 text-sm">{{ $complaint->admin_notes }}</p>
-                                </div>
-                            @endif
-                            @if ($complaint->resolved_at)
-                                <div class="text-ivoire-text/70 text-sm">
-                                    Résolu le {{ $complaint->resolved_at->format('d/m/Y à H:i') }}
-                                </div>
-                            @endif
-                        </div>
                     @endforeach
                 @endif
             </div>

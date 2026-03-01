@@ -5,12 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Notifications\Notifiable;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Client extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia;
+    use HasFactory, SoftDeletes, InteractsWithMedia, Notifiable;
 
     protected $fillable = [
         'user_id',
@@ -143,6 +144,14 @@ class Client extends Model implements HasMedia
     public function getTattoosCountAttribute(): int
     {
         return $this->tattooHistory()->count();
+    }
+
+    /**
+     * Obtenir le nom d'affichage pour les notifications
+     */
+    public function getDisplayNameAttribute(): string
+    {
+        return $this->pseudo ?: $this->first_name . ' ' . $this->last_name;
     }
 
     /**

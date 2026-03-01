@@ -30,15 +30,18 @@
                     <div class="text-ivoire-text/60 text-xs">Total avis</div>
                 </div>
                 <div class="bg-titane/20 rounded-xl p-6 border border-titane/30 text-center">
-                    <div class="text-2xl font-bold text-vert-succes mb-1">{{ $reviews->where('rating', '>=', 4)->count() }}</div>
+                    <div class="text-2xl font-bold text-vert-succes mb-1">{{ $reviews->where('rating', '>=', 4)->count() }}
+                    </div>
                     <div class="text-ivoire-text/60 text-xs">Avis 4-5 étoiles</div>
                 </div>
                 <div class="bg-titane/20 rounded-xl p-6 border border-titane/30 text-center">
-                    <div class="text-2xl font-bold text-ambre-warning mb-1">{{ $reviews->where('rating', 3)->count() }}</div>
+                    <div class="text-2xl font-bold text-ambre-warning mb-1">{{ $reviews->where('rating', 3)->count() }}
+                    </div>
                     <div class="text-ivoire-text/60 text-xs">Avis 3 étoiles</div>
                 </div>
                 <div class="bg-titane/20 rounded-xl p-6 border border-titane/30 text-center">
-                    <div class="text-2xl font-bold text-rouge-alerte mb-1">{{ $reviews->where('rating', '<=', 2)->count() }}</div>
+                    <div class="text-2xl font-bold text-rouge-alerte mb-1">{{ $reviews->where('rating', '<=', 2)->count() }}
+                    </div>
                     <div class="text-ivoire-text/60 text-xs">Avis 1-2 étoiles</div>
                 </div>
             </div>
@@ -48,8 +51,10 @@
                 @if ($reviews->isEmpty())
                     <div class="text-center py-12">
                         <div class="w-16 h-16 bg-titane/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg class="w-8 h-8 text-ivoire-text/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 0-1.605-.56-1.86-1.34l-.328.328c.321.321.621.642 1.024.925 1.41 1.524.925 1.41 1.524.925 2.023 0 2.023-.925 2.023-2.023 0-1.098-.925-2.023-2.023-2.023zm0 3.48c.3-.921 0-1.605-.56-1.86-1.34l-.328.328c.321.321.621.642 1.024.925 1.41 1.524.925 1.41 1.524.925 2.023 0 2.023-.925 2.023-2.023 0-1.098-.925-2.023-2.023-2.023z" />
+                            <svg class="w-8 h-8 text-ivoire-text/30" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M11.049 2.927c.3-.921 0-1.605-.56-1.86-1.34l-.328.328c.321.321.621.642 1.024.925 1.41 1.524.925 1.41 1.524.925 2.023 0 2.023-.925 2.023-2.023 0-1.098-.925-2.023-2.023-2.023zm0 3.48c.3-.921 0-1.605-.56-1.86-1.34l-.328.328c.321.321.621.642 1.024.925 1.41 1.524.925 1.41 1.524.925 2.023 0 2.023-.925 2.023-2.023 0-1.098-.925-2.023-2.023-2.023z" />
                             </svg>
                         </div>
                         <h3 class="text-xl font-semibold text-ivoire-text mb-2">Aucun avis</h3>
@@ -60,20 +65,26 @@
                         <div class="bg-titane/20 rounded-xl p-6 border border-titane/30">
                             <div class="flex items-start justify-between mb-4">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-12 h-12 rounded-full overflow-hidden bg-noir-profond border border-beige-peau/30">
-                                        @if ($review->tattooer->getFirstMediaUrl('avatar'))
-                                            <img src="{{ $review->tattooer->getFirstMediaUrl('avatar') }}" alt="{{ $review->tattooer->user->name }}" class="w-full h-full object-cover">
+                                    <div
+                                        class="w-12 h-12 rounded-full overflow-hidden bg-noir-profond border border-beige-peau/30">
+                                        @if ($review->tattooer->user->getFirstMediaUrl('avatar'))
+                                            <img src="{{ $review->tattooer->user->getFirstMediaUrl('avatar') }}"
+                                                alt="{{ $review->tattooer->user->pseudo ?? $review->tattooer->user->first_name . ' ' . $review->tattooer->user->last_name }}"
+                                                class="w-full h-full object-cover">
                                         @else
                                             <div class="w-full h-full flex items-center justify-center">
-                                                <svg class="w-6 h-6 text-ivoire-text/30" fill="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                                <svg class="w-6 h-6 text-ivoire-text/30" fill="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0z" />
                                                 </svg>
                                             </div>
                                         @endif
                                     </div>
                                     <div>
-                                        <h3 class="text-lg font-semibold text-ivoire-text">{{ $review->tattooer->user->name }}</h3>
-                                        <p class="text-ivoire-text/70 text-sm">{{ $review->tattooer->user->pseudo ?? $review->tattooer->user->first_name . ' ' . $review->tattooer->user->last_name }}</p>
+                                        <h3 class="text-lg font-semibold text-ivoire-text">
+                                            {{ $review->tattooer->user->pseudo ?? $review->tattooer->user->first_name . ' ' . $review->tattooer->user->last_name }}
+                                        </h3>
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-1">

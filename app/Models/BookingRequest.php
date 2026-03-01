@@ -245,6 +245,14 @@ class BookingRequest extends Model implements HasMedia
         'status' => BookingRequestStatus::class,
     ];
 
+    /**
+     * Get the reviews for this booking request.
+     */
+    public function reviews()
+    {
+        return $this->morphMany(Review::class, 'reviewable');
+    }
+
     // ===== MÉTHODES STATUT (UTILISE L'ENUM) =====
 
     /**

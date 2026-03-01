@@ -79,19 +79,19 @@ class AutoCompleteAppointments extends Command
 
         foreach ($pastBookingRequests as $bookingRequest) {
             try {
-                // Marquer comme terminé automatiquement (client venu par défaut)
+                // Marquer comme terminé automatiquement (statut neutre)
                 $bookingRequest->update(['completed_at' => now()]);
                 $bookingRequest->transitionTo(BookingRequestStatus::COMPLETED);
 
                 $bookingRequestsCompleted++;
 
-                $this->line("✅ Booking request #{$bookingRequest->id} auto-complétée (client venu)");
+                $this->line("✅ Booking request #{$bookingRequest->id} auto-complétée (J+1 sans action)");
 
                 Log::info("Booking request auto-completed", [
                     'booking_request_id' => $bookingRequest->id,
                     'appointment_datetime' => $bookingRequest->appointment_datetime,
                     'completed_at' => now(),
-                    'auto_completion_reason' => 'client_assumed_present'
+                    'auto_completion_reason' => 'no_action_j_plus_1'
                 ]);
 
             } catch (\Exception $e) {

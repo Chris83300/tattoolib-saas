@@ -79,6 +79,18 @@ class CacheService
             $artist->load(['user', 'workingHours', 'media']);
 
             $isPiercer = $artist instanceof Piercer;
+            // Charger aussi les reviews des BookingRequests pour cet artiste
+            $bookingRequestReviews = \App\Models\Review::where('reviewable_type', 'App\Models\BookingRequest')
+                ->whereHas('reviewable', function($query) use ($artist) {
+                    $query->where('bookable_id', $artist->id)
+                          ->where('bookable_type', get_class($artist));
+                })
+                ->where('is_visible', true)
+                ->get();
+
+            // Fusionner les reviews directs et les reviews de BookingRequests
+            $allReviews = $artist->reviews->merge($bookingRequestReviews);
+
             return [
                 'id' => $artist->id,
                 'type' => $isPiercer ? 'piercer' : 'tattooer',
@@ -97,8 +109,8 @@ class CacheService
                         'thumb' => $media->getUrl('thumb'),
                     ];
                 })->toArray(),
-                'average_rating' => $artist->reviews()->avg('rating') ?? 0,
-                'total_reviews' => $artist->reviews()->count() ?? 0,
+                'average_rating' => $allReviews->avg('rating') ?? 0,
+                'total_reviews' => $allReviews->count() ?? 0,
                 'is_subscribed' => $artist->is_subscribed ?? false,
                 'siret_verified' => $artist->siret_verified ?? false,
                 'status' => $artist->user?->status ?? 'active',

@@ -130,12 +130,12 @@
                     </div>
 
                     <!-- Avis -->
-                    @if ($type === 'tattooer')
+                    @if (in_array($type, ['tattooer', 'piercer']))
                         <div class="flex flex-col items-center gap-2 border-b border-titane/20 pb-2  md:items-end">
                             <!-- Étoiles -->
                             <div class="flex items-center gap-1">
                                 @php
-                                    $rating = $artist->reviews_avg_rating ?? 0;
+                                    $rating = $allReviews->where('is_visible', true)->avg('rating') ?? 0;
                                     $fullStars = floor($rating);
                                     $hasHalfStar = $rating - $fullStars >= 0.5;
                                     $emptyStars = 5 - $fullStars - ($hasHalfStar ? 1 : 0);
@@ -160,11 +160,11 @@
                             </div>
 
                             <!-- Nombre d'avis et lien -->
-                            @if (isset($artist->reviews_count) && $artist->reviews_count > 0)
+                            @if ($allReviews->where('is_visible', true)->count() > 0)
                                 <a href="#reviews"
                                     onclick="document.getElementById('reviews').scrollIntoView({behavior: 'smooth', block: 'start'}); return false;"
                                     class="text-beige-peau hover:text-beige-peau/80 text-sm underline transition-colors cursor-pointer">
-                                    Voir les {{ $artist->reviews_count }} avis
+                                    Voir les {{ $allReviews->where('is_visible', true)->count() }} avis
                                 </a>
                             @else
                                 <span class="text-ivoire-text/60 text-sm">Aucun avis pour le moment</span>
@@ -613,15 +613,15 @@ $displayStyles = array_filter(
     <section id="reviews" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h2 class="text-2xl font-bold text-cuivre justify-center mb-6 flex items-center gap-2">
             Avis clients
-            @if ($artist->reviews->where('is_visible', true)->count() > 0)
+            @if ($allReviews->where('is_visible', true)->count() > 0)
                 <span class="text-sm font-normal text-titane">
-                    ({{ number_format($artist->reviews->where('is_visible', true)->avg('rating'), 1) }}/5 —
-                    {{ $artist->reviews->where('is_visible', true)->count() }} avis)
+                    ({{ number_format($allReviews->where('is_visible', true)->avg('rating'), 1) }}/5 —
+                    {{ $allReviews->where('is_visible', true)->count() }} avis)
                 </span>
             @endif
         </h2>
 
-        @forelse ($artist->reviews->where('is_visible', true)->sortByDesc('created_at') as $review)
+        @forelse ($allReviews->where('is_visible', true)->sortByDesc('created_at') as $review)
             <div class="bg-gris-fonde rounded-xl p-4 mb-3">
                 <div class="flex items-center justify-between mb-2">
                     <div class="flex items-center gap-2">
@@ -632,7 +632,7 @@ $displayStyles = array_filter(
                             @endfor
                         </div>
                         <span class="text-sm font-semibold text-ivoire-text">
-                            {{ $review->client?->name ?? 'Client' }}
+                            {{ $review->client_pseudo ?: ($review->user_pseudo ?: $review->first_name . ' ' . $review->last_name ?? 'Client') }}
                         </span>
                     </div>
                     <span class="text-xs text-titane">{{ $review->created_at->diffForHumans() }}</span>

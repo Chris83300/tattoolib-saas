@@ -26,7 +26,10 @@ class CleanupExpiredBookingRequests extends Command
      */
     private function cleanupExpiredDeposits(): void
     {
-        $expired = BookingRequest::where('status', BookingRequestStatus::DEPOSIT_REQUESTED)
+        $expired = BookingRequest::whereIn('status', [
+                BookingRequestStatus::DEPOSIT_REQUESTED,
+                BookingRequestStatus::EXPIRED
+            ])
             ->whereNotNull('deposit_deadline')
             ->where('deposit_deadline', '<', now())
             ->with(['conversation.messages', 'bookable.user', 'client', 'media'])

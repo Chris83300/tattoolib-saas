@@ -68,6 +68,21 @@ class MarketplaceController extends Controller
 
         $artist->load(['media', 'reviews']);
 
+        // Charger aussi les reviews des BookingRequests liées à cet artiste
+        $bookingRequestReviews = \App\Models\Review::where('reviewable_type', 'App\Models\BookingRequest')
+            ->whereHas('reviewable', function($query) use ($artist) {
+                $query->where('bookable_id', $artist->id)
+                      ->where('bookable_type', get_class($artist));
+            })
+            ->leftJoin('clients', 'reviews.client_id', '=', 'clients.id')
+            ->leftJoin('users', 'clients.user_id', '=', 'users.id')
+            ->select('reviews.*', 'clients.pseudo as client_pseudo', 'clients.first_name', 'clients.last_name', 'users.pseudo as user_pseudo')
+            ->where('is_visible', true)
+            ->get();
+
+        // Fusionner les reviews directes et les reviews de BookingRequests
+        $allReviews = $artist->reviews->merge($bookingRequestReviews);
+
         $stats = [
             'rating' => $artist->reviews_avg_rating ?? 0,
             'reviews_count' => $artist->reviews_count ?? 0,
@@ -79,7 +94,7 @@ class MarketplaceController extends Controller
         $drawings = $artist->getMedia('drawings');
         $beforeAfter = $artist->getMedia('before_after');
 
-        return view('marketplace.show', compact('artist', 'type', 'stats', 'portfolio', 'drawings', 'beforeAfter'));
+        return view('marketplace.show', compact('artist', 'type', 'stats', 'portfolio', 'drawings', 'beforeAfter', 'allReviews'));
     }
 
     /**

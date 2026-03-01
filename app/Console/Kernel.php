@@ -30,6 +30,12 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->runInBackground();
 
+        // 🗑️ Nettoyer les demandes expirées (suppression totale) toutes les 2 heures
+        $schedule->command('app:cleanup-expired-booking-requests')
+            ->everyTwoHours()
+            ->withoutOverlapping()
+            ->runInBackground();
+
         // ⭐ Auto-compléter les RDV après 24h sans action
         $schedule->command('appointments:auto-complete')
             ->hourly()

@@ -64,9 +64,9 @@ class ClientController extends Controller
         ];
 
         // Prendre les 5 plus récents APRÈS le chargement (évite 2ème requête)
-        $recentRequests = $bookingRequests->take(5);
+        $recentBookingRequests = $bookingRequests->take(5);
 
-        return view('client.dashboard', compact('bookingRequests', 'stats', 'recentRequests'));
+        return view('client.dashboard', compact('bookingRequests', 'stats', 'recentBookingRequests'));
     }
 
     /**
@@ -81,7 +81,7 @@ class ClientController extends Controller
         }
 
         $query = BookingRequest::where('client_id', $client->id)
-            ->with('bookable', 'conversation.messages');
+            ->with('bookable', 'conversation.messages', 'reviews');
 
         // Filtrer par statut si spécifié
         if ($request->filled('status')) {
@@ -769,6 +769,37 @@ class ClientController extends Controller
 
         \App\Models\Complaint::create([
             'booking_request_id' => $bookingRequest->id,
+            'user_id' => auth()->id(),
+            'type' => $validated['type'],
+            'description' => $validated['description'],
+            'status' => 'pending',
+        ]);
+
+        return back()->with('success', 'Votre réclamation a été soumise. Notre équipe va l\'examiner.');
+    }
+
+    /**
+     * Créer une réclamation (sans booking request obligatoire)
+     */
+    public function storeComplaint(Request $request)
+    {
+        $client = auth()->user()->client;
+        abort_unless($client, 403);
+
+        $validated = $request->validate([
+            'type' => 'required|in:no_show,quality,hygiene,payment,other',
+            'description' => 'required|string|max:2000',
+            'booking_request_id' => 'nullable|exists:booking_requests,id',
+        ]);
+
+        // Vérifier que la booking request appartient bien au client si fournie
+        if (!empty($validated['booking_request_id'])) {
+            $bookingRequest = BookingRequest::find($validated['booking_request_id']);
+            abort_unless($bookingRequest && $bookingRequest->client_id === $client->id, 403);
+        }
+
+        \App\Models\Complaint::create([
+            'booking_request_id' => $validated['booking_request_id'] ?? null,
             'user_id' => auth()->id(),
             'type' => $validated['type'],
             'description' => $validated['description'],

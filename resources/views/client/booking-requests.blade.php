@@ -243,7 +243,7 @@
                                             </div>
                                             <div>
                                                 <span
-                                                    class="font-medium text-ivoire-text">{{ $bookingRequest->bookable->user->name }}</span>
+                                                    class="font-medium text-ivoire-text">{{ $bookingRequest->bookable->user->pseudo }}</span>
                                                 <div class="text-xs">
                                                     @if ($bookingRequest->bookable_type === 'App\Models\Tattooer')
                                                         Tatoueur indépendant
@@ -333,13 +333,23 @@
 
                                     @if ($bookingRequest->isCompleted())
                                         @php
-                                            $reviewed = \App\Models\Review::where(
-                                                'reviewable_type',
-                                                'App\Models\BookingRequest',
-                                            )
-                                                ->where('reviewable_id', $bookingRequest->id)
-                                                ->where('client_id', auth()->id())
+                                            $hasBookingRequestReview = $bookingRequest
+                                                ->reviews()
+                                                ->where('client_id', auth()->user()->client->id)
                                                 ->exists();
+
+                                            $hasTattooerReview = false;
+                                            if ($bookingRequest->bookable) {
+                                                $hasTattooerReview = \App\Models\Review::where(
+                                                    'reviewable_type',
+                                                    get_class($bookingRequest->bookable),
+                                                )
+                                                    ->where('reviewable_id', $bookingRequest->bookable->id)
+                                                    ->where('client_id', auth()->user()->client->id)
+                                                    ->exists();
+                                            }
+
+                                            $reviewed = $hasBookingRequestReview || $hasTattooerReview;
                                         @endphp
                                         @if (!$reviewed)
                                             <button type="button" onclick="openReviewModal({{ $bookingRequest->id }})"

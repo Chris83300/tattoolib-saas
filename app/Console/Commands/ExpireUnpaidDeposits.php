@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\BookingRequest;
+use App\Enums\ConversationStatus;
 use Illuminate\Console\Command;
 
 class ExpireUnpaidDeposits extends Command
@@ -49,7 +50,7 @@ class ExpireUnpaidDeposits extends Command
             // Fermer la conversation liée
             if ($booking->conversation) {
                 $booking->conversation->update([
-                    'status' => 'closed'
+                    'status' => ConversationStatus::CLOSED
                 ]);
             }
 

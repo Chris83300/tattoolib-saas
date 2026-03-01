@@ -259,6 +259,7 @@ Route::middleware(['auth'])->prefix('client')->name('client.')->group(function (
     Route::post('/message/{conversation}/send', [App\Http\Controllers\ClientController::class, 'sendMessage'])->name('message.send');
     Route::get('/reviews', [App\Http\Controllers\ClientController::class, 'reviews'])->name('reviews');
     Route::get('/complaints', [App\Http\Controllers\ClientController::class, 'complaints'])->name('complaints');
+    Route::post('/complaints', [App\Http\Controllers\ClientController::class, 'storeComplaint'])->name('complaints.store');
     Route::post('/reviews/{bookingRequest}', [App\Http\Controllers\ClientController::class, 'createReview'])->name('reviews.create');
     Route::post('/complaints/{bookingRequest}', [App\Http\Controllers\ClientController::class, 'createComplaint'])->name('complaints.create');
     Route::post('/booking-requests/{bookingRequest}/cancel', [App\Http\Controllers\ClientController::class, 'bookingRequestCancel'])->name('booking-request.cancel');

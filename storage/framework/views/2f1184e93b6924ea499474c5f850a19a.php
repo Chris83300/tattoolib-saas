@@ -124,7 +124,8 @@ unset($__defined_vars, $__key, $__value); ?>
                     <!-- Stats marketplace -->
                     <div class="flex items-center border border-titane/30 bg-titane/10 p-1 rounded-full gap-1">
 
-                        <span><?php echo e($artist['experience_years'] ?? 'N/A'); ?> ans</span> <span class="text-titane"> d'expérience</span>
+                        <span><?php echo e($artist['experience_years'] ?? 'N/A'); ?> ans</span> <span class="text-titane">
+                            d'expérience</span>
                     </div>
 
                     <div class="flex items-center border border-titane/30 bg-titane/10 p-1 rounded-full gap-1">
@@ -199,8 +200,7 @@ unset($__defined_vars, $__key, $__value); ?>
                 <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($isMarketplace): ?>
                     <!-- Rating marketplace -->
                     <div class="flex items-center justify-center sm:justify-end gap-1 text-beige-peau text-sm mb-1">
-                        ⭐ <?php echo e(number_format($artist['average_rating'], 1)); ?>
-
+                        ⭐ <?php echo e(number_format($artist['average_rating'], 1)); ?> (<?php echo e($artist['total_reviews']); ?> avis)
                     </div>
                     <div class="text-ivoire-text/60 text-xs">
                         <?php echo e($artist['total_reviews']); ?> avis

@@ -95,7 +95,8 @@
                     <!-- Stats marketplace -->
                     <div class="flex items-center border border-titane/30 bg-titane/10 p-1 rounded-full gap-1">
 
-                        <span>{{ $artist['experience_years'] ?? 'N/A' }} ans</span> <span class="text-titane"> d'expérience</span>
+                        <span>{{ $artist['experience_years'] ?? 'N/A' }} ans</span> <span class="text-titane">
+                            d'expérience</span>
                     </div>
 
                     <div class="flex items-center border border-titane/30 bg-titane/10 p-1 rounded-full gap-1">
@@ -166,7 +167,7 @@
                 @if ($isMarketplace)
                     <!-- Rating marketplace -->
                     <div class="flex items-center justify-center sm:justify-end gap-1 text-beige-peau text-sm mb-1">
-                        ⭐ {{ number_format($artist['average_rating'], 1) }}
+                        ⭐ {{ number_format($artist['average_rating'], 1) }} ({{ $artist['total_reviews'] }} avis)
                     </div>
                     <div class="text-ivoire-text/60 text-xs">
                         {{ $artist['total_reviews'] }} avis
