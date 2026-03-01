@@ -229,6 +229,7 @@
             <!-- Content -->
             <div class="p-4 lg:p-8 pb-24 lg:pb-8 max-w-full overflow-y-auto">
                 @yield('content')
+                @include('partials.footer-legal')
             </div>
         </main>
 

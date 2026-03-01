@@ -85,6 +85,7 @@
     <main class="md:ml-64 pt-16 md:pt-0">
         <div class="container-custom py-6">
             @yield('content')
+            @include('partials.footer-legal')
         </div>
     </main>
 

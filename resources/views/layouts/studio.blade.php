@@ -275,6 +275,7 @@
 
                 {{ $slot ?? '' }}
                 @yield('content')
+                @include('partials.footer-legal')
             </div>
         </main>
 
