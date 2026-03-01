@@ -2073,7 +2073,10 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
         $paymentStats = [
             'total_earned' => $payments->sum('estimated_total_price'),
             'this_month' => $payments->where('created_at', '>=', now()->startOfMonth())->sum('estimated_total_price'),
-            'pending_deposits' => 0, // TODO: Calculer les acomptes en attente
+            'pending_deposits' => BookingRequest::where('bookable_id', $tattooer->id)
+                ->where('bookable_type', get_class($tattooer))
+                ->whereIn('status', ['accepted', 'deposit_requested'])
+                ->sum('total_deposit_amount'),
         ];
 
         // Compteurs pour le layout
