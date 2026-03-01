@@ -28,80 +28,34 @@
         </div>
 
         {{-- Artistes actifs --}}
-        <div class="bg-gris-fonde rounded-xl divide-y divide-titane/10">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @forelse ($activeArtists as $sa)
-                <div class="flex items-center gap-3 p-4">
-                    <img src="{{ $sa->user?->getFirstMediaUrl('avatar') ?: asset('images/default-avatar.png') }}"
-                        alt="{{ $sa->user?->name }}" class="w-12 h-12 rounded-full object-cover">
-                    <div class="flex-1 min-w-0">
-                        <p class="text-md font-semibold text-beige-peau truncate">{{ $sa->user?->name }}</p>
-                        <p class="text-xs text-titane">
-                            {{ $sa->artisan_type === 'piercer' ? '💎 Pierceur' : '🎨 Tatoueur' }}
-                            @if ($sa->joined_at && $sa->joined_at->isToday())
-                                • Rejoint aujourd'hui
-                            @else
-                                • Rejoint {{ $sa->joined_at?->diffForHumans() ?? '—' }}
-                            @endif
-                        </p>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        {{-- Toggle actif/inactif --}}
-                        <form action="{{ route('studio.artists.toggle', $sa) }}" method="POST">
-                            @csrf
-                            @method('PUT')
-                            <button type="submit"
-                                class="text-xs px-3 text-vert-succes bg-vert-succes/20 border border-vert-succes rounded-full py-1.5 font-semibold transition-colors {{ $sa->is_active ? 'bg-vert-validation/20 text-vert-validation' : 'bg-rouge-alerte/20 text-rouge-alerte' }}">
-                                {{ $sa->is_active ? 'Actif' : 'Inactif' }}
-                            </button>
-                        </form>
-                        {{-- Retirer --}}
-                        <form action="{{ route('studio.artists.remove', $sa) }}" method="POST"
-                            onsubmit="return confirm('Retirer cet artiste du studio ?')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit"
-                                class="text-rouge-alerte/60 hover:text-rouge-alerte p-1 transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                            </button>
-                        </form>
-                    </div>
-                </div>
+                <x-ui.artistCard :studioArtist="$sa" />
             @empty
-                <p class="text-sm text-titane text-center py-8">Aucun artiste actif</p>
+                <div class="col-span-full text-center py-12">
+                    <div class="text-titane text-lg mb-4">
+                        Aucun artiste actif dans votre studio
+                    </div>
+                    <a href="{{ route('studio.artists.create') }}"
+                        class="inline-flex items-center gap-2 px-4 py-2.5 bg-beige-peau text-noir-profond rounded-xl font-semibold text-sm hover:bg-beige-peau/90 transition-colors active:scale-95">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Ajouter votre premier artiste
+                    </a>
+                </div>
             @endforelse
         </div>
 
         {{-- Invitations en attente --}}
         @if ($pendingInvitations->count() > 0)
-            <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
-                <h2 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider mb-3">⏳ Invitations en attente
-                </h2>
-                @foreach ($pendingInvitations as $inv)
-                    <div class="flex items-center gap-3 py-2">
-                        <div class="w-10 h-10 rounded-full bg-titane/20 flex items-center justify-center text-titane">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                            </svg>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-sm text-ivoire-text">{{ $inv->invitation_email }}</p>
-                            <p class="text-xs text-titane">
-                                {{ $inv->artisan_type === 'piercer' ? '💎 Pierceur' : '🎨 Tatoueur' }}
-                                • Invité {{ $inv->invited_at?->diffForHumans() ?? '—' }}
-                            </p>
-                        </div>
-                        <form action="{{ route('studio.artists.remove', $inv) }}" method="POST">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit"
-                                class="text-xs text-rouge-alerte/60 hover:text-rouge-alerte transition-colors">Annuler</button>
-                        </form>
-                    </div>
-                @endforeach
+            <div class="mt-8">
+                <h2 class="text-lg font-bold text-ivoire-text mb-4">⏳ Invitations en attente</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    @foreach ($pendingInvitations as $inv)
+                        <x-ui.artistCard :studioArtist="$inv" />
+                    @endforeach
+                </div>
             </div>
         @endif
 
@@ -110,8 +64,7 @@
             <p class="text-xs text-titane">
                 💡 Votre abonnement Studio inclut <strong class="text-ivoire-text">1 artiste</strong>.
                 Chaque artiste supplémentaire coûte <strong class="text-beige-peau">39,99€/mois</strong>.
-                Facturation actuelle : <strong
-                    class="text-ivoire-text">{{ number_format($monthlyPrice, 2) }}€/mois</strong>
+                Facturation actuelle : <strong class="text-ivoire-text">{{ number_format($monthlyPrice, 2) }}€/mois</strong>
             </p>
         </div>
     </div>

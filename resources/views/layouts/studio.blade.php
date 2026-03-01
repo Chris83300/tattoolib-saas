@@ -149,15 +149,18 @@
                     <div class="flex-1 min-w-0">
                         <p class="text-ivoire-text font-semibold truncate text-sm">{{ $studioName }}</p>
                         @if ($studio && $studio->onTrial())
-                            <span class="text-xs bg-beige-peau/20 text-beige-peau rounded-full px-2 py-0.5 font-semibold">
+                            <span
+                                class="text-xs bg-beige-peau/20 text-beige-peau rounded-full px-2 py-0.5 font-semibold">
                                 Essai • {{ $studio->trialDaysLeft() }}j
                             </span>
                         @elseif ($studio && $studio->hasActiveSubscription())
-                            <span class="text-xs bg-green-500/20 text-green-400 rounded-full px-2 py-0.5 font-semibold">
+                            <span
+                                class="text-xs bg-green-500/20 text-green-400 rounded-full px-2 py-0.5 font-semibold">
                                 Pro
                             </span>
                         @elseif ($studio && $studio->trialExpired())
-                            <span class="text-xs bg-rouge-alerte/20 text-rouge-alerte rounded-full px-2 py-0.5 font-semibold">
+                            <span
+                                class="text-xs bg-rouge-alerte/20 text-rouge-alerte rounded-full px-2 py-0.5 font-semibold">
                                 Expiré
                             </span>
                         @else
@@ -203,6 +206,20 @@
                                 {{ mb_substr($studioName, 0, 1) }}
                             </div>
                         @endif
+
+                        <!-- Bouton déconnexion mobile -->
+                        <form action="{{ route('logout') }}" method="POST" class="shrink-0">
+                            @csrf
+                            <button type="submit"
+                                class="text-ivoire-text/60 hover:text-rouge-alerte transition-colors p-1 rounded-lg"
+                                title="Se déconnecter">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3 3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                                    </path>
+                                </svg>
+                            </button>
+                        </form>
                     </div>
                 </div>
             </header>
@@ -212,9 +229,12 @@
                 <div class="bg-beige-peau/10 border-b border-beige-peau/20 px-4 py-2">
                     <div class="flex items-center justify-between">
                         <p class="text-xs text-beige-peau">
-                            ⏳ <strong>Essai gratuit</strong> — {{ $studio->trialDaysLeft() }} jour{{ $studio->trialDaysLeft() > 1 ? 's' : '' }} restant{{ $studio->trialDaysLeft() > 1 ? 's' : '' }}
+                            ⏳ <strong>Essai gratuit</strong> — {{ $studio->trialDaysLeft() }}
+                            jour{{ $studio->trialDaysLeft() > 1 ? 's' : '' }}
+                            restant{{ $studio->trialDaysLeft() > 1 ? 's' : '' }}
                         </p>
-                        <a href="{{ route('studio.billing') }}" class="text-xs font-semibold text-beige-peau hover:text-beige-peau/80">
+                        <a href="{{ route('studio.billing') }}"
+                            class="text-xs font-semibold text-beige-peau hover:text-beige-peau/80">
                             Activer l'abonnement →
                         </a>
                     </div>
@@ -227,7 +247,8 @@
                     <div class="flex items-center justify-between gap-4">
                         <div>
                             <p class="text-sm font-semibold text-rouge-alerte">⚠️ Votre essai est terminé</p>
-                            <p class="text-xs text-rouge-alerte/80 mt-0.5">Votre studio est en lecture seule. Activez votre abonnement pour continuer.</p>
+                            <p class="text-xs text-rouge-alerte/80 mt-0.5">Votre studio est en lecture seule. Activez
+                                votre abonnement pour continuer.</p>
                         </div>
                         <a href="{{ route('studio.billing') }}"
                             class="shrink-0 px-4 py-2 bg-beige-peau text-noir-profond rounded-xl text-sm font-semibold hover:bg-beige-peau/90 transition-colors">

@@ -8,7 +8,8 @@ use Illuminate\View\View;
 class ArtistCard extends Component
 {
     public function __construct(
-        public $artist
+        public $artist = null,
+        public $studioArtist = null
     ) {}
 
     public function render(): View
