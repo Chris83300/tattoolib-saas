@@ -48,7 +48,7 @@
     </div>
     <div class="info-col">
         <div class="info-label">Studio</div>
-        <div class="info-value">{{ $consentForm->studio?->name ?? 'Indépendant' }}</div>
+        <div class="info-value">{{ $consentForm->studio?->studio_name ?? 'Indépendant' }}</div>
     </div>
 </div>
 

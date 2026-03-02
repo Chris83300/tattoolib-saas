@@ -27,7 +27,7 @@
         {{-- Status actuel --}}
         <div class="bg-gris-fonde rounded-xl p-6 border border-titane/20">
             <h2 class="text-lg font-bold text-ivoire-text mb-2">Mon plan actuel</h2>
-            @if ($tattooer->isPro())
+            @if ($artist->isPro())
                 <div class="flex items-center gap-3">
                     <span class="px-3 py-1 bg-beige-peau text-noir-profond rounded-full text-sm font-bold">PRO</span>
                     <span class="text-ivoire-text/70">49.99€/mois · Commission 0%</span>
@@ -39,7 +39,7 @@
                             ⚠️ Abonnement annulé. Accès PRO jusqu'au
                             <strong>{{ $activeSubscription->ends_at->translatedFormat('d F Y') }}</strong>
                         </p>
-                        <form action="{{ route($tattooer->routePrefix() . '.subscription.resume') }}" method="POST" class="mt-2">
+                        <form action="{{ route('pierceur.subscription.resume') }}" method="POST" class="mt-2">
                             @csrf
                             <button type="submit"
                                 class="px-4 py-2 bg-vert-succes text-white rounded-lg text-sm font-semibold hover:bg-vert-succes/90">
@@ -49,11 +49,11 @@
                     </div>
                 @else
                     <div class="mt-3 flex flex-wrap gap-3">
-                        <a href="{{ route($tattooer->routePrefix() . '.subscription.manage') }}"
+                        <a href="{{ route('pierceur.subscription.manage') }}"
                             class="px-4 py-2 bg-titane/20 text-ivoire-text rounded-lg text-sm font-semibold hover:bg-titane/30 transition-colors">
                             💳 Gérer le paiement
                         </a>
-                        <form action="{{ route($tattooer->routePrefix() . '.subscription.cancel') }}" method="POST"
+                        <form action="{{ route('pierceur.subscription.cancel') }}" method="POST"
                             onsubmit="return confirm('Êtes-vous sûr de vouloir annuler ? Vous gardez l\'accès PRO jusqu\'à la fin de la période.')">
                             @csrf
                             <button type="submit"
@@ -76,7 +76,7 @@
 
             {{-- Plan FREE --}}
             <div
-                class="bg-gris-fonde rounded-xl p-6 border {{ $tattooer->isFree() ? 'border-titane/40' : 'border-titane/20' }}">
+                class="bg-gris-fonde rounded-xl p-6 border {{ $artist->isFree() ? 'border-titane/40' : 'border-titane/20' }}">
                 <h3 class="text-xl font-bold text-ivoire-text mb-1">Free</h3>
                 <p class="text-3xl font-bold text-ivoire-text mb-4">0€<span
                         class="text-sm font-normal text-titane">/mois</span></p>
@@ -92,7 +92,7 @@
                     <li class="flex items-center gap-2 text-ivoire-text/40">❌ Analytics</li>
                 </ul>
 
-                @if ($tattooer->isFree())
+                @if ($artist->isFree())
                     <div class="px-4 py-2.5 bg-titane/20 text-titane rounded-lg text-center text-sm font-semibold">
                         Plan actuel
                     </div>
@@ -122,12 +122,12 @@
                     <li class="flex items-center gap-2 text-vert-succes">✅ Export CSV/Excel pour la comptabilité</li>
                 </ul>
 
-                @if ($tattooer->isPro() && !$activeSubscription?->isOnGracePeriod())
+                @if ($artist->isPro() && !$activeSubscription?->isOnGracePeriod())
                     <div class="px-4 py-2.5 bg-beige-peau/20 text-beige-peau rounded-lg text-center text-sm font-semibold">
                         ✅ Plan actuel
                     </div>
-                @elseif (!$tattooer->isPro())
-                    <form action="{{ route($tattooer->routePrefix() . '.subscription.subscribe') }}" method="POST">
+                @elseif (!$artist->isPro())
+                    <form action="{{ route('pierceur.subscription.subscribe') }}" method="POST">
                         @csrf
                         <button type="submit"
                             class="w-full px-4 py-3 bg-beige-peau text-noir-profond rounded-lg font-bold text-sm hover:bg-beige-peau/90 transition-colors active:scale-95">
@@ -140,9 +140,10 @@
         </div>
 
         {{-- ROI Calculator --}}
-        @if ($tattooer->isFree())
+        @if ($artist->isFree())
             <div class="bg-gris-fonde rounded-xl p-6 border border-titane/20">
-                <h3 class="text-lg font-bold text-beige-peau mb-3">"Les artistes PRO économisent en moyenne 150€/mois en commission sur leurs réservations."</h3>
+                <h3 class="text-lg font-bold text-beige-peau mb-3">"Les piercers PRO économisent en moyenne 150€/mois en
+                    commission sur leurs réservations."</h3>
 
             </div>
         @endif

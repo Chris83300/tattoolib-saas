@@ -49,10 +49,11 @@
             <div>
                 <h4 class="text-ivoire-text font-semibold mb-3">Légal</h4>
                 <ul class="space-y-2 text-sm text-ivoire-text/70">
-                    <li><a href="/mentions-legales" class="hover:text-beige-peau transition-colors">Mentions légales</a>
-                    </li>
-                    <li><a href="/cgv" class="hover:text-beige-peau transition-colors">CGV</a></li>
-                    <li><a href="/privacy" class="hover:text-beige-peau transition-colors">Confidentialité</a></li>
+                    <li><a href="<?php echo e(route('legal.mentions-legales')); ?>" class="hover:text-beige-peau transition-colors">Mentions légales</a></li>
+                    <li><a href="<?php echo e(route('legal.cgu')); ?>" class="hover:text-beige-peau transition-colors">CGU</a></li>
+                    <li><a href="<?php echo e(route('legal.cgv-clients')); ?>" class="hover:text-beige-peau transition-colors">CGV</a></li>
+                    <li><a href="<?php echo e(route('legal.politique-confidentialite')); ?>" class="hover:text-beige-peau transition-colors">Confidentialité</a></li>
+                    <li><a href="<?php echo e(route('legal.politique-cookies')); ?>" class="hover:text-beige-peau transition-colors">Cookies</a></li>
                     <li><a href="/contact" class="hover:text-beige-peau transition-colors">Contact</a></li>
                 </ul>
             </div>

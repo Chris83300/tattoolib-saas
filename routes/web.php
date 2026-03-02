@@ -488,6 +488,11 @@ Route::middleware(['auth'])->prefix('conversation/{conversation}/chat')->name('c
     Route::get('/', [App\Http\Controllers\ClientController::class, 'chat'])->name('show');
 });
 
+// Routes consentement client
+Route::middleware(['auth'])->prefix('consent')->name('consent.')->group(function () {
+    Route::post('/{bookingRequest}', [App\Http\Controllers\ClientController::class, 'storeConsent'])->name('store');
+});
+
 // Routes auth
 Route::prefix('auth')->name('auth.')->group(function () {
     Route::get('/login', function () {

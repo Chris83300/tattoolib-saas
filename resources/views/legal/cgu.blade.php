@@ -9,10 +9,10 @@
 
 <h2>1. Définitions</h2>
 
-<p><strong>« Plateforme »</strong> : le site internet accessible à l'adresse [www.inkpik.fr] et ses applications mobiles, édités par [raison sociale].</p>
+<p><strong>« Plateforme »</strong> : le site internet accessible à l'adresse [www.inkandpik.com] et ses applications mobiles, édités par [raison sociale].</p>
 <p><strong>« Utilisateur »</strong> : toute personne physique ou morale accédant à la Plateforme, qu'elle soit Artiste, Client ou Studio.</p>
-<p><strong>« Artiste »</strong> : tout professionnel indépendant de l'art corporel (tatoueur, pierceur, body modifier) inscrit sur la Plateforme, disposant d'un numéro SIRET et des autorisations réglementaires requises.</p>
-<p><strong>« Studio »</strong> : tout salon professionnel de tatouage et/ou piercing gérant un ou plusieurs Artistes, inscrit sur la Plateforme.</p>
+<p><strong>« Artiste »</strong> : tout professionnel indépendant de l'art corporel (tatoueur, pierceur, body modifier) inscrit sur la Plateforme, disposant d'un numéro SIRET (obligatoire) et des autorisations réglementaires requises (optionnel).</p>
+<p><strong>« Studio »</strong> : tout salon professionnel de tatouage et/ou piercing gérant un ou plusieurs Artistes, inscrit sur la Plateformedisposant d'un numéro SIRET (obligatoire) et des autorisations réglementaires requises (optionnel).</p>
 <p><strong>« Client »</strong> : toute personne physique (consommateur au sens du Code de la consommation) utilisant la Plateforme pour trouver un Artiste et réserver une prestation.</p>
 <p><strong>« Prestation »</strong> : tout acte de tatouage, piercing ou modification corporelle réalisé par un Artiste au bénéfice d'un Client.</p>
 <p><strong>« Demande de réservation »</strong> : la demande formulée par un Client auprès d'un Artiste via la Plateforme, décrivant le projet de Prestation souhaité.</p>
@@ -28,13 +28,13 @@
 
 <h3>3.1 Conditions d'inscription</h3>
 
-<p>L'inscription est gratuite et ouverte à toute personne physique majeure (18 ans révolus) ou, pour les mineurs de plus de 16 ans, avec le consentement écrit d'un titulaire de l'autorité parentale (conformément à l'article R.1311-11 du Code de la Santé Publique pour les prestations de tatouage).</p>
+<p>L'inscription est gratuite et ouverte à toute personne physique de (18 ans révolus) ou, pour les mineurs de plus de 16 ans, avec le consentement écrit d'un titulaire de l'autorité parentale (conformément à l'article R.1311-11 du Code de la Santé Publique pour les prestations de tatouage).</p>
 
 <p>L'inscription en tant qu'Artiste est réservée aux professionnels disposant :</p>
 <ul>
-    <li>D'un numéro SIRET valide attestant de leur immatriculation</li>
-    <li>D'une déclaration d'activité auprès de l'Agence Régionale de Santé (ARS) en cours de validité</li>
-    <li>D'une certification « Hygiène et salubrité » délivrée par l'ARS (arrêté du 5 mars 2024), valable 5 ans</li>
+    <li>D'un numéro SIRET valide attestant de leur immatriculation (obligatoire)</li>
+    <li>D'une déclaration d'activité auprès de l'Agence Régionale de Santé (ARS) en cours de validité (optionnel)</li>
+    <li>D'une certification « Hygiène et salubrité » délivrée par l'ARS (arrêté du 5 mars 2024), valable 5 ans (optionnel)</li>
 </ul>
 
 <h3>3.2 Véracité des informations</h3>

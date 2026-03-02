@@ -1,86 +1,84 @@
-@extends('layouts.tattooer')
+<?php $__env->startSection('content'); ?>
+    <div x-data="{ activeTab: '<?php echo e(request()->get('tab', 'info')); ?>', editMode: false }" class="space-y-4 pb-20">
 
-@section('content')
-    <div x-data="{ activeTab: '{{ request()->get('tab', 'info') }}', editMode: false }" class="space-y-4 pb-20">
-
-        {{-- ═══════════════════════════════════════════════════════════════
-             HEADER CLIENT (toujours visible)
-             ═══════════════════════════════════════════════════════════════ --}}
+        
         <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
             <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-                <a href="{{ route($tattooer->routePrefix() . '.clients') }}"
+                <a href="<?php echo e(route($tattooer->routePrefix() . '.clients')); ?>"
                     class="mt-1 p-2 rounded-lg hover:bg-noir-profond transition-colors flex-shrink-0">
                     <svg class="w-5 h-5 text-titane" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
                 </a>
 
-                @php
+                <?php
                     $avatarUrl = $client->user?->getFirstMediaUrl('avatar') ?: $client->getFirstMediaUrl('avatar');
                     $pseudo = $client->pseudo ?? ($client->user?->pseudo ?? null);
                     $fullName = trim(($client->first_name ?? '') . ' ' . ($client->last_name ?? ''));
                     if (!$fullName) {
                         $fullName = $client->user?->name ?? 'Client';
                     }
-                @endphp
+                ?>
 
                 <div class="w-16 h-16 md:w-20 md:h-20 rounded-full overflow-hidden bg-titane/30 flex-shrink-0 flex items-center justify-center">
-                    @if ($avatarUrl)
-                        <img src="{{ $avatarUrl }}" alt="{{ $pseudo ?? $fullName }}" class="w-full h-full object-cover">
-                    @else
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($avatarUrl): ?>
+                        <img src="<?php echo e($avatarUrl); ?>" alt="<?php echo e($pseudo ?? $fullName); ?>" class="w-full h-full object-cover">
+                    <?php else: ?>
                         <span class="text-2xl font-bold text-beige-peau">
-                            {{ strtoupper(substr($client->first_name ?? '?', 0, 1)) }}{{ strtoupper(substr($client->last_name ?? '', 0, 1)) }}
+                            <?php echo e(strtoupper(substr($client->first_name ?? '?', 0, 1))); ?><?php echo e(strtoupper(substr($client->last_name ?? '', 0, 1))); ?>
+
                         </span>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
 
                 <div class="flex-1 min-w-0">
-                    @if ($pseudo)
-                        <h1 class="text-xl md:text-2xl font-bold text-ivoire-text truncate">{{ $pseudo }}</h1>
-                        <p class="text-sm text-ivoire-text/60">{{ $fullName }}</p>
-                    @else
-                        <h1 class="text-xl md:text-2xl font-bold text-ivoire-text truncate">{{ $fullName }}</h1>
-                    @endif
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($pseudo): ?>
+                        <h1 class="text-xl md:text-2xl font-bold text-ivoire-text truncate"><?php echo e($pseudo); ?></h1>
+                        <p class="text-sm text-ivoire-text/60"><?php echo e($fullName); ?></p>
+                    <?php else: ?>
+                        <h1 class="text-xl md:text-2xl font-bold text-ivoire-text truncate"><?php echo e($fullName); ?></h1>
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     <div class="flex flex-wrap gap-2 mt-2">
                         <span class="px-2 py-0.5 bg-beige-peau/20 text-beige-peau rounded text-xs font-medium">
-                            {{ $stats->total_requests }} demande{{ $stats->total_requests > 1 ? 's' : '' }}
+                            <?php echo e($stats->total_requests); ?> demande<?php echo e($stats->total_requests > 1 ? 's' : ''); ?>
+
                         </span>
-                        @if ($stats->completed > 0)
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($stats->completed > 0): ?>
                             <span class="px-2 py-0.5 bg-vert-succes/20 text-vert-succes rounded text-xs font-medium">
-                                {{ $stats->completed }} terminée{{ $stats->completed > 1 ? 's' : '' }}
+                                <?php echo e($stats->completed); ?> terminée<?php echo e($stats->completed > 1 ? 's' : ''); ?>
+
                             </span>
-                        @endif
-                        @if ($stats->total_paid > 0)
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($stats->total_paid > 0): ?>
                             <span class="px-2 py-0.5 bg-titane/20 text-titane rounded text-xs font-medium">
-                                {{ number_format($stats->total_paid, 0) }}€
+                                <?php echo e(number_format($stats->total_paid, 0)); ?>€
                             </span>
-                        @endif
-                        @if ($client->is_blacklisted)
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($client->is_blacklisted): ?>
                             <span class="px-2 py-0.5 bg-rouge-alerte/20 text-rouge-alerte rounded text-xs font-semibold">⛔ Blacklisté</span>
-                        @endif
-                        @if ($client->no_show_count > 0)
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($client->no_show_count > 0): ?>
                             <span class="px-2 py-0.5 bg-ambre-warning/20 text-ambre-warning rounded text-xs font-medium">
-                                {{ $client->no_show_count }} no-show{{ $client->no_show_count > 1 ? 's' : '' }}
+                                <?php echo e($client->no_show_count); ?> no-show<?php echo e($client->no_show_count > 1 ? 's' : ''); ?>
+
                             </span>
-                        @endif
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </div>
                     <div class="mt-3">
-                        @include('partials.pdf-download-button', [
+                        <?php echo $__env->make('partials.pdf-download-button', [
                             'url'   => route('pdf.client-summary', $client),
                             'label' => 'Fiche client PDF',
                             'size'  => 'xs',
-                        ])
+                        ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
                     </div>
                 </div>
             </div>
         </div>
 
-        {{-- ═══════════════════════════════════════════════════════════════
-             TABS NAVIGATION
-             ═══════════════════════════════════════════════════════════════ --}}
+        
         <div class="bg-gris-fonde rounded-xl p-1.5 sticky top-0 z-10 min-w-0">
             <div class="flex gap-1 overflow-x-auto pb-1 min-w-0" style="-webkit-overflow-scrolling: touch;">
-                @php
+                <?php
                     $consentDocuments = isset($consentDocuments) ? $consentDocuments : collect();
                     $standaloneTraces = isset($standaloneTraces) ? $standaloneTraces : collect();
                     $clientPhotos = isset($clientPhotos) ? $clientPhotos : collect();
@@ -93,28 +91,27 @@
                         'media' => ['label' => 'Médias', 'icon' => '📸', 'count' => $chatMedia->count() + $clientPhotos->count()],
                         'notes' => ['label' => 'Notes', 'icon' => '📋'],
                     ];
-                @endphp
+                ?>
 
-                @foreach ($tabs as $key => $tab)
-                    <button @click="activeTab = '{{ $key }}'"
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $tabs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $tab): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <button @click="activeTab = '<?php echo e($key); ?>'"
                         class="flex items-center gap-1.5 px-3 py-2 rounded-lg font-semibold whitespace-nowrap transition-all text-sm flex-shrink-0"
-                        :class="activeTab === '{{ $key }}' ? 'bg-beige-peau text-noir-profond' : 'text-titane hover:text-ivoire-text hover:bg-noir-profond'">
-                        <span>{{ $tab['icon'] }}</span>
-                        <span>{{ $tab['label'] }}</span>
-                        @if (isset($tab['count']) && $tab['count'] > 0)
+                        :class="activeTab === '<?php echo e($key); ?>' ? 'bg-beige-peau text-noir-profond' : 'text-titane hover:text-ivoire-text hover:bg-noir-profond'">
+                        <span><?php echo e($tab['icon']); ?></span>
+                        <span><?php echo e($tab['label']); ?></span>
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(isset($tab['count']) && $tab['count'] > 0): ?>
                             <span class="px-1.5 py-0.5 rounded-full text-xs"
-                                :class="activeTab === '{{ $key }}' ? 'bg-noir-profond/20 text-noir-profond' : 'bg-titane/20 text-titane'">
-                                {{ $tab['count'] }}
+                                :class="activeTab === '<?php echo e($key); ?>' ? 'bg-noir-profond/20 text-noir-profond' : 'bg-titane/20 text-titane'">
+                                <?php echo e($tab['count']); ?>
+
                             </span>
-                        @endif
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </button>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
             </div>
         </div>
 
-        {{-- ═══════════════════════════════════════════════════════════════
-             TAB: INFOS CLIENT
-             ═══════════════════════════════════════════════════════════════ --}}
+        
         <div x-show="activeTab === 'info'" x-cloak class="space-y-4">
 
             <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
@@ -129,45 +126,45 @@
                     </button>
                 </div>
 
-                {{-- MODE ÉDITION --}}
+                
                 <div x-show="editMode" x-cloak>
-                    <form action="{{ route($tattooer->routePrefix() . '.clients.update', $client) }}" method="POST">
-                        @csrf
-                        @method('PUT')
+                    <form action="<?php echo e(route($tattooer->routePrefix() . '.clients.update', $client)); ?>" method="POST">
+                        <?php echo csrf_field(); ?>
+                        <?php echo method_field('PUT'); ?>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             <div>
                                 <label class="block text-xs font-semibold text-ivoire-text/60 mb-1">Prénom</label>
-                                <input type="text" name="first_name" value="{{ $client->first_name ?? '' }}"
+                                <input type="text" name="first_name" value="<?php echo e($client->first_name ?? ''); ?>"
                                     class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-ivoire-text/60 mb-1">Nom</label>
-                                <input type="text" name="last_name" value="{{ $client->last_name ?? '' }}"
+                                <input type="text" name="last_name" value="<?php echo e($client->last_name ?? ''); ?>"
                                     class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-ivoire-text/60 mb-1">Pseudo</label>
-                                <input type="text" name="pseudo" value="{{ $client->pseudo ?? '' }}"
+                                <input type="text" name="pseudo" value="<?php echo e($client->pseudo ?? ''); ?>"
                                     class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-ivoire-text/60 mb-1">Email</label>
-                                <input type="email" name="email" value="{{ $client->user?->email ?? $client->email }}"
+                                <input type="email" name="email" value="<?php echo e($client->user?->email ?? $client->email); ?>"
                                     class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-ivoire-text/60 mb-1">Téléphone</label>
-                                <input type="tel" name="phone" value="{{ $client->phone ?? '' }}"
+                                <input type="tel" name="phone" value="<?php echo e($client->phone ?? ''); ?>"
                                     class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-ivoire-text/60 mb-1">Date de naissance</label>
-                                <input type="date" name="birth_date" value="{{ $client->birth_date?->format('Y-m-d') ?? '' }}"
+                                <input type="date" name="birth_date" value="<?php echo e($client->birth_date?->format('Y-m-d') ?? ''); ?>"
                                     class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
                             </div>
                             <div class="md:col-span-2">
                                 <label class="block text-xs font-semibold text-ivoire-text/60 mb-1">Adresse</label>
-                                <input type="text" name="address" value="{{ $client->address ?? '' }}"
+                                <input type="text" name="address" value="<?php echo e($client->address ?? ''); ?>"
                                     class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau focus:ring-1 focus:ring-beige-peau">
                             </div>
                         </div>
@@ -178,93 +175,91 @@
                     </form>
                 </div>
 
-                {{-- MODE LECTURE --}}
+                
                 <div x-show="!editMode" class="space-y-3">
-                    @if ($client->user?->email ?? $client->email)
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($client->user?->email ?? $client->email): ?>
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2 min-w-0">
                                 <span class="text-titane flex-shrink-0">📧</span>
-                                <span class="text-ivoire-text text-sm truncate">{{ $client->user?->email ?? $client->email }}</span>
+                                <span class="text-ivoire-text text-sm truncate"><?php echo e($client->user?->email ?? $client->email); ?></span>
                             </div>
-                            <a href="mailto:{{ $client->user?->email ?? $client->email }}" class="p-2 bg-noir-profond rounded-lg hover:bg-beige-peau/20 transition-colors flex-shrink-0">
+                            <a href="mailto:<?php echo e($client->user?->email ?? $client->email); ?>" class="p-2 bg-noir-profond rounded-lg hover:bg-beige-peau/20 transition-colors flex-shrink-0">
                                 <svg class="w-4 h-4 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                             </a>
                         </div>
-                    @endif
-                    @if ($client->phone)
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($client->phone): ?>
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
                                 <span class="text-titane flex-shrink-0">📱</span>
-                                <span class="text-ivoire-text text-sm">{{ $client->phone }}</span>
+                                <span class="text-ivoire-text text-sm"><?php echo e($client->phone); ?></span>
                             </div>
-                            <a href="tel:{{ $client->phone }}" class="p-2 bg-noir-profond rounded-lg hover:bg-beige-peau/20 transition-colors flex-shrink-0">
+                            <a href="tel:<?php echo e($client->phone); ?>" class="p-2 bg-noir-profond rounded-lg hover:bg-beige-peau/20 transition-colors flex-shrink-0">
                                 <svg class="w-4 h-4 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
                             </a>
                         </div>
-                    @endif
-                    @if ($client->birth_date)
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($client->birth_date): ?>
                         <div class="flex items-center gap-2">
                             <span class="text-titane flex-shrink-0">🎂</span>
                             <span class="text-ivoire-text text-sm">
-                                {{ $client->birth_date->format('d/m/Y') }} ({{ $client->birth_date->age }} ans)
-                                @if ($client->birth_date->age < 18)
+                                <?php echo e($client->birth_date->format('d/m/Y')); ?> (<?php echo e($client->birth_date->age); ?> ans)
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($client->birth_date->age < 18): ?>
                                     <span class="ml-1 px-1.5 py-0.5 bg-ambre-warning/20 text-ambre-warning rounded text-xs font-semibold">MINEUR</span>
-                                @endif
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </span>
                         </div>
-                    @endif
-                    @if ($client->address)
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($client->address): ?>
                         <div class="flex items-center gap-2">
                             <span class="text-titane flex-shrink-0">📍</span>
-                            <span class="text-ivoire-text text-sm">{{ $client->address }}</span>
+                            <span class="text-ivoire-text text-sm"><?php echo e($client->address); ?></span>
                         </div>
-                    @endif
-                    @if (!($client->user?->email ?? $client->email) && !$client->phone && !$client->birth_date && !$client->address)
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!($client->user?->email ?? $client->email) && !$client->phone && !$client->birth_date && !$client->address): ?>
                         <p class="text-sm text-titane italic">Aucune information de contact. <button @click="editMode = true" class="text-beige-peau hover:underline">Ajouter</button></p>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
             </div>
 
-            {{-- Statistiques --}}
+            
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div class="bg-gris-fonde rounded-xl p-4 text-center">
-                    <p class="text-2xl font-bold text-beige-peau">{{ $stats->total_requests }}</p>
+                    <p class="text-2xl font-bold text-beige-peau"><?php echo e($stats->total_requests); ?></p>
                     <p class="text-xs text-titane mt-1">Demandes</p>
                 </div>
                 <div class="bg-gris-fonde rounded-xl p-4 text-center">
-                    <p class="text-2xl font-bold text-vert-succes">{{ $stats->completed }}</p>
+                    <p class="text-2xl font-bold text-vert-succes"><?php echo e($stats->completed); ?></p>
                     <p class="text-xs text-titane mt-1">Réalisés</p>
                 </div>
                 <div class="bg-gris-fonde rounded-xl p-4 text-center">
-                    <p class="text-2xl font-bold text-ivoire-text">{{ number_format($stats->total_paid, 0) }}€</p>
+                    <p class="text-2xl font-bold text-ivoire-text"><?php echo e(number_format($stats->total_paid, 0)); ?>€</p>
                     <p class="text-xs text-titane mt-1">Total versé</p>
                 </div>
                 <div class="bg-gris-fonde rounded-xl p-4 text-center">
-                    <p class="text-2xl font-bold text-ivoire-text">{{ $stats->total_appointments }}</p>
+                    <p class="text-2xl font-bold text-ivoire-text"><?php echo e($stats->total_appointments); ?></p>
                     <p class="text-xs text-titane mt-1">RDV</p>
                 </div>
             </div>
 
-            {{-- Actions rapides --}}
+            
             <div class="bg-gris-fonde rounded-xl p-4">
                 <div class="flex flex-wrap gap-2">
-                    <a href="{{ route($tattooer->routePrefix() . '.messages') }}" class="px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold text-sm hover:bg-beige-peau/90 transition-colors">💬 Envoyer un message</a>
+                    <a href="<?php echo e(route($tattooer->routePrefix() . '.messages')); ?>" class="px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold text-sm hover:bg-beige-peau/90 transition-colors">💬 Envoyer un message</a>
                 </div>
             </div>
 
-        </div>{{-- Fin TAB INFOS --}}
+        </div>
 
-        {{-- ═══════════════════════════════════════════════════════════════
-             TAB: HISTORIQUE DEMANDES
-             ═══════════════════════════════════════════════════════════════ --}}
+        
         <div x-show="activeTab === 'history'" x-cloak class="space-y-3">
-            @forelse ($bookingRequests as $br)
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__empty_1 = true; $__currentLoopData = $bookingRequests; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $br): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                 <div class="bg-gris-fonde rounded-xl p-4">
                     <div class="flex items-start justify-between mb-3">
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2 flex-wrap">
-                                <h4 class="font-semibold text-ivoire-text text-sm">{{ $br->tattoo_style ?? 'Tattoo' }} — {{ $br->body_zone ?? 'Non précisé' }}</h4>
-                                @php
+                                <h4 class="font-semibold text-ivoire-text text-sm"><?php echo e($br->tattoo_style ?? 'Tattoo'); ?> — <?php echo e($br->body_zone ?? 'Non précisé'); ?></h4>
+                                <?php
                                     $statusConfig = match ($br->status->value ?? $br->status) {
                                         'pending' => ['bg' => 'bg-ambre-warning/20', 'text' => 'text-ambre-warning', 'label' => '⏳ En attente'],
                                         'accepted' => ['bg' => 'bg-vert-succes/20', 'text' => 'text-vert-succes', 'label' => '✅ Acceptée'],
@@ -276,37 +271,44 @@
                                         'rejected' => ['bg' => 'bg-rouge-alerte/20', 'text' => 'text-rouge-alerte', 'label' => '❌ Refusée'],
                                         default => ['bg' => 'bg-titane/20', 'text' => 'text-titane', 'label' => ucfirst($br->status->value ?? $br->status)],
                                     };
-                                @endphp
-                                <span class="px-2 py-0.5 {{ $statusConfig['bg'] }} {{ $statusConfig['text'] }} rounded text-xs font-semibold">{{ $statusConfig['label'] }}</span>
+                                ?>
+                                <span class="px-2 py-0.5 <?php echo e($statusConfig['bg']); ?> <?php echo e($statusConfig['text']); ?> rounded text-xs font-semibold"><?php echo e($statusConfig['label']); ?></span>
                             </div>
-                            <p class="text-xs text-titane mt-1">{{ $br->created_at->translatedFormat('d F Y') }}</p>
+                            <p class="text-xs text-titane mt-1"><?php echo e($br->created_at->translatedFormat('d F Y')); ?></p>
                         </div>
-                        <a href="{{ route($tattooer->routePrefix() . '.request.show', $br) }}" class="p-2 bg-noir-profond rounded-lg hover:bg-beige-peau/20 transition-colors flex-shrink-0">
+                        <a href="<?php echo e(route($tattooer->routePrefix() . '.request.show', $br)); ?>" class="p-2 bg-noir-profond rounded-lg hover:bg-beige-peau/20 transition-colors flex-shrink-0">
                             <svg class="w-4 h-4 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                         </a>
                     </div>
                     <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-titane">
-                        @if ($br->total_deposit_amount)
-                            <span>💰 Acompte : {{ number_format($br->total_deposit_amount, 0) }}€ @if ($br->deposit_paid_at) <span class="text-vert-succes">(payé)</span> @endif</span>
-                        @endif
-                        @if ($br->price_estimate_min && $br->price_estimate_max)
-                            <span>🏷️ {{ number_format($br->price_estimate_min, 0) }}-{{ number_format($br->price_estimate_max, 0) }}€</span>
-                        @endif
-                        @if ($br->tattoo_size) <span>📐 {{ $br->tattoo_size }}</span> @endif
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($br->total_deposit_amount): ?>
+                            <span>💰 Acompte : <?php echo e(number_format($br->total_deposit_amount, 0)); ?>€ <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($br->deposit_paid_at): ?> <span class="text-vert-succes">(payé)</span> <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?></span>
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($br->price_estimate_min && $br->price_estimate_max): ?>
+                            <span>🏷️ <?php echo e(number_format($br->price_estimate_min, 0)); ?>-<?php echo e(number_format($br->price_estimate_max, 0)); ?>€</span>
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($br->tattoo_size): ?> <span>📐 <?php echo e($br->tattoo_size); ?></span> <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </div>
                 </div>
-            @empty
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                 <div class="bg-gris-fonde rounded-xl p-8 text-center"><p class="text-titane">Aucune demande enregistrée</p></div>
-            @endforelse
-        </div>{{-- Fin TAB HISTORIQUE --}}
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+        </div>
 
-        {{-- ═══════════════════════════════════════════════════════════════
-             TAB: CONSENTEMENT
-             ═══════════════════════════════════════════════════════════════ --}}
+        
         <div x-show="activeTab === 'consent'" x-cloak class="space-y-4">
-            <x-pro-gate feature="la gestion des consentements SNAT">
+            <?php if (isset($component)) { $__componentOriginal0482ca2f8c9f05860018c80a5d052c03 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal0482ca2f8c9f05860018c80a5d052c03 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.pro-gate','data' => ['feature' => 'la gestion des consentements SNAT']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('pro-gate'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['feature' => 'la gestion des consentements SNAT']); ?>
 
-                {{-- ═══ BOUTONS : Upload scan OU Formulaire numérique ═══ --}}
+                
                 <div class="bg-gris-fonde rounded-xl p-4 md:p-6" x-data="{ consentMode: 'none' }">
                     <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider mb-3">📤 Ajouter un consentement</h3>
 
@@ -325,10 +327,10 @@
                         <button @click="consentMode = 'none'" type="button" class="text-xs text-titane hover:text-beige-peau transition-colors">← Retour au choix</button>
                     </div>
 
-                    {{-- MODE UPLOAD SCAN --}}
+                    
                     <div x-show="consentMode === 'upload'" x-cloak x-collapse>
-                        <form action="{{ route($tattooer->routePrefix() . '.clients.consent.upload', $client) }}" method="POST" enctype="multipart/form-data" class="space-y-3">
-                            @csrf
+                        <form action="<?php echo e(route($tattooer->routePrefix() . '.clients.consent.upload', $client)); ?>" method="POST" enctype="multipart/form-data" class="space-y-3">
+                            <?php echo csrf_field(); ?>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-xs font-semibold text-ivoire-text/60 mb-1">Fichier (PDF/JPG/PNG)</label>
@@ -337,7 +339,7 @@
                                 </div>
                                 <div>
                                     <label class="block text-xs font-semibold text-ivoire-text/60 mb-1">Date du consentement</label>
-                                    <input type="date" name="consent_date" required value="{{ now()->format('Y-m-d') }}"
+                                    <input type="date" name="consent_date" required value="<?php echo e(now()->format('Y-m-d')); ?>"
                                         class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
                                 </div>
                             </div>
@@ -345,38 +347,38 @@
                         </form>
                     </div>
 
-                    {{-- MODE FORMULAIRE NUMÉRIQUE SNAT --}}
+                    
                     <div x-show="consentMode === 'digital'" x-cloak x-collapse>
-                        <form action="{{ route($tattooer->routePrefix() . '.clients.consent.store-digital', $client) }}" method="POST" class="space-y-4" id="digital-consent-form">
-                            @csrf
+                        <form action="<?php echo e(route($tattooer->routePrefix() . '.clients.consent.store-digital', $client)); ?>" method="POST" class="space-y-4" id="digital-consent-form">
+                            <?php echo csrf_field(); ?>
 
-                            {{-- Identité client --}}
+                            
                             <div class="bg-noir-profond/50 rounded-lg p-3">
                                 <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-3">📋 Identité client</p>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div>
                                         <label class="text-xs text-titane block mb-1">Nom complet *</label>
-                                        <input type="text" name="client_full_name" required value="{{ trim(($client->first_name ?? '') . ' ' . ($client->last_name ?? '')) }}"
+                                        <input type="text" name="client_full_name" required value="<?php echo e(trim(($client->first_name ?? '') . ' ' . ($client->last_name ?? ''))); ?>"
                                             class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
                                     </div>
                                     <div>
                                         <label class="text-xs text-titane block mb-1">Date de naissance *</label>
-                                        <input type="date" name="client_birth_date" required value="{{ $client->birth_date?->format('Y-m-d') }}"
+                                        <input type="date" name="client_birth_date" required value="<?php echo e($client->birth_date?->format('Y-m-d')); ?>"
                                             class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
                                     </div>
                                     <div>
                                         <label class="text-xs text-titane block mb-1">Téléphone</label>
-                                        <input type="tel" name="client_phone" value="{{ $client->phone }}"
+                                        <input type="tel" name="client_phone" value="<?php echo e($client->phone); ?>"
                                             class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
                                     </div>
                                     <div>
                                         <label class="text-xs text-titane block mb-1">Email</label>
-                                        <input type="email" name="client_email" value="{{ $client->user?->email ?? $client->email }}"
+                                        <input type="email" name="client_email" value="<?php echo e($client->user?->email ?? $client->email); ?>"
                                             class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
                                     </div>
                                     <div class="sm:col-span-2">
                                         <label class="text-xs text-titane block mb-1">Adresse</label>
-                                        <input type="text" name="client_address" value="{{ $client->address }}"
+                                        <input type="text" name="client_address" value="<?php echo e($client->address); ?>"
                                             class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
                                     </div>
                                     <div>
@@ -397,7 +399,7 @@
                                 </div>
                             </div>
 
-                            {{-- Mineur --}}
+                            
                             <div class="bg-noir-profond/50 rounded-lg p-3" x-data="{ isMinor: false }">
                                 <label class="flex items-center gap-2 cursor-pointer">
                                     <input type="checkbox" name="is_minor" value="1" x-model="isMinor" class="w-4 h-4 rounded border-titane/30 bg-noir-profond text-beige-peau focus:ring-beige-peau">
@@ -423,11 +425,11 @@
                                 </div>
                             </div>
 
-                            {{-- Questionnaire médical --}}
+                            
                             <div class="bg-noir-profond/50 rounded-lg p-3">
                                 <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-3">🏥 Questionnaire médical</p>
                                 <div class="space-y-2">
-                                    @php
+                                    <?php
                                         $medicalFields = [
                                             'medical_allergies' => ['label' => '🤧 Allergies (latex, encres, pansements...)', 'detail' => true],
                                             'medical_anticoagulant' => ['label' => '💉 Traitement anticoagulant', 'detail' => false],
@@ -439,21 +441,21 @@
                                             'medical_roaccutane' => ['label' => '💊 Traitement Roaccutane (< 1 an)', 'detail' => false],
                                             'medical_cheloide' => ['label' => '⚕️ Tendance aux chéloïdes', 'detail' => false],
                                         ];
-                                    @endphp
-                                    @foreach ($medicalFields as $field => $config)
+                                    ?>
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $medicalFields; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $field => $config): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                         <div x-data="{ checked: false }">
                                             <label class="flex items-center gap-2 cursor-pointer">
-                                                <input type="checkbox" name="{{ $field }}" value="1" x-model="checked" class="w-4 h-4 rounded border-titane/30 bg-noir-profond text-beige-peau focus:ring-beige-peau">
-                                                <span class="text-sm text-ivoire-text">{{ $config['label'] }}</span>
+                                                <input type="checkbox" name="<?php echo e($field); ?>" value="1" x-model="checked" class="w-4 h-4 rounded border-titane/30 bg-noir-profond text-beige-peau focus:ring-beige-peau">
+                                                <span class="text-sm text-ivoire-text"><?php echo e($config['label']); ?></span>
                                             </label>
-                                            @if ($config['detail'])
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($config['detail']): ?>
                                                 <div x-show="checked" x-cloak x-collapse class="mt-1 ml-6">
-                                                    <input type="text" name="{{ $field }}_detail" placeholder="Précisez..."
+                                                    <input type="text" name="<?php echo e($field); ?>_detail" placeholder="Précisez..."
                                                         class="w-full px-3 py-1.5 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-xs focus:border-beige-peau">
                                                 </div>
-                                            @endif
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                         </div>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                     <div class="mt-2">
                                         <label class="text-xs text-titane block mb-1">📝 Autres pathologies ou traitements</label>
                                         <textarea name="medical_other" rows="2" placeholder="Précisez..."
@@ -462,7 +464,7 @@
                                 </div>
                             </div>
 
-                            {{-- Infos tatouage --}}
+                            
                             <div class="bg-noir-profond/50 rounded-lg p-3">
                                 <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-3">🎨 Informations tatouage</p>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -479,7 +481,7 @@
                                 </div>
                             </div>
 
-                            {{-- Clause financière --}}
+                            
                             <div class="bg-noir-profond/50 rounded-lg p-3">
                                 <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-3">💰 Clause financière</p>
                                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -502,7 +504,7 @@
                                 </div>
                             </div>
 
-                            {{-- Autorisation image --}}
+                            
                             <div class="bg-noir-profond/50 rounded-lg p-3">
                                 <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-3">📷 Autorisation image</p>
                                 <div class="flex flex-wrap gap-4">
@@ -517,11 +519,11 @@
                                 </div>
                             </div>
 
-                            {{-- Confirmations obligatoires --}}
+                            
                             <div class="bg-noir-profond/50 rounded-lg p-3">
                                 <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-3">✅ Confirmations obligatoires</p>
                                 <div class="space-y-2">
-                                    @php
+                                    <?php
                                         $confirmFields = [
                                             'confirm_medical_sincere' => 'Je déclare que les informations médicales sont sincères et complètes',
                                             'confirm_risks_informed' => 'J\'ai été informé(e) des risques liés au tatouage',
@@ -531,17 +533,17 @@
                                             'confirm_over_18_or_authorized' => 'Je certifie être majeur(e) ou avoir l\'autorisation parentale',
                                             'confirm_rgpd' => 'J\'accepte le traitement de mes données (RGPD)',
                                         ];
-                                    @endphp
-                                    @foreach ($confirmFields as $field => $label)
+                                    ?>
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $confirmFields; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $field => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                         <label class="flex items-start gap-2 cursor-pointer">
-                                            <input type="checkbox" name="{{ $field }}" value="1" required class="w-4 h-4 rounded border-titane/30 bg-noir-profond text-beige-peau focus:ring-beige-peau mt-0.5">
-                                            <span class="text-sm text-ivoire-text leading-tight">{{ $label }}</span>
+                                            <input type="checkbox" name="<?php echo e($field); ?>" value="1" required class="w-4 h-4 rounded border-titane/30 bg-noir-profond text-beige-peau focus:ring-beige-peau mt-0.5">
+                                            <span class="text-sm text-ivoire-text leading-tight"><?php echo e($label); ?></span>
                                         </label>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 </div>
                             </div>
 
-                            {{-- Mention manuscrite + Signature --}}
+                            
                             <div class="bg-noir-profond/50 rounded-lg p-3">
                                 <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-3">✍️ Signature du client</p>
                                 <div class="mb-3">
@@ -569,177 +571,196 @@
                     </div>
                 </div>
 
-                {{-- Consentements scannés --}}
-                @if ($consentDocuments->count() > 0)
+                
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consentDocuments->count() > 0): ?>
                     <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
                         <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider mb-3">📄 Consentements scannés</h3>
                         <div class="space-y-3">
-                            @foreach ($consentDocuments as $document)
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $consentDocuments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $document): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <div class="flex items-center justify-between p-3 bg-noir-profond/50 rounded-lg">
                                     <div class="flex items-center gap-3 min-w-0">
                                         <span class="text-2xl flex-shrink-0">📄</span>
                                         <div class="min-w-0">
-                                            <p class="text-sm font-semibold text-ivoire-text truncate">{{ $document->file_name }}</p>
+                                            <p class="text-sm font-semibold text-ivoire-text truncate"><?php echo e($document->file_name); ?></p>
                                             <p class="text-xs text-titane">
-                                                Uploadé le {{ $document->created_at->format('d/m/Y H:i') }}
-                                                @if ($document->getCustomProperty('consent_date'))
-                                                    · Signé le {{ \Carbon\Carbon::parse($document->getCustomProperty('consent_date'))->format('d/m/Y') }}
-                                                @endif
+                                                Uploadé le <?php echo e($document->created_at->format('d/m/Y H:i')); ?>
+
+                                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($document->getCustomProperty('consent_date')): ?>
+                                                    · Signé le <?php echo e(\Carbon\Carbon::parse($document->getCustomProperty('consent_date'))->format('d/m/Y')); ?>
+
+                                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                             </p>
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-2 flex-shrink-0">
-                                        <a href="{{ $document->getUrl() }}" target="_blank" class="p-2 bg-beige-peau/20 text-beige-peau rounded-lg hover:bg-beige-peau/30 transition-colors">
+                                        <a href="<?php echo e($document->getUrl()); ?>" target="_blank" class="p-2 bg-beige-peau/20 text-beige-peau rounded-lg hover:bg-beige-peau/30 transition-colors">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                         </a>
-                                        <form action="{{ route($tattooer->routePrefix() . '.clients.consent.delete', [$client, $document->id]) }}" method="POST" onsubmit="return confirm('Supprimer ce consentement ?')">
-                                            @csrf @method('DELETE')
+                                        <form action="<?php echo e(route($tattooer->routePrefix() . '.clients.consent.delete', [$client, $document->id])); ?>" method="POST" onsubmit="return confirm('Supprimer ce consentement ?')">
+                                            <?php echo csrf_field(); ?> <?php echo method_field('DELETE'); ?>
                                             <button type="submit" class="p-2 bg-rouge-alerte/20 text-rouge-alerte rounded-lg hover:bg-rouge-alerte/30 transition-colors">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                             </button>
                                         </form>
                                     </div>
                                 </div>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
                     </div>
-                @endif
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                {{-- Consentements via booking requests --}}
-                @forelse ($bookingRequests as $br)
-                    @php $consent = $consents[$br->id] ?? null; @endphp
-                    <div class="bg-gris-fonde rounded-xl p-4" x-data="{ expanded: {{ $loop->first ? 'true' : 'false' }} }">
+                
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__empty_1 = true; $__currentLoopData = $bookingRequests; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $br): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                    <?php $consent = $consents[$br->id] ?? null; ?>
+                    <div class="bg-gris-fonde rounded-xl p-4" x-data="{ expanded: <?php echo e($loop->first ? 'true' : 'false'); ?> }">
                         <div class="flex items-center justify-between cursor-pointer" @click="expanded = !expanded">
                             <div class="flex items-center gap-3">
-                                @if ($consent && $consent->isValid())
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent && $consent->isValid()): ?>
                                     <span class="w-8 h-8 bg-vert-succes/20 text-vert-succes rounded-full flex items-center justify-center text-sm">✅</span>
-                                @else
+                                <?php else: ?>
                                     <span class="w-8 h-8 bg-ambre-warning/20 text-ambre-warning rounded-full flex items-center justify-center text-sm">⚠️</span>
-                                @endif
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 <div>
                                     <p class="text-sm font-semibold text-ivoire-text">
-                                        {{ $br->tattoo_style ?? 'Tattoo' }} — {{ $br->body_zone ?? 'Non précisé' }}
-                                        · @if ($consent && $consent->isValid()) <span class="text-vert-succes">Signé</span> @else <span class="text-ambre-warning">En attente</span> @endif
+                                        <?php echo e($br->tattoo_style ?? 'Tattoo'); ?> — <?php echo e($br->body_zone ?? 'Non précisé'); ?>
+
+                                        · <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent && $consent->isValid()): ?> <span class="text-vert-succes">Signé</span> <?php else: ?> <span class="text-ambre-warning">En attente</span> <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                     </p>
-                                    <p class="text-xs text-titane">{{ $br->created_at->format('d/m/Y') }} @if ($consent && $consent->signed_at) · Signé le {{ $consent->signed_at->format('d/m/Y') }} @endif</p>
+                                    <p class="text-xs text-titane"><?php echo e($br->created_at->format('d/m/Y')); ?> <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent && $consent->signed_at): ?> · Signé le <?php echo e($consent->signed_at->format('d/m/Y')); ?> <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?></p>
                                 </div>
                             </div>
                             <svg class="w-5 h-5 text-titane transition-transform" :class="expanded ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                         </div>
                         <div x-show="expanded" x-cloak x-collapse class="mt-4 pt-4 border-t border-titane/20">
-                            @if ($consent && $consent->isValid())
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent && $consent->isValid()): ?>
                                 <div class="space-y-3 text-ivoire-text">
                                     <div class="bg-noir-profond/50 rounded-lg p-3">
                                         <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-2">📋 Identité</p>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                                            <p><span class="text-ivoire-text/60">Nom:</span> {{ $consent->client_full_name ?? 'N/R' }}</p>
-                                            <p><span class="text-ivoire-text/60">Né(e) le:</span> {{ $consent->client_birth_date?->format('d/m/Y') ?? 'N/R' }}</p>
-                                            <p><span class="text-ivoire-text/60">Tél:</span> {{ $consent->client_phone ?? 'N/R' }}</p>
-                                            <p><span class="text-ivoire-text/60">Email:</span> {{ $consent->client_email ?? 'N/R' }}</p>
-                                            <p class="md:col-span-2"><span class="text-ivoire-text/60">Adresse:</span> {{ $consent->client_address ?? 'N/R' }}</p>
-                                            <p><span class="text-ivoire-text/60">Pièce:</span> {{ $consent->client_id_type ? ucfirst($consent->client_id_type) : 'N/R' }} - {{ $consent->client_id_number ?? 'N/R' }}</p>
+                                            <p><span class="text-ivoire-text/60">Nom:</span> <?php echo e($consent->client_full_name ?? 'N/R'); ?></p>
+                                            <p><span class="text-ivoire-text/60">Né(e) le:</span> <?php echo e($consent->client_birth_date?->format('d/m/Y') ?? 'N/R'); ?></p>
+                                            <p><span class="text-ivoire-text/60">Tél:</span> <?php echo e($consent->client_phone ?? 'N/R'); ?></p>
+                                            <p><span class="text-ivoire-text/60">Email:</span> <?php echo e($consent->client_email ?? 'N/R'); ?></p>
+                                            <p class="md:col-span-2"><span class="text-ivoire-text/60">Adresse:</span> <?php echo e($consent->client_address ?? 'N/R'); ?></p>
+                                            <p><span class="text-ivoire-text/60">Pièce:</span> <?php echo e($consent->client_id_type ? ucfirst($consent->client_id_type) : 'N/R'); ?> - <?php echo e($consent->client_id_number ?? 'N/R'); ?></p>
                                         </div>
                                     </div>
-                                    @if ($consent->is_minor)
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->is_minor): ?>
                                         <div class="bg-ambre-warning/10 border border-ambre-warning/30 rounded-lg p-3">
                                             <p class="text-xs font-bold text-ambre-warning uppercase mb-2">👶 Autorisation parentale</p>
                                             <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                                                <p><span class="text-ivoire-text/60">Parent:</span> {{ $consent->parent_name ?? 'N/R' }}</p>
-                                                <p><span class="text-ivoire-text/60">Relation:</span> {{ $consent->parent_relation ? ucfirst($consent->parent_relation) : 'N/R' }}</p>
-                                                <p><span class="text-ivoire-text/60">N° pièce:</span> {{ $consent->parent_id_number ?? 'N/R' }}</p>
+                                                <p><span class="text-ivoire-text/60">Parent:</span> <?php echo e($consent->parent_name ?? 'N/R'); ?></p>
+                                                <p><span class="text-ivoire-text/60">Relation:</span> <?php echo e($consent->parent_relation ? ucfirst($consent->parent_relation) : 'N/R'); ?></p>
+                                                <p><span class="text-ivoire-text/60">N° pièce:</span> <?php echo e($consent->parent_id_number ?? 'N/R'); ?></p>
                                             </div>
                                         </div>
-                                    @endif
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                     <div class="bg-noir-profond/50 rounded-lg p-3">
                                         <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-2">🏥 Médical</p>
                                         <div class="space-y-1 text-sm">
-                                            @if ($consent->medical_allergies) <p>🤧 Allergies: {{ $consent->medical_allergies_detail ?: 'Oui' }}</p> @endif
-                                            @if ($consent->medical_anticoagulant) <p>💉 Anticoagulant: Oui</p> @endif
-                                            @if ($consent->medical_diabetes) <p>🩸 Diabète: Oui</p> @endif
-                                            @if ($consent->medical_cicatrisation) <p>🩹 Cicatrisation difficile: Oui</p> @endif
-                                            @if ($consent->medical_skin_disease) <p>🩹 Maladie peau: {{ $consent->medical_skin_disease_detail ?: 'Oui' }}</p> @endif
-                                            @if ($consent->medical_vih_hepatite) <p>🔬 VIH/Hépatite: Oui</p> @endif
-                                            @if ($consent->medical_pregnant) <p>🤰 Grossesse: Oui</p> @endif
-                                            @if ($consent->medical_roaccutane) <p>💊 Roaccutane: Oui</p> @endif
-                                            @if ($consent->medical_cheloide) <p>⚕️ Chéloïdes: Oui</p> @endif
-                                            @if ($consent->medical_other) <p>📝 Autres: {{ $consent->medical_other }}</p> @endif
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_allergies): ?> <p>🤧 Allergies: <?php echo e($consent->medical_allergies_detail ?: 'Oui'); ?></p> <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_anticoagulant): ?> <p>💉 Anticoagulant: Oui</p> <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_diabetes): ?> <p>🩸 Diabète: Oui</p> <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_cicatrisation): ?> <p>🩹 Cicatrisation difficile: Oui</p> <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_skin_disease): ?> <p>🩹 Maladie peau: <?php echo e($consent->medical_skin_disease_detail ?: 'Oui'); ?></p> <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_vih_hepatite): ?> <p>🔬 VIH/Hépatite: Oui</p> <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_pregnant): ?> <p>🤰 Grossesse: Oui</p> <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_roaccutane): ?> <p>💊 Roaccutane: Oui</p> <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_cheloide): ?> <p>⚕️ Chéloïdes: Oui</p> <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->medical_other): ?> <p>📝 Autres: <?php echo e($consent->medical_other); ?></p> <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                         </div>
                                     </div>
                                     <div class="bg-noir-profond/50 rounded-lg p-3">
                                         <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-2">💰 Financier</p>
                                         <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
-                                            <p><span class="text-ivoire-text/60">Prix:</span> {{ $consent->total_price ? number_format($consent->total_price, 2, ',', ' ') . ' €' : 'N/R' }}</p>
-                                            <p><span class="text-ivoire-text/60">Acompte:</span> {{ $consent->deposit_amount ? number_format($consent->deposit_amount, 2, ',', ' ') . ' €' : 'N/R' }}</p>
-                                            <p><span class="text-ivoire-text/60">Retouche:</span> {{ $consent->retouche_included ? 'Incluse' : 'Non incluse' }}</p>
+                                            <p><span class="text-ivoire-text/60">Prix:</span> <?php echo e($consent->total_price ? number_format($consent->total_price, 2, ',', ' ') . ' €' : 'N/R'); ?></p>
+                                            <p><span class="text-ivoire-text/60">Acompte:</span> <?php echo e($consent->deposit_amount ? number_format($consent->deposit_amount, 2, ',', ' ') . ' €' : 'N/R'); ?></p>
+                                            <p><span class="text-ivoire-text/60">Retouche:</span> <?php echo e($consent->retouche_included ? 'Incluse' : 'Non incluse'); ?></p>
                                         </div>
                                     </div>
                                     <div class="bg-noir-profond/50 rounded-lg p-3">
                                         <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-2">📷 Image</p>
                                         <p class="text-sm">
-                                            @if ($consent->image_authorization === true) <span class="text-vert-succes">✅ Accordée</span>
-                                            @elseif ($consent->image_authorization === false) <span class="text-rouge-alerte">❌ Refusée</span>
-                                            @else <span class="text-ambre-warning">⚠️ N/R</span> @endif
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->image_authorization === true): ?> <span class="text-vert-succes">✅ Accordée</span>
+                                            <?php elseif($consent->image_authorization === false): ?> <span class="text-rouge-alerte">❌ Refusée</span>
+                                            <?php else: ?> <span class="text-ambre-warning">⚠️ N/R</span> <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                         </p>
                                     </div>
                                     <div class="bg-noir-profond/50 rounded-lg p-3">
                                         <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-2">✅ Confirmations</p>
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-1 text-sm">
-                                            <p>{!! $consent->confirm_medical_sincere ? '✅' : '❌' !!} Déclarations sincères</p>
-                                            <p>{!! $consent->confirm_risks_informed ? '✅' : '❌' !!} Risques informés</p>
-                                            <p>{!! $consent->confirm_info_sheet_read ? '✅' : '❌' !!} Fiche info lue</p>
-                                            <p>{!! $consent->confirm_aftercare_received ? '✅' : '❌' !!} Soins reçus</p>
-                                            <p>{!! $consent->confirm_not_intoxicated ? '✅' : '❌' !!} Non intoxiqué</p>
-                                            <p>{!! $consent->confirm_over_18_or_authorized ? '✅' : '❌' !!} +18 ou autorisé</p>
-                                            <p>{!! $consent->confirm_rgpd ? '✅' : '❌' !!} RGPD</p>
+                                            <p><?php echo $consent->confirm_medical_sincere ? '✅' : '❌'; ?> Déclarations sincères</p>
+                                            <p><?php echo $consent->confirm_risks_informed ? '✅' : '❌'; ?> Risques informés</p>
+                                            <p><?php echo $consent->confirm_info_sheet_read ? '✅' : '❌'; ?> Fiche info lue</p>
+                                            <p><?php echo $consent->confirm_aftercare_received ? '✅' : '❌'; ?> Soins reçus</p>
+                                            <p><?php echo $consent->confirm_not_intoxicated ? '✅' : '❌'; ?> Non intoxiqué</p>
+                                            <p><?php echo $consent->confirm_over_18_or_authorized ? '✅' : '❌'; ?> +18 ou autorisé</p>
+                                            <p><?php echo $consent->confirm_rgpd ? '✅' : '❌'; ?> RGPD</p>
                                         </div>
                                     </div>
                                     <div class="bg-noir-profond/50 rounded-lg p-3">
                                         <p class="text-xs font-bold text-ivoire-text/60 uppercase mb-2">✍️ Signature</p>
-                                        @if ($consent->signature_data) <img src="{{ $consent->signature_data }}" alt="Signature" class="h-16 bg-white rounded mb-2"> @endif
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($consent->signature_data): ?> <img src="<?php echo e($consent->signature_data); ?>" alt="Signature" class="h-16 bg-white rounded mb-2"> <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                         <div class="space-y-1 text-sm">
-                                            <p><span class="text-ivoire-text/60">Mention:</span> {{ $consent->handwritten_mention ?? 'N/R' }}</p>
-                                            <p><span class="text-ivoire-text/60">Date:</span> {{ $consent->signed_at?->format('d/m/Y à H:i') }}</p>
-                                            <p><span class="text-ivoire-text/60">IP:</span> {{ $consent->signed_ip ?? 'N/R' }}</p>
+                                            <p><span class="text-ivoire-text/60">Mention:</span> <?php echo e($consent->handwritten_mention ?? 'N/R'); ?></p>
+                                            <p><span class="text-ivoire-text/60">Date:</span> <?php echo e($consent->signed_at?->format('d/m/Y à H:i')); ?></p>
+                                            <p><span class="text-ivoire-text/60">IP:</span> <?php echo e($consent->signed_ip ?? 'N/R'); ?></p>
                                         </div>
                                     </div>
                                     <p class="text-xs text-titane text-center">Consentement verrouillé après signature.</p>
                                     <div class="flex justify-center mt-3">
-                                        @include('partials.pdf-download-button', [
+                                        <?php echo $__env->make('partials.pdf-download-button', [
                                             'url'   => route('pdf.consent-form', $consent),
                                             'label' => 'Télécharger le consentement (PDF)',
-                                        ])
+                                        ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
                                     </div>
                                 </div>
-                            @else
+                            <?php else: ?>
                                 <div class="text-center py-6">
                                     <span class="text-3xl mb-2 block">⏳</span>
                                     <p class="text-sm text-ivoire-text/70">En attente de signature du client</p>
                                 </div>
-                            @endif
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
                     </div>
-                @empty
-                    @if ($consentDocuments->count() === 0)
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                    <?php if($consentDocuments->count() === 0): ?>
                         <div class="bg-gris-fonde rounded-xl p-8 text-center">
                             <span class="text-3xl mb-2 block">📝</span>
                             <p class="text-titane">Aucun consentement</p>
                         </div>
-                    @endif
-                @endforelse
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-            </x-pro-gate>
-        </div>{{-- Fin TAB CONSENTEMENT --}}
+             <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal0482ca2f8c9f05860018c80a5d052c03)): ?>
+<?php $attributes = $__attributesOriginal0482ca2f8c9f05860018c80a5d052c03; ?>
+<?php unset($__attributesOriginal0482ca2f8c9f05860018c80a5d052c03); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal0482ca2f8c9f05860018c80a5d052c03)): ?>
+<?php $component = $__componentOriginal0482ca2f8c9f05860018c80a5d052c03; ?>
+<?php unset($__componentOriginal0482ca2f8c9f05860018c80a5d052c03); ?>
+<?php endif; ?>
+        </div>
 
-        {{-- ═══════════════════════════════════════════════════════════════
-             TAB: TRAÇABILITÉ
-             ═══════════════════════════════════════════════════════════════ --}}
+        
         <div x-show="activeTab === 'trace'" x-cloak class="space-y-4">
-            <x-pro-gate feature="la traçabilité réglementaire">
+            <?php if (isset($component)) { $__componentOriginal0482ca2f8c9f05860018c80a5d052c03 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal0482ca2f8c9f05860018c80a5d052c03 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.pro-gate','data' => ['feature' => 'la traçabilité réglementaire']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('pro-gate'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['feature' => 'la traçabilité réglementaire']); ?>
 
-                {{-- ═══ FORMULAIRE STANDALONE (rétractable, même format que appointment) ═══ --}}
+                
                 <div class="bg-gris-fonde text-ivoire-text rounded-xl p-4" x-data="{
                     showForm: false,
-                    needles: [{ brand: '', lot_number: '', type: '{{ $tattooer->isPiercer() ? 'canule' : 'aiguille' }}' }],
+                    needles: [{ brand: '', lot_number: '', type: '<?php echo e($tattooer->isPiercer() ? 'canule' : 'aiguille'); ?>' }],
                     inks: [{ brand: '', color: '', lot_number: '' }]
                 }">
                     <button @click="showForm = !showForm" type="button"
@@ -752,34 +773,34 @@
                     </button>
 
                     <div x-show="showForm" x-cloak x-collapse class="mt-4 pt-4 border-t border-titane/20">
-                        <form action="{{ route($tattooer->routePrefix() . '.clients.traceability.store', $client) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
-                            @csrf
+                        <form action="<?php echo e(route($tattooer->routePrefix() . '.clients.traceability.store', $client)); ?>" method="POST" enctype="multipart/form-data" class="space-y-4">
+                            <?php echo csrf_field(); ?>
 
-                            {{-- Infos séance --}}
+                            
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div>
                                     <label class="text-xs text-titane block mb-1">Date séance *</label>
-                                    <input type="date" name="session_date" required value="{{ now()->format('Y-m-d') }}"
+                                    <input type="date" name="session_date" required value="<?php echo e(now()->format('Y-m-d')); ?>"
                                         class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
                                 </div>
                                 <div>
                                     <label class="text-xs text-titane block mb-1">
-                                        @if ($tattooer->isPiercer()) Description piercing @else Description tattoo @endif
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tattooer->isPiercer()): ?> Description piercing <?php else: ?> Description tattoo <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                     </label>
                                     <input type="text" name="tattoo_description"
-                                        placeholder="{{ $tattooer->isPiercer() ? 'Ex : Septum titane' : 'Ex : Mandala bras gauche' }}"
+                                        placeholder="<?php echo e($tattooer->isPiercer() ? 'Ex : Septum titane' : 'Ex : Mandala bras gauche'); ?>"
                                         class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm focus:border-beige-peau">
                                 </div>
                                 <div>
                                     <label class="text-xs text-titane block mb-1">Zone du corps</label>
                                     <input type="text" name="body_zone"
-                                        placeholder="{{ $tattooer->isPiercer() ? 'Ex : Nez, Hélix gauche' : 'Ex : Avant-bras gauche' }}"
+                                        placeholder="<?php echo e($tattooer->isPiercer() ? 'Ex : Nez, Hélix gauche' : 'Ex : Avant-bras gauche'); ?>"
                                         class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm focus:border-beige-peau">
                                 </div>
                             </div>
 
-                            @if ($tattooer->isPiercer())
-                            {{-- Canules (pierceur) --}}
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tattooer->isPiercer()): ?>
+                            
                             <div class="flex items-center justify-between">
                                 <p class="text-xs font-bold text-ivoire-text/60 uppercase tracking-wider">Canules utilisées</p>
                                 <button type="button" @click="needles.push({ brand: '', lot_number: '', type: 'canule' })" class="text-xs text-beige-peau hover:text-beige-peau/80 font-semibold">+ Ajouter</button>
@@ -807,7 +828,7 @@
                                 </div>
                             </template>
 
-                            {{-- Bijoux (pierceur) --}}
+                            
                             <div class="flex items-center justify-between">
                                 <p class="text-xs font-bold text-ivoire-text/60 uppercase tracking-wider">Bijoux utilisés</p>
                                 <button type="button" @click="inks.push({ brand: '', color: '', lot_number: '' })" class="text-xs text-beige-peau hover:text-beige-peau/80 font-semibold">+ Ajouter</button>
@@ -830,8 +851,8 @@
                                     </div>
                                 </div>
                             </template>
-                            @else
-                            {{-- Aiguilles & Cartouches (tatoueur) --}}
+                            <?php else: ?>
+                            
                             <div class="flex items-center justify-between">
                                 <p class="text-xs font-bold text-ivoire-text/60 uppercase tracking-wider">Aiguilles & Cartouches</p>
                                 <button type="button" @click="needles.push({ brand: '', lot_number: '', type: 'aiguille' })" class="text-xs text-beige-peau hover:text-beige-peau/80 font-semibold">+ Ajouter</button>
@@ -859,7 +880,7 @@
                                 </div>
                             </template>
 
-                            {{-- Encres (tatoueur) --}}
+                            
                             <div class="flex items-center justify-between">
                                 <p class="text-xs font-bold text-ivoire-text/60 uppercase tracking-wider">Encres utilisées</p>
                                 <button type="button" @click="inks.push({ brand: '', color: '', lot_number: '' })" class="text-xs text-beige-peau hover:text-beige-peau/80 font-semibold">+ Ajouter</button>
@@ -882,9 +903,9 @@
                                     </div>
                                 </div>
                             </template>
-                            @endif
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                            {{-- Stérilisation --}}
+                            
                             <p class="text-xs font-bold text-ivoire-text/60 uppercase tracking-wider">Stérilisation</p>
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div>
@@ -920,71 +941,73 @@
                     </div>
                 </div>
 
-                {{-- Traçabilités standalone existantes --}}
-                @if ($standaloneTraces->count() > 0)
+                
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($standaloneTraces->count() > 0): ?>
                     <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
                         <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider mb-3">📋 Traçabilités manuelles</h3>
                         <div class="space-y-3">
-                            @foreach ($standaloneTraces as $trace)
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $standaloneTraces; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $trace): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <div class="p-4 bg-noir-profond/50 rounded-lg">
                                     <div class="flex items-start justify-between mb-2">
                                         <div>
-                                            <p class="font-semibold text-ivoire-text">{{ $trace->tattoo_description ?? 'Tatouage' }}</p>
-                                            <p class="text-sm text-titane">{{ $trace->body_zone ?? '' }} · {{ $trace->session_date?->format('d/m/Y') ?? '' }}</p>
+                                            <p class="font-semibold text-ivoire-text"><?php echo e($trace->tattoo_description ?? 'Tatouage'); ?></p>
+                                            <p class="text-sm text-titane"><?php echo e($trace->body_zone ?? ''); ?> · <?php echo e($trace->session_date?->format('d/m/Y') ?? ''); ?></p>
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <span class="px-2 py-1 bg-vert-succes/20 text-vert-succes rounded text-xs">✅ Validée</span>
-                                            @include('partials.pdf-download-button', [
+                                            <?php echo $__env->make('partials.pdf-download-button', [
                                                 'url'   => route('pdf.traceability', $trace),
                                                 'label' => 'PDF',
                                                 'size'  => 'xs',
-                                            ])
+                                            ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
                                         </div>
                                     </div>
-                                    @if ($trace->procedure_notes) <p class="text-sm text-ivoire-text/80 mt-2">{{ $trace->procedure_notes }}</p> @endif
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($trace->procedure_notes): ?> <p class="text-sm text-ivoire-text/80 mt-2"><?php echo e($trace->procedure_notes); ?></p> <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 </div>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
                     </div>
-                @endif
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                {{-- Traçabilités via appointments --}}
-                @php $relevantAppointments = $appointments->filter(fn($apt) => $apt->bookingRequest); @endphp
+                
+                <?php $relevantAppointments = $appointments->filter(fn($apt) => $apt->bookingRequest); ?>
 
-                @forelse ($relevantAppointments as $apt)
-                    @php $trace = $traceabilities[$apt->id] ?? null; @endphp
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__empty_1 = true; $__currentLoopData = $relevantAppointments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $apt): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                    <?php $trace = $traceabilities[$apt->id] ?? null; ?>
                     <div class="bg-gris-fonde rounded-xl p-4" x-data="{
-                        expanded: {{ $loop->first && !$trace ? 'true' : 'false' }},
-                        needles: {{ json_encode($trace?->sterile_equipment['needles'] ?? [['brand' => '', 'lot_number' => '', 'type' => 'aiguille']]) }},
-                        inks: {{ json_encode($trace?->sterile_equipment['inks'] ?? [['brand' => '', 'color' => '', 'lot_number' => '']]) }}
+                        expanded: <?php echo e($loop->first && !$trace ? 'true' : 'false'); ?>,
+                        needles: <?php echo e(json_encode($trace?->sterile_equipment['needles'] ?? [['brand' => '', 'lot_number' => '', 'type' => 'aiguille']])); ?>,
+                        inks: <?php echo e(json_encode($trace?->sterile_equipment['inks'] ?? [['brand' => '', 'color' => '', 'lot_number' => '']])); ?>
+
                     }">
                         <div class="flex items-center justify-between cursor-pointer" @click="expanded = !expanded">
                             <div class="flex items-center gap-3">
-                                @if ($trace && $trace->isComplete())
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($trace && $trace->isComplete()): ?>
                                     <span class="w-8 h-8 bg-vert-succes/20 text-vert-succes rounded-full flex items-center justify-center text-sm">✅</span>
-                                @elseif ($trace)
+                                <?php elseif($trace): ?>
                                     <span class="w-8 h-8 bg-ambre-warning/20 text-ambre-warning rounded-full flex items-center justify-center text-sm">📝</span>
-                                @else
+                                <?php else: ?>
                                     <span class="w-8 h-8 bg-rouge-alerte/20 text-rouge-alerte rounded-full flex items-center justify-center text-sm">⚠️</span>
-                                @endif
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 <div>
                                     <p class="text-sm font-semibold text-ivoire-text">
-                                        {{ $apt->bookingRequest?->tattoo_style ?? 'Tatouage' }} — {{ $apt->bookingRequest?->body_zone ?? '' }}
-                                        · @if ($trace && $trace->isComplete()) <span class="text-vert-succes">Complète</span>
-                                        @elseif ($trace) <span class="text-ambre-warning">En cours</span>
-                                        @else <span class="text-rouge-alerte">À remplir</span> @endif
+                                        <?php echo e($apt->bookingRequest?->tattoo_style ?? 'Tatouage'); ?> — <?php echo e($apt->bookingRequest?->body_zone ?? ''); ?>
+
+                                        · <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($trace && $trace->isComplete()): ?> <span class="text-vert-succes">Complète</span>
+                                        <?php elseif($trace): ?> <span class="text-ambre-warning">En cours</span>
+                                        <?php else: ?> <span class="text-rouge-alerte">À remplir</span> <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                     </p>
-                                    <p class="text-xs text-titane">RDV {{ $apt->start_datetime?->translatedFormat('l d F Y à H:i') ?? 'Date à définir' }}</p>
+                                    <p class="text-xs text-titane">RDV <?php echo e($apt->start_datetime?->translatedFormat('l d F Y à H:i') ?? 'Date à définir'); ?></p>
                                 </div>
                             </div>
                             <svg class="w-5 h-5 text-titane transition-transform" :class="expanded ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                         </div>
 
                         <div x-show="expanded" x-cloak x-collapse class="mt-4 pt-4 border-t border-titane/20">
-                            <form action="{{ route($tattooer->routePrefix() . '.traceability.store', $apt) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
-                                @csrf
+                            <form action="<?php echo e(route($tattooer->routePrefix() . '.traceability.store', $apt)); ?>" method="POST" enctype="multipart/form-data" class="space-y-4">
+                                <?php echo csrf_field(); ?>
 
-                                {{-- Aiguilles (dynamique) --}}
+                                
                                 <div class="flex items-center justify-between">
                                     <p class="text-xs font-bold text-ivoire-text/60 uppercase tracking-wider">Aiguilles & Cartouches</p>
                                     <button type="button" @click="needles.push({ brand: '', lot_number: '', type: 'aiguille' })" class="text-xs text-beige-peau hover:text-beige-peau/80 font-semibold">+ Ajouter</button>
@@ -1012,7 +1035,7 @@
                                     </div>
                                 </template>
 
-                                {{-- Encres (dynamique) --}}
+                                
                                 <div class="flex items-center justify-between">
                                     <p class="text-xs font-bold text-ivoire-text/60 uppercase tracking-wider">Encres utilisées</p>
                                     <button type="button" @click="inks.push({ brand: '', color: '', lot_number: '' })" class="text-xs text-beige-peau hover:text-beige-peau/80 font-semibold">+ Ajouter</button>
@@ -1036,76 +1059,93 @@
                                     </div>
                                 </template>
 
-                                {{-- Stérilisation --}}
+                                
                                 <p class="text-xs font-bold text-ivoire-text/60 uppercase tracking-wider">Stérilisation</p>
                                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                     <div>
                                         <label class="text-xs text-titane block mb-1">Date stérilisation</label>
-                                        <input type="date" name="sterilization_date" value="{{ $trace?->sterile_equipment['sterilization_date'] ?? '' }}"
+                                        <input type="date" name="sterilization_date" value="<?php echo e($trace?->sterile_equipment['sterilization_date'] ?? ''); ?>"
                                             class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
                                     </div>
                                     <div>
                                         <label class="text-xs text-titane block mb-1">N° lot stérilisation</label>
-                                        <input type="text" name="sterilization_lot_number" value="{{ $trace?->sterile_equipment['sterilization_lot_number'] ?? '' }}"
+                                        <input type="text" name="sterilization_lot_number" value="<?php echo e($trace?->sterile_equipment['sterilization_lot_number'] ?? ''); ?>"
                                             class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm focus:border-beige-peau">
                                     </div>
                                     <div>
                                         <label class="text-xs text-titane block mb-1">N° cycle autoclave</label>
-                                        <input type="text" name="autoclave_cycle_number" value="{{ $trace?->sterile_equipment['autoclave_cycle_number'] ?? '' }}"
+                                        <input type="text" name="autoclave_cycle_number" value="<?php echo e($trace?->sterile_equipment['autoclave_cycle_number'] ?? ''); ?>"
                                             class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm focus:border-beige-peau">
                                     </div>
                                 </div>
 
                                 <textarea name="other_supplies" rows="2" placeholder="Autres fournitures..."
-                                    class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm focus:border-beige-peau resize-none">{{ $trace?->procedure_notes ?? '' }}</textarea>
+                                    class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm focus:border-beige-peau resize-none"><?php echo e($trace?->procedure_notes ?? ''); ?></textarea>
                                 <textarea name="notes" rows="2" placeholder="Notes complémentaires..."
-                                    class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm focus:border-beige-peau resize-none">{{ $trace?->equipment_notes ?? '' }}</textarea>
+                                    class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm focus:border-beige-peau resize-none"><?php echo e($trace?->equipment_notes ?? ''); ?></textarea>
 
                                 <div>
                                     <label class="text-xs text-titane block mb-1">📸 Photos numéros de lot</label>
                                     <input type="file" name="lot_photos[]" multiple accept="image/*" onchange="previewFiles(this)"
                                         class="w-full text-sm text-ivoire-text file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-beige-peau/20 file:text-beige-peau file:font-semibold file:text-xs">
                                     <div class="upload-preview flex gap-2 mt-2 flex-wrap"></div>
-                                    @if ($trace)
-                                        @php $lotPhotos = $trace->getMedia('lot_photos'); @endphp
-                                        @if ($lotPhotos->count() > 0)
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($trace): ?>
+                                        <?php $lotPhotos = $trace->getMedia('lot_photos'); ?>
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($lotPhotos->count() > 0): ?>
                                             <div class="flex gap-2 mt-2 flex-wrap">
-                                                @foreach ($lotPhotos as $photo)
+                                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $lotPhotos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $photo): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                     <div class="w-16 h-16 rounded-lg overflow-hidden bg-noir-profond cursor-pointer border border-titane/20 hover:border-beige-peau transition-colors"
-                                                        data-lb="{{ $photo->getUrl() }}" onclick="window.openLightbox('{{ $photo->getUrl() }}')">
-                                                        <img src="{{ $photo->getUrl() }}" alt="{{ $photo->file_name }}" class="w-full h-full object-cover" onerror="this.style.display='none'">
+                                                        data-lb="<?php echo e($photo->getUrl()); ?>" onclick="window.openLightbox('<?php echo e($photo->getUrl()); ?>')">
+                                                        <img src="<?php echo e($photo->getUrl()); ?>" alt="<?php echo e($photo->file_name); ?>" class="w-full h-full object-cover" onerror="this.style.display='none'">
                                                     </div>
-                                                @endforeach
+                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                             </div>
-                                        @endif
-                                    @endif
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 </div>
 
                                 <button type="submit" class="w-full px-4 py-3 bg-beige-peau text-noir-profond font-bold rounded-lg hover:bg-beige-peau/90 transition-colors">
-                                    {{ $trace ? '💾 Mettre à jour' : '✅ Enregistrer la traçabilité' }}
+                                    <?php echo e($trace ? '💾 Mettre à jour' : '✅ Enregistrer la traçabilité'); ?>
+
                                 </button>
                             </form>
                         </div>
                     </div>
-                @empty
-                    @if ($standaloneTraces->count() === 0)
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                    <?php if($standaloneTraces->count() === 0): ?>
                         <div class="bg-gris-fonde rounded-xl p-8 text-center"><p class="text-titane">Aucun rendez-vous nécessitant une traçabilité</p></div>
-                    @endif
-                @endforelse
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-            </x-pro-gate>
-        </div>{{-- Fin TAB TRAÇABILITÉ --}}
+             <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal0482ca2f8c9f05860018c80a5d052c03)): ?>
+<?php $attributes = $__attributesOriginal0482ca2f8c9f05860018c80a5d052c03; ?>
+<?php unset($__attributesOriginal0482ca2f8c9f05860018c80a5d052c03); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal0482ca2f8c9f05860018c80a5d052c03)): ?>
+<?php $component = $__componentOriginal0482ca2f8c9f05860018c80a5d052c03; ?>
+<?php unset($__componentOriginal0482ca2f8c9f05860018c80a5d052c03); ?>
+<?php endif; ?>
+        </div>
 
-        {{-- ═══════════════════════════════════════════════════════════════
-             TAB: MÉDIAS
-             ═══════════════════════════════════════════════════════════════ --}}
+        
         <div x-show="activeTab === 'media'" x-cloak class="space-y-4">
-            <x-pro-gate feature="la galerie médias client">
+            <?php if (isset($component)) { $__componentOriginal0482ca2f8c9f05860018c80a5d052c03 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal0482ca2f8c9f05860018c80a5d052c03 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.pro-gate','data' => ['feature' => 'la galerie médias client']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('pro-gate'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['feature' => 'la galerie médias client']); ?>
 
                 <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
                     <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider mb-3">📤 Upload photos</h3>
-                    <form action="{{ route($tattooer->routePrefix() . '.clients.photos.upload', $client) }}" method="POST" enctype="multipart/form-data">
-                        @csrf
+                    <form action="<?php echo e(route($tattooer->routePrefix() . '.clients.photos.upload', $client)); ?>" method="POST" enctype="multipart/form-data">
+                        <?php echo csrf_field(); ?>
                         <input type="file" name="photos[]" multiple accept=".jpg,.jpeg,.png,.webp" onchange="previewFiles(this)"
                             class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-beige-peau file:text-noir-profond mb-1">
                         <p class="text-xs text-titane mb-2">JPG, PNG, WEBP | Max 5MB | Max 10 photos</p>
@@ -1114,103 +1154,128 @@
                     </form>
                 </div>
 
-                @if ($clientPhotos->count() > 0)
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($clientPhotos->count() > 0): ?>
                     <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
-                        <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider mb-3">📸 Photos client ({{ $clientPhotos->count() }})</h3>
+                        <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider mb-3">📸 Photos client (<?php echo e($clientPhotos->count()); ?>)</h3>
                         <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                            @foreach ($clientPhotos as $photo)
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $clientPhotos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $photo): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <div class="aspect-square rounded-lg overflow-hidden bg-noir-profond relative group">
-                                    <img src="{{ $photo->getUrl() }}" alt="" class="w-full h-full object-cover cursor-pointer" loading="lazy"
-                                        data-lb="{{ $photo->getUrl() }}" onclick="window.openLightbox('{{ $photo->getUrl() }}')" onerror="this.style.display='none'">
-                                    <form action="{{ route($tattooer->routePrefix() . '.clients.photos.delete', [$client, $photo->id]) }}" method="POST"
+                                    <img src="<?php echo e($photo->getUrl()); ?>" alt="" class="w-full h-full object-cover cursor-pointer" loading="lazy"
+                                        data-lb="<?php echo e($photo->getUrl()); ?>" onclick="window.openLightbox('<?php echo e($photo->getUrl()); ?>')" onerror="this.style.display='none'">
+                                    <form action="<?php echo e(route($tattooer->routePrefix() . '.clients.photos.delete', [$client, $photo->id])); ?>" method="POST"
                                         class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        @csrf @method('DELETE')
+                                        <?php echo csrf_field(); ?> <?php echo method_field('DELETE'); ?>
                                         <button type="submit" onclick="return confirm('Supprimer ?')" class="w-6 h-6 bg-rouge-alerte rounded-full flex items-center justify-center shadow-lg hover:bg-rouge-alerte/80">
                                             <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                                         </button>
                                     </form>
                                 </div>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
                     </div>
-                @endif
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                 <div class="bg-gris-fonde rounded-xl p-4">
-                    <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider mb-3">💬 Photos conversations ({{ $chatMedia->count() }})</h3>
-                    @if ($chatMedia->count() > 0)
+                    <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider mb-3">💬 Photos conversations (<?php echo e($chatMedia->count()); ?>)</h3>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($chatMedia->count() > 0): ?>
                         <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                            @foreach ($chatMedia as $media)
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $chatMedia; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $media): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <div class="aspect-square rounded-lg overflow-hidden bg-noir-profond relative group">
-                                    <img src="{{ $media->getUrl() }}" alt="" class="w-full h-full object-cover cursor-pointer" loading="lazy"
-                                        data-lb="{{ $media->getUrl() }}" onclick="window.openLightbox('{{ $media->getUrl() }}')" onerror="this.style.display='none'">
-                                    <form action="{{ route($tattooer->routePrefix() . '.client.media.delete', [$client, $media->id]) }}" method="POST"
+                                    <img src="<?php echo e($media->getUrl()); ?>" alt="" class="w-full h-full object-cover cursor-pointer" loading="lazy"
+                                        data-lb="<?php echo e($media->getUrl()); ?>" onclick="window.openLightbox('<?php echo e($media->getUrl()); ?>')" onerror="this.style.display='none'">
+                                    <form action="<?php echo e(route($tattooer->routePrefix() . '.client.media.delete', [$client, $media->id])); ?>" method="POST"
                                         class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        @csrf @method('DELETE')
+                                        <?php echo csrf_field(); ?> <?php echo method_field('DELETE'); ?>
                                         <button type="submit" onclick="return confirm('Supprimer ?')" class="w-6 h-6 bg-rouge-alerte rounded-full flex items-center justify-center shadow-lg hover:bg-rouge-alerte/80">
                                             <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                                         </button>
                                     </form>
                                 </div>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
-                    @else
+                    <?php else: ?>
                         <p class="text-titane text-sm text-center py-4">Aucune photo échangée</p>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
 
-                @foreach ($bookingRequests->filter(fn($br) => $br->deposit_paid_at) as $br)
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $bookingRequests->filter(fn($br) => $br->deposit_paid_at); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $br): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <div class="bg-gris-fonde rounded-xl p-4">
-                        <h4 class="text-sm font-bold text-ivoire-text mb-3">📸 {{ $br->tattoo_style ?? 'Tattoo' }} — {{ $br->body_zone ?? '' }} <span class="text-xs text-titane font-normal ml-1">({{ $br->created_at->format('d/m/Y') }})</span></h4>
-                        @php $tattooPhotos = $br->getMedia('tattoo_results'); @endphp
-                        @if ($tattooPhotos->count() > 0)
+                        <h4 class="text-sm font-bold text-ivoire-text mb-3">📸 <?php echo e($br->tattoo_style ?? 'Tattoo'); ?> — <?php echo e($br->body_zone ?? ''); ?> <span class="text-xs text-titane font-normal ml-1">(<?php echo e($br->created_at->format('d/m/Y')); ?>)</span></h4>
+                        <?php $tattooPhotos = $br->getMedia('tattoo_results'); ?>
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tattooPhotos->count() > 0): ?>
                             <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-3">
-                                @foreach ($tattooPhotos as $photo)
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $tattooPhotos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $photo): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <div class="aspect-square rounded-lg overflow-hidden bg-noir-profond relative group">
-                                        <img src="{{ $photo->getUrl() }}" alt="" class="w-full h-full object-cover cursor-pointer" data-lb="{{ $photo->getUrl() }}" onclick="window.openLightbox('{{ $photo->getUrl() }}')">
-                                        <form action="{{ route($tattooer->routePrefix() . '.client.media.delete', [$client, $photo->id]) }}" method="POST" class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            @csrf @method('DELETE')
+                                        <img src="<?php echo e($photo->getUrl()); ?>" alt="" class="w-full h-full object-cover cursor-pointer" data-lb="<?php echo e($photo->getUrl()); ?>" onclick="window.openLightbox('<?php echo e($photo->getUrl()); ?>')">
+                                        <form action="<?php echo e(route($tattooer->routePrefix() . '.client.media.delete', [$client, $photo->id])); ?>" method="POST" class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <?php echo csrf_field(); ?> <?php echo method_field('DELETE'); ?>
                                             <button type="submit" onclick="return confirm('Supprimer ?')" class="w-6 h-6 bg-rouge-alerte rounded-full flex items-center justify-center shadow-lg">
                                                 <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                                             </button>
                                         </form>
                                     </div>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </div>
-                        @endif
-                        <form action="{{ route($tattooer->routePrefix() . '.client.photos.upload', [$client, $br]) }}" method="POST" enctype="multipart/form-data" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                            @csrf
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                        <form action="<?php echo e(route($tattooer->routePrefix() . '.client.photos.upload', [$client, $br])); ?>" method="POST" enctype="multipart/form-data" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                            <?php echo csrf_field(); ?>
                             <input type="file" name="photos[]" multiple accept="image/jpeg,image/png,image/webp" onchange="previewFiles(this)"
                                 class="flex-1 text-sm text-ivoire-text file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-beige-peau/20 file:text-beige-peau file:font-semibold file:text-xs">
                             <button type="submit" class="px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold text-xs hover:bg-beige-peau/90 transition-colors flex-shrink-0">Upload</button>
                         </form>
                         <div class="upload-preview flex gap-2 mt-2 flex-wrap"></div>
                     </div>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-            </x-pro-gate>
-        </div>{{-- Fin TAB MÉDIAS --}}
+             <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal0482ca2f8c9f05860018c80a5d052c03)): ?>
+<?php $attributes = $__attributesOriginal0482ca2f8c9f05860018c80a5d052c03; ?>
+<?php unset($__attributesOriginal0482ca2f8c9f05860018c80a5d052c03); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal0482ca2f8c9f05860018c80a5d052c03)): ?>
+<?php $component = $__componentOriginal0482ca2f8c9f05860018c80a5d052c03; ?>
+<?php unset($__componentOriginal0482ca2f8c9f05860018c80a5d052c03); ?>
+<?php endif; ?>
+        </div>
 
-        {{-- ═══════════════════════════════════════════════════════════════
-             TAB: NOTES PRIVÉES
-             ═══════════════════════════════════════════════════════════════ --}}
+        
         <div x-show="activeTab === 'notes'" x-cloak>
-            <x-pro-gate feature="les notes privées client">
+            <?php if (isset($component)) { $__componentOriginal0482ca2f8c9f05860018c80a5d052c03 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal0482ca2f8c9f05860018c80a5d052c03 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.pro-gate','data' => ['feature' => 'les notes privées client']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('pro-gate'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['feature' => 'les notes privées client']); ?>
                 <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
                     <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider mb-3">Notes privées</h3>
                     <p class="text-xs text-titane mb-3">Visibles uniquement par vous.</p>
-                    <form action="{{ route($tattooer->routePrefix() . '.client.update-notes', $client) }}" method="POST">
-                        @csrf
+                    <form action="<?php echo e(route($tattooer->routePrefix() . '.client.update-notes', $client)); ?>" method="POST">
+                        <?php echo csrf_field(); ?>
                         <textarea name="notes" rows="8" placeholder="Allergies, préférences, comportement au salon..."
-                            class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm focus:border-beige-peau focus:ring-1 focus:ring-beige-peau resize-y">{{ $client->notes ?? '' }}</textarea>
+                            class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm focus:border-beige-peau focus:ring-1 focus:ring-beige-peau resize-y"><?php echo e($client->notes ?? ''); ?></textarea>
                         <button type="submit" class="mt-3 w-full sm:w-auto px-6 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold text-sm hover:bg-beige-peau/90 transition-colors">Enregistrer</button>
                     </form>
                 </div>
-            </x-pro-gate>
-        </div>{{-- Fin TAB NOTES --}}
+             <?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal0482ca2f8c9f05860018c80a5d052c03)): ?>
+<?php $attributes = $__attributesOriginal0482ca2f8c9f05860018c80a5d052c03; ?>
+<?php unset($__attributesOriginal0482ca2f8c9f05860018c80a5d052c03); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal0482ca2f8c9f05860018c80a5d052c03)): ?>
+<?php $component = $__componentOriginal0482ca2f8c9f05860018c80a5d052c03; ?>
+<?php unset($__componentOriginal0482ca2f8c9f05860018c80a5d052c03); ?>
+<?php endif; ?>
+        </div>
 
-    </div>{{-- Fin x-data principal --}}
+    </div>
 
-    {{-- LIGHTBOX --}}
+    
     <div id="lightbox" class="hidden fixed inset-0 bg-black/95 z-[60] flex items-center justify-center" onclick="if(event.target===this)window.closeLightbox()">
         <button onclick="window.closeLightbox()" class="absolute top-4 right-4 p-2 text-white/70 hover:text-white z-10">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -1225,7 +1290,7 @@
         <div id="lightbox-counter" class="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/60 text-sm bg-black/50 px-3 py-1 rounded-full"></div>
     </div>
 
-    {{-- JAVASCRIPT --}}
+    
     <script>
         // LIGHTBOX
         (function(){var images=[],index=0;
@@ -1258,4 +1323,6 @@
         // TAB HASH
         document.addEventListener('DOMContentLoaded',function(){var hash=window.location.hash.replace('#','');if(hash){var check=setInterval(function(){var el=document.querySelector('[x-data]');if(el&&el._x_dataStack){clearInterval(check);el._x_dataStack[0].activeTab=hash}},50);setTimeout(function(){clearInterval(check)},1000)}});
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.tattooer', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\tattoolib-saas\resources\views/tattooer/client-show.blade.php ENDPATH**/ ?>

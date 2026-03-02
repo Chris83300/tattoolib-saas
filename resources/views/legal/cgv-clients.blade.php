@@ -56,7 +56,8 @@
         </tr>
     </thead>
     <tbody>
-        <tr><td>Plus de 30 jours</td><td>80% de l'acompte remboursé</td></tr>
+        <tr><td>Plus de 30 jours</td><td>100% de l'acompte remboursé</td></tr>
+        <tr><td>Si au minimum 1 dessin est envoyé</td><td>80% de l'acompte remboursé</td></tr>
         <tr><td>Entre 15 et 30 jours</td><td>50% de l'acompte remboursé</td></tr>
         <tr><td>Entre 7 et 14 jours</td><td>25% de l'acompte remboursé</td></tr>
         <tr><td>Moins de 7 jours</td><td>Aucun remboursement</td></tr>
@@ -99,6 +100,7 @@
 <p>La responsabilité d'Ink&amp;Pik est strictement limitée à la fourniture de l'outil technique de mise en relation et de traitement des paiements. Ink&amp;Pik ne saurait être tenu responsable :</p>
 <ul>
     <li>De la qualité de la Prestation réalisée par l'Artiste</li>
+    <li>Du respect des normes d'hygiène et de sécurité par l'Artiste ou le salon</li>
     <li>Des réactions allergiques, infections ou complications liées à la Prestation</li>
     <li>Du non-respect par l'Artiste de ses obligations réglementaires</li>
     <li>Des litiges entre le Client et l'Artiste sur le résultat esthétique de la Prestation</li>

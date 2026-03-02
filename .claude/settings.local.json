@@ -26,7 +26,10 @@
       "Bash(head -20 echo \"=== 6. Calendrier config ===\" grep -rn \"flatpickr\\\\|minDate\\\\|min_date\\\\|disable.*past\\\\|today\\\\|startDate\\\\|preferred_date\" resources/views/ resources/js/ public/js/ --include=\"*.blade.php\" --include=\"*.js\")",
       "Bash(head -20 echo \"=== 7. Fichiers marketplace/show.blade.php lignes 1-50 ===\" head -50 resources/views/marketplace/show.blade.php echo \"=== 8. ClientController booking store ===\" grep -n \"store\\\\|booking\\\\|request\\\\|create\" app/Http/Controllers/ClientController.php)",
       "Bash(C:/laragon/www/tattoolib-saas/.env.example:*)",
-      "Bash(php:*)"
+      "Bash(php:*)",
+      "Bash(do:*)",
+      "Bash(ls:*)",
+      "Bash(composer require:*)"
     ]
   }
 }
