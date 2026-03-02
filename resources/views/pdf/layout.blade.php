@@ -1,10 +1,16 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <title>@yield('title') — Ink&Pik</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'DejaVu Sans', Arial, sans-serif;
             font-size: 11px;
@@ -21,39 +27,49 @@
             border-bottom: 2px solid #C97435;
             padding-bottom: 15px;
         }
+
         .pdf-header-left {
             display: table-cell;
             vertical-align: middle;
             width: 60%;
         }
+
         .pdf-header-right {
             display: table-cell;
             vertical-align: middle;
             width: 40%;
             text-align: right;
         }
+
         .pdf-logo {
             font-size: 22px;
             font-weight: bold;
             color: #C97435;
             letter-spacing: 1px;
         }
-        .pdf-logo span { color: #1a1a1a; }
+
+        .pdf-logo span {
+            color: #1a1a1a;
+        }
+
         .pdf-subtitle {
             font-size: 9px;
             color: #666;
             margin-top: 3px;
         }
+
         .pdf-doc-type {
             font-size: 14px;
             font-weight: bold;
             color: #1a1a1a;
         }
+
         .pdf-doc-date {
             font-size: 9px;
             color: #666;
             margin-top: 3px;
         }
+
         .pdf-doc-ref {
             font-size: 9px;
             color: #999;
@@ -69,6 +85,7 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
+
         h3 {
             font-size: 11px;
             color: #333;
@@ -81,18 +98,21 @@
             width: 100%;
             margin-bottom: 15px;
         }
+
         .info-col {
             display: table-cell;
             width: 50%;
             vertical-align: top;
             padding-right: 15px;
         }
+
         .info-label {
             font-size: 9px;
             color: #888;
             text-transform: uppercase;
             letter-spacing: 0.3px;
         }
+
         .info-value {
             font-size: 11px;
             color: #1a1a1a;
@@ -105,6 +125,7 @@
             border-collapse: collapse;
             margin: 10px 0;
         }
+
         th {
             background-color: #f5f0eb;
             color: #333;
@@ -115,12 +136,16 @@
             text-align: left;
             border-bottom: 1px solid #d4c9bc;
         }
+
         td {
             padding: 7px 10px;
             border-bottom: 1px solid #eee;
             font-size: 10px;
         }
-        tr:nth-child(even) td { background-color: #fafaf8; }
+
+        tr:nth-child(even) td {
+            background-color: #fafaf8;
+        }
 
         /* Signature block */
         .signature-block {
@@ -128,20 +153,24 @@
             display: table;
             width: 100%;
         }
+
         .signature-col {
             display: table-cell;
             width: 45%;
             vertical-align: top;
         }
+
         .signature-spacer {
             display: table-cell;
             width: 10%;
         }
+
         .signature-line {
             border-bottom: 1px solid #999;
             height: 60px;
             margin-top: 10px;
         }
+
         .signature-label {
             font-size: 9px;
             color: #666;
@@ -170,17 +199,24 @@
             margin: 10px 0;
             font-size: 10px;
         }
-        .alert-box strong { color: #C97435; }
+
+        .alert-box strong {
+            color: #C97435;
+        }
 
         /* Checklist */
-        .checklist { list-style: none; }
+        .checklist {
+            list-style: none;
+        }
+
         .checklist li {
             padding: 4px 0;
             padding-left: 18px;
             position: relative;
             font-size: 10px;
         }
-        .checklist li::before {
+
+        .checklist li:not(.checked)::before {
             content: "\2610";
             position: absolute;
             left: 0;
@@ -188,16 +224,40 @@
         }
 
         /* Utils */
-        .text-center { text-align: center; }
-        .text-right { text-align: right; }
-        .text-small { font-size: 9px; }
-        .text-muted { color: #888; }
-        .mt-10 { margin-top: 10px; }
-        .mt-20 { margin-top: 20px; }
-        .mb-10 { margin-bottom: 10px; }
-        .page-break { page-break-after: always; }
+        .text-center {
+            text-align: center;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-small {
+            font-size: 9px;
+        }
+
+        .text-muted {
+            color: #888;
+        }
+
+        .mt-10 {
+            margin-top: 10px;
+        }
+
+        .mt-20 {
+            margin-top: 20px;
+        }
+
+        .mb-10 {
+            margin-bottom: 10px;
+        }
+
+        .page-break {
+            page-break-after: always;
+        }
     </style>
 </head>
+
 <body>
     {{-- Header --}}
     <div class="pdf-header">
@@ -219,7 +279,9 @@
     <div class="pdf-footer">
         Ink&amp;Pik — [Raison sociale] — SIRET : [SIRET] — {{ config('app.url') }}
         <br>
-        Document généré le {{ now()->format('d/m/Y à H:i') }} — Ce document ne constitue pas une facture au sens fiscal du terme.
+        Document généré le {{ now()->format('d/m/Y à H:i') }} — Ce document ne constitue pas une facture au sens fiscal
+        du terme.
     </div>
 </body>
+
 </html>

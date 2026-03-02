@@ -196,7 +196,7 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 lg:ml-64 overflow-x-hidden overflow-y-auto min-w-0 w-full h-screen">
+        <main class="flex-1 lg:ml-64 overflow-hidden min-w-0 w-full h-screen">
 
             <!-- Header Mobile (visible uniquement sur mobile) -->
             <header class="lg:hidden bg-gris-fonde border-b border-titane/20 p-4 sticky top-0 z-40">
@@ -227,7 +227,7 @@
             </header>
 
             <!-- Content -->
-            <div class="p-4 lg:p-8 pb-24 lg:pb-8 max-w-full overflow-y-auto">
+            <div class="p-4 lg:p-8 pb-24 lg:pb-8 max-w-full overflow-hidden">
                 @yield('content')
                 @include('partials.footer-legal')
             </div>

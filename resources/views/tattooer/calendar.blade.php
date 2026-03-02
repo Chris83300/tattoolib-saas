@@ -1,7 +1,8 @@
 @extends('layouts.tattooer')
 
 @section('content')
-    <div class="space-y-6 lg:ml-60">
+    <div class="container-custom px-4 h-full">
+    <div class="max-w-6xl mx-auto h-full flex flex-col">
 
         @if (session('success'))
             <div class="bg-vert-succes/20 border border-vert-succes/50 text-vert-succes px-4 py-3 rounded-lg">
@@ -212,9 +213,6 @@
                 }
 
                 const events = @json($events);
-                console.log('Events loaded:', events);
-                console.log('Events count:', events.length);
-                console.log('Booking params:', window.bookingParams);
 
                 const typeSelectEl = document.getElementById('event-type-select');
                 const hiddenTypeEl = document.getElementById('event-type');
@@ -251,21 +249,15 @@
                 }
 
                 const calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: isMobile() ? 'timeGridDay' : 'timeGridWeek',
+                    initialView: isMobile() ? 'timeGridDay' : 'dayGridMonth',
                     locale: 'fr',
-                    firstDay: 1, // Lundi = 1, Dimanche = 0
-                    initialDate: window.bookingParams?.bookingDate ? new Date(window.bookingParams
-                        .bookingDate) : new Date(), // Se positionner sur la date choisie
                     headerToolbar: {
-                        left: isMobile() ? 'prev,next' : 'prev,next today',
+                        left: 'prev,next today',
                         center: 'title',
-                        right: isMobile() ? 'timeGridDay,dayGridMonth' : 'dayGridMonth,timeGridWeek,timeGridDay'
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
                     },
-                    slotMinTime: '08:00:00',
-                    slotMaxTime: '20:00:00',
-                    slotDuration: '00:30:00',
-                    height: isMobile() ? 'auto' : undefined,
-                    expandRows: true,
+                    locale: 'fr',
+                    timeZone: 'Europe/Paris',
                     events: events,
                     editable: true,
                     selectable: true,
@@ -297,8 +289,7 @@
                                 clientPseudo: props.client_pseudo || '',
                                 bodyZone: props.body_zone || '',
                                 tattooSize: props.tattoo_size || '',
-                                depositPaid: props.deposit_paid ||
-                                    false, // Corriger: deposit_paid -> depositPaid
+                                depositPaid: props.deposit_paid || props.depositPaid || false,
                                 depositAmount: props.deposit_amount || 0,
                                 totalPrice: props.total_price || 0,
                                 status: props.status || 'scheduled',

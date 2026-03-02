@@ -536,10 +536,10 @@ class TattooerController extends Controller
         // ═══════════════════════════════════════════════
         // 3. BookingRequests confirmées sans Appointment (compatibilité)
         // ═══════════════════════════════════════════════
+
         $bookingEvents = BookingRequest::where('bookable_id', $tattooer->id)
             ->where('bookable_type', $tattooer->getMorphClass())
             ->where('status', BookingRequestStatus::DATE_CONFIRMED->value)
-            ->whereDoesntHave('appointment')
             ->with(['client.user'])
             ->get()
             ->map(function ($booking) {

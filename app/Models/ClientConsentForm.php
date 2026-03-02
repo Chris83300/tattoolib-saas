@@ -15,7 +15,7 @@ class ClientConsentForm extends Model implements HasMedia
 
     protected $fillable = [
         // Relations
-        'client_id', 'tattooer_id', 'appointment_id', 'booking_request_id',
+        'client_id', 'tattooer_id', 'appointment_id', 'booking_request_id', 'user_id',
         // Identité client
         'client_full_name', 'client_birth_date', 'client_address',
         'client_phone', 'client_email', 'client_id_type', 'client_id_number',
@@ -201,7 +201,15 @@ class ClientConsentForm extends Model implements HasMedia
             return $query->where('studio_id', $artisan->studio_id);
         }
 
-        return $query->where('tattooer_id', $artisan->id);
+        // Gérer les tattooers et les piercers
+        if ($artisan instanceof \App\Models\Tattooer) {
+            return $query->where('tattooer_id', $artisan->id);
+        } elseif ($artisan instanceof \App\Models\Piercer) {
+            // Pour les piercers, on utilise user_id
+            return $query->where('user_id', $artisan->user_id);
+        }
+
+        return $query;
     }
 
     public function scopeSigned($query)

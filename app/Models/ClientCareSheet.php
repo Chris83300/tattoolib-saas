@@ -127,7 +127,15 @@ class ClientCareSheet extends Model
             return $query->where('studio_id', $artisan->studio_id);
         }
 
-        return $query->where('tattooer_id', $artisan->id);
+        // Gérer les tattooers et les piercers
+        if ($artisan instanceof \App\Models\Tattooer) {
+            return $query->where('tattooer_id', $artisan->id);
+        } elseif ($artisan instanceof \App\Models\Piercer) {
+            // Pour les piercers, on utilise user_id
+            return $query->where('user_id', $artisan->user_id);
+        }
+
+        return $query;
     }
 
     public function appointment(): BelongsTo
