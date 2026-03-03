@@ -218,8 +218,8 @@ class AcceptBookingModal extends Component
             // Message de succès
             session()->flash('success', '✅ Demande acceptée ! La conversation a été créée.');
 
-            // Rafraîchir la page parente de manière fiable
-            $this->dispatch('booking-accepted')->self();
+            // Rafraîchir la page parente (capté par le JS de request-show via Livewire.on)
+            $this->dispatch('booking-accepted');
 
         } catch (\Exception $e) {
             \Log::error('AcceptBookingModal: submitAcceptance error', [
