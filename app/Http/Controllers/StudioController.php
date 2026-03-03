@@ -428,6 +428,94 @@ class StudioController extends Controller
         return redirect($session->url);
     }
 
+    // ═══ FICHES CLIENTS ═══
+
+    public function clients(\Illuminate\Http\Request $request)
+    {
+        $studio = $this->studio();
+        $artistUserIds = $studio->studioArtists()
+            ->where('is_active', true)
+            ->pluck('user_id')
+            ->filter();
+
+        $tattooerIds = \App\Models\Tattooer::whereIn('user_id', $artistUserIds)->pluck('id');
+        $piercerIds  = \App\Models\Piercer::whereIn('user_id', $artistUserIds)->pluck('id');
+
+        $clients = \App\Models\Client::whereHas('bookingRequests', function ($q) use ($tattooerIds, $piercerIds) {
+            $q->where(function ($q2) use ($tattooerIds) {
+                $q2->where('bookable_type', 'App\\Models\\Tattooer')
+                   ->whereIn('bookable_id', $tattooerIds);
+            })->orWhere(function ($q2) use ($piercerIds) {
+                $q2->where('bookable_type', 'App\\Models\\Piercer')
+                   ->whereIn('bookable_id', $piercerIds);
+            });
+        })
+        ->when($request->search, function ($q) use ($request) {
+            $q->where(function ($q2) use ($request) {
+                $q2->where('first_name', 'LIKE', '%' . $request->search . '%')
+                   ->orWhere('last_name', 'LIKE', '%' . $request->search . '%')
+                   ->orWhere('email', 'LIKE', '%' . $request->search . '%');
+            });
+        })
+        ->with(['bookingRequests' => function ($q) use ($tattooerIds, $piercerIds) {
+            $q->where(function ($q2) use ($tattooerIds) {
+                $q2->where('bookable_type', 'App\\Models\\Tattooer')
+                   ->whereIn('bookable_id', $tattooerIds);
+            })->orWhere(function ($q2) use ($piercerIds) {
+                $q2->where('bookable_type', 'App\\Models\\Piercer')
+                   ->whereIn('bookable_id', $piercerIds);
+            });
+        }])
+        ->latest()
+        ->paginate(20);
+
+        return view('studio.clients', [
+            'studio'  => $studio,
+            'clients' => $clients,
+        ]);
+    }
+
+    public function clientShow(\App\Models\Client $client)
+    {
+        $studio = $this->studio();
+        $artistUserIds = $studio->studioArtists()
+            ->where('is_active', true)
+            ->pluck('user_id')
+            ->filter();
+
+        $tattooerIds = \App\Models\Tattooer::whereIn('user_id', $artistUserIds)->pluck('id');
+        $piercerIds  = \App\Models\Piercer::whereIn('user_id', $artistUserIds)->pluck('id');
+
+        // Vérifier que ce client a bien des demandes pour ce studio
+        $hasAccess = $client->bookingRequests()->where(function ($q) use ($tattooerIds, $piercerIds) {
+            $q->where(function ($q2) use ($tattooerIds) {
+                $q2->where('bookable_type', 'App\\Models\\Tattooer')
+                   ->whereIn('bookable_id', $tattooerIds);
+            })->orWhere(function ($q2) use ($piercerIds) {
+                $q2->where('bookable_type', 'App\\Models\\Piercer')
+                   ->whereIn('bookable_id', $piercerIds);
+            });
+        })->exists();
+
+        abort_unless($hasAccess, 403, 'Accès non autorisé');
+
+        $requests = $client->bookingRequests()->where(function ($q) use ($tattooerIds, $piercerIds) {
+            $q->where(function ($q2) use ($tattooerIds) {
+                $q2->where('bookable_type', 'App\\Models\\Tattooer')
+                   ->whereIn('bookable_id', $tattooerIds);
+            })->orWhere(function ($q2) use ($piercerIds) {
+                $q2->where('bookable_type', 'App\\Models\\Piercer')
+                   ->whereIn('bookable_id', $piercerIds);
+            });
+        })->with('bookable.user')->latest()->get();
+
+        return view('studio.client-show', [
+            'studio'   => $studio,
+            'client'   => $client,
+            'requests' => $requests,
+        ]);
+    }
+
     // ═══ STATS ═══
 
     public function stats()

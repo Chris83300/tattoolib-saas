@@ -370,6 +370,10 @@ Route::middleware(['auth', 'role:studio', \App\Http\Middleware\EnsureStudioCanOp
     Route::get('/planning', [App\Http\Controllers\StudioController::class, 'planning'])->name('planning');
     // Demandes
     Route::get('/demandes', [App\Http\Controllers\StudioController::class, 'requests'])->name('requests');
+    Route::get('/demandes/{bookingRequest}', [App\Http\Controllers\StudioController::class, 'demandeShow'])->name('demandes.show');
+    // Fiches clients
+    Route::get('/clients', [App\Http\Controllers\StudioController::class, 'clients'])->name('clients.index');
+    Route::get('/clients/{client}', [App\Http\Controllers\StudioController::class, 'clientShow'])->name('clients.show');
     // Billing & Stats
     Route::get('/billing', [App\Http\Controllers\StudioController::class, 'billing'])->name('billing');
     Route::get('/souscrire', [App\Http\Controllers\StudioController::class, 'showSubscribe'])->name('subscribe');
