@@ -253,7 +253,14 @@
                         if (query.length >= 2) {
                             searchTimeout = setTimeout(() => {
                                 this.fetchSearchSuggestions(query);
+                                this.currentPage = 1;
+                                this.performSearch();
                             }, 300);
+                        } else if (query.length === 0) {
+                            suggestionsContainer.classList.add('hidden');
+                            // Revenir aux artistes mis en avant si la recherche est vidée
+                            document.getElementById('search-results-section').classList.add('hidden');
+                            document.getElementById('featured-section').classList.remove('hidden');
                         } else {
                             suggestionsContainer.classList.add('hidden');
                         }
