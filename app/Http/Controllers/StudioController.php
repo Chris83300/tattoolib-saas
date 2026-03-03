@@ -713,9 +713,84 @@ class StudioController extends Controller
 
     public function stats()
     {
-        return view('studio.stats', [
-            'studio' => $this->studio(),
-        ]);
+        $studio = $this->studio();
+        $artistUserIds = $studio->studioArtists()
+            ->where('is_active', true)
+            ->pluck('user_id')
+            ->filter();
+
+        $tattooerIds = \App\Models\Tattooer::whereIn('user_id', $artistUserIds)->pluck('id');
+        $piercerIds  = \App\Models\Piercer::whereIn('user_id', $artistUserIds)->pluck('id');
+
+        // Requête de base
+        $base = \App\Models\BookingRequest::where(function ($q) use ($tattooerIds, $piercerIds) {
+            $q->where(function ($q2) use ($tattooerIds) {
+                $q2->where('bookable_type', 'App\\Models\\Tattooer')->whereIn('bookable_id', $tattooerIds);
+            })->orWhere(function ($q2) use ($piercerIds) {
+                $q2->where('bookable_type', 'App\\Models\\Piercer')->whereIn('bookable_id', $piercerIds);
+            });
+        });
+
+        $totalRequests    = (clone $base)->count();
+        $pendingRequests  = (clone $base)->where('status', 'pending')->count();
+        $completedAll     = (clone $base)->whereIn('status', ['completed', 'fully_completed', 'balance_paid', 'balance_paid_offline'])->count();
+        $cancelledAll     = (clone $base)->whereIn('status', ['cancelled', 'rejected', 'no_show'])->count();
+
+        // Revenus mensuels (6 derniers mois)
+        $monthlyRevenue = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $month = now()->subMonths($i);
+            $revenue = (clone $base)
+                ->whereIn('status', ['completed', 'fully_completed', 'balance_paid', 'balance_paid_offline'])
+                ->whereMonth('updated_at', $month->month)
+                ->whereYear('updated_at', $month->year)
+                ->sum('deposit_amount') / 100;
+            $monthlyRevenue[] = [
+                'label'   => $month->format('M Y'),
+                'revenue' => round($revenue, 2),
+            ];
+        }
+
+        // Stats par artiste
+        $artistsStats = $studio->studioArtists()
+            ->where('is_active', true)
+            ->with('user')
+            ->get()
+            ->map(function ($sa) use ($tattooerIds, $piercerIds) {
+                if (!$sa->user_id) return null;
+
+                $artistTattooerIds = \App\Models\Tattooer::where('user_id', $sa->user_id)->pluck('id');
+                $artistPiercerIds  = \App\Models\Piercer::where('user_id', $sa->user_id)->pluck('id');
+
+                $artistBase = \App\Models\BookingRequest::where(function ($q) use ($artistTattooerIds, $artistPiercerIds) {
+                    $q->where(function ($q2) use ($artistTattooerIds) {
+                        $q2->where('bookable_type', 'App\\Models\\Tattooer')->whereIn('bookable_id', $artistTattooerIds);
+                    })->orWhere(function ($q2) use ($artistPiercerIds) {
+                        $q2->where('bookable_type', 'App\\Models\\Piercer')->whereIn('bookable_id', $artistPiercerIds);
+                    });
+                });
+
+                return [
+                    'name'       => $sa->artist_name ?: $sa->user?->name ?? 'Artiste',
+                    'type'       => $sa->artisan_type,
+                    'total'      => (clone $artistBase)->count(),
+                    'pending'    => (clone $artistBase)->where('status', 'pending')->count(),
+                    'completed'  => (clone $artistBase)->whereIn('status', ['completed', 'fully_completed', 'balance_paid', 'balance_paid_offline'])->count(),
+                    'revenue'    => round((clone $artistBase)->whereIn('status', ['completed', 'fully_completed', 'balance_paid', 'balance_paid_offline'])->sum('deposit_amount') / 100, 2),
+                ];
+            })
+            ->filter()
+            ->values();
+
+        return view('studio.stats', compact(
+            'studio',
+            'totalRequests',
+            'pendingRequests',
+            'completedAll',
+            'cancelledAll',
+            'monthlyRevenue',
+            'artistsStats'
+        ));
     }
 
     // ═══ INVITATION ═══
