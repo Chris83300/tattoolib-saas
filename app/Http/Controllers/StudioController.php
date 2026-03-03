@@ -153,6 +153,56 @@ class StudioController extends Controller
         ]);
     }
 
+    public function artistShow(\App\Models\StudioArtist $studioArtist)
+    {
+        $studio = $this->studio();
+        abort_unless($studioArtist->studio_id === $studio->id, 403);
+
+        $studioArtist->load('user');
+
+        // Charger les demandes de réservation associées à cet artiste
+        $tattooerIds = \App\Models\Tattooer::where('user_id', $studioArtist->user_id)->pluck('id');
+        $piercerIds  = \App\Models\Piercer::where('user_id', $studioArtist->user_id)->pluck('id');
+
+        $requests = \App\Models\BookingRequest::where(function ($q) use ($tattooerIds, $piercerIds) {
+            $q->where(function ($q2) use ($tattooerIds) {
+                $q2->where('bookable_type', 'App\\Models\\Tattooer')
+                   ->whereIn('bookable_id', $tattooerIds);
+            })->orWhere(function ($q2) use ($piercerIds) {
+                $q2->where('bookable_type', 'App\\Models\\Piercer')
+                   ->whereIn('bookable_id', $piercerIds);
+            });
+        })
+        ->with('client')
+        ->latest()
+        ->limit(10)
+        ->get();
+
+        $stats = [
+            'total_requests'    => \App\Models\BookingRequest::where(function ($q) use ($tattooerIds, $piercerIds) {
+                $q->where(function ($q2) use ($tattooerIds) {
+                    $q2->where('bookable_type', 'App\\Models\\Tattooer')->whereIn('bookable_id', $tattooerIds);
+                })->orWhere(function ($q2) use ($piercerIds) {
+                    $q2->where('bookable_type', 'App\\Models\\Piercer')->whereIn('bookable_id', $piercerIds);
+                });
+            })->count(),
+            'pending_requests'  => \App\Models\BookingRequest::where(function ($q) use ($tattooerIds, $piercerIds) {
+                $q->where(function ($q2) use ($tattooerIds) {
+                    $q2->where('bookable_type', 'App\\Models\\Tattooer')->whereIn('bookable_id', $tattooerIds);
+                })->orWhere(function ($q2) use ($piercerIds) {
+                    $q2->where('bookable_type', 'App\\Models\\Piercer')->whereIn('bookable_id', $piercerIds);
+                });
+            })->where('status', 'pending')->count(),
+        ];
+
+        return view('studio.artist-show', [
+            'studio'       => $studio,
+            'studioArtist' => $studioArtist,
+            'requests'     => $requests,
+            'stats'        => $stats,
+        ]);
+    }
+
     public function createArtist()
     {
         $studio = $this->studio();

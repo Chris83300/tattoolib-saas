@@ -6,13 +6,26 @@
     $data = $isMarketplace ? $artist : $studioArtist;
 
     // Normaliser les données pour compatibilité
-    $name = $isMarketplace ? $artist['name'] : $studioArtist->artist_name;
+    $name = $isMarketplace ? $artist['name'] : ($studioArtist->artist_name ?: $studioArtist->user?->name ?? 'Artiste');
     $type = $isMarketplace ? $artist['type'] ?? 'tattooer' : $studioArtist->artisan_type;
     $avatar = $isMarketplace ? $artist['avatar_url'] ?? null : $studioArtist->user?->getFirstMediaUrl('avatar');
-    $banner = $isMarketplace ? $artist['banner_url'] ?? null : $studioArtist->user?->getFirstMediaUrl('banner');
+
+    // Banner : priorité au modèle Tattooer/Piercer (qui porte la collection 'banner')
+    if ($isMarketplace) {
+        $banner = $artist['banner_url'] ?? null;
+    } else {
+        $artisanModel = null;
+        if ($studioArtist->user) {
+            $artisanModel = $studioArtist->artisan_type === 'piercer'
+                ? \App\Models\Piercer::where('user_id', $studioArtist->user_id)->first()
+                : \App\Models\Tattooer::where('user_id', $studioArtist->user_id)->first();
+        }
+        $banner = $artisanModel?->getFirstMediaUrl('banner') ?: null;
+    }
+
     $city = $isMarketplace ? $artist['city'] ?? null : $studioArtist->studio?->city;
     $studioName = $isMarketplace ? $artist['studio_name'] ?? null : $studioArtist->studio?->name;
-    $bio = $isMarketplace ? $artist['bio'] ?? null : $studioArtist->user?->bio;
+    $bio = $isMarketplace ? $artist['bio'] ?? null : ($artisanModel?->bio ?? $studioArtist->user?->bio ?? null);
 @endphp
 
 <div
@@ -234,7 +247,7 @@
             @else
                 <!-- Actions studio -->
                 @if ($studioArtist->user)
-                    <x-ui.button variant="secondary" size="sm" href="{{ route('studio.artists') }}"
+                    <x-ui.button variant="secondary" size="sm" href="{{ route('studio.artists.show', $studioArtist) }}"
                         class="flex-1">
                         Voir la gestion
                     </x-ui.button>

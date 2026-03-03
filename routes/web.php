@@ -364,6 +364,7 @@ Route::middleware(['auth', 'role:studio', \App\Http\Middleware\EnsureStudioCanOp
     Route::get('/artists/create', [App\Http\Controllers\StudioController::class, 'createArtist'])->name('artists.create');
     Route::post('/artists', [App\Http\Controllers\StudioController::class, 'storeArtist'])->name('artists.store');
     Route::post('/artists/invite', [App\Http\Controllers\StudioController::class, 'inviteArtist'])->name('artists.invite');
+    Route::get('/artists/{studioArtist}', [App\Http\Controllers\StudioController::class, 'artistShow'])->name('artists.show');
     Route::delete('/artists/{studioArtist}', [App\Http\Controllers\StudioController::class, 'removeArtist'])->name('artists.remove');
     Route::put('/artists/{studioArtist}/toggle', [App\Http\Controllers\StudioController::class, 'toggleArtist'])->name('artists.toggle');
     // Planning
