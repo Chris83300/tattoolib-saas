@@ -368,6 +368,7 @@ Route::middleware(['auth', 'role:studio', \App\Http\Middleware\EnsureStudioCanOp
     Route::put('/artists/{studioArtist}/toggle', [App\Http\Controllers\StudioController::class, 'toggleArtist'])->name('artists.toggle');
     // Planning
     Route::get('/planning', [App\Http\Controllers\StudioController::class, 'planning'])->name('planning');
+    Route::get('/planning/events', [App\Http\Controllers\StudioController::class, 'planningEvents'])->name('planning.events');
     // Demandes
     Route::get('/demandes', [App\Http\Controllers\StudioController::class, 'requests'])->name('requests');
     Route::get('/demandes/{bookingRequest}', [App\Http\Controllers\StudioController::class, 'demandeShow'])->name('demandes.show');

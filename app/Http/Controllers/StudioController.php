@@ -337,6 +337,79 @@ class StudioController extends Controller
         ]);
     }
 
+    /**
+     * JSON : événements du planning pour FullCalendar
+     */
+    public function planningEvents(\Illuminate\Http\Request $request)
+    {
+        $studio = $this->studio();
+        $artistUserIds = $studio->studioArtists()
+            ->where('is_active', true)
+            ->pluck('user_id')
+            ->filter();
+
+        $tattooerIds = \App\Models\Tattooer::whereIn('user_id', $artistUserIds)->pluck('id');
+        $piercerIds  = \App\Models\Piercer::whereIn('user_id', $artistUserIds)->pluck('id');
+
+        $bookings = \App\Models\BookingRequest::where(function ($q) use ($tattooerIds, $piercerIds) {
+            $q->where(function ($q2) use ($tattooerIds) {
+                $q2->where('bookable_type', 'App\\Models\\Tattooer')
+                   ->whereIn('bookable_id', $tattooerIds);
+            })->orWhere(function ($q2) use ($piercerIds) {
+                $q2->where('bookable_type', 'App\\Models\\Piercer')
+                   ->whereIn('bookable_id', $piercerIds);
+            });
+        })
+        ->whereNotNull('confirmed_date')
+        ->whereNotIn('status', ['cancelled', 'rejected', 'expired', 'no_show'])
+        ->with(['bookable.user', 'client'])
+        ->get();
+
+        // Couleurs par artiste (hash simple)
+        $colors = ['#8B7355', '#6B9E78', '#7B8FA1', '#A07850', '#9E6B6B', '#6B7F9E'];
+
+        $events = $bookings->map(function ($booking) use ($colors) {
+            $artistName = $booking->bookable?->user?->name ?? 'Artiste';
+            $colorIndex = crc32($artistName) % count($colors);
+            $color = $colors[abs($colorIndex)];
+
+            $date = $booking->confirmed_date instanceof \Carbon\Carbon
+                ? $booking->confirmed_date->toDateString()
+                : $booking->confirmed_date;
+
+            $start = $date;
+            if ($booking->scheduled_start_time) {
+                $start = $date . 'T' . $booking->scheduled_start_time;
+            }
+
+            $end = null;
+            if ($booking->scheduled_end_time) {
+                $end = $date . 'T' . $booking->scheduled_end_time;
+            }
+
+            $clientName = trim(($booking->client?->first_name ?? '') . ' ' . ($booking->client?->last_name ?? ''));
+
+            return [
+                'id'              => $booking->id,
+                'title'           => $clientName . ' → ' . $artistName,
+                'start'           => $start,
+                'end'             => $end,
+                'backgroundColor' => $color,
+                'borderColor'     => $color,
+                'textColor'       => '#FFF8F0',
+                'url'             => route('studio.demandes.show', $booking),
+                'extendedProps'   => [
+                    'artist'  => $artistName,
+                    'client'  => $clientName,
+                    'status'  => is_object($booking->status) ? $booking->status->value : $booking->status,
+                    'type'    => $booking->bookable instanceof \App\Models\Piercer ? 'piercing' : 'tatouage',
+                ],
+            ];
+        });
+
+        return response()->json($events->values());
+    }
+
     // ═══ DEMANDES ═══
 
     public function requests()
