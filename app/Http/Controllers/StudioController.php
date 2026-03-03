@@ -31,15 +31,58 @@ class StudioController extends Controller
         $studio = $this->studio();
         $artists = $studio->studioArtists()->with('user')->where('is_active', true)->get();
 
+        // Récupérer les IDs des artisans du studio
+        $artistUserIds = $artists->pluck('user_id')->filter();
+        $tattooerIds = \App\Models\Tattooer::whereIn('user_id', $artistUserIds)->pluck('id');
+        $piercerIds  = \App\Models\Piercer::whereIn('user_id', $artistUserIds)->pluck('id');
+
+        // Requête de base pour les demandes du studio
+        $bookingBase = \App\Models\BookingRequest::where(function ($q) use ($tattooerIds, $piercerIds) {
+            $q->where(function ($q2) use ($tattooerIds) {
+                $q2->where('bookable_type', 'App\\Models\\Tattooer')
+                   ->whereIn('bookable_id', $tattooerIds);
+            })->orWhere(function ($q2) use ($piercerIds) {
+                $q2->where('bookable_type', 'App\\Models\\Piercer')
+                   ->whereIn('bookable_id', $piercerIds);
+            });
+        });
+
+        $pendingCount   = (clone $bookingBase)->where('status', 'pending')->count();
+        $confirmedCount = (clone $bookingBase)->whereIn('status', ['accepted', 'deposit_paid', 'date_confirmed'])->count();
+        $completedCount = (clone $bookingBase)->whereIn('status', ['completed', 'fully_completed', 'balance_paid', 'balance_paid_offline'])
+            ->whereMonth('updated_at', now()->month)
+            ->whereYear('updated_at', now()->year)
+            ->count();
+
+        // Chiffre d'affaires du mois (dépôts encaissés)
+        $monthlyRevenue = (clone $bookingBase)
+            ->whereIn('status', ['completed', 'fully_completed', 'balance_paid', 'balance_paid_offline'])
+            ->whereMonth('updated_at', now()->month)
+            ->whereYear('updated_at', now()->year)
+            ->sum('deposit_amount') / 100; // Centimes → euros
+
+        // 5 dernières demandes en attente
+        $latestRequests = (clone $bookingBase)
+            ->with(['bookable.user', 'client'])
+            ->where('status', 'pending')
+            ->latest()
+            ->limit(5)
+            ->get();
+
         return view('studio.dashboard', [
-            'studio'       => $studio,
-            'artists'      => $artists,
-            'artistCount'  => $artists->count(),
-            'monthlyPrice' => $studio->monthlyPrice(),
-            // Compatibilité avec la vue existante
-            'totalArtists'  => $artists->count(),
-            'activeArtists' => $artists->count(),
-            'totalRevenue'  => 0,
+            'studio'         => $studio,
+            'artists'        => $artists,
+            'artistCount'    => $artists->count(),
+            'monthlyPrice'   => $studio->monthlyPrice(),
+            'totalArtists'   => $artists->count(),
+            'activeArtists'  => $artists->count(),
+            'totalRevenue'   => 0,
+            // Nouveaux compteurs
+            'pendingCount'   => $pendingCount,
+            'confirmedCount' => $confirmedCount,
+            'completedCount' => $completedCount,
+            'monthlyRevenue' => $monthlyRevenue,
+            'latestRequests' => $latestRequests,
         ]);
     }
 
