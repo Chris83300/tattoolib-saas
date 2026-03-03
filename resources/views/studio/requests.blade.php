@@ -13,18 +13,18 @@
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 flex-wrap">
                         <p class="text-sm font-semibold text-ivoire-text truncate">
-                            {{ $request->client?->user?->name ?? 'Client' }}
+                            {{ $request->client?->first_name }} {{ $request->client?->last_name }}
                         </p>
                         @php
                             $status = is_object($request->status) ? $request->status->value : $request->status;
                         @endphp
                         <span class="text-xs px-2 py-0.5 rounded-full font-semibold
                             {{ in_array($status, ['pending']) ? 'bg-yellow-500/20 text-yellow-400' : '' }}
-                            {{ in_array($status, ['accepted', 'deposit_paid']) ? 'bg-vert-validation/20 text-vert-validation' : '' }}
-                            {{ in_array($status, ['completed']) ? 'bg-blue-500/20 text-blue-400' : '' }}
-                            {{ in_array($status, ['cancelled', 'declined']) ? 'bg-rouge-alerte/20 text-rouge-alerte' : '' }}
-                            {{ !in_array($status, ['pending','accepted','deposit_paid','completed','cancelled','declined']) ? 'bg-titane/20 text-titane' : '' }}">
-                            {{ $status }}
+                            {{ in_array($status, ['accepted', 'deposit_paid', 'date_confirmed']) ? 'bg-vert-validation/20 text-vert-validation' : '' }}
+                            {{ in_array($status, ['completed', 'fully_completed', 'balance_paid', 'balance_paid_offline']) ? 'bg-vert-succes/20 text-vert-succes' : '' }}
+                            {{ in_array($status, ['cancelled', 'rejected', 'no_show']) ? 'bg-rouge-alerte/20 text-rouge-alerte' : '' }}
+                            {{ !in_array($status, ['pending','accepted','deposit_paid','date_confirmed','completed','fully_completed','balance_paid','balance_paid_offline','cancelled','rejected','no_show']) ? 'bg-titane/20 text-titane' : '' }}">
+                            {{ str_replace('_', ' ', ucfirst($status)) }}
                         </span>
                     </div>
                     <p class="text-xs text-titane mt-0.5">
@@ -33,11 +33,17 @@
                         • {{ $request->created_at?->diffForHumans() }}
                     </p>
                 </div>
-                @if ($request->deposit_amount)
-                    <span class="text-sm font-semibold text-beige-peau shrink-0">
-                        {{ number_format($request->deposit_amount / 100, 2) }}€
-                    </span>
-                @endif
+                <div class="flex items-center gap-3 shrink-0">
+                    @if ($request->deposit_amount)
+                        <span class="text-sm font-semibold text-beige-peau">
+                            {{ number_format($request->deposit_amount / 100, 2) }}€
+                        </span>
+                    @endif
+                    <a href="{{ route('studio.demandes.show', $request) }}"
+                        class="text-xs text-beige-peau hover:underline">
+                        Détails →
+                    </a>
+                </div>
             </div>
         @empty
             <p class="text-sm text-titane text-center py-8">Aucune demande</p>

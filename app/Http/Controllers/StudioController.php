@@ -370,6 +370,33 @@ class StudioController extends Controller
         ]);
     }
 
+    public function demandeShow(\App\Models\BookingRequest $bookingRequest)
+    {
+        $studio = $this->studio();
+        $artistUserIds = $studio->studioArtists()
+            ->where('is_active', true)
+            ->pluck('user_id')
+            ->filter();
+
+        $tattooerIds = \App\Models\Tattooer::whereIn('user_id', $artistUserIds)->pluck('id');
+        $piercerIds  = \App\Models\Piercer::whereIn('user_id', $artistUserIds)->pluck('id');
+
+        // Vérifier que cette demande appartient bien à un artiste du studio
+        $allowed = (
+            ($bookingRequest->bookable_type === 'App\\Models\\Tattooer' && $tattooerIds->contains($bookingRequest->bookable_id)) ||
+            ($bookingRequest->bookable_type === 'App\\Models\\Piercer' && $piercerIds->contains($bookingRequest->bookable_id))
+        );
+
+        abort_unless($allowed, 403, 'Accès non autorisé');
+
+        $bookingRequest->load(['bookable.user', 'client', 'messages.sender']);
+
+        return view('studio.demande-show', [
+            'studio'         => $studio,
+            'bookingRequest' => $bookingRequest,
+        ]);
+    }
+
     // ═══ PROFIL PUBLIC ═══
 
     public function profile()
