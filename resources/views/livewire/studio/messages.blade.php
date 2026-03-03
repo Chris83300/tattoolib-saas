@@ -1,31 +1,68 @@
-<div class="min-h-screen bg-noir-profond py-8">
-    <div class="container-custom px-4">
-        <div class="max-w-6xl mx-auto">
-            
-            <!-- Header -->
-            <div class="flex justify-between items-center mb-8">
-                <h1 class="text-3xl font-display font-bold text-ivoire-text">
-                    Messages Studio
-                </h1>
-                <a href="{{ route('studio.dashboard') }}" class="text-ivoire-text/70 hover:text-beige-peau transition-colors">
-                    ← Retour au dashboard
-                </a>
-            </div>
+<div class="space-y-6">
 
-            <!-- Messages -->
-            <div class="bg-gris-fonde rounded-xl p-6">
-                <div class="text-center py-12">
-                    <svg class="w-16 h-16 mx-auto mb-4 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                    </svg>
-                    <h2 class="text-xl font-bold text-ivoire-text mb-2">
-                        Messages Studio en cours de développement
-                    </h2>
-                    <p class="text-ivoire-text/70">
-                        Cette fonctionnalité sera bientôt disponible.
-                    </p>
-                </div>
-            </div>
-        </div>
+    <div>
+        <h1 class="text-2xl font-bold text-ivoire-text">Messages</h1>
+        <p class="text-sm text-titane mt-1">Conversations des artistes de votre studio</p>
     </div>
+
+    @if($recentConversations->count() > 0)
+        <div class="bg-gris-fonde rounded-xl divide-y divide-titane/10">
+            @foreach($recentConversations as $booking)
+                @php
+                    $lastMessage = $booking->messages->first();
+                    $status = is_object($booking->status) ? $booking->status->value : $booking->status;
+                @endphp
+                <a href="{{ route('studio.demandes.show', $booking) }}"
+                    class="flex items-center gap-4 p-4 hover:bg-noir-profond/40 transition-colors">
+
+                    <!-- Icône type -->
+                    <div class="w-10 h-10 rounded-full bg-beige-peau/20 flex items-center justify-center shrink-0 text-lg">
+                        {{ $booking->bookable instanceof \App\Models\Piercer ? '💎' : '🎨' }}
+                    </div>
+
+                    <!-- Contenu -->
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <p class="text-sm font-semibold text-ivoire-text truncate">
+                                {{ $booking->client?->first_name }} {{ $booking->client?->last_name }}
+                            </p>
+                            <span class="text-xs text-titane">→ {{ $booking->bookable?->user?->name ?? 'Artiste' }}</span>
+                        </div>
+                        @if($lastMessage)
+                            <p class="text-xs text-titane mt-0.5 truncate">
+                                {{ Str::limit($lastMessage->content ?? '', 80) }}
+                            </p>
+                        @endif
+                    </div>
+
+                    <!-- Date + statut -->
+                    <div class="text-right shrink-0">
+                        <p class="text-xs text-titane">{{ $booking->updated_at?->diffForHumans() }}</p>
+                        <span class="text-xs px-1.5 py-0.5 rounded-full font-semibold mt-1 inline-block
+                            {{ $status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-titane/20 text-titane' }}">
+                            {{ str_replace('_', ' ', $status) }}
+                        </span>
+                    </div>
+                </a>
+            @endforeach
+        </div>
+
+        <p class="text-xs text-titane/60 text-center">
+            Les messages sont gérés individuellement par chaque artiste depuis leur espace.
+        </p>
+    @else
+        <div class="bg-gris-fonde rounded-xl p-8 text-center">
+            <svg class="w-12 h-12 mx-auto mb-4 text-titane/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+            <h2 class="text-base font-semibold text-ivoire-text mb-2">Aucun message pour l'instant</h2>
+            <p class="text-sm text-titane">
+                Les échanges avec les clients apparaîtront ici une fois que vos artistes auront des demandes en cours.
+            </p>
+            <a href="{{ route('studio.requests') }}" class="inline-block mt-4 text-sm text-beige-peau hover:underline">
+                Voir les demandes →
+            </a>
+        </div>
+    @endif
 </div>
