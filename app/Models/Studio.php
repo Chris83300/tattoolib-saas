@@ -139,6 +139,56 @@ class Studio extends Model implements HasMedia
         return Piercer::whereIn('user_id', $userIds);
     }
 
+    // ═══ RATINGS ═══
+
+    /**
+     * Note moyenne globale : agrégation des avis de tous les artistes du studio.
+     */
+    public function getAverageRatingAttribute(): ?float
+    {
+        $tattooerIds = $this->tattooers()->pluck('id');
+        $piercerIds  = $this->piercers()->pluck('id');
+
+        if ($tattooerIds->isEmpty() && $piercerIds->isEmpty()) {
+            return null;
+        }
+
+        $avg = \App\Models\Review::where(function ($q) use ($tattooerIds, $piercerIds) {
+            $q->where(function ($q2) use ($tattooerIds) {
+                $q2->where('reviewable_type', \App\Models\Tattooer::class)
+                   ->whereIn('reviewable_id', $tattooerIds);
+            })->orWhere(function ($q2) use ($piercerIds) {
+                $q2->where('reviewable_type', \App\Models\Piercer::class)
+                   ->whereIn('reviewable_id', $piercerIds);
+            });
+        })->where('is_visible', true)->avg('rating');
+
+        return $avg ? round((float) $avg, 1) : null;
+    }
+
+    /**
+     * Nombre total d'avis de tous les artistes du studio.
+     */
+    public function getTotalReviewsAttribute(): int
+    {
+        $tattooerIds = $this->tattooers()->pluck('id');
+        $piercerIds  = $this->piercers()->pluck('id');
+
+        if ($tattooerIds->isEmpty() && $piercerIds->isEmpty()) {
+            return 0;
+        }
+
+        return \App\Models\Review::where(function ($q) use ($tattooerIds, $piercerIds) {
+            $q->where(function ($q2) use ($tattooerIds) {
+                $q2->where('reviewable_type', \App\Models\Tattooer::class)
+                   ->whereIn('reviewable_id', $tattooerIds);
+            })->orWhere(function ($q2) use ($piercerIds) {
+                $q2->where('reviewable_type', \App\Models\Piercer::class)
+                   ->whereIn('reviewable_id', $piercerIds);
+            });
+        })->where('is_visible', true)->count();
+    }
+
     // ═══ HELPERS ═══
 
     public function stripeEmail(): ?string
