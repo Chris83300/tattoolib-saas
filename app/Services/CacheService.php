@@ -175,7 +175,18 @@ class CacheService
                 $results = $results->concat($query->get()->map(fn($p) => $this->getArtistProfile($p)));
             }
 
-            return $results->sortByDesc('average_rating')->values()->toArray();
+            // PRO en premier, puis par note décroissante
+            return $results
+                ->sort(function ($a, $b) {
+                    $proA = (bool) ($a['is_subscribed'] ?? false);
+                    $proB = (bool) ($b['is_subscribed'] ?? false);
+                    if ($proA !== $proB) {
+                        return $proB <=> $proA; // PRO (true=1) avant FREE (false=0)
+                    }
+                    return ($b['average_rating'] ?? 0) <=> ($a['average_rating'] ?? 0);
+                })
+                ->values()
+                ->toArray();
         });
     }
 

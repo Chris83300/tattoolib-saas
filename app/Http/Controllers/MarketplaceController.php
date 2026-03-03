@@ -195,11 +195,14 @@ class MarketplaceController extends Controller
      */
     public function getFeaturedArtists()
     {
+        // Seed hebdomadaire : change chaque lundi → nouvelle rotation
+        $weeklySeed = (int) now()->startOfWeek()->timestamp;
+
         // Tatoueurs PRO actifs en priorité
         $proTattooers = Tattooer::whereHas('user', fn($q) => $q->where('status', 'active'))
             ->whereHas('subscription', fn($q) => $q->where('plan', Subscription::PLAN_PRO)->where('status', 'active'))
             ->with(['user', 'media'])
-            ->inRandomOrder()
+            ->inRandomOrder($weeklySeed)
             ->limit(6)
             ->get();
 
@@ -211,7 +214,7 @@ class MarketplaceController extends Controller
                 ->orWhereHas('subscription', fn($q) => $q->where('plan', Subscription::PLAN_FREE))
                 ->whereNotIn('id', $proTattooers->pluck('id'))
                 ->with(['user', 'media'])
-                ->inRandomOrder()
+                ->inRandomOrder($weeklySeed)
                 ->limit($remaining)
                 ->get();
 
@@ -222,7 +225,7 @@ class MarketplaceController extends Controller
         $proPiercers = Piercer::whereHas('user', fn($q) => $q->where('status', 'active'))
             ->whereHas('subscription', fn($q) => $q->where('plan', Subscription::PLAN_PRO)->where('status', 'active'))
             ->with(['user', 'media'])
-            ->inRandomOrder()
+            ->inRandomOrder($weeklySeed)
             ->limit(2)
             ->get();
 
