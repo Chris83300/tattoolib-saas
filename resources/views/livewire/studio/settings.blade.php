@@ -211,4 +211,6 @@
             Sauvegarder
         </button>
     </form>
+
+    @include('partials.two-factor-settings')
 </div>

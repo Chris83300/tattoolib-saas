@@ -52,6 +52,7 @@ class BookingRequest extends Model implements HasMedia
         // Infos projet
         'tattoo_size',
         'body_zone',
+        'tattoo_style',
         'description',
         'estimated_total_price',
 

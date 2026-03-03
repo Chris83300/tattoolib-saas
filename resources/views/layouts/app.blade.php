@@ -7,6 +7,7 @@
     <meta name="description"
         content="Ink&Pik - Marketplace professionnelle pour tatoueurs, pierceurs et studios. Artistes vérifiés, conformité ARS, paiements sécurisés.">
     <meta name="theme-color" content="#D4B59E">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
 
     <!-- PWA Meta -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -135,6 +136,8 @@
                             class="block py-2 text-ivoire-text hover:text-beige-peau transition-colors">Mes RDV</a>
                         <a href="{{ route('client.messages') }}"
                             class="block py-2 text-ivoire-text hover:text-beige-peau transition-colors">Messages</a>
+                        <a href="{{ route('client.profile') }}"
+                            class="block py-2 text-ivoire-text hover:text-beige-peau transition-colors">Mon profil</a>
                     @endif
 
                     @if (in_array(auth()->user()->role, ['tattooer', 'piercer', 'studio_artist']))
@@ -150,8 +153,10 @@
                     @endif
 
                     <!-- Lien profil direct + Déconnexion -->
-                    <a href="{{ auth()->user()->getProfileRoute() }}"
-                        class="block py-2 text-ivoire-text hover:text-beige-peau transition-colors">Mon profil</a>
+                    @if (auth()->user()->role != 'client')
+                        <a href="{{ auth()->user()->getProfileRoute() }}"
+                            class="block py-2 text-ivoire-text hover:text-beige-peau transition-colors">Mon profil</a>
+                    @endif
 
                     <form method="POST" action="{{ route('logout') }}" class="block">
                         @csrf

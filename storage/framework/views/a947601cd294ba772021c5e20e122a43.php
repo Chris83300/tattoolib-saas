@@ -1,24 +1,22 @@
-@extends('layouts.tattooer')
+<?php $__env->startSection('title', 'Détails de la demande'); ?>
 
-@section('title', 'Détails de la demande')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="min-h-screen bg-noir-profond">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <!-- Messages flash -->
-            @if (session()->has('success'))
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(session()->has('success')): ?>
                 <div class="mb-6 bg-vert-succes/10 border border-vert-succes/30 rounded-xl p-4">
                     <div class="flex items-center">
                         <svg class="w-5 h-5 text-vert-succes mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span class="text-vert-succes font-medium">{{ session()->get('success') }}</span>
+                        <span class="text-vert-succes font-medium"><?php echo e(session()->get('success')); ?></span>
                     </div>
                 </div>
-            @endif
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-            @if (session()->has('error'))
+            <?php if(session()->has('error')): ?>
                 <div class="mb-6 bg-rouge-alerte/10 border border-rouge-alerte/30 rounded-xl p-4">
                     <div class="flex items-center">
                         <svg class="w-5 h-5 text-rouge-alerte mr-3" fill="none" stroke="currentColor"
@@ -26,14 +24,14 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span class="text-rouge-alerte font-medium">{{ session()->get('error') }}</span>
+                        <span class="text-rouge-alerte font-medium"><?php echo e(session()->get('error')); ?></span>
                     </div>
                 </div>
-            @endif
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
             <!-- En-tête -->
             <div class="mb-8">
-                <a href="{{ route($tattooer->routePrefix() . '.requests') }}"
+                <a href="<?php echo e(route($tattooer->routePrefix() . '.requests')); ?>"
                     class="inline-flex items-center text-ivoire-text/80 hover:text-ivoire-text mb-4">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -56,57 +54,59 @@
                             <div class="flex justify-between">
                                 <span class="text-ivoire-text/70">Nom complet :</span>
                                 <span class="text-ivoire-text font-semibold">
-                                    {{ $bookingRequest->client?->first_name }} {{ $bookingRequest->client?->last_name }}
+                                    <?php echo e($bookingRequest->client?->first_name); ?> <?php echo e($bookingRequest->client?->last_name); ?>
+
                                 </span>
                             </div>
-                            @if ($bookingRequest->client?->pseudo)
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->client?->pseudo): ?>
                                 <div class="flex justify-between">
                                     <span class="text-ivoire-text/70">Pseudo :</span>
-                                    <span class="text-ivoire-text">{{ $bookingRequest->client->pseudo }}</span>
+                                    <span class="text-ivoire-text"><?php echo e($bookingRequest->client->pseudo); ?></span>
                                 </div>
-                            @endif
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             <div class="flex justify-between">
                                 <span class="text-ivoire-text/70">Email :</span>
                                 <span
-                                    class="text-ivoire-text">{{ $bookingRequest->client?->user?->email ?: 'Non renseigné' }}</span>
+                                    class="text-ivoire-text"><?php echo e($bookingRequest->client?->user?->email ?: 'Non renseigné'); ?></span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-ivoire-text/70">Téléphone :</span>
                                 <span
-                                    class="text-ivoire-text">{{ $bookingRequest->client?->phone ?: 'Non renseigné' }}</span>
+                                    class="text-ivoire-text"><?php echo e($bookingRequest->client?->phone ?: 'Non renseigné'); ?></span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-ivoire-text/70">Date de naissance :</span>
                                 <span class="text-ivoire-text">
-                                    @if ($bookingRequest->client?->birth_date)
-                                        {{ $bookingRequest->client->birth_date->format('d/m/Y') }}
-                                        ({{ $bookingRequest->client->birth_date->age }} ans)
-                                    @else
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->client?->birth_date): ?>
+                                        <?php echo e($bookingRequest->client->birth_date->format('d/m/Y')); ?>
+
+                                        (<?php echo e($bookingRequest->client->birth_date->age); ?> ans)
+                                    <?php else: ?>
                                         Non renseignée
-                                    @endif
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 </span>
                             </div>
-                            @if ($bookingRequest->client?->address)
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->client?->address): ?>
                                 <div class="flex justify-between">
                                     <span class="text-ivoire-text/70">Adresse :</span>
-                                    <span class="text-ivoire-text">{{ $bookingRequest->client->address }}</span>
+                                    <span class="text-ivoire-text"><?php echo e($bookingRequest->client->address); ?></span>
                                 </div>
-                            @endif
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
                     </div>
 
                     <!-- Détails du projet -->
                     <div class="bg-gris-fonde rounded-xl p-6 border border-titane/30">
                         <h2 class="text-xl font-bold text-ivoire-text mb-4">
-                            @if (auth()->user()->isPiercer())
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->isPiercer()): ?>
                                 Détails du piercing
-                            @else
+                            <?php else: ?>
                                 Détails du projet
-                            @endif
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </h2>
 
-                        @if (auth()->user()->isPiercer())
-                            @php
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->isPiercer()): ?>
+                            <?php
                                 $descriptionLines = explode("\n", $bookingRequest->description);
                                 $typeLine = collect($descriptionLines)->first(
                                     fn($line) => str_contains($line, 'Type :'),
@@ -117,160 +117,157 @@
                                 $specialRequestLine = collect($descriptionLines)->first(
                                     fn($line) => str_contains($line, 'Demande spécifique :'),
                                 );
-                            @endphp
+                            ?>
 
                             <div class="space-y-3">
-                                @if ($typeLine)
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($typeLine): ?>
                                     <div>
                                         <p class="text-ivoire-text/60 text-sm">Type de piercing :</p>
                                         <p class="text-ivoire-text font-semibold">
-                                            {{ str_replace('Type : ', '', $typeLine) }}</p>
+                                            <?php echo e(str_replace('Type : ', '', $typeLine)); ?></p>
                                     </div>
-                                @endif
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                                @if ($precisionsLine)
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($precisionsLine): ?>
                                     <div>
                                         <p class="text-ivoire-text/60 text-sm">Précisions :</p>
-                                        <p class="text-ivoire-text">{{ str_replace('Précisions : ', '', $precisionsLine) }}
+                                        <p class="text-ivoire-text"><?php echo e(str_replace('Précisions : ', '', $precisionsLine)); ?>
+
                                         </p>
                                     </div>
-                                @endif
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                                @if ($specialRequestLine)
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($specialRequestLine): ?>
                                     <div>
                                         <p class="text-ivoire-text/60 text-sm">Demande spécifique :</p>
                                         <p class="text-ivoire-text">
-                                            {{ str_replace('Demande spécifique : ', '', $specialRequestLine) }}</p>
+                                            <?php echo e(str_replace('Demande spécifique : ', '', $specialRequestLine)); ?></p>
                                     </div>
-                                @endif
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                                 <div>
                                     <p class="text-ivoire-text/60 text-sm">Zone du corps :</p>
-                                    <p class="text-ivoire-text font-semibold">{{ $bookingRequest->body_zone }}</p>
+                                    <p class="text-ivoire-text font-semibold"><?php echo e($bookingRequest->body_zone); ?></p>
                                 </div>
 
-                                @if ($bookingRequest->total_deposit_amount)
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->total_deposit_amount): ?>
                                     <div>
                                         <p class="text-ivoire-text/60 text-sm">💰 Tarif pour ce type</p>
                                         <p class="text-ivoire-text font-bold text-beige-peau">
-                                            {{ number_format($bookingRequest->total_deposit_amount, 2, ',', ' ') }} €</p>
+                                            <?php echo e(number_format($bookingRequest->total_deposit_amount, 2, ',', ' ')); ?> €</p>
                                     </div>
-                                @endif
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                                @if ($bookingRequest->estimated_budget)
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->estimated_budget): ?>
                                     <div>
                                         <p class="text-ivoire-text/60 text-sm">Budget estimé (optionnel) :</p>
                                         <p class="text-ivoire-text">
-                                            {{ number_format($bookingRequest->estimated_budget, 2, ',', ' ') }} €</p>
+                                            <?php echo e(number_format($bookingRequest->estimated_budget, 2, ',', ' ')); ?> €</p>
                                     </div>
-                                @else
+                                <?php else: ?>
                                     <div>
                                         <p class="text-ivoire-text/60 text-sm">Budget estimé (optionnel) :</p>
                                         <p class="text-ivoire-text/60">Non défini</p>
                                     </div>
-                                @endif
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </div>
-                        @else
+                        <?php else: ?>
                             <!-- Contenu original pour les tattooers -->
                             <div class="space-y-4">
                                 <div>
                                     <p class="text-ivoire-text/60 text-sm">Description</p>
-                                    <p class="text-ivoire-text">{{ $bookingRequest->description }}</p>
+                                    <p class="text-ivoire-text"><?php echo e($bookingRequest->description); ?></p>
                                 </div>
 
                                 <div>
                                     <p class="text-ivoire-text/60 text-sm">Zone du corps</p>
-                                    <p class="text-ivoire-text font-semibold">{{ $bookingRequest->body_zone }}</p>
+                                    <p class="text-ivoire-text font-semibold"><?php echo e($bookingRequest->body_zone); ?></p>
                                 </div>
 
-                                @if (!auth()->user()->isPiercer())
-                                    <div>
-                                        <p class="text-ivoire-text/60 text-sm">Style</p>
-                                        <p class="text-ivoire-text">{{ $bookingRequest->tattoo_style ?? 'Non défini' }}</p>
-                                    </div>
-
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!auth()->user()->isPiercer()): ?>
                                     <div>
                                         <p class="text-ivoire-text/60 text-sm">Taille</p>
-                                        <p class="text-ivoire-text">{{ $bookingRequest->tattoo_size }}</p>
+                                        <p class="text-ivoire-text"><?php echo e($bookingRequest->tattoo_size); ?></p>
                                     </div>
-                                @endif
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                                @if ($bookingRequest->estimated_total_price)
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->estimated_total_price): ?>
                                     <div>
                                         <p class="text-ivoire-text/60 text-sm">Prix estimé</p>
                                         <p class="text-ivoire-text font-bold text-beige-peau">
-                                            {{ number_format($bookingRequest->estimated_total_price, 2, ',', ' ') }} €</p>
+                                            <?php echo e(number_format($bookingRequest->estimated_total_price, 2, ',', ' ')); ?> €</p>
                                     </div>
-                                @endif
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </div>
-                        @endif
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </div>
 
                     <!-- Images de référence -->
-                    @if ($bookingRequest->getMedia('reference_images')->isNotEmpty())
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->getMedia('reference_images')->isNotEmpty()): ?>
                         <div class="bg-titane/20 rounded-xl p-6 border border-titane/30">
                             <h2 class="text-xl font-bold text-ivoire-text mb-4">Images de référence</h2>
 
                             <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                @foreach ($bookingRequest->getMedia('reference_images') as $media)
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $bookingRequest->getMedia('reference_images'); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $media): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                     <div class="aspect-square rounded-lg overflow-hidden bg-noir-profond">
-                                        <img src="{{ $media->getUrl() }}" alt="Référence"
+                                        <img src="<?php echo e($media->getUrl()); ?>" alt="Référence"
                                             class="w-full h-full object-cover hover:scale-110 transition-transform duration-300 cursor-pointer"
-                                            onclick="openLightbox('{{ $media->getUrl() }}')">
+                                            onclick="openLightbox('<?php echo e($media->getUrl()); ?>')">
                                     </div>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </div>
                         </div>
 
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     <div>
                         <span class="text-ivoire-text/70 block mb-1">Date souhaitée :</span>
                         <span class="text-ivoire-text font-semibold">
-                            @if ($bookingRequest->preferred_date)
-                                {{ $bookingRequest->preferred_date->format('d/m/Y') }}
-                            @else
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->preferred_date): ?>
+                                <?php echo e($bookingRequest->preferred_date->format('d/m/Y')); ?>
+
+                            <?php else: ?>
                                 Non définie
-                            @endif
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </span>
                     </div>
                     <div class="space-y-3 flex justify-between">
-                        @if ($bookingRequest->status->value === 'pending')
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->status->value === 'pending'): ?>
                             <button type="button"
-                                onclick="Livewire.dispatch('open-accept-modal', { bookingRequestId: {{ $bookingRequest->id }} })"
+                                onclick="Livewire.dispatch('open-accept-modal', { bookingRequestId: <?php echo e($bookingRequest->id); ?> })"
                                 class="px-4 py-2 bg-vert-succes text-noir-profond rounded-lg font-semibold hover:bg-vert-succes/90 transition-colors">
                                 ✓ Accepter
                             </button>
 
-                            <form action="{{ route($tattooer->routePrefix() . '.request-reject', $bookingRequest) }}"
+                            <form action="<?php echo e(route($tattooer->routePrefix() . '.request-reject', $bookingRequest)); ?>"
                                 method="POST" class="inline">
-                                @csrf
+                                <?php echo csrf_field(); ?>
                                 <button type="submit"
                                     class="px-4 py-2 bg-rouge-alerte/20 border border-rouge-alerte/30 text-rouge-alerte rounded-lg font-semibold hover:bg-rouge-alerte/30 transition-colors"
                                     onclick="return confirm('Refuser cette demande ?')">
                                     ✕ Refuser
                                 </button>
                             </form>
-                        @else
+                        <?php else: ?>
                             <!-- Message pour demandes déjà traitées -->
                             <div class="text-ivoire-text/60 text-sm">
                                 <p>
-                                    @if ($bookingRequest->status->value === 'accepted')
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->status->value === 'accepted'): ?>
                                         ✅ <strong>Demande acceptée</strong> - Le client a été notifié.
-                                    @elseif ($bookingRequest->status->value === 'rejected')
+                                    <?php elseif($bookingRequest->status->value === 'rejected'): ?>
                                         ❌ <strong>Demande refusée</strong>
-                                    @else
-                                        📋 <strong>Demande {{ $bookingRequest->status->value }}</strong>
-                                    @endif
+                                    <?php else: ?>
+                                        📋 <strong>Demande <?php echo e($bookingRequest->status->value); ?></strong>
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 </p>
 
-                                @if ($bookingRequest->conversation)
-                                    <a href="{{ route($tattooer->routePrefix() . '.message.show', $bookingRequest) }}"
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->conversation): ?>
+                                    <a href="<?php echo e(route($tattooer->routePrefix() . '.message.show', $bookingRequest)); ?>"
                                         class="inline-block px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
                                         💬 Voir la conversation
                                     </a>
-                                @endif
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </div>
-                        @endif
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </div>
                 </div>
 
@@ -278,17 +275,17 @@
                 <div class="space-y-4">
                     <div>
                         <span class="text-ivoire-text/70 block mb-1">Description :</span>
-                        <p class="text-ivoire-text">{{ $bookingRequest->description }}</p>
+                        <p class="text-ivoire-text"><?php echo e($bookingRequest->description); ?></p>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <span class="text-ivoire-text/70 block mb-1">Emplacement :</span>
-                            <span class="text-ivoire-text font-semibold">{{ $bookingRequest->body_zone }}</span>
+                            <span class="text-ivoire-text font-semibold"><?php echo e($bookingRequest->body_zone); ?></span>
                         </div>
                         <div>
                             <span class="text-ivoire-text/70 block mb-1">Taille :</span>
-                            <span class="text-ivoire-text font-semibold">{{ $bookingRequest->tattoo_size }}</span>
+                            <span class="text-ivoire-text font-semibold"><?php echo e($bookingRequest->tattoo_size); ?></span>
                         </div>
                     </div>
 
@@ -296,16 +293,17 @@
                         <div>
                             <span class="text-ivoire-text/70 block mb-1">Budget estimé :</span>
                             <span
-                                class="text-ivoire-text font-semibold">{{ $bookingRequest->estimated_total_price ? number_format($bookingRequest->estimated_total_price, 2, ',', ' ') . ' €' : 'Non défini' }}</span>
+                                class="text-ivoire-text font-semibold"><?php echo e($bookingRequest->estimated_total_price ? number_format($bookingRequest->estimated_total_price, 2, ',', ' ') . ' €' : 'Non défini'); ?></span>
                         </div>
                         <div>
                             <span class="text-ivoire-text/70 block mb-1">Date souhaitée :</span>
                             <span class="text-ivoire-text font-semibold">
-                                @if ($bookingRequest->preferred_date)
-                                    {{ $bookingRequest->preferred_date->format('d/m/Y') }}
-                                @else
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->preferred_date): ?>
+                                    <?php echo e($bookingRequest->preferred_date->format('d/m/Y')); ?>
+
+                                <?php else: ?>
                                     Non définie
-                                @endif
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </span>
                         </div>
                     </div>
@@ -314,12 +312,13 @@
                         <span class="text-ivoire-text/70 block mb-1">Statut :</span>
                         <span
                             class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-                                @if ($bookingRequest->status->value === 'pending') bg-jaune-alerte/20 text-jaune-alerte
-                                @elseif($bookingRequest->status->value === 'accepted') bg-vert-succes/20 text-vert-succes
-                                @elseif($bookingRequest->status->value === 'in_progress') bg-beige-peau/20 text-beige-peau
-                                @elseif($bookingRequest->status->value === 'completed') bg-vert-succes/20 text-vert-succes
-                                @elseif($bookingRequest->status->value === 'cancelled') bg-rouge-alerte/20 text-rouge-alerte @endif">
-                            {{ ucfirst($bookingRequest->status->value) }}
+                                <?php if($bookingRequest->status->value === 'pending'): ?> bg-jaune-alerte/20 text-jaune-alerte
+                                <?php elseif($bookingRequest->status->value === 'accepted'): ?> bg-vert-succes/20 text-vert-succes
+                                <?php elseif($bookingRequest->status->value === 'in_progress'): ?> bg-beige-peau/20 text-beige-peau
+                                <?php elseif($bookingRequest->status->value === 'completed'): ?> bg-vert-succes/20 text-vert-succes
+                                <?php elseif($bookingRequest->status->value === 'cancelled'): ?> bg-rouge-alerte/20 text-rouge-alerte <?php endif; ?>">
+                            <?php echo e(ucfirst($bookingRequest->status->value)); ?>
+
                         </span>
                     </div>
                 </div>
@@ -332,17 +331,17 @@
                     <div class="bg-gris-fonde rounded-xl p-6 border border-titane/30">
                         <h3 class="text-lg font-bold text-ivoire-text mb-4">Actions</h3>
 
-                        @if ($bookingRequest->status->value === 'pending')
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->status->value === 'pending'): ?>
                             <div class="space-y-3">
                                 <button type="button"
-                                    onclick="Livewire.dispatch('open-accept-modal', { bookingRequestId: {{ $bookingRequest->id }} })"
+                                    onclick="Livewire.dispatch('open-accept-modal', { bookingRequestId: <?php echo e($bookingRequest->id); ?> })"
                                     class="px-4 py-3 bg-vert-succes text-noir-profond rounded-lg font-semibold hover:bg-vert-succes/90 transition-colors">
                                     ✓ Accepter
                                 </button>
 
-                                <form action="{{ route($tattooer->routePrefix() . '.request-reject', $bookingRequest) }}"
+                                <form action="<?php echo e(route($tattooer->routePrefix() . '.request-reject', $bookingRequest)); ?>"
                                     method="POST" class="inline">
-                                    @csrf
+                                    <?php echo csrf_field(); ?>
                                     <button type="submit"
                                         class="px-4 py-3 bg-rouge-alerte/20 border border-rouge-alerte/30 text-rouge-alerte rounded-lg font-semibold hover:bg-rouge-alerte/30 transition-colors"
                                         onclick="return confirm('Refuser cette demande ?')">
@@ -350,75 +349,78 @@
                                     </button>
                                 </form>
                             </div>
-                        @else
+                        <?php else: ?>
                             <!-- Affichage pour les demandes acceptées/résolues -->
                             <div class="text-ivoire-text/60 text-sm">
                                 <p class="mb-2">
-                                    @if ($bookingRequest->status->value === 'accepted')
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->status->value === 'accepted'): ?>
                                         ✅ <strong>Demande acceptée</strong> - Le client a été notifié et peut procéder au
                                         paiement.
                                         💬 Voir la conversation
                                         </a>
-                                    @endif
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </div>
-                        @endif
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                     </div>
 
                     <!-- Section détails de proposition pour demandes acceptées -->
-                    @if (in_array($bookingRequest->status->value, [
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(in_array($bookingRequest->status->value, [
                             'accepted',
                             'awaiting_deposit',
                             'deposit_paid',
                             'design_sent',
                             'confirmed',
                             'date_confirmed',
-                        ]))
+                        ])): ?>
                         <!-- Ici : AFFICHER les détails de la demande (infos remplies dans modal) -->
                         <div class="bg-vert-succes/10 border border-vert-succes/30 rounded-xl p-6">
                             <h3 class="text-lg font-bold text-ivoire-text mb-4">📋 Détails de votre proposition</h3>
 
                             <div class="space-y-4">
                                 <!-- 💰 Fourchette prix -->
-                                @if (!auth()->user()->isPiercer() && ($bookingRequest->price_range_min || $bookingRequest->price_range_max))
+                                <?php if(!auth()->user()->isPiercer() && ($bookingRequest->price_range_min || $bookingRequest->price_range_max)): ?>
                                     <div class="bg-noir-profond/50 rounded-lg p-4">
                                         <h4 class="font-semibold text-ivoire-text/80 text-sm mb-2">💰 Tarif estimé</h4>
                                         <p class="text-ivoire-text">
                                             Entre <span
-                                                class="font-bold text-beige-peau">{{ number_format($bookingRequest->price_range_min, 2, ',', ' ') }}
+                                                class="font-bold text-beige-peau"><?php echo e(number_format($bookingRequest->price_range_min, 2, ',', ' ')); ?>
+
                                                 €</span>
                                             et <span
-                                                class="font-bold text-beige-peau">{{ number_format($bookingRequest->price_range_max, 2, ',', ' ') }}
+                                                class="font-bold text-beige-peau"><?php echo e(number_format($bookingRequest->price_range_max, 2, ',', ' ')); ?>
+
                                                 €</span>
                                         </p>
                                     </div>
-                                @endif
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                                 <!-- 📅 Dates proposées -->
-                                @if (
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(
                                     $bookingRequest->proposed_dates &&
                                         is_array($bookingRequest->proposed_dates) &&
-                                        count($bookingRequest->proposed_dates) > 0)
+                                        count($bookingRequest->proposed_dates) > 0): ?>
                                     <div class="bg-noir-profond/50 rounded-lg p-4">
                                         <h4 class="font-semibold text-ivoire-text/80 text-sm mb-2">📅 Dates proposées</h4>
                                         <div class="flex flex-wrap gap-2">
-                                            @foreach ($bookingRequest->proposed_dates as $date)
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $bookingRequest->proposed_dates; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $date): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                 <span
                                                     class="px-3 py-1 bg-beige-peau/20 text-beige-peau rounded-full text-sm font-medium">
-                                                    {{ \Carbon\Carbon::parse($date['date'])->format('l d/m/Y') }}
+                                                    <?php echo e(\Carbon\Carbon::parse($date['date'])->format('l d/m/Y')); ?>
+
                                                 </span>
-                                            @endforeach
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                         </div>
                                     </div>
-                                @endif
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                                 <!-- 💬 Message tattooer -->
-                                @if ($bookingRequest->tattooer_notes)
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->tattooer_notes): ?>
                                     <div class="bg-noir-profond/50 rounded-lg p-4">
                                         <h4 class="font-semibold text-ivoire-text/80 text-sm mb-2">💬 Votre message</h4>
                                         <p class="text-ivoire-text/80 whitespace-pre-wrap">
-                                            {{ $bookingRequest->tattooer_notes }}</p>
+                                            <?php echo e($bookingRequest->tattooer_notes); ?></p>
                                     </div>
-                                @endif
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </div>
                         </div>
 
@@ -427,16 +429,16 @@
                         <div class="bg-titane/20 rounded-xl p-6 border border-titane/30 mt-4">
                             <h3 class="text-lg font-bold text-ivoire-text mb-4">Actions</h3>
                             <div class="space-y-3">
-                                @if ($bookingRequest->conversation)
-                                    <a href="{{ route($tattooer->routePrefix() . '.message.show', $bookingRequest) }}"
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->conversation): ?>
+                                    <a href="<?php echo e(route($tattooer->routePrefix() . '.message.show', $bookingRequest)); ?>"
                                         class="block w-full px-4 py-3 bg-beige-peau text-noir-profond rounded-xl font-bold text-center hover:bg-beige-peau/90 transition-all">
                                         💬 Chat avec le client
                                     </a>
-                                @endif
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                                <form action="{{ route($tattooer->routePrefix() . '.request-reject', $bookingRequest) }}"
+                                <form action="<?php echo e(route($tattooer->routePrefix() . '.request-reject', $bookingRequest)); ?>"
                                     method="POST">
-                                    @csrf
+                                    <?php echo csrf_field(); ?>
                                     <button type="submit"
                                         class="w-full px-4 py-3 bg-rouge-alerte/20 border border-rouge-alerte/30 text-rouge-alerte rounded-xl font-semibold text-center hover:bg-rouge-alerte/30 transition-all"
                                         onclick="return confirm('Annuler ce projet ? Cette action est irréversible.')">
@@ -444,11 +446,11 @@
                                     </button>
                                 </form>
 
-                                @if ($bookingRequest->status->value === 'date_confirmed')
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->status->value === 'date_confirmed'): ?>
                                     <form
-                                        action="{{ route($tattooer->routePrefix() . '.booking-requests.complete', $bookingRequest) }}"
+                                        action="<?php echo e(route($tattooer->routePrefix() . '.booking-requests.complete', $bookingRequest)); ?>"
                                         method="POST">
-                                        @csrf
+                                        <?php echo csrf_field(); ?>
                                         <button type="submit"
                                             class="w-full px-4 py-3 bg-vert-succes text-white rounded-xl font-bold text-center hover:bg-vert-succes/90 transition-all">
                                             ✅ RDV Validé
@@ -456,53 +458,54 @@
                                     </form>
 
                                     <form
-                                        action="{{ route($tattooer->routePrefix() . '.booking-requests.no-show', $bookingRequest) }}"
+                                        action="<?php echo e(route($tattooer->routePrefix() . '.booking-requests.no-show', $bookingRequest)); ?>"
                                         method="POST"
                                         onsubmit="return confirm('Êtes-vous sûr de vouloir déclarer ce client comme absent ? Cette action est irréversible et incrémentera son compteur de no-show.')">
-                                        @csrf
+                                        <?php echo csrf_field(); ?>
                                         <button type="submit"
                                             class="w-full px-4 py-3 bg-rouge-alerte text-white rounded-xl font-bold text-center hover:bg-rouge-alerte/90 transition-all">
                                             ❌ Déclarer No-show
                                         </button>
                                     </form>
-                                @endif
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                             </div>
                         </div>
-                        @if ($bookingRequest->status->value === 'completed')
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->status->value === 'completed'): ?>
                             <!-- Afficher résumé final -->
                             <div class="bg-vert-succes/10 border border-vert-succes/30 rounded-xl p-6">
                                 <h3 class="text-lg font-bold text-ivoire-text mb-4">✅ Projet terminé</h3>
                                 <p class="text-ivoire-text">Ce projet a été réalisé avec succès.</p>
                                 <div class="mt-4">
-                                    @include('partials.pdf-download-button', [
-                                        'url' => route('pdf.receipt', $bookingRequest),
+                                    <?php echo $__env->make('partials.pdf-download-button', [
+                                        'url'   => route('pdf.receipt', $bookingRequest),
                                         'label' => 'Télécharger le reçu (PDF)',
-                                    ])
+                                    ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
                                 </div>
                             </div>
-                        @elseif (in_array($bookingRequest->status->value, ['cancelled', 'rejected']))
+                        <?php elseif(in_array($bookingRequest->status->value, ['cancelled', 'rejected'])): ?>
                             <!-- Afficher statut final avec raison -->
                             <div class="bg-rouge-alerte/10 border border-rouge-alerte/30 rounded-xl p-6">
                                 <h3 class="text-lg font-bold text-ivoire-text mb-4">❌ Projet annulé</h3>
                                 <p class="text-ivoire-text">
-                                    @if ($bookingRequest->cancellation_reason)
-                                        Raison : {{ $bookingRequest->cancellation_reason }}
-                                    @else
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->cancellation_reason): ?>
+                                        Raison : <?php echo e($bookingRequest->cancellation_reason); ?>
+
+                                    <?php else: ?>
                                         Ce projet a été annulé.
-                                    @endif
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 </p>
                             </div>
-                        @endif
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                         <!-- PROPOSITION TATTOOER — visible dès que status >= accepted -->
-                        @if (in_array($bookingRequest->status->value, [
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(in_array($bookingRequest->status->value, [
                                 \App\Enums\BookingRequestStatus::ACCEPTED->value,
                                 \App\Enums\BookingRequestStatus::DEPOSIT_REQUESTED->value,
                                 \App\Enums\BookingRequestStatus::DEPOSIT_PAID->value,
                                 \App\Enums\BookingRequestStatus::DATE_CONFIRMED->value,
                                 \App\Enums\BookingRequestStatus::COMPLETED->value,
-                            ]))
+                            ])): ?>
                             <div
                                 class="bg-gradient-to-br from-vert-succes/10 to-vert-succes/5 rounded-xl p-6 border border-vert-succes/30">
                                 <h3 class="text-xl font-bold text-ivoire-text mb-4 flex items-center gap-2">
@@ -518,85 +521,93 @@
                                     <!-- 💰 Fourchette prix -->
                                     <div class="bg-noir-profond/50 rounded-lg p-4">
                                         <h4 class="font-semibold text-ivoire-text/80 text-sm mb-2">💰 Tarif estimé</h4>
-                                        @if ($bookingRequest->price_estimate_min || $bookingRequest->price_estimate_max)
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->price_estimate_min || $bookingRequest->price_estimate_max): ?>
                                             <p class="text-ivoire-text">
                                                 Entre <span
-                                                    class="font-bold text-beige-peau">{{ number_format($bookingRequest->price_estimate_min, 2, ',', ' ') }}
+                                                    class="font-bold text-beige-peau"><?php echo e(number_format($bookingRequest->price_estimate_min, 2, ',', ' ')); ?>
+
                                                     €</span>
                                                 et <span
-                                                    class="font-bold text-beige-peau">{{ number_format($bookingRequest->price_estimate_max, 2, ',', ' ') }}
+                                                    class="font-bold text-beige-peau"><?php echo e(number_format($bookingRequest->price_estimate_max, 2, ',', ' ')); ?>
+
                                                     €</span>
                                             </p>
-                                            @if ($bookingRequest->estimated_total_price)
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->estimated_total_price): ?>
                                                 <p class="text-ivoire-text/60 text-sm mt-1">
                                                     Estimation finale : <span
-                                                        class="text-ivoire-text font-semibold">{{ number_format($bookingRequest->estimated_total_price, 2, ',', ' ') }}
+                                                        class="text-ivoire-text font-semibold"><?php echo e(number_format($bookingRequest->estimated_total_price, 2, ',', ' ')); ?>
+
                                                         €</span>
                                                 </p>
-                                            @endif
-                                        @else
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        <?php else: ?>
                                             <p class="text-ivoire-text/60">Tarif non encore défini</p>
-                                        @endif
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                     </div>
 
                                     <!-- 📅 Sélection des dates -->
                                     <div class="bg-noir-profond/50 rounded-lg p-4">
                                         <h4 class="font-semibold text-ivoire-text/80 text-sm mb-2">📅 Date choisie par le
                                             client</h4>
-                                        @if ($bookingRequest->client_selected_dates && !empty($bookingRequest->client_selected_dates))
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->client_selected_dates && !empty($bookingRequest->client_selected_dates)): ?>
                                             <div class="space-y-2">
-                                                @foreach ($bookingRequest->client_selected_dates as $selectedDate)
+                                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $bookingRequest->client_selected_dates; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $selectedDate): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                     <div
                                                         class="flex items-center justify-between text-sm bg-beige-peau/10 border border-beige-peau/30 rounded-lg p-3">
                                                         <span class="text-ivoire-text">
-                                                            {{ \Carbon\Carbon::parse($selectedDate['date'])->format('d/m/Y') }}
+                                                            <?php echo e(\Carbon\Carbon::parse($selectedDate['date'])->format('d/m/Y')); ?>
+
                                                         </span>
-                                                        @if ($selectedDate['period'])
+                                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($selectedDate['period']): ?>
                                                             <span
                                                                 class="px-2 py-1 bg-beige-peau text-noir-profond text-xs rounded-full">
-                                                                {{ $selectedDate['period'] === 'morning' ? 'Matin' : ($selectedDate['period'] === 'afternoon' ? 'Après-midi' : 'Soir') }}
+                                                                <?php echo e($selectedDate['period'] === 'morning' ? 'Matin' : ($selectedDate['period'] === 'afternoon' ? 'Après-midi' : 'Soir')); ?>
+
                                                             </span>
-                                                        @endif
+                                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                                     </div>
-                                                @endforeach
+                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                             </div>
-                                        @else
+                                        <?php else: ?>
                                             <p class="text-ivoire-text/60">Le client n'a pas encore choisi de date</p>
-                                        @endif
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                     </div>
 
                                     <!-- 📅 Dates proposées -->
                                     <div class="bg-noir-profond/50 rounded-lg p-4">
                                         <h4 class="font-semibold text-ivoire-text/80 text-sm mb-2">📅 Dates proposées</h4>
-                                        @if ($bookingRequest->proposed_dates && !empty($bookingRequest->proposed_dates))
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->proposed_dates && !empty($bookingRequest->proposed_dates)): ?>
                                             <div class="space-y-2">
-                                                @foreach ($bookingRequest->proposed_dates as $index => $date)
+                                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $bookingRequest->proposed_dates; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $date): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                     <div class="flex items-center justify-between text-sm">
                                                         <span class="text-ivoire-text">
-                                                            {{ \Carbon\Carbon::parse($date['date'])->format('d/m/Y') }}
+                                                            <?php echo e(\Carbon\Carbon::parse($date['date'])->format('d/m/Y')); ?>
+
                                                         </span>
-                                                        @if ($date['period'])
+                                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($date['period']): ?>
                                                             <span
                                                                 class="px-2 py-1 bg-beige-peau/20 text-beige-peau text-xs rounded-full">
-                                                                {{ $date['period'] === 'morning' ? 'Matin' : ($date['period'] === 'afternoon' ? 'Après-midi' : 'Soir') }}
+                                                                <?php echo e($date['period'] === 'morning' ? 'Matin' : ($date['period'] === 'afternoon' ? 'Après-midi' : 'Soir')); ?>
+
                                                             </span>
-                                                        @endif
+                                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                                     </div>
-                                                @endforeach
+                                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                             </div>
-                                            @if ($bookingRequest->date_selection_deadline)
+                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->date_selection_deadline): ?>
                                                 <p class="text-ivoire-text/60 text-xs mt-2">
                                                     Date limite de sélection :
-                                                    {{ \Carbon\Carbon::parse($bookingRequest->date_selection_deadline)->format('d/m/Y à H:i') }}
+                                                    <?php echo e(\Carbon\Carbon::parse($bookingRequest->date_selection_deadline)->format('d/m/Y à H:i')); ?>
+
                                                 </p>
-                                            @endif
-                                        @else
+                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                        <?php else: ?>
                                             <p class="text-ivoire-text/60">Dates non encore proposées</p>
-                                        @endif
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                     </div>
 
                                     <!-- 🎨 Phase création -->
-                                    @if (!auth()->user()->isPiercer() && $bookingRequest->included_design_versions)
+                                    <?php if(!auth()->user()->isPiercer() && $bookingRequest->included_design_versions): ?>
                                         <div class="bg-noir-profond/50 rounded-lg p-4">
                                             <h4 class="font-semibold text-ivoire-text/80 text-sm mb-2">🎨 Phase création
                                             </h4>
@@ -604,26 +615,26 @@
                                                 <div>
                                                     <span class="text-ivoire-text/60">Dessins inclus :</span>
                                                     <span
-                                                        class="text-ivoire-text font-semibold ml-2">{{ $bookingRequest->included_design_versions }}</span>
+                                                        class="text-ivoire-text font-semibold ml-2"><?php echo e($bookingRequest->included_design_versions); ?></span>
                                                 </div>
                                                 <div>
                                                     <span class="text-ivoire-text/60">Modifs/dessin :</span>
                                                     <span
-                                                        class="text-ivoire-text font-semibold ml-2">{{ $bookingRequest->modifications_per_design ?? 2 }}</span>
+                                                        class="text-ivoire-text font-semibold ml-2"><?php echo e($bookingRequest->modifications_per_design ?? 2); ?></span>
                                                 </div>
-                                                @if ($bookingRequest->design_modification_rules)
+                                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->design_modification_rules): ?>
                                                     <div class="col-span-2">
                                                         <span class="text-ivoire-text/60">Règles de modification :</span>
                                                         <p class="text-ivoire-text mt-1">
-                                                            {{ $bookingRequest->design_modification_rules }}</p>
+                                                            <?php echo e($bookingRequest->design_modification_rules); ?></p>
                                                     </div>
-                                                @endif
+                                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                             </div>
                                         </div>
-                                    @endif
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                                     <!-- Acompte/Paiement pour pierceurs -->
-                                    @if ($tattooer instanceof \App\Models\Piercer)
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tattooer instanceof \App\Models\Piercer): ?>
                                         <div class="bg-noir-profond/50 rounded-lg p-4">
                                             <h4 class="font-semibold text-ivoire-text/80 text-sm mb-2">💰 Options de
                                                 paiement
@@ -649,57 +660,59 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    @endif
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                        @endif
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                         <div class="bg-noir-profond/50 rounded-lg p-4">
                             <h4 class="font-semibold text-ivoire-text mb-2">Acompte</h4>
-                            @if ($bookingRequest->total_deposit_amount)
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->total_deposit_amount): ?>
                                 <div class="space-y-2 text-sm">
                                     <div class="flex justify-between">
                                         <span class="text-ivoire-text/60">Montant :</span>
                                         <span
-                                            class="text-ivoire-text font-semibold">{{ number_format($bookingRequest->total_deposit_amount, 2, ',', ' ') }}€</span>
+                                            class="text-ivoire-text font-semibold"><?php echo e(number_format($bookingRequest->total_deposit_amount, 2, ',', ' ')); ?>€</span>
                                     </div>
-                                    @if ($bookingRequest->deposit_deadline)
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->deposit_deadline): ?>
                                         <div class="flex justify-between">
                                             <span class="text-ivoire-text/60">Date limite :</span>
                                             <span class="text-ivoire-text">
-                                                {{ is_string($bookingRequest->deposit_deadline)
+                                                <?php echo e(is_string($bookingRequest->deposit_deadline)
                                                     ? \Carbon\Carbon::parse($bookingRequest->deposit_deadline)->format('d/m/Y')
-                                                    : $bookingRequest->deposit_deadline->format('d/m/Y') }}
+                                                    : $bookingRequest->deposit_deadline->format('d/m/Y')); ?>
+
                                             </span>
                                         </div>
-                                    @endif
-                                    @if ($bookingRequest->deposit_covers_description)
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->deposit_covers_description): ?>
                                         <div>
                                             <span class="text-ivoire-text/60">Ce que couvre l'acompte :</span>
                                             <p class="text-ivoire-text mt-1">
-                                                {{ $bookingRequest->deposit_covers_description ? 'Dessin et RDV' : 'Non spécifié' }}
+                                                <?php echo e($bookingRequest->deposit_covers_description ? 'Dessin et RDV' : 'Non spécifié'); ?>
+
                                             </p>
                                         </div>
-                                    @endif
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 </div>
-                            @endif
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
                 </div>
             </div>
 
 
-            {{-- === BLOC PAIEMENT SOLDE (tattooer) === --}}
-            @php
+            
+            <?php
                 $allowsBalance = $bookingRequest->status === \App\Enums\BookingRequestStatus::COMPLETED;
                 $hasBalance = ($bookingRequest->balance_remaining ?? 0) > 0;
-            @endphp
+            ?>
 
-            @if ($allowsBalance && $hasBalance)
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($allowsBalance && $hasBalance): ?>
                 <div class="mt-4 p-4 rounded-xl bg-orange-terre-cuite/5 border border-orange-terre-cuite/20">
                     <div class="flex items-center justify-between mb-3">
                         <div>
                             <h4 class="text-sm font-semibold text-noir-profond">Solde restant</h4>
                             <p class="text-2xl font-bold text-orange-terre-cuite">
-                                {{ number_format($bookingRequest->balance_remaining, 2, ',', ' ') }} €</p>
+                                <?php echo e(number_format($bookingRequest->balance_remaining, 2, ',', ' ')); ?> €</p>
                         </div>
                         <span class="text-xs text-noir-profond/50 bg-noir-profond/5 px-2 py-1 rounded">En
                             attente</span>
@@ -717,7 +730,7 @@
                     </button>
                 </div>
 
-                {{-- Modal paiement hors plateforme --}}
+                
                 <div x-data="{ open: false }"
                     @open-modal.window="if ($event.detail === 'offline-payment-modal') open = true" x-show="open" x-cloak
                     x-transition class="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -726,15 +739,15 @@
                         <h3 class="text-lg font-bold text-noir-profond mb-1">Confirmer le paiement du solde</h3>
                         <p class="text-sm text-noir-profond/60 mb-4">Le client vous a réglé directement ?</p>
                         <form
-                            action="{{ route($tattooer->routePrefix() . '.balance-payment.confirm-offline', $bookingRequest) }}"
+                            action="<?php echo e(route($tattooer->routePrefix() . '.balance-payment.confirm-offline', $bookingRequest)); ?>"
                             method="POST">
-                            @csrf
+                            <?php echo csrf_field(); ?>
                             <div class="space-y-4">
                                 <div>
                                     <label class="block text-sm font-medium text-noir-profond mb-1">Montant reçu
                                         (€)</label>
                                     <input type="number" name="amount" step="0.01"
-                                        value="{{ $bookingRequest->balance_remaining }}"
+                                        value="<?php echo e($bookingRequest->balance_remaining); ?>"
                                         class="w-full border border-noir-profond/20 rounded-xl p-3 text-sm focus:ring-2 focus:ring-orange-terre-cuite/50 focus:border-orange-terre-cuite">
                                 </div>
                                 <div>
@@ -768,7 +781,7 @@
                         </form>
                     </div>
                 </div>
-            @endif
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
             <!-- Timeline -->
             <div class="bg-titane/20 rounded-xl p-6 border border-titane/30">
@@ -780,35 +793,35 @@
                         <div>
                             <p class="text-ivoire-text font-semibold">Demande créée</p>
                             <p class="text-ivoire-text/70 text-sm">
-                                {{ $bookingRequest->created_at->format('d/m/Y à H:i') }}</p>
+                                <?php echo e($bookingRequest->created_at->format('d/m/Y à H:i')); ?></p>
                         </div>
                     </div>
 
-                    @if ($bookingRequest->accepted_at)
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->accepted_at): ?>
                         <div class="flex items-start space-x-3">
                             <div class="w-2 h-2 bg-vert-succes rounded-full mt-2"></div>
                             <div>
                                 <p class="text-ivoire-text font-semibold">Demande acceptée</p>
                                 <p class="text-ivoire-text/70 text-sm">
-                                    {{ $bookingRequest->accepted_at->format('d/m/Y à H:i') }}</p>
+                                    <?php echo e($bookingRequest->accepted_at->format('d/m/Y à H:i')); ?></p>
                             </div>
                         </div>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                    @if ($bookingRequest->cancelled_at)
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($bookingRequest->cancelled_at): ?>
                         <div class="flex items-start space-x-3">
                             <div class="w-2 h-2 bg-rouge-alerte rounded-full mt-2"></div>
                             <div>
                                 <p class="text-ivoire-text font-semibold">Demande refusée</p>
                                 <p class="text-ivoire-text/70 text-sm">
-                                    {{ $bookingRequest->cancelled_at->format('d/m/Y à H:i') }}</p>
+                                    <?php echo e($bookingRequest->cancelled_at->format('d/m/Y à H:i')); ?></p>
                             </div>
                         </div>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
             </div>
         </div>
-        @endif
+        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
         <!-- Lightbox -->
         <div id="lightbox" class="fixed inset-0 z-50 bg-noir-profond/95 backdrop-blur-sm hidden"
@@ -867,6 +880,27 @@
         </script>
 
         <!-- Modal d'acceptation Livewire -->
-        <livewire:tattooer.accept-booking-modal />
+        <?php
+$__split = function ($name, $params = []) {
+    return [$name, $params];
+};
+[$__name, $__params] = $__split('tattooer.accept-booking-modal', []);
 
-    @endsection
+$key = null;
+
+$key ??= \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::generateKey('lw-1363916394-0', null);
+
+$__html = app('livewire')->mount($__name, $__params, $key);
+
+echo $__html;
+
+unset($__html);
+unset($__name);
+unset($__params);
+unset($__split);
+if (isset($__slots)) unset($__slots);
+?>
+
+    <?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.tattooer', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\tattoolib-saas\resources\views/tattooer/request-show.blade.php ENDPATH**/ ?>

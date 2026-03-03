@@ -15,9 +15,9 @@
             @auth
                 <!-- Navigation selon rôle (sans lien profil) -->
                 @if (auth()->user()->role === 'client')
-                    <a href="{{ route('client.dashboard') }}"
+                    <a href="{{ route('client.profile') }}"
                         class="text-ivoire-text hover:text-beige-peau transition-colors">
-                        Tableau de bord
+                        Mon profil
                     </a>
                     <a href="{{ route('client.booking-requests') }}"
                         class="text-ivoire-text hover:text-beige-peau transition-colors">
@@ -105,9 +105,9 @@
 
                 @auth
                     @if (auth()->user()->role === 'client')
-                        <a href="{{ route('client.dashboard') }}"
+                        <a href="{{ route('client.profile') }}"
                             class="block px-4 py-2 text-ivoire-text hover:bg-titane/20 rounded-lg">
-                            Tableau de bord
+                            Mon profil
                         </a>
                         <a href="{{ route('client.booking-requests') }}"
                             class="block px-4 py-2 text-ivoire-text hover:bg-titane/20 rounded-lg">

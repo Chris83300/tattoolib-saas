@@ -199,7 +199,7 @@
         </aside>
 
         <!-- Main Content -->
-        <main class="flex-1 lg:ml-64 overflow-hidden min-w-0 w-full h-screen">
+        <main class="flex-1 lg:ml-64 overflow-x-hidden overflow-y-auto min-w-0 w-full h-screen">
 
             <!-- Header Mobile (visible uniquement sur mobile) -->
             <header class="lg:hidden bg-gris-fonde border-b border-titane/20 p-4 sticky top-0 z-40">
@@ -230,7 +230,7 @@
             </header>
 
             <!-- Content -->
-            <div class="p-4 lg:p-8 pb-24 lg:pb-8 max-w-full overflow-hidden">
+            <div class="p-4 lg:p-8 pb-24 lg:pb-8 max-w-full overflow-y-auto">
                 <?php echo $__env->yieldContent('content'); ?>
                 <?php echo $__env->make('partials.footer-legal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
             </div>
@@ -334,6 +334,10 @@
                     <a href="<?php echo e(route($routePrefix . '.settings')); ?>"
                         class="p-4 rounded-xl bg-noir-profond text-ivoire-text border border-titane/20">
                         <div class="font-semibold">Paramètres</div>
+                    </a>
+                    <a href="<?php echo e(route($routePrefix . '.profile')); ?>"
+                        class="p-4 rounded-xl bg-noir-profond text-ivoire-text border border-titane/20">
+                        <div class="font-semibold">Mon profil</div>
                     </a>
                 </div>
             </div>
