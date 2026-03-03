@@ -195,6 +195,8 @@
 
     @livewire('tattooer.booking-quick-create')
     @livewire('tattooer.appointment-detail-modal')
+
+    @include('partials.cookie-consent')
 </body>
 
 </html>

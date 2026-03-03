@@ -54,6 +54,12 @@
                     <li><a href="{{ route('legal.cgv-clients') }}" class="hover:text-beige-peau transition-colors">CGV</a></li>
                     <li><a href="{{ route('legal.politique-confidentialite') }}" class="hover:text-beige-peau transition-colors">Confidentialité</a></li>
                     <li><a href="{{ route('legal.politique-cookies') }}" class="hover:text-beige-peau transition-colors">Cookies</a></li>
+                    <li>
+                        <button onclick="document.cookie='cookie_consent=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'; location.reload();"
+                            class="hover:text-beige-peau transition-colors text-left">
+                            Gérer mes cookies
+                        </button>
+                    </li>
                     <li><a href="/contact" class="hover:text-beige-peau transition-colors">Contact</a></li>
                 </ul>
             </div>
