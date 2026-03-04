@@ -66,8 +66,8 @@ class PaymentController extends Controller
         $commissionRate = $artist->getCommissionRate();
 
         try {
-            // Plan FREE → Application Fee (7%)
-            if ($artistPlan === \App\Models\Subscription::PLAN_FREE) {
+            // Plan STARTER → Application Fee (7% commission)
+            if ($artistPlan === \App\Models\Subscription::PLAN_STARTER) {
                 $commissionAmount = $artist->calculateCommission($depositAmountCents);
 
                 $paymentIntent = PaymentIntent::create([

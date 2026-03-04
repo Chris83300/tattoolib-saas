@@ -53,9 +53,9 @@ class BalancePaymentController extends Controller
         $stripeAccountId = $tattooer?->getStripeAccountId();
         abort_unless($stripeAccountId, 500, 'Compte Stripe artiste non configuré.');
 
-        // Calculer la commission (même logique que l'acompte)
-        $isPro = $tattooer?->user?->subscribed('pro') ?? false;
-        $applicationFee = $isPro ? 0 : (int) round($balanceRemaining * 100 * 0.07); // 7% FREE
+        // Calculer la commission basée sur le plan (STARTER=7%, PRO/STUDIO=0%)
+        $commissionRate = $tattooer?->getCommissionRate() ?? 0.07;
+        $applicationFee = $commissionRate > 0 ? (int) round($balanceRemaining * 100 * $commissionRate) : 0;
 
         $sessionParams = [
             'payment_method_types' => ['card'],

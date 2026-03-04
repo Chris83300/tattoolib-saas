@@ -29,7 +29,7 @@ class RevenueOverviewWidget extends ChartWidget
             return [$date => $revenue / 100]; // Conversion en euros si en centimes
         });
 
-        // Calcul du CA total avec commission 7%
+        // Calcul du CA total avec commission STARTER 7% (approximatif — taux réel par transaction)
         $totalRevenue = $dailyRevenue->sum();
         $platformCommission = $totalRevenue * 0.07;
         $netRevenue = $totalRevenue - $platformCommission;
