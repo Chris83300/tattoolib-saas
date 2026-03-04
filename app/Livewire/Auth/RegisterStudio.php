@@ -115,9 +115,9 @@ class RegisterStudio extends AuthLayoutComponent
             'postal_code' => $this->postal_code,
             'address' => $this->company_address,
             'phone' => $this->phone,
-            'payment_mode' => $this->payment_mode,
-            'subscription_plan' => 'free', // Plan FREE par défaut
+            'payment_mode'  => $this->payment_mode,
             'trial_ends_at' => now()->addDays(14),
+            'is_blocked'    => false,
         ]);
 
         // Associer le user au studio

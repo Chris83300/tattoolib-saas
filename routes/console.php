@@ -22,3 +22,6 @@ Schedule::command('app:send-post-tattoo-notifications')->hourly();
 
 // Rappels trial studio — J-4 avant expiration (tous les jours à 9h)
 Schedule::command('studios:send-trial-reminders')->dailyAt('09:00');
+
+// Bloquer les artistes dont le trial 14j est expiré (tous les jours à 02:00)
+Schedule::command('inkpik:block-expired-trials')->dailyAt('02:00');

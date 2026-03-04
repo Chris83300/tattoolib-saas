@@ -2,8 +2,9 @@
 
 namespace App\Livewire\Auth;
 
-use App\Models\User;
 use App\Models\Piercer;
+use App\Models\User;
+use App\Services\TrialService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -118,18 +119,21 @@ class RegisterPiercer extends AuthLayoutComponent
         ]);
 
         // Créer profil piercer
-        Piercer::create([
-            'user_id' => $user->id,
-            'siret' => $this->siret,
-            'company_name' => $this->company_name,
-            'slug' => Str::slug($this->name . '-' . $this->city),
-            'city' => $this->city,
-            'postal_code' => $this->postal_code,
-            'address' => $this->company_address,
-            'phone' => $this->phone,
-            'subscription_plan' => 'free', // Plan FREE par défaut
-            'has_compliance_badge' => false, // Pas encore de badge
+        $piercer = Piercer::create([
+            'user_id'             => $user->id,
+            'siret'               => $this->siret,
+            'company_name'        => $this->company_name,
+            'slug'                => Str::slug($this->name . '-' . $this->city),
+            'city'                => $this->city,
+            'postal_code'         => $this->postal_code,
+            'address'             => $this->company_address,
+            'phone'               => $this->phone,
+            'current_plan'        => 'starter',
+            'has_compliance_badge' => false,
         ]);
+
+        // Démarrer le trial 14 jours
+        app(TrialService::class)->startTrial($piercer);
 
         // Login automatique
         auth()->login($user);

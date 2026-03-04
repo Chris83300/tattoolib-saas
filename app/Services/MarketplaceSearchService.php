@@ -98,6 +98,7 @@ class MarketplaceSearchService
     {
         return Studio::with(['studioArtists' => fn($q) => $q->where('is_active', true), 'media'])
             ->where('is_active', true)
+            ->where('is_blocked', false)
             ->when($filters['city'] ?? null, fn($q, $city) => $q->where('city', 'like', "%{$city}%"))
             ->get();
     }
@@ -167,6 +168,7 @@ class MarketplaceSearchService
                      ->whereIn('appointments.status', ['completed', 'confirmed']);
             })
             ->where('users.status', 'active')
+            ->where('piercers.is_blocked', false)
             ->groupBy([
                 'piercers.id', 'piercers.user_id', 'piercers.name', 'piercers.slug',
                 'piercers.city', 'piercers.postal_code', 'piercers.bio',
@@ -216,6 +218,7 @@ class MarketplaceSearchService
                      ->whereIn('appointments.status', ['completed', 'confirmed']);
             })
             ->where('users.status', 'active')
+            ->where('tattooers.is_blocked', false)
             ->groupBy([
                 'tattooers.id', 'tattooers.user_id', 'tattooers.name', 'tattooers.slug',
                 'tattooers.city', 'tattooers.postal_code', 'tattooers.bio',
