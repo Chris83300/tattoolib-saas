@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\TattooerSubscription;
+use App\Services\BetaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -90,16 +91,19 @@ class SubscriptionController extends Controller
         }
 
         // Créer une session Stripe Checkout via Cashier
-        $checkout = $user->newSubscription('pro', $priceId)
-            ->checkout([
-                'success_url' => route($routePrefix . '.subscription.success') . '?session_id={CHECKOUT_SESSION_ID}',
-                'cancel_url' => route($routePrefix . '.subscription.plans'),
-                'metadata' => [
-                    'artist_id' => $artist->id,
-                    'artist_type' => get_class($artist),
-                    'plan' => 'pro',
-                ],
-            ]);
+        $betaParams = app(BetaService::class)->getStripeCheckoutParams($user);
+
+        $checkoutParams = array_merge([
+            'success_url' => route($routePrefix . '.subscription.success') . '?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url'  => route($routePrefix . '.subscription.plans'),
+            'metadata'    => [
+                'artist_id'   => $artist->id,
+                'artist_type' => get_class($artist),
+                'plan'        => 'pro',
+            ],
+        ], $betaParams);
+
+        $checkout = $user->newSubscription('pro', $priceId)->checkout($checkoutParams);
 
         return redirect($checkout->url);
     }

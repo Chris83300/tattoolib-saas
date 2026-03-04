@@ -529,6 +529,16 @@
         <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
             <h3 class="text-xl font-bold text-ivoire-text mb-4">Configuration Stripe Connect</h3>
 
+            @if (auth()->user()->is_beta_tester)
+            <div class="flex items-center gap-2 px-3 py-2 bg-beige-peau/10 border border-beige-peau/30 rounded-lg mb-4">
+                <span class="text-beige-peau text-lg">🏆</span>
+                <div>
+                    <p class="text-sm font-semibold text-beige-peau">Bêta-testeur</p>
+                    <p class="text-xs text-titane">-30% à vie sur votre abonnement, merci pour votre confiance !</p>
+                </div>
+            </div>
+            @endif
+
             @if ($tattooer->isStudioArtist() && !$tattooer->needsOwnStripeConnect())
                 {{-- Artiste studio en mode centralisé : paiements gérés par le studio --}}
                 <div class="bg-gris-fonde border border-titane/20 rounded-xl p-4 sm:p-6 mb-6">
