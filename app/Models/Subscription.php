@@ -17,21 +17,24 @@ class Subscription extends Model
     // CONSTANTES
     // =============================================
 
-    const PLAN_FREE = 'free';
-    const PLAN_PRO = 'pro';
-    const PLAN_STUDIO = 'studio';
+    const PLAN_STARTER = 'starter'; // Ancien: 'free' → migré en 'starter'
+    const PLAN_FREE    = 'starter'; // Alias rétrocompatibilité → STARTER
+    const PLAN_PRO     = 'pro';
+    const PLAN_STUDIO  = 'studio';
 
-    const STATUS_ACTIVE = 'active';
+    const STATUS_ACTIVE   = 'active';
     const STATUS_PAST_DUE = 'past_due';
     const STATUS_CANCELED = 'canceled';
-    const STATUS_UNPAID = 'unpaid';
+    const STATUS_UNPAID   = 'unpaid';
 
-    const COMMISSION_FREE = 7.00; // 7%
-    const COMMISSION_PRO = 0.00;  // 0%
+    const COMMISSION_FREE    = 7.00; // 7% (plan Starter)
+    const COMMISSION_STARTER = 7.00; // 7%
+    const COMMISSION_PRO     = 0.00; // 0%
 
-    const PRICE_PRO_MONTHLY = 49.99;
-    const PRICE_STUDIO_BASE = 79.99;
-    const PRICE_STUDIO_PER_ARTIST = 39.99;
+    const PRICE_STARTER_MONTHLY    = 9.99;
+    const PRICE_PRO_MONTHLY        = 29.99;
+    const PRICE_STUDIO_BASE        = 59.99;
+    const PRICE_STUDIO_PER_ARTIST  = 24.99;
 
     // =============================================
     // CONFIGURATION
