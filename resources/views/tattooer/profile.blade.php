@@ -38,7 +38,7 @@
                             @endif
 
                             <span class="bg-beige-peau/20 text-beige-peau px-3 py-1 rounded-full border border-beige-peau/20 shadow-sm shadow-beige-peau/20 text-xs font-semibold">
-                                {{ $tattooer->isPro() ? '⭐ Plan PRO' : '🆓 Plan FREE' }}
+                                {{ $tattooer->isPro() ? '⭐ Plan PRO' : '🟡 Plan STARTER' }}
                             </span>
 
                             @if ($tattooer->user->status === 'pending_verification')

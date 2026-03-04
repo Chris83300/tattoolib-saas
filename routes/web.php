@@ -26,6 +26,11 @@ Route::get('/professionnels', function () {
     return view('professionnels.index');
 })->name('professionnels.index');
 
+// Page tarifs publique
+Route::get('/tarifs', function () {
+    return view('pricing');
+})->name('pricing');
+
 // Page marketplace
 Route::get('/marketplace', [MarketplaceController::class, 'index'])->name('marketplace.index');
 
@@ -376,6 +381,7 @@ Route::middleware(['auth', 'role:studio', \App\Http\Middleware\EnsureStudioCanOp
     // Fiches clients
     Route::get('/clients', [App\Http\Controllers\StudioController::class, 'clients'])->name('clients.index');
     Route::get('/clients/{client}', [App\Http\Controllers\StudioController::class, 'clientShow'])->name('clients.show');
+    Route::put('/clients/{client}', [App\Http\Controllers\StudioController::class, 'clientUpdate'])->name('clients.update');
     // Billing & Stats
     Route::get('/billing', [App\Http\Controllers\StudioController::class, 'billing'])->name('billing');
     Route::get('/souscrire', [App\Http\Controllers\StudioController::class, 'showSubscribe'])->name('subscribe');
@@ -390,7 +396,7 @@ Route::middleware(['auth', 'role:studio', \App\Http\Middleware\EnsureStudioCanOp
 });
 
 // Routes Studio Artist (protégées)
-Route::middleware(['auth'])->prefix('studio-artist')->name('studio-artist.')->group(function () {
+Route::middleware(['auth', App\Http\Middleware\EnsureStudioCanOperate::class])->prefix('studio-artist')->name('studio-artist.')->group(function () {
     Route::get('/dashboard', App\Livewire\StudioArtist\Dashboard::class)->name('dashboard');
     Route::get('/profil', App\Livewire\StudioArtist\Profile::class)->name('profile');
     Route::get('/profil/edit', App\Livewire\StudioArtist\Profile::class)->name('profile.edit');

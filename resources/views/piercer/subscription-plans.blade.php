@@ -30,7 +30,7 @@
             @if ($artist->isPro())
                 <div class="flex items-center gap-3">
                     <span class="px-3 py-1 bg-beige-peau text-noir-profond rounded-full text-sm font-bold">PRO</span>
-                    <span class="text-ivoire-text/70">49.99€/mois · Commission 0%</span>
+                    <span class="text-ivoire-text/70">29,99€/mois · Commission 0%</span>
                 </div>
 
                 @if ($activeSubscription?->isOnGracePeriod())
@@ -65,8 +65,27 @@
                 @endif
             @else
                 <div class="flex items-center gap-3">
-                    <span class="px-3 py-1 bg-titane/30 text-titane rounded-full text-sm font-bold">FREE</span>
-                    <span class="text-ivoire-text/70">Gratuit · Commission 7%</span>
+                    <span class="px-3 py-1 bg-titane/30 text-titane rounded-full text-sm font-bold">STARTER</span>
+                    <span class="text-ivoire-text/70">9,99€/mois · Commission 7%</span>
+                </div>
+                @php
+                    $trialService = app(\App\Services\TrialService::class);
+                    $daysLeft = $trialService->trialDaysRemaining($artist);
+                @endphp
+                @if ($daysLeft > 0)
+                    <p class="text-sm text-titane mt-1">🎁 Essai gratuit — {{ $daysLeft }} jour{{ $daysLeft > 1 ? 's' : '' }} restant{{ $daysLeft > 1 ? 's' : '' }}</p>
+                @elseif ($artist->is_blocked)
+                    <p class="text-sm text-rouge-alerte mt-1">🔒 Essai expiré — choisissez un plan pour réactiver votre profil</p>
+                @endif
+            @endif
+
+            {{-- Badge bêta-testeur --}}
+            @if (auth()->user()->is_beta_tester)
+                <div class="flex items-center gap-2 px-3 py-2 bg-beige-peau/10 border border-beige-peau/30 rounded-lg mt-3">
+                    <span class="text-beige-peau">🏆</span>
+                    <p class="text-xs text-titane">
+                        <strong class="text-beige-peau">Bêta-testeur</strong> — -30% à vie appliqué automatiquement
+                    </p>
                 </div>
             @endif
         </div>
@@ -74,12 +93,13 @@
         {{-- Comparaison plans --}}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            {{-- Plan FREE --}}
+            {{-- Plan STARTER --}}
             <div
                 class="bg-gris-fonde rounded-xl p-6 border {{ $artist->isFree() ? 'border-titane/40' : 'border-titane/20' }}">
-                <h3 class="text-xl font-bold text-ivoire-text mb-1">Free</h3>
-                <p class="text-3xl font-bold text-ivoire-text mb-4">0€<span
+                <h3 class="text-xl font-bold text-ivoire-text mb-1">Starter</h3>
+                <p class="text-3xl font-bold text-ivoire-text mb-1">9,99€<span
                         class="text-sm font-normal text-titane">/mois</span></p>
+                <p class="text-xs text-vert-succes mb-4">🎁 14 jours d'essai gratuit — sans CB</p>
 
                 <ul class="space-y-2 text-sm text-ivoire-text/80 mb-6">
                     <li class="flex items-center gap-2">✅ Profil marketplace</li>
@@ -107,19 +127,20 @@
                 </div>
 
                 <h3 class="text-xl font-bold text-ivoire-text mb-1">PRO</h3>
-                <p class="text-3xl font-bold text-beige-peau mb-4">49.99€<span
+                <p class="text-3xl font-bold text-beige-peau mb-1">29,99€<span
                         class="text-sm font-normal text-titane">/mois</span></p>
+                <p class="text-xs text-vert-succes mb-4">🎁 14 jours d'essai gratuit — sans CB</p>
 
                 <ul class="space-y-2 text-sm text-ivoire-text/80 mb-6">
-                    <li class="flex items-center gap-2">✅ Tout le plan Free</li>
+                    <li class="flex items-center gap-2">✅ Tout le plan Starter</li>
                     <li class="flex items-center gap-2 text-vert-succes font-semibold">✅ Commission 0%</li>
                     <li class="flex items-center gap-2 text-vert-succes">✅ Fiche client (automatique) + manuelle</li>
-                    <li class="flex items-center gap-2 text-vert-succes">✅ Traçabilité lier à la fiche client (automatique) + manuelle</li>
+                    <li class="flex items-center gap-2 text-vert-succes">✅ Traçabilité complète</li>
                     <li class="flex items-center gap-2 text-vert-succes">✅ Analytics & statistiques</li>
                     <li class="flex items-center gap-2 text-vert-succes">✅ Support prioritaire</li>
-                    <li class="flex items-center gap-2 text-vert-succes">✅ Portfolio ilimité</li>
-                    <li class="flex items-center gap-2 text-vert-succes">✅ Conservation des données + export PDF des fiche client complètes</li>
-                    <li class="flex items-center gap-2 text-vert-succes">✅ Export CSV/Excel pour la comptabilité</li>
+                    <li class="flex items-center gap-2 text-vert-succes">✅ Portfolio illimité</li>
+                    <li class="flex items-center gap-2 text-vert-succes">✅ Export PDF fiches clients</li>
+                    <li class="flex items-center gap-2 text-vert-succes">✅ Export CSV/Excel comptabilité</li>
                 </ul>
 
                 @if ($artist->isPro() && !$activeSubscription?->isOnGracePeriod())
@@ -142,9 +163,7 @@
         {{-- ROI Calculator --}}
         @if ($artist->isFree())
             <div class="bg-gris-fonde rounded-xl p-6 border border-titane/20">
-                <h3 class="text-lg font-bold text-beige-peau mb-3">"Les piercers PRO économisent en moyenne 150€/mois en
-                    commission sur leurs réservations."</h3>
-
+                <h3 class="text-lg font-bold text-beige-peau mb-3">"Les piercers PRO économisent en moyenne 150€/mois en commission sur leurs réservations."</h3>
             </div>
         @endif
 

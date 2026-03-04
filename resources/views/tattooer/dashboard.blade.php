@@ -340,7 +340,7 @@
                         </ul>
                     </div>
                     <div class="text-center">
-                        <div class="text-4xl font-bold text-cuivre mb-2">49,99€</div>
+                        <div class="text-4xl font-bold text-cuivre mb-2">29,99€</div>
                         <div class="text-ivoire-text/60 text-sm mb-4">/mois</div>
                         <x-ui.button variant="primary" size="lg" href="{{ route($tattooer->routePrefix() . '.subscription.plans') }}"
                             >Passer PRO maintenant</x-ui.button>
