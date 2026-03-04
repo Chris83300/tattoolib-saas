@@ -3,6 +3,8 @@
 @section('content')
     <div class="space-y-6">
 
+        @include('partials.trial-banner')
+
         <!-- Header avec salutation -->
         <div class="bg-gris-fonde rounded-xl border border-cuivre/10 shadow-md shadow-cuivre/20 p-6">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
