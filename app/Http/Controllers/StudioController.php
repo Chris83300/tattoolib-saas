@@ -649,13 +649,17 @@ class StudioController extends Controller
         $piercerIds  = \App\Models\Piercer::whereIn('user_id', $artistUserIds)->pluck('id');
 
         $clients = \App\Models\Client::whereHas('bookingRequests', function ($q) use ($tattooerIds, $piercerIds) {
-            $q->where(function ($q2) use ($tattooerIds) {
-                $q2->where('bookable_type', 'App\\Models\\Tattooer')
-                   ->whereIn('bookable_id', $tattooerIds);
-            })->orWhere(function ($q2) use ($piercerIds) {
-                $q2->where('bookable_type', 'App\\Models\\Piercer')
-                   ->whereIn('bookable_id', $piercerIds);
-            });
+            $q->where(function ($q2) use ($tattooerIds, $piercerIds) {
+                $q2->where(function ($q3) use ($tattooerIds) {
+                    $q3->where('bookable_type', 'App\\Models\\Tattooer')
+                       ->whereIn('bookable_id', $tattooerIds);
+                })->orWhere(function ($q3) use ($piercerIds) {
+                    $q3->where('bookable_type', 'App\\Models\\Piercer')
+                       ->whereIn('bookable_id', $piercerIds);
+                });
+            })
+            // Seulement les clients ayant payé l'acompte
+            ->whereNotNull('deposit_paid_at');
         })
         ->when($request->search, function ($q) use ($request) {
             $q->where(function ($q2) use ($request) {
