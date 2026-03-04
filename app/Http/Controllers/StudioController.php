@@ -160,46 +160,70 @@ class StudioController extends Controller
 
         $studioArtist->load('user');
 
-        // Charger les demandes de réservation associées à cet artiste
         $tattooerIds = \App\Models\Tattooer::where('user_id', $studioArtist->user_id)->pluck('id');
         $piercerIds  = \App\Models\Piercer::where('user_id', $studioArtist->user_id)->pluck('id');
 
-        $requests = \App\Models\BookingRequest::where(function ($q) use ($tattooerIds, $piercerIds) {
+        $scopeQuery = function ($q) use ($tattooerIds, $piercerIds) {
             $q->where(function ($q2) use ($tattooerIds) {
-                $q2->where('bookable_type', 'App\\Models\\Tattooer')
-                   ->whereIn('bookable_id', $tattooerIds);
+                $q2->where('bookable_type', 'App\\Models\\Tattooer')->whereIn('bookable_id', $tattooerIds);
             })->orWhere(function ($q2) use ($piercerIds) {
-                $q2->where('bookable_type', 'App\\Models\\Piercer')
-                   ->whereIn('bookable_id', $piercerIds);
+                $q2->where('bookable_type', 'App\\Models\\Piercer')->whereIn('bookable_id', $piercerIds);
             });
-        })
-        ->with('client')
-        ->latest()
-        ->limit(10)
-        ->get();
+        };
+
+        // Toutes les demandes de l'artiste
+        $allBookings = \App\Models\BookingRequest::where($scopeQuery)->get();
+
+        // 10 dernières demandes avec client
+        $requests = \App\Models\BookingRequest::where($scopeQuery)
+            ->with('client')
+            ->latest()
+            ->limit(10)
+            ->get();
+
+        // Prochains RDV (confirmed_date ou appointment_datetime >= aujourd'hui)
+        $upcomingAppointments = \App\Models\BookingRequest::where($scopeQuery)
+            ->where(function ($q) {
+                $q->where(function ($q2) {
+                    $q2->whereNotNull('confirmed_date')->where('confirmed_date', '>=', now()->toDateString());
+                })->orWhere(function ($q2) {
+                    $q2->whereNotNull('appointment_datetime')->where('appointment_datetime', '>=', now());
+                });
+            })
+            ->whereNotIn('status', ['cancelled', 'rejected', 'expired', 'no_show', 'completed', 'fully_completed'])
+            ->with('client')
+            ->orderByRaw('COALESCE(confirmed_date, DATE(appointment_datetime)) ASC')
+            ->limit(5)
+            ->get();
+
+        // Stats financières (total_deposit_amount en euros)
+        $totalDeposits = $allBookings
+            ->whereNotNull('deposit_paid_at')
+            ->sum('total_deposit_amount');
+
+        $completedStatuses = ['completed', 'fully_completed', 'balance_paid', 'balance_paid_offline'];
+        $totalRevenue = $allBookings
+            ->whereIn('status', $completedStatuses)
+            ->sum('total_deposit_amount');
+
+        // Clients uniques
+        $uniqueClientsCount = $allBookings->pluck('client_id')->unique()->filter()->count();
 
         $stats = [
-            'total_requests'    => \App\Models\BookingRequest::where(function ($q) use ($tattooerIds, $piercerIds) {
-                $q->where(function ($q2) use ($tattooerIds) {
-                    $q2->where('bookable_type', 'App\\Models\\Tattooer')->whereIn('bookable_id', $tattooerIds);
-                })->orWhere(function ($q2) use ($piercerIds) {
-                    $q2->where('bookable_type', 'App\\Models\\Piercer')->whereIn('bookable_id', $piercerIds);
-                });
-            })->count(),
-            'pending_requests'  => \App\Models\BookingRequest::where(function ($q) use ($tattooerIds, $piercerIds) {
-                $q->where(function ($q2) use ($tattooerIds) {
-                    $q2->where('bookable_type', 'App\\Models\\Tattooer')->whereIn('bookable_id', $tattooerIds);
-                })->orWhere(function ($q2) use ($piercerIds) {
-                    $q2->where('bookable_type', 'App\\Models\\Piercer')->whereIn('bookable_id', $piercerIds);
-                });
-            })->where('status', 'pending')->count(),
+            'total_requests'    => $allBookings->count(),
+            'pending_requests'  => $allBookings->where('status', 'pending')->count(),
+            'completed_requests' => $allBookings->whereIn('status', $completedStatuses)->count(),
+            'unique_clients'    => $uniqueClientsCount,
+            'total_deposits'    => round((float) $totalDeposits, 2),
+            'total_revenue'     => round((float) $totalRevenue, 2),
         ];
 
         return view('studio.artist-show', [
-            'studio'       => $studio,
-            'studioArtist' => $studioArtist,
-            'requests'     => $requests,
-            'stats'        => $stats,
+            'studio'               => $studio,
+            'studioArtist'         => $studioArtist,
+            'requests'             => $requests,
+            'upcomingAppointments' => $upcomingAppointments,
+            'stats'                => $stats,
         ]);
     }
 

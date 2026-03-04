@@ -85,18 +85,64 @@
                         <span class="text-ivoire-text font-semibold">{{ $stats['total_requests'] }}</span>
                     </div>
                     <div class="flex justify-between text-sm">
+                        <span class="text-titane">Terminées</span>
+                        <span class="text-vert-succes font-semibold">{{ $stats['completed_requests'] }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
                         <span class="text-titane">En attente</span>
                         <span class="{{ $stats['pending_requests'] > 0 ? 'text-yellow-400' : 'text-ivoire-text' }} font-semibold">
                             {{ $stats['pending_requests'] }}
                         </span>
                     </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-titane">Clients uniques</span>
+                        <span class="text-ivoire-text font-semibold">{{ $stats['unique_clients'] }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paiements reçus -->
+            <div class="bg-gris-fonde rounded-xl p-5">
+                <h2 class="text-sm font-semibold text-ivoire-text uppercase tracking-wide mb-3">Paiements reçus</h2>
+                <div class="space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-titane">Acomptes encaissés</span>
+                        <span class="text-ivoire-text font-semibold">{{ number_format($stats['total_deposits'], 2, ',', ' ') }} €</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-titane">CA terminé</span>
+                        <span class="text-beige-peau font-semibold">{{ number_format($stats['total_revenue'], 2, ',', ' ') }} €</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Dernières demandes -->
-        <div class="lg:col-span-2">
-            <div class="bg-gris-fonde rounded-xl divide-y divide-titane/10">
+        <!-- Prochains RDV + Dernières demandes -->
+        <div class="lg:col-span-2 space-y-4">
+
+            @if ($upcomingAppointments->count() > 0)
+            <div class="bg-gris-fonde rounded-xl p-4">
+                <h2 class="text-sm font-semibold text-ivoire-text uppercase tracking-wide mb-3">Prochains rendez-vous</h2>
+                <div class="space-y-2">
+                    @foreach ($upcomingAppointments as $appt)
+                    <div class="flex items-center justify-between p-3 bg-noir-profond/40 rounded-lg">
+                        <div>
+                            <p class="text-sm text-ivoire-text">{{ $appt->client?->first_name }} {{ $appt->client?->last_name }}</p>
+                            @php
+                                $rdvDate = $appt->confirmed_date
+                                    ? \Carbon\Carbon::parse($appt->confirmed_date)
+                                    : ($appt->appointment_datetime ? \Carbon\Carbon::parse($appt->appointment_datetime) : null);
+                            @endphp
+                            <p class="text-xs text-titane">{{ $rdvDate?->translatedFormat('l d M Y') ?? '—' }}</p>
+                        </div>
+                        <a href="{{ route('studio.demandes.show', $appt) }}" class="text-xs text-beige-peau hover:underline">Détails →</a>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+        <div class="bg-gris-fonde rounded-xl divide-y divide-titane/10">
                 <div class="p-4 flex items-center justify-between">
                     <h2 class="text-sm font-semibold text-ivoire-text uppercase tracking-wide">
                         Dernières demandes
