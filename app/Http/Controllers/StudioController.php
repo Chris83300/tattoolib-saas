@@ -54,12 +54,12 @@ class StudioController extends Controller
             ->whereYear('updated_at', now()->year)
             ->count();
 
-        // Chiffre d'affaires du mois (dépôts encaissés)
+        // Chiffre d'affaires du mois (acomptes encaissés — total_deposit_amount en euros)
         $monthlyRevenue = (clone $bookingBase)
-            ->whereIn('status', ['completed', 'fully_completed', 'balance_paid', 'balance_paid_offline'])
-            ->whereMonth('updated_at', now()->month)
-            ->whereYear('updated_at', now()->year)
-            ->sum('deposit_amount') / 100; // Centimes → euros
+            ->whereNotNull('deposit_paid_at')
+            ->whereMonth('deposit_paid_at', now()->month)
+            ->whereYear('deposit_paid_at', now()->year)
+            ->sum('total_deposit_amount');
 
         // 5 dernières demandes en attente
         $latestRequests = (clone $bookingBase)
@@ -721,7 +721,7 @@ class StudioController extends Controller
             'total_requests' => $requests->count(),
             'completed' => $requests->where('status', 'completed')->count(),
             'total_paid' => $requests->sum(function($request) {
-                return $request->total_price ?? $request->estimated_total_price ?? 0;
+                return (float) ($request->total_deposit_amount ?? 0);
             }),
             'total_appointments' => $requests->whereNotNull('confirmed_date')->count(),
         ];
@@ -824,18 +824,18 @@ class StudioController extends Controller
         $completedAll     = (clone $base)->whereIn('status', ['completed', 'fully_completed', 'balance_paid', 'balance_paid_offline'])->count();
         $cancelledAll     = (clone $base)->whereIn('status', ['cancelled', 'rejected', 'no_show'])->count();
 
-        // Revenus mensuels (6 derniers mois)
+        // Revenus mensuels (6 derniers mois) — acomptes encaissés (total_deposit_amount en euros)
         $monthlyRevenue = [];
         for ($i = 5; $i >= 0; $i--) {
             $month = now()->subMonths($i);
             $revenue = (clone $base)
-                ->whereIn('status', ['completed', 'fully_completed', 'balance_paid', 'balance_paid_offline'])
-                ->whereMonth('updated_at', $month->month)
-                ->whereYear('updated_at', $month->year)
-                ->sum('deposit_amount') / 100;
+                ->whereNotNull('deposit_paid_at')
+                ->whereMonth('deposit_paid_at', $month->month)
+                ->whereYear('deposit_paid_at', $month->year)
+                ->sum('total_deposit_amount');
             $monthlyRevenue[] = [
                 'label'   => $month->format('M Y'),
-                'revenue' => round($revenue, 2),
+                'revenue' => round((float) $revenue, 2),
             ];
         }
 
@@ -864,7 +864,7 @@ class StudioController extends Controller
                     'total'      => (clone $artistBase)->count(),
                     'pending'    => (clone $artistBase)->where('status', 'pending')->count(),
                     'completed'  => (clone $artistBase)->whereIn('status', ['completed', 'fully_completed', 'balance_paid', 'balance_paid_offline'])->count(),
-                    'revenue'    => round((clone $artistBase)->whereIn('status', ['completed', 'fully_completed', 'balance_paid', 'balance_paid_offline'])->sum('deposit_amount') / 100, 2),
+                    'revenue'    => round((float) (clone $artistBase)->whereNotNull('deposit_paid_at')->sum('total_deposit_amount'), 2),
                 ];
             })
             ->filter()

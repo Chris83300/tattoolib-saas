@@ -9,7 +9,7 @@ use Filament\Widgets\ChartWidget;
 
 class RevenueByArtistChart extends ChartWidget
 {
-    protected static ?string $heading = 'Revenus par artiste (acomptes)';
+    protected ?string $heading = 'Revenus par artiste (acomptes)';
     protected static ?int $sort = 2;
     public ?string $dataChecksum = '';
 
@@ -44,10 +44,10 @@ class RevenueByArtistChart extends ChartWidget
                        ->whereIn('bookable_id', $piercerIds);
                 });
             })
-            ->whereIn('status', ['completed', 'fully_completed', 'balance_paid', 'balance_paid_offline'])
-            ->whereMonth('updated_at', now()->month)
-            ->whereYear('updated_at', now()->year)
-            ->sum('deposit_amount') / 100;
+            ->whereNotNull('deposit_paid_at')
+            ->whereMonth('deposit_paid_at', now()->month)
+            ->whereYear('deposit_paid_at', now()->year)
+            ->sum('total_deposit_amount');
 
             $labels[]   = $sa->artist_name ?: $sa->user?->name ?? 'Artiste';
             $revenues[] = round($revenue, 2);

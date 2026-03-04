@@ -9,7 +9,7 @@ use Filament\Widgets\ChartWidget;
 
 class MonthlyRevenueChart extends ChartWidget
 {
-    protected static ?string $heading = 'Revenus mensuels (6 derniers mois)';
+    protected ?string $heading = 'Revenus mensuels (6 derniers mois)';
     protected static ?int $sort = 3;
     public ?string $dataChecksum = '';
 
@@ -36,7 +36,7 @@ class MonthlyRevenueChart extends ChartWidget
                 $q2->where('bookable_type', 'App\\Models\\Piercer')
                    ->whereIn('bookable_id', $piercerIds);
             });
-        })->whereIn('status', ['completed', 'fully_completed', 'balance_paid', 'balance_paid_offline']);
+        })->whereNotNull('deposit_paid_at');
 
         $labels   = [];
         $revenues = [];
@@ -45,10 +45,10 @@ class MonthlyRevenueChart extends ChartWidget
             $month = now()->subMonths($i);
             $labels[]   = $month->format('M Y');
             $revenues[] = round(
-                (clone $base)
-                    ->whereMonth('updated_at', $month->month)
-                    ->whereYear('updated_at', $month->year)
-                    ->sum('deposit_amount') / 100,
+                (float) (clone $base)
+                    ->whereMonth('deposit_paid_at', $month->month)
+                    ->whereYear('deposit_paid_at', $month->year)
+                    ->sum('total_deposit_amount'),
                 2
             );
         }
