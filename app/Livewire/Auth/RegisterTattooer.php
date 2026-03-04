@@ -4,6 +4,7 @@ namespace App\Livewire\Auth;
 
 use App\Models\Tattooer;
 use App\Models\User;
+use App\Notifications\WelcomeWithTrialNotification;
 use App\Services\TrialService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
@@ -148,6 +149,9 @@ class RegisterTattooer extends AuthLayoutComponent
 
         // Démarrer le trial 14 jours
         app(TrialService::class)->startTrial($tattooer);
+
+        // Notification de bienvenue (async)
+        $user->notify(new WelcomeWithTrialNotification());
 
         // Login automatique
         auth()->login($user);

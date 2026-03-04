@@ -4,6 +4,7 @@ namespace App\Livewire\Auth;
 
 use App\Models\Piercer;
 use App\Models\User;
+use App\Notifications\WelcomeWithTrialNotification;
 use App\Services\TrialService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
@@ -134,6 +135,9 @@ class RegisterPiercer extends AuthLayoutComponent
 
         // Démarrer le trial 14 jours
         app(TrialService::class)->startTrial($piercer);
+
+        // Notification de bienvenue (async)
+        $user->notify(new WelcomeWithTrialNotification());
 
         // Login automatique
         auth()->login($user);
