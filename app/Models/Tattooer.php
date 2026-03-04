@@ -93,6 +93,8 @@ class Tattooer extends Model implements HasMedia, ArtisanInterface
         'payment_terms_accepted_at', // ✅ Date acceptation CGU
         'current_plan', // ✅ Plan actuel
         'is_subscribed', // ✅ Statut abonnement
+        'is_blocked', // ✅ Compte bloqué post-trial
+        'trial_ends_at', // ✅ Fin période d'essai
         'has_compliance_badge', // ✅ Badge conformité
         'upgraded_to_pro_at', // ✅ Date upgrade PRO
         'stripe_onboarding_complete', // ✅ Onboarding Stripe terminé
@@ -127,7 +129,9 @@ class Tattooer extends Model implements HasMedia, ArtisanInterface
         'has_accepted_payment_terms' => 'boolean',
         'is_decision_maker' => 'boolean',
         'has_compliance_badge' => 'boolean',
-        'is_subscribed' => 'boolean',
+        'is_subscribed'  => 'boolean',
+        'is_blocked'     => 'boolean',
+        'trial_ends_at'  => 'datetime',
         'working_hours' => 'string', // ✅ Garder comme string pour JSON decode
         'styles' => 'json', // ✅ Styles de tatouage (JSON)
         'custom_styles' => 'json', // ✅ Styles personnalisés (JSON)

@@ -94,6 +94,8 @@ class Piercer extends Model implements HasMedia, ArtisanInterface
         // Abonnement
         'current_plan',
         'is_subscribed',
+        'is_blocked',
+        'trial_ends_at',
         'has_compliance_badge',
         'upgraded_to_pro_at',
 
@@ -127,7 +129,9 @@ class Piercer extends Model implements HasMedia, ArtisanInterface
         'stripe_onboarding_complete' => 'boolean',
         'has_accepted_payment_terms' => 'boolean',
         'has_compliance_badge' => 'boolean',
-        'is_subscribed' => 'boolean',
+        'is_subscribed'  => 'boolean',
+        'is_blocked'     => 'boolean',
+        'trial_ends_at'  => 'datetime',
         'aftercare_reminder_2h' => 'boolean',
         'aftercare_reminder_7d' => 'boolean',
         'aftercare_reminder_14d' => 'boolean',
