@@ -410,7 +410,10 @@ class StudioController extends Controller
                    ->whereIn('bookable_id', $piercerIds);
             });
         })
-        ->whereNotNull('confirmed_date')
+        ->where(function ($q) {
+            $q->whereNotNull('confirmed_date')
+              ->orWhereNotNull('appointment_datetime');
+        })
         ->whereNotIn('status', ['cancelled', 'rejected', 'expired', 'no_show'])
         ->with(['bookable.user', 'client'])
         ->get();
@@ -423,18 +426,29 @@ class StudioController extends Controller
             $colorIndex = crc32($artistName) % count($colors);
             $color = $colors[abs($colorIndex)];
 
-            $date = $booking->confirmed_date instanceof \Carbon\Carbon
-                ? $booking->confirmed_date->toDateString()
-                : $booking->confirmed_date;
+            // Utiliser confirmed_date en priorité, sinon appointment_datetime
+            if ($booking->confirmed_date) {
+                $date = $booking->confirmed_date instanceof \Carbon\Carbon
+                    ? $booking->confirmed_date->toDateString()
+                    : substr($booking->confirmed_date, 0, 10);
 
-            $start = $date;
-            if ($booking->scheduled_start_time) {
-                $start = $date . 'T' . $booking->scheduled_start_time;
-            }
+                $start = $booking->scheduled_start_time
+                    ? $date . 'T' . $booking->scheduled_start_time
+                    : $date;
 
-            $end = null;
-            if ($booking->scheduled_end_time) {
-                $end = $date . 'T' . $booking->scheduled_end_time;
+                $end = $booking->scheduled_end_time
+                    ? $date . 'T' . $booking->scheduled_end_time
+                    : null;
+            } else {
+                // Fallback sur appointment_datetime
+                $appt = $booking->appointment_datetime instanceof \Carbon\Carbon
+                    ? $booking->appointment_datetime
+                    : \Carbon\Carbon::parse($booking->appointment_datetime);
+
+                $start = $appt->toIso8601String();
+                $end = $booking->appointment_duration_minutes
+                    ? $appt->copy()->addMinutes($booking->appointment_duration_minutes)->toIso8601String()
+                    : $appt->copy()->addHours(2)->toIso8601String();
             }
 
             $clientName = trim(($booking->client?->first_name ?? '') . ' ' . ($booking->client?->last_name ?? ''));
@@ -702,11 +716,85 @@ class StudioController extends Controller
             });
         })->with('bookable.user')->latest()->get();
 
+        // Calculer les statistiques du client
+        $stats = (object) [
+            'total_requests' => $requests->count(),
+            'completed' => $requests->where('status', 'completed')->count(),
+            'total_paid' => $requests->sum(function($request) {
+                return $request->total_price ?? $request->estimated_total_price ?? 0;
+            }),
+            'total_appointments' => $requests->whereNotNull('confirmed_date')->count(),
+        ];
+
+        // Charger les données pour les onglets
+        $consents = \App\Models\Consent::whereIn('booking_request_id', $requests->pluck('id'))
+            ->get()
+            ->keyBy('booking_request_id');
+
+        $consentDocuments = $client->getMedia('consent_documents');
+        $traceabilities = \App\Models\TraceabilityRecord::where('client_id', $client->id)
+            ->where('studio_id', $studio->id)
+            ->orderBy('procedure_date', 'desc')
+            ->get();
+
         return view('studio.client-show', [
-            'studio'   => $studio,
-            'client'   => $client,
-            'requests' => $requests,
+            'studio'           => $studio,
+            'client'           => $client,
+            'requests'         => $requests,
+            'bookingRequests'  => $requests, // Pour compatibilité avec la vue
+            'stats'            => $stats,
+            'consents'         => $consents,
+            'consentDocuments' => $consentDocuments,
+            'traceabilities'   => $traceabilities,
         ]);
+    }
+
+    public function clientUpdate(\App\Models\Client $client, \Illuminate\Http\Request $request)
+    {
+        $studio = $this->studio();
+        $artistUserIds = $studio->studioArtists()
+            ->where('is_active', true)
+            ->pluck('user_id')
+            ->filter();
+
+        $tattooerIds = \App\Models\Tattooer::whereIn('user_id', $artistUserIds)->pluck('id');
+        $piercerIds  = \App\Models\Piercer::whereIn('user_id', $artistUserIds)->pluck('id');
+
+        // Vérifier que ce client a bien des demandes pour ce studio
+        $hasAccess = $client->bookingRequests()->where(function ($q) use ($tattooerIds, $piercerIds) {
+            $q->where(function ($q2) use ($tattooerIds) {
+                $q2->where('bookable_type', 'App\\Models\\Tattooer')
+                   ->whereIn('bookable_id', $tattooerIds);
+            })->orWhere(function ($q2) use ($piercerIds) {
+                $q2->where('bookable_type', 'App\\Models\\Piercer')
+                   ->whereIn('bookable_id', $piercerIds);
+            });
+        })->exists();
+
+        abort_unless($hasAccess, 403, 'Accès non autorisé');
+
+        // Valider les données
+        $validated = $request->validate([
+            'first_name' => 'nullable|string|max:255',
+            'last_name' => 'nullable|string|max:255',
+            'pseudo' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:255',
+            'birth_date' => 'nullable|date',
+            'address' => 'nullable|string|max:500',
+            'notes' => 'nullable|string|max:2000',
+        ]);
+
+        // Mettre à jour le client
+        $client->update($validated);
+
+        // Si email fourni, mettre à jour l'utilisateur associé
+        if (isset($validated['email']) && $client->user) {
+            $client->user->update(['email' => $validated['email']]);
+        }
+
+        return redirect()->route('studio.clients.show', $client)
+            ->with('success', 'Informations client mises à jour avec succès');
     }
 
     // ═══ STATS ═══
