@@ -586,11 +586,30 @@ class StudioController extends Controller
         $studio = $this->studio();
         $billingService = app(\App\Services\StudioBillingService::class);
 
-        // Sync depuis Stripe si checkout vient de réussir
+        // Retour de Stripe Checkout
         if ($request->get('checkout') === 'success') {
-            $billingService->syncFromStripe($studio);
+            $sessionId = $request->get('session_id');
+
+            // Laisser Stripe finaliser (délai Stripe)
+            sleep(2);
+            $synced = $billingService->syncFromStripe($studio);
+
+            if (!$synced && $sessionId) {
+                $synced = $billingService->syncFromCheckoutSession($studio, $sessionId);
+            }
+
+            if ($synced) {
+                return redirect()->route('studio.billing')
+                    ->with('success', 'Abonnement activé avec succès ! Bienvenue sur le plan Studio.');
+            }
+
             return redirect()->route('studio.billing')
-                ->with('success', 'Abonnement activé avec succès !');
+                ->with('warning', "Le paiement semble avoir abouti mais l'abonnement n'est pas encore synchronisé. Cliquez sur « Synchroniser » dans quelques instants.");
+        }
+
+        if ($request->get('checkout') === 'cancel') {
+            return redirect()->route('studio.billing')
+                ->with('warning', 'Paiement annulé. Vous pouvez réessayer quand vous le souhaitez.');
         }
 
         $subscriptionInfo = $billingService->getSubscriptionInfo($studio);

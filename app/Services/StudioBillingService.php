@@ -35,12 +35,21 @@ class StudioBillingService
 
     /**
      * Créer une session Stripe Checkout pour l'abonnement studio.
+     * Utilise l'API Stripe directe pour éviter les doublons créés par Cashier ->newSubscription().
      */
     public function createCheckoutSession(Studio $studio): string
     {
         $user = $studio->user;
         if (!$user) throw new \Exception('Studio sans utilisateur propriétaire.');
 
+        $priceId = config('inkpik.pricing.studio.stripe_price_id');
+        if (!$priceId || str_starts_with($priceId, 'price_xxx')) {
+            throw new \Exception('Stripe Price ID Studio non configuré. Vérifiez STRIPE_PRICE_ID_STUDIO dans .env');
+        }
+
+        $stripe = new \Stripe\StripeClient(config('cashier.secret'));
+
+        // Créer le customer Stripe si nécessaire (via Cashier pour garder stripe_id sur User)
         if (!$user->hasStripeId()) {
             $user->createAsStripeCustomer([
                 'name'  => $user->name,
@@ -48,42 +57,121 @@ class StudioBillingService
                 'metadata' => [
                     'studio_id'   => $studio->id,
                     'studio_name' => $studio->name,
+                    'type'        => 'studio_owner',
                 ],
             ]);
         }
 
-        $priceId = config('inkpik.pricing.studio.stripe_price_id');
-        if (!$priceId) throw new \Exception('Stripe Price ID manquant pour le plan studio.');
-
-        $checkoutParams = [
-            'success_url' => route('studio.billing') . '?checkout=success',
-            'cancel_url'  => route('studio.billing') . '?checkout=cancel',
-            'metadata'    => [
+        $subscriptionData = [
+            'metadata' => [
                 'studio_id' => $studio->id,
                 'plan'      => 'studio',
             ],
         ];
 
+        // Trial 14j si jamais eu d'abonnement actif/trialing
+        $hasActiveSub = $user->subscriptions()
+            ->whereIn('stripe_status', ['active', 'trialing'])
+            ->exists();
+        if (!$hasActiveSub) {
+            $subscriptionData['trial_period_days'] = SubscriptionPlan::STUDIO->trialDays();
+        }
+
+        $params = [
+            'customer'             => $user->stripe_id,
+            'payment_method_types' => ['card'],
+            'line_items'           => [['price' => $priceId, 'quantity' => 1]],
+            'mode'                 => 'subscription',
+            'success_url'          => route('studio.billing') . '?checkout=success&session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url'           => route('studio.billing') . '?checkout=cancel',
+            'subscription_data'    => $subscriptionData,
+            'metadata'             => ['studio_id' => $studio->id],
+            'allow_promotion_codes' => true,
+        ];
+
+        // Coupon bêta si applicable (ne pas combiner avec allow_promotion_codes)
         $betaService = app(\App\Services\BetaService::class);
         if ($betaService->isActiveBetaTester($user)) {
-            $checkoutParams['discounts'] = [
-                ['coupon' => $betaService->getStripeCouponId()],
-            ];
+            unset($params['allow_promotion_codes']);
+            $params['discounts'] = [['coupon' => $betaService->getStripeCouponId()]];
+            $params['subscription_data']['trial_period_days'] = 44; // 14j trial + 30j beta
         }
 
-        // Trial 14 jours si jamais abonné
-        $hasHadSubscription = $user->subscriptions()->exists();
-        if (!$hasHadSubscription) {
-            $checkoutParams['subscription_data'] = [
-                'trial_period_days' => SubscriptionPlan::STUDIO->trialDays(),
-            ];
+        $session = $stripe->checkout->sessions->create($params);
+
+        Log::info('Stripe Checkout Session created', [
+            'session_id' => $session->id,
+            'studio_id'  => $studio->id,
+            'user_id'    => $user->id,
+            'price_id'   => $priceId,
+        ]);
+
+        return $session->url;
+    }
+
+    /**
+     * Synchroniser depuis une Checkout Session spécifique.
+     * Fallback quand syncFromStripe ne trouve rien (délai Stripe).
+     */
+    public function syncFromCheckoutSession(Studio $studio, string $sessionId): bool
+    {
+        try {
+            $user = $studio->user;
+            if (!$user) return false;
+
+            $stripe = new \Stripe\StripeClient(config('cashier.secret'));
+            $session = $stripe->checkout->sessions->retrieve($sessionId, [
+                'expand' => ['subscription'],
+            ]);
+
+            if (!$session->subscription) {
+                Log::warning('syncFromCheckoutSession: pas de subscription', ['session_id' => $sessionId]);
+                return false;
+            }
+
+            $stripeSub = is_string($session->subscription)
+                ? $stripe->subscriptions->retrieve($session->subscription)
+                : $session->subscription;
+
+            if (!in_array($stripeSub->status, ['active', 'trialing'])) {
+                Log::warning('syncFromCheckoutSession: status=' . $stripeSub->status, ['session_id' => $sessionId]);
+                return false;
+            }
+
+            // Mettre à jour stripe_id du User si pas encore fait
+            if (!$user->stripe_id && $session->customer) {
+                $user->update(['stripe_id' => $session->customer]);
+            }
+
+            $user->subscriptions()->updateOrCreate(
+                ['type' => 'default'],
+                [
+                    'stripe_id'     => $stripeSub->id,
+                    'stripe_status' => $stripeSub->status,
+                    'stripe_price'  => $stripeSub->items->data[0]->price->id ?? null,
+                    'quantity'      => $stripeSub->items->data[0]->quantity ?? 1,
+                    'trial_ends_at' => $stripeSub->trial_end
+                        ? \Carbon\Carbon::createFromTimestamp($stripeSub->trial_end)
+                        : null,
+                    'ends_at' => null,
+                ]
+            );
+
+            $studio->update(['is_subscribed' => true]);
+
+            Log::info('syncFromCheckoutSession: OK', [
+                'studio_id'    => $studio->id,
+                'stripe_sub_id' => $stripeSub->id,
+            ]);
+
+            return true;
+        } catch (\Exception $e) {
+            Log::error('syncFromCheckoutSession error', [
+                'session_id' => $sessionId,
+                'error'      => $e->getMessage(),
+            ]);
+            return false;
         }
-
-        $checkout = $user->newSubscription('default', $priceId)
-            ->allowPromotionCodes()
-            ->checkout($checkoutParams);
-
-        return $checkout->url;
     }
 
     /**
@@ -196,43 +284,68 @@ class StudioBillingService
     {
         try {
             $user = $studio->user;
-            if (!$user || !$user->hasStripeId()) return false;
-
-            \Stripe\Stripe::setApiKey(config('cashier.secret'));
-
-            $stripeSubscriptions = \Stripe\Subscription::all([
-                'customer' => $user->stripe_id,
-                'status'   => 'all',
-                'limit'    => 5,
-            ]);
-
-            foreach ($stripeSubscriptions->data as $stripeSub) {
-                if (in_array($stripeSub->status, ['active', 'trialing'])) {
-                    $user->subscriptions()->updateOrCreate(
-                        ['stripe_id' => $stripeSub->id],
-                        [
-                            'type'          => 'default',
-                            'stripe_status' => $stripeSub->status,
-                            'stripe_price'  => $stripeSub->items->data[0]->price->id ?? null,
-                            'quantity'      => $stripeSub->items->data[0]->quantity ?? 1,
-                            'trial_ends_at' => $stripeSub->trial_end
-                                ? \Carbon\Carbon::createFromTimestamp($stripeSub->trial_end)
-                                : null,
-                            'ends_at' => $stripeSub->cancel_at
-                                ? \Carbon\Carbon::createFromTimestamp($stripeSub->cancel_at)
-                                : null,
-                        ]
-                    );
-
-                    Log::info('Studio subscription synced from Stripe', [
-                        'studio_id'  => $studio->id,
-                        'stripe_sub' => $stripeSub->id,
-                        'status'     => $stripeSub->status,
-                    ]);
-                    return true;
-                }
+            if (!$user || !$user->hasStripeId()) {
+                Log::warning('syncFromStripe: user sans stripe_id', ['studio_id' => $studio->id]);
+                return false;
             }
 
+            $stripe = new \Stripe\StripeClient(config('cashier.secret'));
+            $stripeSubscriptions = $stripe->subscriptions->all([
+                'customer' => $user->stripe_id,
+                'limit'    => 10,
+            ]);
+
+            if (empty($stripeSubscriptions->data)) {
+                Log::info('syncFromStripe: aucun abonnement trouvé', [
+                    'studio_id'       => $studio->id,
+                    'stripe_customer' => $user->stripe_id,
+                ]);
+                $studio->update(['is_subscribed' => false]);
+                return false;
+            }
+
+            foreach ($stripeSubscriptions->data as $stripeSub) {
+                if (!in_array($stripeSub->status, ['active', 'trialing'])) {
+                    continue;
+                }
+
+                $priceId = $stripeSub->items->data[0]->price->id ?? null;
+
+                $user->subscriptions()->updateOrCreate(
+                    ['type' => 'default'],
+                    [
+                        'stripe_id'     => $stripeSub->id,
+                        'stripe_status' => $stripeSub->status,
+                        'stripe_price'  => $priceId,
+                        'quantity'      => $stripeSub->items->data[0]->quantity ?? 1,
+                        'trial_ends_at' => $stripeSub->trial_end
+                            ? \Carbon\Carbon::createFromTimestamp($stripeSub->trial_end)
+                            : null,
+                        'ends_at' => $stripeSub->cancel_at
+                            ? \Carbon\Carbon::createFromTimestamp($stripeSub->cancel_at)
+                            : null,
+                    ]
+                );
+
+                $studio->update(['is_subscribed' => true]);
+
+                Log::info('syncFromStripe: OK', [
+                    'studio_id'   => $studio->id,
+                    'stripe_sub'  => $stripeSub->id,
+                    'status'      => $stripeSub->status,
+                    'price_id'    => $priceId,
+                ]);
+                return true;
+            }
+
+            $studio->update(['is_subscribed' => false]);
+            return false;
+
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            Log::error('syncFromStripe Stripe API error', [
+                'studio_id' => $studio->id,
+                'error'     => $e->getMessage(),
+            ]);
             return false;
         } catch (\Exception $e) {
             Log::error('syncFromStripe error', ['studio_id' => $studio->id, 'error' => $e->getMessage()]);
