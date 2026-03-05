@@ -334,6 +334,16 @@ class Studio extends Model implements HasMedia
 
     public function hasActiveSubscription(): bool
     {
+        // Source de vérité : Cashier via le User propriétaire (subscriptions.user_id)
+        try {
+            if ($this->user && $this->user->subscribed('default')) {
+                return true;
+            }
+        } catch (\Exception) {
+            // Fallback si Cashier échoue
+        }
+
+        // Fallback : ancienne table studio_subscriptions (legacy)
         return $this->studioSubscriptions()
             ->where('status', 'active')
             ->exists();
