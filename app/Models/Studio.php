@@ -41,6 +41,7 @@ class Studio extends Model implements HasMedia
         'social_media_links',  // JSON : {"instagram": "...", "facebook": "...", ...}
         'social_links',        // Alias pour compatibilité prompt
         'trial_ends_at',   // Trial local (indépendant de Cashier)
+        'is_subscribed',   // Flag mis à jour par sync/webhook
     ];
 
     protected $casts = [
@@ -48,6 +49,7 @@ class Studio extends Model implements HasMedia
         'social_media_links'         => 'array',
         'social_links'               => 'array',
         'stripe_onboarding_complete' => 'boolean',
+        'is_subscribed'              => 'boolean',
         'is_active'                  => 'boolean',
         'max_artists'                => 'integer',
         'joined_at'                  => 'datetime',
@@ -334,19 +336,21 @@ class Studio extends Model implements HasMedia
 
     public function hasActiveSubscription(): bool
     {
-        // Source de vérité : Cashier via le User propriétaire (subscriptions.user_id)
+        // Source de vérité 1 : Cashier via le User propriétaire
         try {
             if ($this->user && $this->user->subscribed('default')) {
                 return true;
             }
         } catch (\Exception) {
-            // Fallback si Cashier échoue
+            // Fallback si Cashier échoue (ex: erreur SQL)
         }
 
-        // Fallback : ancienne table studio_subscriptions (legacy)
-        return $this->studioSubscriptions()
-            ->where('status', 'active')
-            ->exists();
+        // Source de vérité 2 : flag mis à jour par webhook/sync
+        if ($this->is_subscribed) {
+            return true;
+        }
+
+        return false;
     }
 
     public function canOperate(): bool
