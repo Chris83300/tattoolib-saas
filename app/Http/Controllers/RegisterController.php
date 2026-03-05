@@ -172,6 +172,7 @@ class RegisterController extends Controller
                 'current_plan' => 'free',
                 'is_subscribed' => false,
                 'has_compliance_badge' => false,
+                'trial_ends_at' => now()->addDays(\App\Enums\SubscriptionPlan::STARTER->trialDays()),
             ]);
 
             Log::info('Tattooer créé: ' . json_encode($tattooer));
@@ -268,6 +269,7 @@ class RegisterController extends Controller
                 'current_plan' => 'free',
                 'is_subscribed' => false,
                 'has_compliance_badge' => false,
+                'trial_ends_at' => now()->addDays(\App\Enums\SubscriptionPlan::STARTER->trialDays()),
             ]);
 
             Log::info('Piercer créé: ' . json_encode($piercer));

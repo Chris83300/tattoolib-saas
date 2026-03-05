@@ -162,14 +162,14 @@
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="text-lg font-bold text-beige-peau">Plan Studio</h3>
                     <div class="text-right">
-                        <p class="text-2xl font-bold text-ivoire-text">{{ number_format(\App\Enums\SubscriptionPlan::STUDIO->price(), 2, ',', '') }}€<span class="text-sm text-titane font-normal">/mois</span></p>
-                        <p class="text-xs text-titane">+ {{ number_format(\App\Enums\SubscriptionPlan::STUDIO->pricePerExtraArtist(), 2, ',', '') }}€ par artiste supplémentaire</p>
+                        <p class="text-2xl font-bold text-beige-peau">{{ number_format(\App\Enums\SubscriptionPlan::STUDIO->price(), 2, ',', '') }}€<span class="text-sm text-titane font-normal">/mois</span></p>
+                        <p class="text-xs text-beige-peau">+ {{ number_format(\App\Enums\SubscriptionPlan::STUDIO->pricePerExtraArtist(), 2, ',', '') }}€<span class="text-sm text-titane font-normal"> par artiste supplémentaire</span></p>
                     </div>
                 </div>
                 <ul class="space-y-1.5 text-sm text-titane mb-4">
                     @foreach (\App\Enums\SubscriptionPlan::STUDIO->features() as $feature)
                         <li class="flex items-center gap-2">
-                            <svg class="w-4 h-4 text-beige-peau flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            <svg class="w-4 h-4 text-vert-succes flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                             {{ $feature }}
                         </li>
                     @endforeach
@@ -178,7 +178,7 @@
                 <form method="POST" action="{{ route('studio.subscribe') }}">
                     @csrf
                     <button type="submit" class="w-full px-6 py-3 text-sm font-medium bg-beige-peau text-noir-profond rounded-lg hover:bg-beige-peau/80 transition-colors">
-                        Commencer l'essai gratuit de {{ \App\Enums\SubscriptionPlan::STUDIO->trialDays() }} jours
+                        Souscrire à l'abonnement
                     </button>
                 </form>
                 <p class="text-xs text-titane text-center mt-2">Sans engagement. Annulable à tout moment.</p>
