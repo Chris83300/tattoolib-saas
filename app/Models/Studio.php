@@ -5,13 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Laravel\Cashier\Billable;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 
 class Studio extends Model implements HasMedia
 {
-    use HasFactory, SoftDeletes, InteractsWithMedia, Billable;
+    use HasFactory, SoftDeletes, InteractsWithMedia;
 
     protected $fillable = [
         'user_id',
@@ -41,11 +40,7 @@ class Studio extends Model implements HasMedia
         'opening_hours',       // JSON : {"monday": {"open": "09:00", "close": "19:00"}, ...}
         'social_media_links',  // JSON : {"instagram": "...", "facebook": "...", ...}
         'social_links',        // Alias pour compatibilité prompt
-        // Cashier
-        'stripe_id',
-        'pm_type',
-        'pm_last_four',
-        'trial_ends_at',
+        'trial_ends_at',   // Trial local (indépendant de Cashier)
     ];
 
     protected $casts = [
@@ -236,7 +231,7 @@ class Studio extends Model implements HasMedia
      */
     public function monthlyPrice(): float
     {
-        return 79.99 + ($this->paidArtistCount() * 39.99);
+        return 59.99 + ($this->paidArtistCount() * 24.99);
     }
 
     /**
@@ -287,6 +282,35 @@ class Studio extends Model implements HasMedia
     public function getProfileUrl(): string
     {
         return route('studio.public.show', $this->slug);
+    }
+
+    // ═══ CASHIER DÉLÉGATION → USER ═══
+    // Le trait Billable est sur User, pas sur Studio.
+    // Ces méthodes délèguent vers $this->user pour compatibilité.
+
+    public function subscribed(string $type = 'default'): bool
+    {
+        return $this->user?->subscribed($type) ?? false;
+    }
+
+    public function subscription(string $type = 'default')
+    {
+        return $this->user?->subscription($type);
+    }
+
+    public function hasStripeId(): bool
+    {
+        return $this->user?->hasStripeId() ?? false;
+    }
+
+    public function stripeId(): ?string
+    {
+        return $this->user?->stripe_id;
+    }
+
+    public function createOrGetStripeCustomer(array $options = [])
+    {
+        return $this->user?->createOrGetStripeCustomer($options);
     }
 
     // ═══ TRIAL ═══
