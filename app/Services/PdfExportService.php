@@ -20,9 +20,13 @@ class PdfExportService
     {
         $careSheet->load(['client', 'tattooer.user', 'studio']);
 
+        $professional = $careSheet->tattooer ?? $careSheet->studio;
+        $isStudio = $careSheet->studio !== null;
+
         return Pdf::loadView('pdf.care-sheet', [
             'careSheet' => $careSheet,
-            'artisan' => $careSheet->tattooer,
+            'professional' => $professional,
+            'isStudio' => $isStudio,
             'client' => $careSheet->client,
             'generatedAt' => now(),
         ])->setPaper('a4');
@@ -36,9 +40,13 @@ class PdfExportService
     {
         $consentForm->load(['tattooer.user', 'studio', 'client']);
 
+        $professional = $consentForm->tattooer ?? $consentForm->studio;
+        $isStudio = $consentForm->studio !== null;
+
         return Pdf::loadView('pdf.consent-form', [
             'consentForm' => $consentForm,
-            'artisan' => $consentForm->tattooer,
+            'professional' => $professional,
+            'isStudio' => $isStudio,
             'client' => $consentForm->client,
             'generatedAt' => now(),
         ])->setPaper('a4');
@@ -52,9 +60,13 @@ class PdfExportService
     {
         $parentalConsent->load(['tattooer.user', 'clientConsentForm.client']);
 
+        $professional = $parentalConsent->tattooer;
+        $isStudio = false; // Le consentement parental est lié à un artisan
+
         return Pdf::loadView('pdf.parental-consent', [
             'parentalConsent' => $parentalConsent,
-            'artisan' => $parentalConsent->tattooer,
+            'professional' => $professional,
+            'isStudio' => $isStudio,
             'consentForm' => $parentalConsent->clientConsentForm,
             'generatedAt' => now(),
         ])->setPaper('a4');
@@ -69,9 +81,13 @@ class PdfExportService
     {
         $record->load(['client', 'tattooer.user', 'studio']);
 
+        $professional = $record->tattooer ?? $record->studio;
+        $isStudio = $record->studio !== null;
+
         return Pdf::loadView('pdf.traceability-record', [
             'record' => $record,
-            'artisan' => $record->tattooer,
+            'professional' => $professional,
+            'isStudio' => $isStudio,
             'client' => $record->client,
             'needles' => $record->needles_used ?? [],
             'inks' => $record->inks_used ?? [],
@@ -82,26 +98,29 @@ class PdfExportService
     /**
      * Récapitulatif fiche client complète.
      */
-    public function generateClientSummary(Client $client, $artisan): \Barryvdh\DomPDF\PDF
+    public function generateClientSummary(Client $client, $professional): \Barryvdh\DomPDF\PDF
     {
-        $careSheets = ClientCareSheet::forArtisan($artisan)
+        $careSheets = ClientCareSheet::forArtisan($professional)
             ->where('client_id', $client->id)
             ->latest()
             ->get();
 
-        $consentForms = ClientConsentForm::forArtisan($artisan)
+        $consentForms = ClientConsentForm::forArtisan($professional)
             ->where('client_id', $client->id)
             ->latest()
             ->get();
 
-        $traceRecords = TraceabilityRecord::forArtisan($artisan)
+        $traceRecords = TraceabilityRecord::forArtisan($professional)
             ->where('client_id', $client->id)
             ->latest()
             ->get();
+
+        $isStudio = $professional instanceof \App\Models\Studio;
 
         return Pdf::loadView('pdf.client-summary', [
             'client' => $client,
-            'artisan' => $artisan,
+            'professional' => $professional,
+            'isStudio' => $isStudio,
             'careSheets' => $careSheets,
             'consentForms' => $consentForms,
             'traceRecords' => $traceRecords,
@@ -116,9 +135,13 @@ class PdfExportService
     {
         $booking->load(['client', 'bookable.user', 'bookable.studio']);
 
+        $professional = $booking->bookable;
+        $isStudio = $professional instanceof \App\Models\Studio;
+
         return Pdf::loadView('pdf.receipt', [
             'booking' => $booking,
-            'artisan' => $booking->bookable,
+            'professional' => $professional,
+            'isStudio' => $isStudio,
             'client' => $booking->client,
             'generatedAt' => now(),
         ])->setPaper('a4');

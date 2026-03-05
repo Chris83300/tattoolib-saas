@@ -23,17 +23,29 @@ class EnsureStudioCanOperate
         'studio.subscribe',
         'studio.subscribe.process',
         'studio.public.show',
+        // Routes studio-artist autorisées en lecture seule
+        'studio-artist.dashboard',
+        'studio-artist.profile',
+        'studio-artist.upgrade',
     ];
 
     public function handle(Request $request, Closure $next)
     {
         $user = $request->user();
 
-        if (!$user || !$user->isStudio()) {
+        if (!$user) {
             return $next($request);
         }
 
-        $studio = $user->studio;
+        $studio = null;
+
+        // Récupérer le studio selon le type d'utilisateur
+        if ($user->isStudio()) {
+            $studio = $user->studio;
+        } elseif ($user->isStudioArtist()) {
+            $studio = $user->artistStudio();
+        }
+
         if (!$studio) {
             return $next($request);
         }
@@ -57,7 +69,10 @@ class EnsureStudioCanOperate
             ], 403);
         }
 
-        return redirect()->route('studio.billing')
+        // Rediriger selon le type d'utilisateur
+        $redirectRoute = $user->isStudio() ? 'studio.billing' : 'studio-artist.dashboard';
+
+        return redirect()->route($redirectRoute)
             ->with('error', 'Votre essai est terminé. Activez votre abonnement pour continuer.');
     }
 }

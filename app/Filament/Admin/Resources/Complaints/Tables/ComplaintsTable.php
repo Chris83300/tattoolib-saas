@@ -7,7 +7,7 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Textarea;
-use Filament\Tables\Actions\Action as TableAction;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
@@ -54,7 +54,7 @@ class ComplaintsTable
                     ]),
             ])
             ->recordActions([
-                TableAction::make('take_charge')
+                Action::make('take_charge')
                     ->label('Prendre en charge')
                     ->icon('heroicon-o-hand-raised')
                     ->color('info')
@@ -66,7 +66,7 @@ class ComplaintsTable
                             ->success()
                             ->send();
                     }),
-                TableAction::make('resolve')
+                Action::make('resolve')
                     ->label('Résoudre')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
@@ -87,7 +87,7 @@ class ComplaintsTable
                             ->success()
                             ->send();
                     }),
-                TableAction::make('reject')
+                Action::make('reject')
                     ->label('Rejeter')
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')

@@ -14,8 +14,8 @@
             <h1 class="text-2xl font-bold text-ivoire-text">
                 {{ $studioArtist->artist_name ?: $studioArtist->user?->name ?? 'Artiste' }}
             </h1>
-            <p class="text-sm text-titane">
-                {{ $studioArtist->artisan_type === 'piercer' ? '💎 Pierceur' : '🎨 Tatoueur' }}
+            <p class="text-sm text-beige-peau">
+                {{ $studioArtist->artisan_type === 'piercer' ? 'Pierceur' : 'Tatoueur' }}
                 @if($studioArtist->joined_at) • Rejoint le {{ $studioArtist->joined_at->format('d/m/Y') }} @endif
             </p>
         </div>
@@ -54,7 +54,7 @@
 
                 <div class="flex justify-between text-sm">
                     <span class="text-titane">Statut</span>
-                    <span class="{{ $studioArtist->is_active ? 'text-vert-validation' : 'text-rouge-alerte' }} font-semibold">
+                    <span class="{{ $studioArtist->is_active ? 'text-vert-succes' : 'text-rouge-alerte' }} font-semibold">
                         {{ $studioArtist->is_active ? 'Actif' : 'Inactif' }}
                     </span>
                 </div>
@@ -165,10 +165,10 @@
                         </div>
                         <span class="text-xs px-2 py-0.5 rounded-full font-semibold shrink-0
                             {{ $status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' : '' }}
-                            {{ in_array($status, ['accepted', 'deposit_paid', 'date_confirmed']) ? 'bg-vert-validation/20 text-vert-validation' : '' }}
+                            {{ in_array($status, ['accepted', 'deposit_paid', 'date_confirmed']) ? 'bg-vert-succes/20 text-vert-succes' : '' }}
                             {{ in_array($status, ['completed', 'fully_completed']) ? 'bg-vert-succes/20 text-vert-succes' : '' }}
-                            {{ in_array($status, ['cancelled', 'rejected']) ? 'bg-rouge-alerte/20 text-rouge-alerte' : '' }}
-                            {{ !in_array($status, ['pending','accepted','deposit_paid','date_confirmed','completed','fully_completed','cancelled','rejected']) ? 'bg-titane/20 text-titane' : '' }}">
+                            {{ in_array($status, ['cancelled', 'rejected', 'no_show']) ? 'bg-rouge-alerte/20 text-rouge-alerte' : '' }}
+                            {{ !in_array($status, ['pending','accepted','deposit_paid','date_confirmed','completed','fully_completed','cancelled','rejected', 'no_show']) ? 'bg-titane/20 text-titane' : '' }}">
                             {{ str_replace('_', ' ', ucfirst($status)) }}
                         </span>
                     </a>

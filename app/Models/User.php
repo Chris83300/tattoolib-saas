@@ -272,7 +272,7 @@ class User extends Authenticatable implements HasMedia
 
     public function isStudioOwner(): bool
     {
-        return $this->is_studio_owner && $this->studio_id;
+        return ($this->is_studio_owner && $this->studio_id) || $this->role === 'studio';
     }
 
     public function getDashboardRoute(): string

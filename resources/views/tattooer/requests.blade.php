@@ -143,9 +143,8 @@
                             {{ match ($request->status->value) {
                                 'pending' => 'bg-ambre-warning/20 text-ambre-warning',
                                 'accepted' => 'bg-beige-peau/20 text-beige-peau',
-                                'rejected' => 'bg-rouge-alerte/20 text-rouge-alerte',
-                                'completed' => 'bg-vert-succes/20 text-vert-succes',
-                                'cancelled' => 'bg-titane/20 text-ivoire-text',
+                                'rejected', 'no_show', 'cancelled' => 'bg-rouge-alerte/20 text-rouge-alerte',
+                                'completed', 'deposit_paid', 'confirmed_date' => 'bg-vert-succes/20 text-vert-succes',
                                 default => 'bg-titane/20 text-ivoire-text/60',
                             } }}">
                                     {{ match ($request->status->value) {

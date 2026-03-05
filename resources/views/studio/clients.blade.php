@@ -58,16 +58,16 @@
 
                 <!-- Stats demandes -->
                 <div class="text-right shrink-0">
-                    <p class="text-sm font-semibold text-beige-peau">
+                    <p class="text-sm font-semibold text-beige-peau mb-1">
                         {{ $client->booking_requests_count ?? $client->bookingRequests->count() }}
                         demande{{ ($client->booking_requests_count ?? $client->bookingRequests->count()) > 1 ? 's' : '' }}
                     </p>
                     @if($client->is_blacklisted)
-                        <span class="text-xs text-rouge-alerte font-semibold">Liste noire</span>
+                        <span class="text-xs bg-rouge-alerte/10 p-1 rounded-full text-rouge-alerte font-semibold mt-2 ">Liste noire</span>
                     @elseif($client->no_show_count > 0)
-                        <span class="text-xs text-yellow-400">{{ $client->no_show_count }} no-show</span>
+                        <span class="text-xs bg-rouge-alerte/10 p-1 rounded-full text-rouge-alerte mt-2">{{ $client->no_show_count }} no-show</span>
                     @else
-                        <span class="text-xs text-titane">{{ $client->created_at?->diffForHumans() }}</span>
+                        <span class="text-xs text-titane mt-2">{{ $client->created_at?->diffForHumans() }}</span>
                     @endif
                 </div>
 

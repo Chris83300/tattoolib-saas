@@ -7,12 +7,12 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <!-- En-tête -->
             <div class="mb-6">
-                <a href="{{ route('client.dashboard') }}"
+                <a href="{{ route('client.profile') }}"
                     class="inline-flex items-center text-ivoire-text/80 hover:text-ivoire-text mb-4">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
-                    Retour au tableau de bord
+                    Retour au profil
                 </a>
 
                 <div class="flex items-center justify-between">

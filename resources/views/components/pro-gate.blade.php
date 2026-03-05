@@ -77,7 +77,12 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
-                        Passer PRO — 49.99€/mois
+                        Passer PRO —
+                        @if ($user && $user->isStudioOwner())
+                            59.99€/mois
+                        @else
+                            29.99€/mois
+                        @endif
                     </a>
                     <p class="text-xs text-titane mt-2">Annulable à tout moment</p>
                 @endif

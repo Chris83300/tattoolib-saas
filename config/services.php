@@ -41,8 +41,8 @@ return [
         'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
         'default_deposit_amount' => env('STRIPE_DEFAULT_DEPOSIT_AMOUNT', 5000),
         'default_deposit_percentage' => env('STRIPE_DEFAULT_DEPOSIT_PERCENTAGE', 30),
-        'studio_price_id' => env('STRIPE_STUDIO_PRICE_ID'),          // 79.99€/mois
-        'studio_artist_price_id' => env('STRIPE_STUDIO_ARTIST_PRICE_ID'), // 39.99€/artiste/mois
+        'studio_price_id' => env('STRIPE_PRICE_ID_STUDIO'),          // 59.99€/mois
+        'studio_artist_price_id' => env('STRIPE_PRICE_ID_STUDIO_EXTRA'), // 24.99€/artiste/mois
     ],
 
 ];

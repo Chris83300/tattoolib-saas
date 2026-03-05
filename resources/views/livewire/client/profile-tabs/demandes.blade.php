@@ -282,6 +282,8 @@
                                 class="px-3 py-1 rounded-full text-xs font-semibold
                             {{ $booking->status === \App\Enums\BookingRequestStatus::PENDING ? 'bg-ambre-warning/20 text-ambre-warning' : '' }}
                             {{ $booking->status === \App\Enums\BookingRequestStatus::ACCEPTED ? 'bg-vert-succes/20 text-vert-succes' : '' }}
+                            {{ $booking->status === \App\Enums\BookingRequestStatus::DEPOSIT_PAID ? 'bg-vert-succes/20 text-vert-succes' : '' }}
+                            {{ $booking->status === \App\Enums\BookingRequestStatus::DATE_CONFIRMED ? 'bg-vert-succes/20 text-vert-succes' : '' }}
                             {{ $booking->status === \App\Enums\BookingRequestStatus::COMPLETED ? 'bg-beige-peau/20 text-beige-peau' : '' }}
                             {{ $booking->status === \App\Enums\BookingRequestStatus::CANCELLED ? 'bg-rouge-alerte/20 text-rouge-alerte' : '' }}
                             {{ $booking->status === \App\Enums\BookingRequestStatus::NO_SHOW ? 'bg-rouge-alerte/20 text-rouge-alerte' : '' }}">

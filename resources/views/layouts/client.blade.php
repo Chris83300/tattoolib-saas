@@ -155,8 +155,7 @@ try {
                             }
                         @endphp
                         @if ($avatarUrl)
-                            <img src="{{ auth()->user()->getFirstMediaUrl('avatar') ?: asset('images/default-avatar.png') }}"
-                                alt="Avatar" class="w-10 h-10 rounded-full">
+                            <img src="{{ $avatarUrl }}" alt="Avatar" class="w-10 h-10 rounded-full">
                         @else
                             <svg class="w-10 h-10 text-beige-peau" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"

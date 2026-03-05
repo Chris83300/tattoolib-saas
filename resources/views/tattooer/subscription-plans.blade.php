@@ -132,15 +132,15 @@
                 <p class="text-xs text-vert-succes mb-4">🎁 14 jours d'essai gratuit — sans CB</p>
 
                 <ul class="space-y-2 text-sm text-ivoire-text/80 mb-6">
-                    <li class="flex items-center gap-2">✅ Tout le plan Starter</li>
-                    <li class="flex items-center gap-2 text-vert-succes font-semibold">✅ Commission 0%</li>
-                    <li class="flex items-center gap-2 text-vert-succes">✅ Fiche client (automatique) + manuelle</li>
-                    <li class="flex items-center gap-2 text-vert-succes">✅ Traçabilité complète</li>
-                    <li class="flex items-center gap-2 text-vert-succes">✅ Analytics & statistiques</li>
-                    <li class="flex items-center gap-2 text-vert-succes">✅ Support prioritaire</li>
-                    <li class="flex items-center gap-2 text-vert-succes">✅ Portfolio illimité</li>
-                    <li class="flex items-center gap-2 text-vert-succes">✅ Export PDF fiches clients</li>
-                    <li class="flex items-center gap-2 text-vert-succes">✅ Export CSV/Excel comptabilité</li>
+                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Tout le plan Starter</li>
+                    <li class="flex items-center gap-2 font-semibold"><span class="text-sm text-vert-succes">✓</span> Commission 0%</li>
+                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Fiche client (automatique) + manuelle</li>
+                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Traçabilité complète</li>
+                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Analytics & statistiques</li>
+                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Support prioritaire</li>
+                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Portfolio illimité</li>
+                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Export PDF fiches clients</li>
+                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Export CSV/Excel comptabilité</li>
                 </ul>
 
                 @if ($tattooer->isPro() && !$activeSubscription?->isOnGracePeriod())

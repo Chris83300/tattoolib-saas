@@ -10,7 +10,7 @@
                     actif{{ $activeArtists->count() > 1 ? 's' : '' }}
                     @if ($paidArtistCount > 0)
                         <span class="text-beige-peau">(dont {{ $paidArtistCount }}
-                            supplémentaire{{ $paidArtistCount > 1 ? 's' : '' }} à 39,99€/mois)</span>
+                            supplémentaire{{ $paidArtistCount > 1 ? 's' : '' }} à 24,99€/mois)</span>
                     @endif
                 </p>
             </div>
@@ -63,7 +63,7 @@
         <div class="bg-gris-fonde/50 rounded-xl p-4 border border-titane/10">
             <p class="text-xs text-titane">
                 💡 Votre abonnement Studio inclut <strong class="text-ivoire-text">1 artiste</strong>.
-                Chaque artiste supplémentaire coûte <strong class="text-beige-peau">39,99€/mois</strong>.
+                Chaque artiste supplémentaire coûte <strong class="text-beige-peau">24,99€/mois</strong>.
                 Facturation actuelle : <strong class="text-ivoire-text">{{ number_format($monthlyPrice, 2) }}€/mois</strong>
             </p>
         </div>

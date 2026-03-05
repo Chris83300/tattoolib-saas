@@ -10,16 +10,16 @@
     </div>
 
     <div class="bg-gris-fonde rounded-2xl p-6 space-y-4 border border-titane/20">
-        <h2 class="text-lg font-bold text-ivoire-text text-center">Studio Ink&Pik</h2>
+        <h2 class="text-lg font-bold text-ivoire-text text-center">Studio <span class="text-titane">Ink</span><span class="text-beige-peau">&Pik</span></h2>
 
         <div class="space-y-3">
             <div class="flex justify-between items-center">
                 <span class="text-sm text-ivoire-text">Abonnement Studio</span>
-                <span class="text-sm font-semibold text-ivoire-text">79,99€/mois</span>
+                <span class="text-sm font-semibold text-ivoire-text">59,99€/mois</span>
             </div>
             <div class="flex justify-between items-center">
                 <span class="text-sm text-titane">1 artiste inclus</span>
-                <span class="text-sm text-green-400">✓ Inclus</span>
+                <span class="text-sm text-vert-succes">✓ Inclus</span>
             </div>
             @if ($paidArtistCount > 0)
                 <div class="flex justify-between items-center">
@@ -27,7 +27,7 @@
                         {{ $paidArtistCount }} artiste{{ $paidArtistCount > 1 ? 's' : '' }} supplémentaire{{ $paidArtistCount > 1 ? 's' : '' }}
                     </span>
                     <span class="text-sm font-semibold text-beige-peau">
-                        {{ number_format($paidArtistCount * 39.99, 2, ',', ' ') }}€/mois
+                        {{ number_format($paidArtistCount * 24.99, 2, ',', ' ') }}€/mois
                     </span>
                 </div>
             @endif
@@ -40,11 +40,12 @@
         </div>
 
         <div class="space-y-2 pt-2">
-            <p class="text-xs text-titane">✓ Dashboard complet et gestion avancée</p>
-            <p class="text-xs text-titane">✓ Traçabilité et fiches clients</p>
-            <p class="text-xs text-titane">✓ Visibilité marketplace</p>
-            <p class="text-xs text-titane">✓ Stripe Connect intégré</p>
-            <p class="text-xs text-titane">✓ Sans engagement, résiliable à tout moment</p>
+             <p class="text-xs text-titane font-semibold"><span class="text-sm text-vert-succes">✓</span> Tout le plan Pro</p>
+            <p class="text-xs text-titane"><span class="text-sm text-vert-succes">✓</span> Dashboard complet et gestion avancée</p>
+            <p class="text-xs text-titane"><span class="text-sm text-vert-succes">✓</span> Traçabilité et fiches clients</p>
+            <p class="text-xs text-titane"><span class="text-sm text-vert-succes">✓</span> Visibilité marketplace</p>
+            <p class="text-xs text-titane"><span class="text-sm text-vert-succes">✓</span> Stripe Connect intégré</p>
+            <p class="text-xs text-titane"><span class="text-sm text-vert-succes">✓</span> Sans engagement, résiliable à tout moment</p>
         </div>
 
         <form action="{{ route('studio.subscribe.process') }}" method="POST">

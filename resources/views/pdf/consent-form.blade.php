@@ -45,14 +45,26 @@
     <h2>Identité du professionnel</h2>
     <div class="info-grid">
         <div class="info-col">
-            <div class="info-label">Artiste</div>
-            <div class="info-value">{{ $artisan?->user?->name ?? '—' }}</div>
+            <div class="info-label">{{ $isStudio ? 'Studio' : 'Artiste' }}</div>
+            <div class="info-value">
+                @if ($isStudio)
+                    {{ $professional?->name ?? '—' }}
+                @else
+                    {{ $professional?->user?->name ?? '—' }}
+                @endif
+            </div>
             <div class="info-label">SIRET</div>
-            <div class="info-value">{{ $artisan?->siret ?? '—' }}</div>
+            <div class="info-value">{{ $professional?->siret ?? '—' }}</div>
         </div>
         <div class="info-col">
             <div class="info-label">Studio</div>
-            <div class="info-value">{{ $artisan?->studio_name ?? ($consentForm->studio?->name ?? 'Indépendant') }}</div>
+            <div class="info-value">
+                @if ($isStudio)
+                    {{ $professional?->name ?? '—' }}
+                @else
+                    {{ $professional?->studio_name ?? ($consentForm->studio?->name ?? 'Indépendant') }}
+                @endif
+            </div>
         </div>
     </div>
 

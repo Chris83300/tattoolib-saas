@@ -163,7 +163,8 @@ img-comparison-slider {
    ============================================ */
 
 .btn-shadow {
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.6),
+    box-shadow:
+        0 3px 6px rgba(0, 0, 0, 0.6),
         inset 0 2px 4px rgba(255, 255, 255, 0.3),
         inset 0 -2px 4px rgba(0, 0, 0, 0.8);
 }
@@ -269,30 +270,9 @@ select:focus[data-flux-control] {
     margin-bottom: 6rem;
 }
 
-/* Text colors for status badges */
-/* .text-jaune-alerte {
-    color: var(--color-jaune-alerte);
-}
-.text-beige-peau {
-    color: var(--color-beige-peau);
-}
-.text-ambre-warning {
-    color: var(--color-ambre-warning);
-}
-.text-vert-succes {
-    color: var(--color-vert-succes);
-}
-.text-rouge-alerte {
-    color: var(--color-rouge-alerte);
-}
-.text-orange-attention {
-    color: var(--color-orange-attention);
-} */
-
 @media (max-width: 768px) {
     .text-titre {
         font-size: 4rem;
         margin-bottom: 3rem;
     }
 }
-

@@ -20,16 +20,16 @@
                         @endphp
                         <span class="text-xs px-2 py-0.5 rounded-full font-semibold
                             {{ in_array($status, ['pending']) ? 'bg-yellow-500/20 text-yellow-400' : '' }}
-                            {{ in_array($status, ['accepted', 'deposit_paid', 'date_confirmed']) ? 'bg-vert-validation/20 text-vert-validation' : '' }}
+                            {{ in_array($status, ['accepted', 'deposit_paid', 'date_confirmed']) ? 'bg-vert-succes/10 text-vert-succes' : '' }}
                             {{ in_array($status, ['completed', 'fully_completed', 'balance_paid', 'balance_paid_offline']) ? 'bg-vert-succes/20 text-vert-succes' : '' }}
-                            {{ in_array($status, ['cancelled', 'rejected', 'no_show']) ? 'bg-rouge-alerte/20 text-rouge-alerte' : '' }}
+                            {{ in_array($status, ['cancelled', 'rejected', 'no_show']) ? 'bg-rouge-alerte/10 text-rouge-alerte' : '' }}
                             {{ !in_array($status, ['pending','accepted','deposit_paid','date_confirmed','completed','fully_completed','balance_paid','balance_paid_offline','cancelled','rejected','no_show']) ? 'bg-titane/20 text-titane' : '' }}">
                             {{ str_replace('_', ' ', ucfirst($status)) }}
                         </span>
                     </div>
                     <p class="text-xs text-titane mt-0.5">
                         → {{ $request->bookable?->user?->name ?? 'Artiste' }}
-                        ({{ $request->bookable instanceof \App\Models\Piercer ? '💎' : '🎨' }})
+                        <span class="text-beige-peau">({{ $request->bookable instanceof \App\Models\Piercer ? 'Pierçeur' : 'Tatoueur' }})</span>
                         • {{ $request->created_at?->diffForHumans() }}
                     </p>
                 </div>
