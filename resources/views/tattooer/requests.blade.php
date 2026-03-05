@@ -203,8 +203,8 @@
                                     @endif
                                 @else
                                     <span>� {{ $request->tattoo_size }}</span>
-                                    @if ($request->estimated_total_price)
-                                        <span>💰 {{ number_format($request->estimated_total_price, 2, ',', ' ') }}€</span>
+                                    @if ($request->price_estimate_max)
+                                        <span>💰 {{ number_format($request->price_estimate_maxe, 2, ',', ' ') }}€</span>
                                     @endif
                                 @endif
                                 @if ($request->preferred_date)

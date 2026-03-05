@@ -84,13 +84,18 @@ class PdfExportService
         $professional = $record->tattooer ?? $record->studio;
         $isStudio = $record->studio !== null;
 
+        // Extraire les données du JSON sterile_equipment
+        $sterileEquipment = is_array($record->sterile_equipment) ? $record->sterile_equipment : [];
+        $needles = $sterileEquipment['needles'] ?? [];
+        $inks = $sterileEquipment['inks'] ?? [];
+
         return Pdf::loadView('pdf.traceability-record', [
             'record' => $record,
             'professional' => $professional,
             'isStudio' => $isStudio,
             'client' => $record->client,
-            'needles' => $record->needles_used ?? [],
-            'inks' => $record->inks_used ?? [],
+            'needles' => $needles,
+            'inks' => $inks,
             'generatedAt' => now(),
         ])->setPaper('a4');
     }

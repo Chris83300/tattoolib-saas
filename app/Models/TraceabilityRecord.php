@@ -352,30 +352,42 @@ class TraceabilityRecord extends Model implements HasMedia
      */
     public function isComplete(): bool
     {
-        // Vérifier si du matériel est renseigné dans sterile_equipment JSON
+        // Si des photos sont uploadées, la traçabilité est considérée comme complète
+        if ($this->getMedia('lot_photos')->count() > 0) {
+            return true;
+        }
+
+        // Sinon, vérifier si du matériel est renseigné dans sterile_equipment JSON
         $hasEquipment = false;
         if (is_array($this->sterile_equipment)) {
             $equip = $this->sterile_equipment;
-            $hasEquipment = !empty($equip['needles'][0]['brand'] ?? null)
-                || !empty($equip['needles'][0]['lot_number'] ?? null)
-                || !empty($equip['needles'][1]['brand'] ?? null)
-                || !empty($equip['needles'][1]['lot_number'] ?? null)
-                || !empty($equip['sterilization_date'] ?? null)
-                || !empty($equip['sterilization_lot_number'] ?? null)
-                || !empty($this->autoclave_batch_number);
+
+            // Vérifier les aiguilles/cartouches
+            if (!empty($equip['needles'])) {
+                foreach ($equip['needles'] as $needle) {
+                    if (!empty($needle['brand'] ?? null) || !empty($needle['lot_number'] ?? null)) {
+                        $hasEquipment = true;
+                        break;
+                    }
+                }
+            }
+
+            // Vérifier la stérilisation
+            if (!$hasEquipment) {
+                $hasEquipment = !empty($equip['sterilization_date'] ?? null)
+                    || !empty($equip['sterilization_lot_number'] ?? null)
+                    || !empty($this->autoclave_batch_number);
+            }
         }
 
-        // Vérifier encres dans sterile_equipment JSON ou photos
-        $hasInksOrPhotos = false;
+        // Vérifier encres dans sterile_equipment JSON
+        $hasInks = false;
         if (is_array($this->sterile_equipment)) {
-            $hasInksOrPhotos = !empty($this->sterile_equipment['inks'] ?? []);
-        }
-        // Vérifier les photos uploadées
-        if (!$hasInksOrPhotos) {
-            $hasInksOrPhotos = $this->getMedia('lot_photos')->count() > 0;
+            $hasInks = !empty($this->sterile_equipment['inks'] ?? []);
         }
 
-        return $hasEquipment && $hasInksOrPhotos;
+        // Complète si équipement ET (encres OU photos)
+        return $hasEquipment && ($hasInks || $this->getMedia('lot_photos')->count() > 0);
     }
 
     /**

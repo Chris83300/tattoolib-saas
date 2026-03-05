@@ -1569,10 +1569,11 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
         }
 
         $validated = $request->validate([
-            'needle_brand' => 'nullable|string|max:255',
-            'needle_lot_number' => 'nullable|string|max:255',
-            'cartridge_brand' => 'nullable|string|max:255',
-            'cartridge_lot_number' => 'nullable|string|max:255',
+            'needles' => 'nullable|array',
+            'needles.*' => 'nullable|array',
+            'needles.*.brand' => 'nullable|string|max:255',
+            'needles.*.lot_number' => 'nullable|string|max:255',
+            'needles.*.type' => 'nullable|string|max:255',
             'inks' => 'nullable|array',
             'inks.*' => 'nullable|array',
             'inks.*.brand' => 'nullable|string|max:255',
@@ -1601,17 +1602,18 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
         $traceData = [
             'tattooer_id' => $tattooer->id,
             'appointment_id' => $appointment->id,
+            'client_consent_form_id' => $appointment->bookingRequest?->clientConsentForm?->id ?? null,
             'procedure_date' => now()->format('Y-m-d'),
+            'procedure_start_time' => $appointment->start_datetime?->format('H:i:s') ?? null,
+            'procedure_end_time' => $appointment->end_datetime?->format('H:i:s') ?? null,
             'sterile_equipment' => [
-                'needles' => [
-                    ['brand' => $validated['needle_brand'] ?? '', 'lot_number' => $validated['needle_lot_number'] ?? ''],
-                    ['brand' => $validated['cartridge_brand'] ?? '', 'lot_number' => $validated['cartridge_lot_number'] ?? '']
-                ],
+                'needles' => $validated['needles'] ?? [],
                 'inks' => $validated['inks'] ?? [],
                 'sterilization_date' => $validated['sterilization_date'] ?? null,
                 'sterilization_lot_number' => $validated['sterilization_lot_number'] ?? '',
                 'autoclave_cycle_number' => $validated['autoclave_cycle_number'] ?? ''
             ],
+            'aftercare_products' => $validated['aftercare_products'] ?? [],
             'procedure_notes' => $validated['other_supplies'] ?? '',
             'equipment_notes' => $validated['notes'] ?? '',
             'tattooer_verified_traceability' => true,
@@ -1624,10 +1626,20 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
         );
 
         // Upload photos de lots via Media Library
+        $hasPhotos = false;
         if ($request->hasFile('lot_photos')) {
+            $hasPhotos = true;
             foreach ($request->file('lot_photos') as $photo) {
                 $traceability->addMedia($photo)->toMediaCollection('lot_photos');
             }
+        }
+
+        // Si des photos ont été uploadées, marquer comme complète
+        if ($hasPhotos) {
+            $traceability->update([
+                'tattooer_verified_traceability' => true,
+                'verified_at' => now(),
+            ]);
         }
 
         return redirect()->to(url()->previous() . '#trace')->with('success', '✅ Traçabilité enregistrée.');

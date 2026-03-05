@@ -150,13 +150,15 @@
                     class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-titane hover:text-beige-peau hover:bg-beige-peau/5 transition-colors">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                     <span class="font-semibold text-sm">Gestion avancée</span>
-                    <svg class="w-3 h-3 ml-auto text-titane/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-3 h-3 ml-auto text-titane/40" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
                 </a>
             </div>
@@ -214,14 +216,16 @@
             <!-- Header Mobile (visible uniquement sur mobile) -->
             <header class="lg:hidden bg-gris-fonde border-b border-titane/20 p-4 sticky top-0 z-40">
                 <div class="flex items-center justify-between">
+                    <!-- Logo et nom du studio -->
                     <div class="flex items-center gap-3">
-                        <div class="rounded-lg flex items-center justify-center">
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center">
                             <img src="{{ asset('images/logo.png') }}" alt="Ink&Pik" class="w-10 h-10">
                         </div>
                         <span
                             class="text-beige-peau font-bold text-sm truncate max-w-[140px]">{{ $studioName }}</span>
                     </div>
 
+                    <!-- Avatar et bouton déconnexion -->
                     <div class="flex items-center gap-3">
                         <!-- Avatar -->
                         @if ($studio?->getFirstMediaUrl('logo'))
@@ -242,7 +246,7 @@
                                 title="Se déconnecter">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3 3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
                                     </path>
                                 </svg>
                             </button>
@@ -308,7 +312,7 @@
 
         <!-- Bottom Navigation Mobile (visible uniquement sur mobile) -->
         <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-gris-fonde border-t border-titane/20 z-50">
-            <div class="grid grid-cols-5 gap-1 p-2">
+            <div class="grid grid-cols-6 gap-1 p-2">
                 <a href="{{ route('studio.dashboard') }}"
                     class="flex flex-col items-center gap-1 p-2 rounded-lg {{ request()->routeIs('studio.dashboard') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text' }}">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -396,7 +400,8 @@
                     </a>
                     <a href="/admin/studio" target="_blank"
                         class="p-4 rounded-xl bg-noir-profond text-ivoire-text border border-beige-peau/20 hover:border-beige-peau/60 transition-colors col-span-2">
-                        <div class="font-semibold text-sm">⚙️ Gestion avancée <span class="text-titane text-xs font-normal">↗</span></div>
+                        <div class="font-semibold text-sm">⚙️ Gestion avancée <span
+                                class="text-titane text-xs font-normal">↗</span></div>
                     </a>
                 </div>
             </div>

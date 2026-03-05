@@ -831,8 +831,8 @@
                                         @if ($bookingRequest->price_range_min && $bookingRequest->price_range_max)
                                             {{ number_format($bookingRequest->price_range_min, 0) }}€ -
                                             {{ number_format($bookingRequest->price_range_max, 0) }}€
-                                        @elseif($bookingRequest->estimated_total_price)
-                                            {{ number_format($bookingRequest->estimated_total_price, 2, ',', ' ') }} €
+                                        @elseif($bookingRequest->price_estimate_max)
+                                            {{ number_format($bookingRequest->price_estimate_max, 2, ',', ' ') }} €
                                         @else
                                             Non défini
                                         @endif
@@ -852,6 +852,7 @@
                                     'accepted' => 'bg-vert-succes/20 text-vert-succes',
                                     'deposit_requested' => 'bg-jaune-alerte/20 text-jaune-alerte',
                                     'deposit_paid' => 'bg-vert-succes/20 text-vert-succes',
+                                    'date_confirmed' => 'bg-vert-succes/20 text-vert-succes',
                                     'in_progress' => 'bg-beige-peau/20 text-beige-peau',
                                     'completed' => 'bg-vert-succes/20 text-vert-succes',
                                     'cancelled' => 'bg-rouge-alerte/20 text-rouge-alerte',

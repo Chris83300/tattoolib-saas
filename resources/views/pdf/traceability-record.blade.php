@@ -62,21 +62,16 @@
             <thead>
                 <tr>
                     <th>Type</th>
-                    <th>Taille</th>
-                    <th>Quantité</th>
+                    <th>Marque</th>
                     <th>N° de lot</th>
-                    <th>Date expiration</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($needles as $needle)
                     <tr>
-                        <td>{{ $needle['type'] ?? '—' }}</td>
-                        <td>{{ $needle['size'] ?? '—' }}</td>
-                        <td>{{ $needle['quantity'] ?? '—' }}</td>
+                        <td>{{ $needle['type'] ?? 'Aiguille' }}</td>
+                        <td>{{ $needle['brand'] ?? '—' }}</td>
                         <td>{{ $needle['lot_number'] ?? '—' }}</td>
-                        <td>{{ isset($needle['expiration_date']) ? \Carbon\Carbon::parse($needle['expiration_date'])->format('d/m/Y') : '—' }}
-                        </td>
                     </tr>
                 @endforeach
             </tbody>
@@ -93,8 +88,6 @@
                     <th>Marque</th>
                     <th>Couleur</th>
                     <th>N° de lot</th>
-                    <th>Date expiration</th>
-                    <th>Qté (ml)</th>
                 </tr>
             </thead>
             <tbody>
@@ -103,9 +96,6 @@
                         <td>{{ $ink['brand'] ?? '—' }}</td>
                         <td>{{ $ink['color'] ?? '—' }}</td>
                         <td>{{ $ink['lot_number'] ?? '—' }}</td>
-                        <td>{{ isset($ink['expiration_date']) ? \Carbon\Carbon::parse($ink['expiration_date'])->format('d/m/Y') : '—' }}
-                        </td>
-                        <td>{{ $ink['quantity_ml'] ?? '—' }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -114,9 +104,39 @@
         <div class="info-value text-muted">Aucune encre enregistrée.</div>
     @endif
 
-    @if ($record->autoclave_batch_number || $record->autoclave_test_date)
+    {{-- Informations de stérilisation depuis le JSON --}}
+    @php
+        $sterileEquipment = is_array($record->sterile_equipment) ? $record->sterile_equipment : [];
+        $sterilizationDate = $sterileEquipment['sterilization_date'] ?? null;
+        $sterilizationLotNumber = $sterileEquipment['sterilization_lot_number'] ?? null;
+        $autoclaveCycleNumber = $sterileEquipment['autoclave_cycle_number'] ?? null;
+    @endphp
+    @if (
+        $sterilizationDate ||
+            $sterilizationLotNumber ||
+            $autoclaveCycleNumber ||
+            $record->autoclave_batch_number ||
+            $record->autoclave_test_date)
         <h2>Stérilisation</h2>
         <div class="info-grid">
+            @if ($sterilizationDate)
+                <div class="info-col">
+                    <div class="info-label">Date de stérilisation</div>
+                    <div class="info-value">{{ \Carbon\Carbon::parse($sterilizationDate)->format('d/m/Y') }}</div>
+                </div>
+            @endif
+            @if ($sterilizationLotNumber)
+                <div class="info-col">
+                    <div class="info-label">N° de lot stérilisation</div>
+                    <div class="info-value">{{ $sterilizationLotNumber }}</div>
+                </div>
+            @endif
+            @if ($autoclaveCycleNumber)
+                <div class="info-col">
+                    <div class="info-label">N° de cycle autoclave</div>
+                    <div class="info-value">{{ $autoclaveCycleNumber }}</div>
+                </div>
+            @endif
             @if ($record->autoclave_batch_number)
                 <div class="info-col">
                     <div class="info-label">N° de lot autoclave</div>
@@ -129,6 +149,15 @@
                     <div class="info-value">{{ $record->autoclave_test_date->format('d/m/Y') }}</div>
                 </div>
             @endif
+        </div>
+    @endif
+
+    {{-- Photos de lots uploadées --}}
+    @if ($record->getMedia('lot_photos')->count() > 0)
+        <h2>Photos des lots</h2>
+        <div class="info-value text-muted">Photos des lots et équipements uploadées dans le système.</div>
+        <div class="info-value">
+            Nombre de photos : {{ $record->getMedia('lot_photos')->count() }}
         </div>
     @endif
 
