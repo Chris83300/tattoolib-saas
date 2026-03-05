@@ -160,15 +160,67 @@ class StudioBillingService
             $studio->update(['is_subscribed' => true]);
 
             Log::info('syncFromCheckoutSession: OK', [
-                'studio_id'    => $studio->id,
+                'studio_id'     => $studio->id,
                 'stripe_sub_id' => $stripeSub->id,
             ]);
+
+            // Paiement effectué → terminer le trial immédiatement
+            if ($session->payment_status === 'paid') {
+                $this->endTrialImmediately($studio);
+            }
 
             return true;
         } catch (\Exception $e) {
             Log::error('syncFromCheckoutSession error', [
                 'session_id' => $sessionId,
                 'error'      => $e->getMessage(),
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Terminer le trial immédiatement sur un abonnement Stripe.
+     * Appelé après un paiement réussi pour que le statut passe de 'trialing' à 'active'.
+     */
+    public function endTrialImmediately(Studio $studio): bool
+    {
+        try {
+            $user = $studio->user;
+            if (!$user || !$user->hasStripeId()) return false;
+
+            $sub = $user->subscription('default');
+            if (!$sub || !$sub->onTrial()) return false;
+
+            $stripe = new \Stripe\StripeClient(config('cashier.secret'));
+
+            // Terminer le trial côté Stripe
+            $stripe->subscriptions->update($sub->stripe_id, [
+                'trial_end' => 'now',
+            ]);
+
+            // Mettre à jour le record Cashier local
+            $sub->update([
+                'stripe_status' => 'active',
+                'trial_ends_at' => null,
+            ]);
+
+            // Mettre à jour le studio
+            $studio->update([
+                'is_subscribed' => true,
+                'trial_ends_at' => null,
+            ]);
+
+            Log::info('Trial ended immediately after payment', [
+                'studio_id'    => $studio->id,
+                'stripe_sub_id' => $sub->stripe_id,
+            ]);
+
+            return true;
+        } catch (\Exception $e) {
+            Log::error('endTrialImmediately error', [
+                'studio_id' => $studio->id,
+                'error'     => $e->getMessage(),
             ]);
             return false;
         }

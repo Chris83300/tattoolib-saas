@@ -123,15 +123,34 @@ class SubscriptionController extends Controller
 
         // Déterminer si c'est un tattooer ou un piercer
         if ($user->tattooer) {
+            $artist      = $user->tattooer;
             $routePrefix = 'tattooer';
         } elseif ($user->piercer) {
+            $artist      = $user->piercer;
             $routePrefix = 'piercer';
         } else {
             return redirect()->route('dashboard')->with('error', 'Aucun profil artiste trouvé.');
         }
 
+        // Terminer le trial immédiatement si l'artiste était en trialing
+        try {
+            sleep(1); // Laisser Stripe finaliser
+            $sub = $user->subscription('pro') ?? $user->subscription('default');
+            if ($sub && $sub->onTrial()) {
+                $stripe = new \Stripe\StripeClient(config('cashier.secret'));
+                $stripe->subscriptions->update($sub->stripe_id, ['trial_end' => 'now']);
+                $sub->update(['stripe_status' => 'active', 'trial_ends_at' => null]);
+                $artist->update(['trial_ends_at' => null, 'is_subscribed' => true]);
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning('Artiste endTrialImmediately error', [
+                'user_id' => $user->id,
+                'error'   => $e->getMessage(),
+            ]);
+        }
+
         return redirect()->route($routePrefix . '.subscription.plans')
-            ->with('success', '🎉 Félicitations ! Votre abonnement PRO est maintenant actif.');
+            ->with('success', 'Félicitations ! Votre abonnement PRO est maintenant actif.');
     }
 
     /**

@@ -592,10 +592,20 @@ class StudioController extends Controller
 
             // Laisser Stripe finaliser (délai Stripe)
             sleep(2);
-            $synced = $billingService->syncFromStripe($studio);
 
-            if (!$synced && $sessionId) {
+            // Sync via session d'abord (plus précis), puis fallback syncFromStripe
+            $synced = false;
+            if ($sessionId) {
                 $synced = $billingService->syncFromCheckoutSession($studio, $sessionId);
+            }
+            if (!$synced) {
+                $synced = $billingService->syncFromStripe($studio);
+            }
+
+            // Terminer le trial si paiement effectué (syncFromCheckoutSession le fait aussi,
+            // mais syncFromStripe n'a pas accès au payment_status — on refait ici par sécurité)
+            if ($synced) {
+                $billingService->endTrialImmediately($studio);
             }
 
             if ($synced) {
