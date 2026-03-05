@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class StudioController extends Controller
 {
@@ -315,7 +316,7 @@ class StudioController extends Controller
             'slug'         => Str::slug($user->name), // Générer un slug à partir du nom
         ]);
 
-        \Mail::to($validated['email'])->send(new \App\Mail\StudioArtistCreatedMail(
+        Mail::to($validated['email'])->send(new \App\Mail\StudioArtistCreatedMail(
             $studio,
             $validated['name'],
             $validated['email'],
@@ -361,7 +362,7 @@ class StudioController extends Controller
             'invited_at'       => now(),
         ]);
 
-        \Mail::to($validated['email'])->send(new \App\Mail\StudioInvitationMail(
+        Mail::to($validated['email'])->send(new \App\Mail\StudioInvitationMail(
             $studio,
             $token,
             $validated['artisan_type'],
@@ -580,83 +581,92 @@ class StudioController extends Controller
 
     // ═══ BILLING ═══
 
-    public function billing()
+    public function billing(Request $request)
     {
         $studio = $this->studio();
         $billingService = app(\App\Services\StudioBillingService::class);
 
-        return view('studio.billing', [
-            'studio'          => $studio,
-            'monthlyPrice'    => $studio->monthlyPrice(),
-            'artistCount'     => $studio->artistCount(),
-            'paidArtistCount' => $studio->paidArtistCount(),
-            'isSubscribed'    => $billingService->isSubscribed($studio),
-            'portalUrl'       => $studio->hasStripeId() ? $billingService->billingPortalUrl($studio) : null,
-        ]);
+        // Sync depuis Stripe si checkout vient de réussir
+        if ($request->get('checkout') === 'success') {
+            $billingService->syncFromStripe($studio);
+            return redirect()->route('studio.billing')
+                ->with('success', 'Abonnement activé avec succès !');
+        }
+
+        $subscriptionInfo = $billingService->getSubscriptionInfo($studio);
+        $isSubscribed     = $billingService->isSubscribed($studio);
+        $portalUrl        = $billingService->billingPortalUrl($studio);
+
+        return view('studio.billing', compact('studio', 'subscriptionInfo', 'isSubscribed', 'portalUrl'));
     }
 
-    // ═══ SOUSCRIPTION ═══
+    public function subscribe()
+    {
+        $studio = $this->studio();
+        $billingService = app(\App\Services\StudioBillingService::class);
+
+        try {
+            $checkoutUrl = $billingService->createCheckoutSession($studio);
+            return redirect($checkoutUrl);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Erreur lors de la création de la session de paiement : ' . $e->getMessage());
+        }
+    }
+
+    public function cancelSubscription(Request $request)
+    {
+        $studio = $this->studio();
+        $billingService = app(\App\Services\StudioBillingService::class);
+
+        $immediate = $request->boolean('immediate', false);
+        $success = $immediate
+            ? $billingService->cancelNow($studio)
+            : $billingService->cancel($studio);
+
+        if ($success) {
+            $message = $immediate
+                ? 'Abonnement annulé immédiatement. Vos prélèvements sont arrêtés.'
+                : "Abonnement annulé. Vous conservez l'accès jusqu'à la fin de la période en cours.";
+            return redirect()->route('studio.billing')->with('success', $message);
+        }
+
+        return back()->with('error', "Impossible d'annuler l'abonnement. Veuillez réessayer.");
+    }
+
+    public function resumeSubscription()
+    {
+        $studio = $this->studio();
+        $billingService = app(\App\Services\StudioBillingService::class);
+
+        if ($billingService->resume($studio)) {
+            return redirect()->route('studio.billing')->with('success', 'Abonnement réactivé avec succès !');
+        }
+
+        return back()->with('error', "Impossible de réactiver l'abonnement.");
+    }
+
+    public function syncSubscription()
+    {
+        $studio = $this->studio();
+        $billingService = app(\App\Services\StudioBillingService::class);
+
+        if ($billingService->syncFromStripe($studio)) {
+            return redirect()->route('studio.billing')->with('success', 'Abonnement synchronisé depuis Stripe.');
+        }
+
+        return back()->with('warning', 'Aucun abonnement actif trouvé dans Stripe.');
+    }
+
+    // ═══ SOUSCRIPTION (ancienne page dédiée — redirige vers billing) ═══
 
     public function showSubscribe()
     {
-        $studio = $this->studio();
-
-        if ($studio->hasActiveSubscription()) {
-            return redirect()->route('studio.billing')
-                ->with('info', 'Vous avez déjà un abonnement actif.');
-        }
-
-        return view('studio.subscribe', [
-            'studio'          => $studio,
-            'monthlyPrice'    => $studio->monthlyPrice(),
-            'paidArtistCount' => $studio->paidArtistCount(),
-        ]);
+        return redirect()->route('studio.billing');
     }
 
     public function processSubscribe()
     {
-        $studio = $this->studio();
-
-        if ($studio->hasActiveSubscription()) {
-            return redirect()->route('studio.billing');
-        }
-
-        $studioPriceId = config('services.stripe.studio_price_id');
-        $artistPriceId = config('services.stripe.studio_artist_price_id');
-
-        if (!$studioPriceId) {
-            return back()->with('error', 'Configuration Stripe incomplète. Contactez le support.');
-        }
-
-        // Créer le customer Stripe si nécessaire
-        if (!$studio->hasStripeId()) {
-            $studio->createAsStripeCustomer([
-                'name'     => $studio->name,
-                'email'    => $studio->stripeEmail(),
-                'metadata' => ['studio_id' => $studio->id],
-            ]);
-        }
-
-        $lineItems = [
-            ['price' => $studioPriceId, 'quantity' => 1],
-        ];
-
-        $paidArtists = $studio->paidArtistCount();
-        if ($paidArtists > 0 && $artistPriceId) {
-            $lineItems[] = ['price' => $artistPriceId, 'quantity' => $paidArtists];
-        }
-
-        // Stripe Checkout Session native (supporte multi-price avec quantity)
-        \Stripe\Stripe::setApiKey(config('cashier.secret'));
-        $session = \Stripe\Checkout\Session::create([
-            'customer'   => $studio->stripe_id,
-            'mode'       => 'subscription',
-            'line_items' => $lineItems,
-            'success_url' => route('studio.billing') . '?activated=1',
-            'cancel_url'  => route('studio.subscribe'),
-        ]);
-
-        return redirect($session->url);
+        return $this->subscribe();
     }
 
     // ═══ FICHES CLIENTS ═══
@@ -755,7 +765,8 @@ class StudioController extends Controller
         ];
 
         // Charger les données pour les onglets
-        $consents = \App\Models\Consent::whereIn('booking_request_id', $requests->pluck('id'))
+        $consents = \App\Models\ClientConsentForm::whereIn('booking_request_id', $requests->pluck('id'))
+            ->orderBy('created_at', 'desc')
             ->get()
             ->keyBy('booking_request_id');
 

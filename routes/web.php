@@ -382,9 +382,14 @@ Route::middleware(['auth', 'role:studio', \App\Http\Middleware\EnsureStudioCanOp
     Route::get('/clients', [App\Http\Controllers\StudioController::class, 'clients'])->name('clients.index');
     Route::get('/clients/{client}', [App\Http\Controllers\StudioController::class, 'clientShow'])->name('clients.show');
     Route::put('/clients/{client}', [App\Http\Controllers\StudioController::class, 'clientUpdate'])->name('clients.update');
-    // Billing & Stats
+    // Billing & Abonnement
     Route::get('/billing', [App\Http\Controllers\StudioController::class, 'billing'])->name('billing');
-    Route::get('/souscrire', [App\Http\Controllers\StudioController::class, 'showSubscribe'])->name('subscribe');
+    Route::post('/subscribe', [App\Http\Controllers\StudioController::class, 'subscribe'])->name('subscribe');
+    Route::post('/subscription/cancel', [App\Http\Controllers\StudioController::class, 'cancelSubscription'])->name('subscription.cancel');
+    Route::post('/subscription/resume', [App\Http\Controllers\StudioController::class, 'resumeSubscription'])->name('subscription.resume');
+    Route::post('/subscription/sync', [App\Http\Controllers\StudioController::class, 'syncSubscription'])->name('subscription.sync');
+    // Compatibilité ancienne URL /souscrire
+    Route::get('/souscrire', [App\Http\Controllers\StudioController::class, 'showSubscribe'])->name('subscribe.legacy');
     Route::post('/souscrire', [App\Http\Controllers\StudioController::class, 'processSubscribe'])->name('subscribe.process');
     Route::get('/stats', [App\Http\Controllers\StudioController::class, 'stats'])->name('stats');
     Route::get('/upgrade', function () {
