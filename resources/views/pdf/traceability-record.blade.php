@@ -154,10 +154,25 @@
 
     {{-- Photos de lots uploadées --}}
     @if ($record->getMedia('lot_photos')->count() > 0)
-        <h2>Photos des lots</h2>
-        <div class="info-value text-muted">Photos des lots et équipements uploadées dans le système.</div>
-        <div class="info-value">
-            Nombre de photos : {{ $record->getMedia('lot_photos')->count() }}
+        <h2>Photos des lots et équipements</h2>
+        <div class="info-value text-muted">Photos des lots, numéros de lot et équipements uploadées dans le système.</div>
+
+        <div class="photos-grid">
+            @php $lotPhotos = $record->getMedia('lot_photos'); @endphp
+            @foreach ($lotPhotos as $index => $photo)
+                <div class="photo-item">
+                    <div class="photo-number">Photo {{ $index + 1 }}</div>
+                    <img src="{{ $photo->getUrl() }}" alt="Photo lot {{ $index + 1 }}" class="photo-image" />
+                    <div class="photo-info">
+                        <div class="photo-filename">{{ $photo->file_name }}</div>
+                        <div class="photo-date">Upload le {{ $photo->created_at->format('d/m/Y H:i') }}</div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        <div class="info-value mt-3">
+            <strong>Total :</strong> {{ $record->getMedia('lot_photos')->count() }} photo(s) uploadée(s)
         </div>
     @endif
 

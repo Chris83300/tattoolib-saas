@@ -154,11 +154,25 @@
 
     
     <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($record->getMedia('lot_photos')->count() > 0): ?>
-        <h2>Photos des lots</h2>
-        <div class="info-value text-muted">Photos des lots et équipements uploadées dans le système.</div>
-        <div class="info-value">
-            Nombre de photos : <?php echo e($record->getMedia('lot_photos')->count()); ?>
+        <h2>Photos des lots et équipements</h2>
+        <div class="info-value text-muted">Photos des lots, numéros de lot et équipements uploadées dans le système.</div>
 
+        <div class="photos-grid">
+            <?php $lotPhotos = $record->getMedia('lot_photos'); ?>
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $lotPhotos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $photo): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <div class="photo-item">
+                    <div class="photo-number">Photo <?php echo e($index + 1); ?></div>
+                    <img src="<?php echo e($photo->getUrl()); ?>" alt="Photo lot <?php echo e($index + 1); ?>" class="photo-image" />
+                    <div class="photo-info">
+                        <div class="photo-filename"><?php echo e($photo->file_name); ?></div>
+                        <div class="photo-date">Upload le <?php echo e($photo->created_at->format('d/m/Y H:i')); ?></div>
+                    </div>
+                </div>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+        </div>
+
+        <div class="info-value mt-3">
+            <strong>Total :</strong> <?php echo e($record->getMedia('lot_photos')->count()); ?> photo(s) uploadée(s)
         </div>
     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 

@@ -255,6 +255,53 @@
         .page-break {
             page-break-after: always;
         }
+
+        /* Photos Grid */
+        .photos-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .photo-item {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            page-break-inside: avoid;
+        }
+
+        .photo-number {
+            font-size: 10px;
+            font-weight: bold;
+            color: #C97435;
+            margin-bottom: 5px;
+        }
+
+        .photo-image {
+            width: 100%;
+            max-width: 200px;
+            height: auto;
+            max-height: 150px;
+            object-fit: contain;
+            border: 1px solid #eee;
+            margin-bottom: 5px;
+        }
+
+        .photo-info {
+            font-size: 8px;
+            color: #666;
+        }
+
+        .photo-filename {
+            font-weight: bold;
+            margin-bottom: 2px;
+            word-break: break-all;
+        }
+
+        .photo-date {
+            color: #999;
+        }
     </style>
 </head>
 
