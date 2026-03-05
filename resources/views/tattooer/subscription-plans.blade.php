@@ -27,7 +27,7 @@
         {{-- Status actuel --}}
         <div class="bg-gris-fonde rounded-xl p-6 border border-titane/20">
             <h2 class="text-lg font-bold text-ivoire-text mb-2">Mon plan actuel</h2>
-            @if ($tattooer->isPro())
+            @if ($artist->isPro())
                 <div class="flex items-center gap-3">
                     <span class="px-3 py-1 bg-beige-peau text-noir-profond rounded-full text-sm font-bold">PRO</span>
                     <span class="text-ivoire-text/70">29,99€/mois · Commission 0%</span>
@@ -39,7 +39,8 @@
                             ⚠️ Abonnement annulé. Accès PRO jusqu'au
                             <strong>{{ $activeSubscription->ends_at->translatedFormat('d F Y') }}</strong>
                         </p>
-                        <form action="{{ route($tattooer->routePrefix() . '.subscription.resume') }}" method="POST" class="mt-2">
+                        <form action="{{ route($artist->routePrefix() . '.subscription.resume') }}" method="POST"
+                            class="mt-2">
                             @csrf
                             <button type="submit"
                                 class="px-4 py-2 bg-vert-succes text-white rounded-lg text-sm font-semibold hover:bg-vert-succes/90">
@@ -49,11 +50,11 @@
                     </div>
                 @else
                     <div class="mt-3 flex flex-wrap gap-3">
-                        <a href="{{ route($tattooer->routePrefix() . '.subscription.manage') }}"
+                        <a href="{{ route($artist->routePrefix() . '.subscription.manage') }}"
                             class="px-4 py-2 bg-titane/20 text-ivoire-text rounded-lg text-sm font-semibold hover:bg-titane/30 transition-colors">
                             💳 Gérer le paiement
                         </a>
-                        <form action="{{ route($tattooer->routePrefix() . '.subscription.cancel') }}" method="POST"
+                        <form action="{{ route($artist->routePrefix() . '.subscription.cancel') }}" method="POST"
                             onsubmit="return confirm('Êtes-vous sûr de vouloir annuler ? Vous gardez l\'accès PRO jusqu\'à la fin de la période.')">
                             @csrf
                             <button type="submit"
@@ -70,12 +71,14 @@
                 </div>
                 @php
                     $trialService = app(\App\Services\TrialService::class);
-                    $daysLeft = $trialService->trialDaysRemaining($tattooer);
+                    $daysLeft = $trialService->trialDaysRemaining($artist);
                 @endphp
                 @if ($daysLeft > 0)
-                    <p class="text-sm text-titane mt-1">🎁 Essai gratuit — {{ $daysLeft }} jour{{ $daysLeft > 1 ? 's' : '' }} restant{{ $daysLeft > 1 ? 's' : '' }}</p>
-                @elseif ($tattooer->is_blocked)
-                    <p class="text-sm text-rouge-alerte mt-1">🔒 Essai expiré — choisissez un plan pour réactiver votre profil</p>
+                    <p class="text-sm text-titane mt-1">🎁 Essai gratuit — {{ $daysLeft }}
+                        jour{{ $daysLeft > 1 ? 's' : '' }} restant{{ $daysLeft > 1 ? 's' : '' }}</p>
+                @elseif ($artist->is_blocked)
+                    <p class="text-sm text-rouge-alerte mt-1">🔒 Essai expiré — choisissez un plan pour réactiver votre
+                        profil</p>
                 @endif
             @endif
 
@@ -95,7 +98,7 @@
 
             {{-- Plan STARTER --}}
             <div
-                class="bg-gris-fonde rounded-xl p-6 border {{ $tattooer->isFree() ? 'border-titane/40' : 'border-titane/20' }}">
+                class="bg-gris-fonde rounded-xl p-6 border {{ $artist->isFree() ? 'border-titane/40' : 'border-titane/20' }}">
                 <h3 class="text-xl font-bold text-ivoire-text mb-1">Starter</h3>
                 <p class="text-3xl font-bold text-ivoire-text mb-1">9,99€<span
                         class="text-sm font-normal text-titane">/mois</span></p>
@@ -112,7 +115,7 @@
                     <li class="flex items-center gap-2 text-ivoire-text/40">❌ Analytics</li>
                 </ul>
 
-                @if ($tattooer->isFree())
+                @if ($artist->isFree())
                     <div class="px-4 py-2.5 bg-titane/20 text-titane rounded-lg text-center text-sm font-semibold">
                         Plan actuel
                     </div>
@@ -132,38 +135,52 @@
                 <p class="text-xs text-vert-succes mb-4">🎁 14 jours d'essai gratuit — sans CB</p>
 
                 <ul class="space-y-2 text-sm text-ivoire-text/80 mb-6">
-                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Tout le plan Starter</li>
-                    <li class="flex items-center gap-2 font-semibold"><span class="text-sm text-vert-succes">✓</span> Commission 0%</li>
-                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Fiche client (automatique) + manuelle</li>
-                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Traçabilité complète</li>
-                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Analytics & statistiques</li>
-                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Support prioritaire</li>
-                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Portfolio illimité</li>
-                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Export PDF fiches clients</li>
-                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Export CSV/Excel comptabilité</li>
+                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Tout le plan Starter
+                    </li>
+                    <li class="flex items-center gap-2 font-semibold"><span class="text-sm text-vert-succes">✓</span>
+                        Commission 0%</li>
+                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Fiche client
+                        (automatique) + manuelle</li>
+                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Traçabilité complète
+                    </li>
+                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Analytics &
+                        statistiques</li>
+                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Support prioritaire
+                    </li>
+                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Portfolio illimité
+                    </li>
+                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Export PDF fiches
+                        clients</li>
+                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Export CSV/Excel
+                        comptabilité</li>
                 </ul>
 
-                @if ($tattooer->isPro() && !$activeSubscription?->isOnGracePeriod())
+                @if ($artist->isFree())
+                    <div class="px-4 py-2.5 bg-titane/20 text-titane rounded-lg text-center text-sm font-semibold">
+                        Plan actuel
+                    </div>
+                @elseif ($artist->isPro() && !$activeSubscription?->isOnGracePeriod())
                     <div class="px-4 py-2.5 bg-beige-peau/20 text-beige-peau rounded-lg text-center text-sm font-semibold">
                         ✅ Plan actuel
                     </div>
-                @elseif (!$tattooer->isPro())
-                    <form action="{{ route($tattooer->routePrefix() . '.subscription.subscribe') }}" method="POST">
+                @elseif (!$artist->isPro())
+                    <form action="{{ route($artist->routePrefix() . '.subscription.subscribe') }}" method="POST">
                         @csrf
                         <button type="submit"
                             class="w-full px-4 py-3 bg-beige-peau text-noir-profond rounded-lg font-bold text-sm hover:bg-beige-peau/90 transition-colors active:scale-95">
-                            🚀 Passer PRO maintenant
+                            Passer au plan PRO
                         </button>
                     </form>
-                    <p class="text-xs text-titane text-center mt-2">Annulable à tout moment · Paiement sécurisé Stripe</p>
                 @endif
+                <p class="text-xs text-titane text-center mt-2">Annulable à tout moment · Paiement sécurisé Stripe</p>
             </div>
         </div>
 
         {{-- ROI Calculator --}}
-        @if ($tattooer->isFree())
+        @if ($artist->isFree())
             <div class="bg-gris-fonde rounded-xl p-6 border border-titane/20">
-                <h3 class="text-lg font-bold text-beige-peau mb-3">"Les artistes PRO économisent en moyenne 150€/mois en commission sur leurs réservations."</h3>
+                <h3 class="text-lg font-bold text-beige-peau mb-3">"Les artistes PRO économisent en moyenne 150€/mois en
+                    commission sur leurs réservations."</h3>
             </div>
         @endif
 

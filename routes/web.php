@@ -128,6 +128,9 @@ Route::middleware(['auth'])->prefix('tattooer')->name('tattooer.')->group(functi
         ->name('subscription.manage');
 
     Route::get('/compliance', [TattooerController::class, 'compliance'])->name('compliance');
+    Route::get('/compliance/documents', [TattooerController::class, 'complianceDocuments'])->name('compliance.documents');
+    Route::post('/compliance/documents', [TattooerController::class, 'complianceDocumentsUpload'])->name('compliance.documents.upload');
+    Route::delete('/compliance/documents/{complianceRecord}', [TattooerController::class, 'complianceDocumentDelete'])->name('compliance.documents.delete');
 
     // Anciennes routes Livewire (gardées pour compatibilité)
     Route::get('/profil/edit', App\Livewire\Tattooer\Profile::class)->name('profile.edit');

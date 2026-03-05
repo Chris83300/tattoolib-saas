@@ -22,8 +22,8 @@
                         <div class="text-ivoire-text/60 text-sm">Artistes</div>
                     </div>
                     <div class="text-center">
-                        <div class="text-3xl font-bold text-beige-peau" id="verified-artists">-</div>
-                        <div class="text-ivoire-text/60 text-sm">Vérifiés</div>
+                        <div class="text-3xl font-bold text-beige-peau" id="total-users">-</div>
+                        <div class="text-ivoire-text/60 text-sm">Utilisateurs</div>
                     </div>
                     <div class="text-center">
                         <div class="text-3xl font-bold text-beige-peau" id="total-studios">-</div>
@@ -297,8 +297,7 @@
                         const stats = await response.json();
 
                         document.getElementById('total-artists').textContent = stats.total_artists || '-';
-                        document.getElementById('verified-artists').textContent = stats.verified_artists ||
-                            '-';
+                        document.getElementById('total-users').textContent = stats.total_users || '-';
                         document.getElementById('total-studios').textContent = stats.total_studios || '-';
                         document.getElementById('total-appointments').textContent = stats
                             .total_appointments || '-';
@@ -490,9 +489,9 @@
                                 <div class="h-64 md:h-80 bg-gradient-to-br from-titane/40 to-noir-profond relative overflow-hidden">
                                     ${artist.avatar_url ?
                                         `<img src="${artist.avatar_url}" alt="${artist.name}" class="w-full h-full object-cover">
-                                                                                                                     <div class="absolute inset-0 bg-gradient-to-t from-noir-profond/80 via-noir-profond/40 to-transparent"></div>` :
+                                                                                                                                 <div class="absolute inset-0 bg-gradient-to-t from-noir-profond/80 via-noir-profond/40 to-transparent"></div>` :
                                         `<div class="absolute inset-0 bg-gradient-to-br from-beige-peau/20 via-titane/30 to-noir-profond"></div>
-                                                                                                                     <div class="absolute inset-0 bg-black/20"></div>`
+                                                                                                                                 <div class="absolute inset-0 bg-black/20"></div>`
                                     }
                                 </div>
 
@@ -504,8 +503,8 @@
                                             ${artist.avatar_url ?
                                                 `<img src="${artist.avatar_url}" alt="${artist.name}" class="w-full h-full object-cover">` :
                                                 `<svg class="w-16 h-16 md:w-18 md:h-18 text-ivoire-text/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                                                                                            </svg>`
+                                                                                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                                                                                                        </svg>`
                                             }
                                         </div>
 
@@ -561,8 +560,8 @@
                                     <!-- Bio -->
                                     ${artist.bio ?
                                         `<div class="text-ivoire-text text-sm mb-3 line-clamp-2">
-                                                                                                                        ${artist.bio.length > 100 ? artist.bio.substring(0, 100) + '...' : artist.bio}
-                                                                                                                    </div>` : ''
+                                                                                                                                    ${artist.bio.length > 100 ? artist.bio.substring(0, 100) + '...' : artist.bio}
+                                                                                                                                </div>` : ''
                                     }
 
                                     <!-- CTA -->

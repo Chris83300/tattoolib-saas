@@ -350,10 +350,10 @@
                                                 class="font-bold text-beige-peau">{{ number_format($bookingRequest->price_estimate_max, 2, ',', ' ') }}
                                                 €</span>
                                         </p>
-                                        @if ($bookingRequest->estimated_total_price)
+                                        @if ($bookingRequest->price_estimate_max)
                                             <p class="text-ivoire-text/60 text-sm mt-1">
                                                 Estimation finale : <span
-                                                    class="text-ivoire-text font-semibold">{{ number_format($bookingRequest->estimated_total_price, 2, ',', ' ') }}
+                                                    class="text-ivoire-text font-semibold">{{ number_format($bookingRequest->price_estimate_max, 2, ',', ' ') }}
                                                     €</span>
                                             </p>
                                         @endif

@@ -4,7 +4,7 @@ namespace App\Filament\Admin\Resources\ComplianceRecords\Tables;
 
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 class ComplianceRecordsTable
 {
@@ -34,10 +34,12 @@ class ComplianceRecordsTable
                     }),
 
                 // Artiste concerné
-                Tables\Columns\TextColumn::make('tattooer.name')
+                Tables\Columns\TextColumn::make('compliant.name')
                     ->label('Artiste')
                     ->searchable()
-                    ->url(fn ($record) => route('filament.admin.resources.tattooers.edit', $record->tattooer_id))
+                    ->url(fn ($record) => $record->compliant_type === 'App\Models\Tattooer'
+                        ? route('filament.admin.resources.tattooers.edit', $record->compliant_id)
+                        : null)
                     ->color('primary'),
 
                 // Numéro document (si applicable)
@@ -72,8 +74,8 @@ class ComplianceRecordsTable
                 // Document uploadé
                 Tables\Columns\TextColumn::make('document')
                     ->label('Document')
-                    ->getStateUsing(fn ($record) => $record->getFirstMediaUrl('document') ? 'Voir PDF' : 'Aucun')
-                    ->url(fn ($record) => $record->getFirstMediaUrl('document'))
+                    ->getStateUsing(fn ($record) => $record->certificate_file_path ? 'Voir document' : 'Aucun')
+                    ->url(fn ($record) => $record->certificate_file_path ? Storage::url($record->certificate_file_path) : null)
                     ->openUrlInNewTab()
                     ->color('info')
                     ->icon('heroicon-o-document'),

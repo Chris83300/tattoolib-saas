@@ -159,7 +159,7 @@ class MarketplaceController extends Controller
     {
         return response()->json([
             'total_artists' => $this->searchService->getTotalArtists(),
-            'verified_artists' => $this->searchService->getVerifiedArtistsCount(),
+            'total_users' => $this->searchService->getTotalUsers(),
             'total_studios' => $this->searchService->getTotalStudiosCount(),
             'total_appointments' => $this->searchService->getTotalAppointments(),
         ]);

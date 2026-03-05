@@ -203,12 +203,12 @@
                                                     class="text-ivoire-text font-medium">{{ number_format($bookingRequest->price_range_min, 0) }}€
                                                     - {{ number_format($bookingRequest->price_range_max, 0) }}€</span>
                                             </div>
-                                        @elseif ($bookingRequest->estimated_total_price)
+                                        @elseif ($bookingRequest->price_estimate_max)
                                             <div>
                                                 <span class="text-ivoire-text/70 block text-sm mb-1">Estimation
                                                     tattoo</span>
                                                 <span
-                                                    class="text-ivoire-text font-medium">{{ number_format($bookingRequest->estimated_total_price, 0) }}€</span>
+                                                    class="text-ivoire-text font-medium">{{ number_format($bookingRequest->price_estimate_max, 0) }}€</span>
                                             </div>
                                         @endif
                                         <div>

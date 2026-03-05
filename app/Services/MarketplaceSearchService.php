@@ -358,11 +358,18 @@ class MarketplaceSearchService
              + Piercer::whereHas('user', fn($q) => $q->where('status', 'active'))->where('current_plan', 'pro')->count();
     }
 
+    public function getTotalUsers(): int
+    {
+        return DB::table('users')->count();
+    }
+
     public function getTotalAppointments(): int
     {
-        return DB::table('appointments')
-            ->whereIn('status', ['completed', 'confirmed'])
-            ->count();
+        // Compte tous les rendez-vous (tous statuts) + toutes les demandes de rendez-vous
+        $totalAppointments = DB::table('appointments')->count();
+        $totalBookingRequests = DB::table('booking_requests')->count();
+
+        return $totalAppointments + $totalBookingRequests;
     }
 
     /**
