@@ -6,6 +6,10 @@ use App\Models\Studio;
 use App\Models\StudioSubscription;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * @deprecated Utiliser StudioBillingService à la place.
+ * Ce service n'est plus utilisé depuis le fix F2 (Cashier via User).
+ */
 class StripeStudioSubscriptionService
 {
     public function __construct(

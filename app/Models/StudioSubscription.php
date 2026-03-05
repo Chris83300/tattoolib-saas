@@ -4,6 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @deprecated Utiliser Laravel Cashier via User::subscription('default') à la place.
+ * Cette table (studio_subscriptions) n'est plus alimentée depuis le fix F2.
+ * Conservée uniquement pour ne pas casser les migrations existantes.
+ */
 class StudioSubscription extends Model
 {
     protected $fillable = [
