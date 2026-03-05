@@ -1,12 +1,22 @@
 @php
     $artisan = auth()->user()->tattooer ?? auth()->user()->piercer ?? null;
     $trialService = app(\App\Services\TrialService::class);
-    $isOnTrial = $artisan && $trialService->isOnTrial($artisan);
+
+    // Abonnement payé actif ? → pas de bannière trial
+    $hasPaidSubscription = false;
+    try {
+        $activeSub = auth()->user()->subscription('pro') ?? auth()->user()->subscription('default');
+        $hasPaidSubscription = $activeSub && $activeSub->stripe_status === 'active';
+    } catch (\Exception) {}
+
+    $isOnTrial = $artisan && !$hasPaidSubscription && $trialService->isOnTrial($artisan);
     $daysRemaining = $artisan ? $trialService->trialDaysRemaining($artisan) : 0;
     $isBlocked = $artisan?->is_blocked ?? false;
 @endphp
 
-@if ($isOnTrial && $daysRemaining <= 7)
+@if ($hasPaidSubscription)
+    {{-- Abonnement actif payé — aucune bannière --}}
+@elseif ($isOnTrial && $daysRemaining <= 7)
 {{-- Bannière urgente : moins de 7 jours --}}
 <div class="bg-gradient-to-r from-rouge-alerte/20 to-rouge-alerte/5 border border-rouge-alerte/30 rounded-xl p-4 mb-6">
     <div class="flex items-center justify-between gap-4">

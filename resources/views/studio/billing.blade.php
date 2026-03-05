@@ -41,11 +41,17 @@
                 </div>
                 <div>
                     <p class="text-titane">Statut</p>
-                    <p class="text-green-400 font-medium">
-                        {{ ($subscriptionInfo['on_trial'] ?? false) ? 'Essai gratuit' : 'Actif' }}
+                    <p class="text-vert-succes font-medium">
+                        @if (($subscriptionInfo['stripe_status'] ?? '') === 'active')
+                            Actif
+                        @elseif (($subscriptionInfo['on_trial'] ?? false))
+                            Essai gratuit
+                        @else
+                            {{ ucfirst($subscriptionInfo['stripe_status'] ?? 'Actif') }}
+                        @endif
                     </p>
                 </div>
-                @if (($subscriptionInfo['on_trial'] ?? false) && $subscriptionInfo['trial_ends_at'])
+                @if (($subscriptionInfo['on_trial'] ?? false) && ($subscriptionInfo['stripe_status'] ?? '') !== 'active' && $subscriptionInfo['trial_ends_at'])
                 <div>
                     <p class="text-titane">Fin de l'essai</p>
                     <p class="text-ivoire-text">{{ $subscriptionInfo['trial_ends_at']->format('d/m/Y') }}</p>
