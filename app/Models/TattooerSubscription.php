@@ -5,6 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @deprecated Utiliser App\Models\Subscription à la place.
+ * Les deux modèles pointent vers la table 'tattooer_subscriptions'.
+ * TattooerSubscription sera supprimé dans une prochaine consolidation.
+ */
 class TattooerSubscription extends Model
 {
     use SoftDeletes;
