@@ -21,6 +21,9 @@
                 class="bg-gris-fonde rounded-xl border border-cuivre/40 shadow-md shadow-cuivre/20 p-6 md:p-8 space-y-6">
                 @csrf
 
+                <!-- Champ caché pour le plan -->
+                <input type="hidden" name="plan" value="{{ request('plan', 'starter') }}" />
+
                 <!-- Affichage des erreurs de validation -->
                 @if ($errors->any())
                     <div class="bg-rouge-alerte/10 border border-rouge-alerte/30 rounded-lg p-4 mb-4">
@@ -43,7 +46,8 @@
                     <!-- SIRET -->
                     <div>
                         <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                            Numéro SIRET <span class="text-rouge-alerte">*</span> <span class="text-ambre-warning/80 font-normal">(14 chiffres)</span>
+                            Numéro SIRET <span class="text-rouge-alerte">*</span> <span
+                                class="text-ambre-warning/80 font-normal">(14 chiffres)</span>
                         </label>
                         <input type="text" name="siret" required maxlength="14" placeholder="12345678901234"
                             class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors font-mono">
@@ -102,7 +106,8 @@
                         <!-- Password -->
                         <div>
                             <label class="block text-ivoire-text text-sm font-semibold mb-2">
-                                Mot de passe <span class="text-rouge-alerte">*</span> <span class="text-ivoire-text/50 font-normal">(8 caractères minimum, 1
+                                Mot de passe <span class="text-rouge-alerte">*</span> <span
+                                    class="text-ivoire-text/50 font-normal">(8 caractères minimum, 1
                                     majuscule, 1 chiffre, 1 caractère spécial)</span>
                             </label>
                             <input type="password" name="password" required minlength="8"

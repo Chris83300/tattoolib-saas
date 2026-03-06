@@ -121,6 +121,7 @@ class RegisterController extends Controller
                 'city' => 'required|string|max:255',
                 'postal_code' => 'required|string|max:10',
                 'phone' => 'nullable|string|max:20',
+                'plan' => 'required|in:starter,pro', // Ajout du plan
                 'password' => [
                     'required',
                     'string',
@@ -134,6 +135,7 @@ class RegisterController extends Controller
                 'siret.numeric' => 'Le SIRET doit contenir uniquement des chiffres.',
                 'siret.digits' => 'Le SIRET doit contenir exactement 14 chiffres.',
                 'siret.unique' => 'Ce numéro SIRET est déjà utilisé. Veuillez en utiliser un autre.',
+                'plan.in' => 'Le plan sélectionné n\'est pas valide.',
             ]);
 
             Log::info('Validation passée: ' . json_encode($validated));
@@ -169,10 +171,12 @@ class RegisterController extends Controller
                 'postal_code' => $validated['postal_code'],
                 'phone' => $validated['phone'] ?? null,
                 'email' => $validated['email'],
-                'current_plan' => 'starter',
-                'is_subscribed' => false,
+                'current_plan' => $validated['plan'], // Utiliser le plan sélectionné
+                'is_subscribed' => $validated['plan'] === 'pro', // Abonnement actif si plan pro
                 'has_compliance_badge' => false,
-                'trial_ends_at' => now()->addDays(\App\Enums\SubscriptionPlan::STARTER->trialDays()),
+                'trial_ends_at' => $validated['plan'] === 'starter'
+                    ? now()->addDays(\App\Enums\SubscriptionPlan::STARTER->trialDays())
+                    : now()->addDays(\App\Enums\SubscriptionPlan::PRO->trialDays()),
             ]);
 
             Log::info('Tattooer créé: ' . json_encode($tattooer));
@@ -218,6 +222,7 @@ class RegisterController extends Controller
                 'city' => 'required|string|max:255',
                 'postal_code' => 'required|string|max:10',
                 'phone' => 'nullable|string|max:20',
+                'plan' => 'required|in:starter,pro', // Ajout du plan
                 'password' => [
                     'required',
                     'string',
@@ -231,6 +236,7 @@ class RegisterController extends Controller
                 'siret.numeric' => 'Le SIRET doit contenir uniquement des chiffres.',
                 'siret.digits' => 'Le SIRET doit contenir exactement 14 chiffres.',
                 'siret.unique' => 'Ce numéro SIRET est déjà utilisé. Veuillez en utiliser un autre.',
+                'plan.in' => 'Le plan sélectionné n\'est pas valide.',
             ]);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -266,10 +272,12 @@ class RegisterController extends Controller
                 'postal_code' => $validated['postal_code'],
                 'phone' => $validated['phone'] ?? null,
                 'email' => $validated['email'],
-                'current_plan' => 'starter',
-                'is_subscribed' => false,
+                'current_plan' => $validated['plan'], // Utiliser le plan sélectionné
+                'is_subscribed' => $validated['plan'] === 'pro', // Abonnement actif si plan pro
                 'has_compliance_badge' => false,
-                'trial_ends_at' => now()->addDays(\App\Enums\SubscriptionPlan::STARTER->trialDays()),
+                'trial_ends_at' => $validated['plan'] === 'starter'
+                    ? now()->addDays(\App\Enums\SubscriptionPlan::STARTER->trialDays())
+                    : now()->addDays(\App\Enums\SubscriptionPlan::PRO->trialDays()),
             ]);
 
             Log::info('Piercer créé: ' . json_encode($piercer));

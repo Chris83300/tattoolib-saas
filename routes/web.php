@@ -146,7 +146,7 @@ Route::middleware(['auth'])->prefix('tattooer')->name('tattooer.')->group(functi
 
 // Routes spécifiques (AVANT les routes génériques)
 Route::get('/tattooer/pending-verification', function () {
-    return view('livewire.tattooer.pending-verification-full');
+    return view('auth.pending-verification', ['role' => 'tattooer']);
 })->middleware(['auth'])->name('tattooer.pending-verification');
 
 // Routes marketplace publiques (APRÈS les routes authentifiées)
@@ -181,24 +181,28 @@ Route::get('/register', function () {
     // Si déjà connecté, rediriger vers le profil approprié
     if (auth()->check()) {
         $user = auth()->user();
-        switch ($user->role) {
-            case 'client':
-                return redirect()->route('client.profile');
-            case 'tattooer':
-                return redirect()->route('tattooer.dashboard');
-            case 'Piercer':
-            case 'pierceur':
-                return redirect()->route('pierceur.dashboard');
-            case 'studio':
-                return redirect()->route('studio.dashboard');
-            case 'studio_artist':
-                return redirect()->route('studio-artist.dashboard');
-            default:
-                return redirect()->route('home');
+
+        if ($user->role === 'client') {
+            return redirect()->route('client.profile');
+        } elseif ($user->role === 'studio') {
+            return redirect()->route('studio.dashboard');
+        } elseif (in_array($user->role, ['tattooer', 'piercer', 'studio_artist'])) {
+            return redirect()->route('tattooer.dashboard');
         }
+
+        return redirect()->route('home');
     }
     return view('auth.register');
 })->name('register');
+
+// Route pour sélection de plan (tattooer/piercer)
+Route::get('/register/plan', function () {
+    // Si déjà connecté, rediriger vers le profil approprié
+    if (auth()->check()) {
+        return redirect()->route('home');
+    }
+    return view('auth.register-plan');
+})->name('register.plan');
 
 // Routes d'inscription par rôle (accessibles après choix sur page register)
 Route::get('/register/client', function () {

@@ -43,6 +43,29 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::redirects('login', function () {
             $user = auth()->user();
 
+            if (!$user) {
+                return '/';
+            }
+
+            return match($user->role) {
+                'client' => route('client.profile'),
+                'tattooer', 'piercer' => $user->status === 'pending_verification'
+                    ? route('tattooer.pending-verification')
+                    : route('tattooer.dashboard'),
+                'studio_artist' => route('tattooer.dashboard'),
+                'studio' => '/admin/studio',
+                default => '/',
+            };
+        });
+
+        // 🔐 REDIRECTION APRÈS CONFIRMATION DE MOT DE PASSE
+        Fortify::redirects('password.confirm', function () {
+            $user = auth()->user();
+
+            if (!$user) {
+                return '/';
+            }
+
             return match($user->role) {
                 'client' => route('client.profile'),
                 'tattooer', 'piercer' => $user->status === 'pending_verification'

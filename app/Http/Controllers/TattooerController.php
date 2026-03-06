@@ -1065,6 +1065,28 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
     {
         $tattooer = $this->artisan();
 
+        // Compteurs pour le layout
+        $pendingCount = BookingRequest::where('bookable_id', $tattooer->id)
+            ->where('bookable_type', get_class($tattooer))
+            ->where('status', 'pending')
+            ->count();
+
+        $unreadCount = \App\Models\Conversation::whereHas('messages', function ($query) {
+                $query->where(function ($q) {
+                    // Si l'utilisateur est un tattooer/piercer, vérifier read_by_tattooer_at
+                    if (auth()->user()->isTattooer() || auth()->user()->isPiercer()) {
+                        $q->whereNull('read_by_tattooer_at');
+                    } else {
+                        $q->whereNull('read_by_client_at');
+                    }
+                })
+                ->where('sender_id', '!=', auth()->id());
+            })
+            ->whereHas('participants', function ($query) {
+                $query->where('user_id', auth()->id());
+            })
+            ->count();
+
         // Recherche
         $search = request('search');
 
@@ -1108,7 +1130,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
                 ->where('bookable_type', $tattooer->getMorphClass())
                 ->get();
 
-            $client->tattooer_stats = (object) [
+            $client->artisan_stats = (object) [
                 'total_requests' => $bookings->count(),
                 'completed' => $bookings->where('status', 'completed')->count(),
                 'total_paid' => $bookings->sum('total_deposit_amount'),
@@ -1118,7 +1140,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
             return $client;
         });
 
-        return view('tattooer.clients', compact('tattooer', 'clients'));
+        return view('tattooer.clients', compact('tattooer', 'clients', 'pendingCount', 'unreadCount'));
     }
 
 

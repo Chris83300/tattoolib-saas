@@ -50,14 +50,15 @@
                 <div class="space-y-3 text-left">
                     @if ($role === 'studio' || $role === 'pierceur')
                         <div class="flex items-start gap-3">
-                            <svg class="w-5 h-5 text-ambre-warning mt-0.5 flex-shrink-0" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 text-ambre-warning mt-0.5 flex-shrink-0" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                             <div>
                                 <p class="text-ivoire-text font-medium">SIRET en attente de validation</p>
-                                <p class="text-ivoire-text/50 text-sm">Votre numéro SIRET vas être validé dans les plus brefs délais</p>
+                                <p class="text-ivoire-text/50 text-sm">Votre numéro SIRET vas être validé dans les plus
+                                    brefs délais</p>
                             </div>
                         </div>
                     @endif
@@ -155,6 +156,39 @@
                         </li>
                     </ul>
                 </div>
+            @elseif($role === 'tattooer')
+                <div class="bg-noir-profond rounded-lg p-6 mb-6 text-left">
+                    <h3 class="text-ivoire-text font-semibold mb-3">Informations reçues :</h3>
+                    <ul class="space-y-2 text-sm text-ivoire-text/70">
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-vert-succes flex-shrink-0 mt-0.5" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span><strong class="text-ivoire-text">SIRET :</strong>
+                                {{ auth()->user()->tattooer?->siret ?? 'Non renseigné' }}</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-vert-succes flex-shrink-0 mt-0.5" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span><strong class="text-ivoire-text">Nom :</strong>
+                                {{ auth()->user()->tattooer?->name ?? auth()->user()->name }}</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-vert-succes flex-shrink-0 mt-0.5" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span><strong class="text-ivoire-text">Ville :</strong>
+                                {{ auth()->user()->tattooer?->city ?? 'Non renseignée' }}</span>
+                        </li>
+                    </ul>
+                </div>
             @endif
 
             <!-- Délai -->
@@ -169,7 +203,7 @@
 
             <!-- Actions -->
             <div class="space-y-3">
-                <a href="@if ($role === 'studio') {{ route('studio.profile') }}@elseif($role === 'pierceur'){{ route('piercer.profile') }}@else{{ route('tattooer.profile') }} @endif"
+                <a href="@if ($role === 'studio') {{ route('studio.profile') }}@elseif($role === 'pierceur'){{ route('pierceur.profile') }}@else{{ route('tattooer.profile') }} @endif"
                     class="w-full bg-beige-peau hover:bg-beige-peau/90 text-noir-profond font-semibold py-3 rounded-lg transition-colors text-center block">
                     @if ($role === 'studio')
                         Accéder à mon profil studio

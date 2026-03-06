@@ -34,7 +34,7 @@
                 </form>
 
                 <!-- Bouton création client -->
-                @if (auth()->user()->tattooer->isPro())
+                @if (auth()->user()->isTattooer() ? auth()->user()->tattooer?->isPro() : auth()->user()->piercer?->isPro())
                     <a href="{{ route($tattooer->routePrefix() . '.clients.create') }}"
                         class="px-4 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold text-sm hover:bg-beige-peau/90 transition-colors">
                         ➕ Créer une fiche client
@@ -61,12 +61,12 @@
                                 class="w-12 h-12 rounded-full overflow-hidden bg-titane/30 flex-shrink-0 flex items-center justify-center">
                                 @php
                                     // Avatar : d'abord sur User, sinon sur Client
-                                    $avatarUrl = null;
-                                    if ($client->user && $client->user->getFirstMediaUrl('avatar')) {
-                                        $avatarUrl = $client->user->getFirstMediaUrl('avatar');
-                                    } elseif ($client->getFirstMediaUrl('avatar')) {
-                                        $avatarUrl = $client->getFirstMediaUrl('avatar');
-                                                                        }
+$avatarUrl = null;
+if ($client->user && $client->user->getFirstMediaUrl('avatar')) {
+    $avatarUrl = $client->user->getFirstMediaUrl('avatar');
+} elseif ($client->getFirstMediaUrl('avatar')) {
+    $avatarUrl = $client->getFirstMediaUrl('avatar');
+                                    }
                                 @endphp
 
                                 @if ($avatarUrl)
@@ -103,11 +103,11 @@
                                 @endif
 
                                 <p class="text-xs text-titane mt-0.5">
-                                    {{ $client->tattooer_stats->total_requests }}
-                                    demande{{ $client->tattooer_stats->total_requests > 1 ? 's' : '' }}
-                                    @if ($client->tattooer_stats->completed > 0)
-                                        · {{ $client->tattooer_stats->completed }}
-                                        terminée{{ $client->tattooer_stats->completed > 1 ? 's' : '' }}
+                                    {{ $client->artisan_stats->total_requests }}
+                                    demande{{ $client->artisan_stats->total_requests > 1 ? 's' : '' }}
+                                    @if ($client->artisan_stats->completed > 0)
+                                        · {{ $client->artisan_stats->completed }}
+                                        terminée{{ $client->artisan_stats->completed > 1 ? 's' : '' }}
                                     @endif
                                 </p>
                             </div>
@@ -137,15 +137,15 @@
                         {{-- Infos complémentaires --}}
                         <div class="flex items-center justify-between text-xs text-titane border-t border-titane/20 pt-2">
                             <span>
-                                @if ($client->tattooer_stats->total_paid > 0)
-                                    💰 {{ number_format($client->tattooer_stats->total_paid, 0) }}€ versés
+                                @if ($client->artisan_stats->total_paid > 0)
+                                    💰 {{ number_format($client->artisan_stats->total_paid, 0) }}€ versés
                                 @else
                                     Aucun paiement
                                 @endif
                             </span>
                             <span>
-                                @if ($client->tattooer_stats->last_request_at)
-                                    {{ \Carbon\Carbon::parse($client->tattooer_stats->last_request_at)->diffForHumans() }}
+                                @if ($client->artisan_stats->last_request_at)
+                                    {{ \Carbon\Carbon::parse($client->artisan_stats->last_request_at)->diffForHumans() }}
                                 @endif
                             </span>
                         </div>
