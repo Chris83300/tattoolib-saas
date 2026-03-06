@@ -26,7 +26,7 @@ ls -1 database/migrations/*.php | sort
 # 0C. Tables existantes en base
 php artisan tinker --execute="
   \$tables = DB::select('SHOW TABLES');
-  \$key = 'Tables_in_' . env('DB_DATABASE');
+  \$key = 'Tables_in_' . env('DB_DATABASE'); 
   foreach(\$tables as \$t) {
     echo \$t->\$key . PHP_EOL;
   }

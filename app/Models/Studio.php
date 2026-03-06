@@ -229,7 +229,7 @@ class Studio extends Model implements HasMedia
 
     /**
      * Coût mensuel total
-     * 79.99€ base + 39.99€ × artistes supplémentaires
+     * 59.99€ base + 24.99€ × artistes supplémentaires
      */
     public function monthlyPrice(): float
     {

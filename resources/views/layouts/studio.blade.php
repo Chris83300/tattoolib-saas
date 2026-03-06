@@ -310,8 +310,8 @@
             </div>
         </main>
 
-        <!-- Bottom Navigation Mobile (visible uniquement sur mobile) -->
-        <x-ui.bottom-nav class="lg:hidden" />
+        <!-- Bottom Navigation Mobile -->
+        <x-ui.bottom-nav />
 
     </div>
 

@@ -106,7 +106,7 @@
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-sm font-semibold text-ivoire-text truncate">{{ $artist->user?->name ?? 'Artiste' }}</p>
-                        <p class="text-xs text-titane">{{ $artist->artisan_type === 'piercer' ? '💎 Pierceur' : '🎨 Tatoueur' }}</p>
+                        <p class="text-xs text-titane">{{ $artist->artisan_type === 'piercer' ? 'Pierceur' : 'Tatoueur' }}</p>
                     </div>
                     @if($artist->joined_at)
                         <span class="text-xs text-titane shrink-0">{{ $artist->joined_at->format('d/m/Y') }}</span>

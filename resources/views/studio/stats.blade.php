@@ -10,11 +10,11 @@
     <!-- Compteurs globaux -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-gris-fonde rounded-xl p-5 border border-titane/20">
-            <div class="text-3xl font-bold text-ivoire-text">{{ $totalRequests }}</div>
+            <div class="text-3xl font-bold text-beige-peau">{{ $totalRequests }}</div>
             <div class="text-sm text-titane mt-1">Demandes totales</div>
         </div>
         <div class="bg-gris-fonde rounded-xl p-5 border border-titane/20">
-            <div class="text-3xl font-bold text-yellow-400">{{ $pendingRequests }}</div>
+            <div class="text-3xl font-bold text-ambre-warning">{{ $pendingRequests }}</div>
             <div class="text-sm text-titane mt-1">En attente</div>
         </div>
         <div class="bg-gris-fonde rounded-xl p-5 border border-titane/20">
@@ -72,11 +72,11 @@
                             <tr class="hover:bg-noir-profond/30 transition-colors">
                                 <td class="px-4 py-3 text-ivoire-text font-semibold">{{ $stat['name'] }}</td>
                                 <td class="px-4 py-3 text-center text-titane">
-                                    {{ $stat['type'] === 'piercer' ? '💎 Pierceur' : '🎨 Tatoueur' }}
+                                    {{ $stat['type'] === 'piercer' ? 'Pierceur' : 'Tatoueur' }}
                                 </td>
-                                <td class="px-4 py-3 text-center text-ivoire-text">{{ $stat['total'] }}</td>
+                                <td class="px-4 py-3 text-center text-beige-peau">{{ $stat['total'] }}</td>
                                 <td class="px-4 py-3 text-center">
-                                    <span class="{{ $stat['pending'] > 0 ? 'text-yellow-400 font-semibold' : 'text-titane' }}">
+                                    <span class="{{ $stat['pending'] > 0 ? 'text-ambre-warning font-semibold' : 'text-titane' }}">
                                         {{ $stat['pending'] }}
                                     </span>
                                 </td>
@@ -90,8 +90,8 @@
                     <tfoot class="bg-noir-profond/50 border-t border-titane/20">
                         <tr>
                             <td class="px-4 py-3 text-ivoire-text font-bold" colspan="2">Total</td>
-                            <td class="px-4 py-3 text-center text-ivoire-text font-bold">{{ $artistsStats->sum('total') }}</td>
-                            <td class="px-4 py-3 text-center text-yellow-400 font-bold">{{ $artistsStats->sum('pending') }}</td>
+                            <td class="px-4 py-3 text-center text-beige-peau font-bold">{{ $artistsStats->sum('total') }}</td>
+                            <td class="px-4 py-3 text-center text-ambre-warning font-bold">{{ $artistsStats->sum('pending') }}</td>
                             <td class="px-4 py-3 text-center text-vert-succes font-bold">{{ $artistsStats->sum('completed') }}</td>
                             <td class="px-4 py-3 text-right text-beige-peau font-bold">
                                 {{ number_format($artistsStats->sum('revenue'), 0, ',', ' ') }}€
@@ -113,7 +113,7 @@
             <h2 class="text-sm font-semibold text-ivoire-text uppercase tracking-wide mb-4">Taux de conversion</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="text-center p-4 rounded-lg bg-noir-profond">
-                    <div class="text-2xl font-bold text-beige-peau">
+                    <div class="text-2xl font-bold text-vert-succes">
                         {{ round(($completedAll / $totalRequests) * 100) }}%
                     </div>
                     <div class="text-xs text-titane mt-1">Taux de complétion</div>
@@ -125,7 +125,7 @@
                     <div class="text-xs text-titane mt-1">Taux d'annulation</div>
                 </div>
                 <div class="text-center p-4 rounded-lg bg-noir-profond">
-                    <div class="text-2xl font-bold text-yellow-400">
+                    <div class="text-2xl font-bold text-ambre-warning">
                         {{ round(($pendingRequests / $totalRequests) * 100) }}%
                     </div>
                     <div class="text-xs text-titane mt-1">En cours de traitement</div>

@@ -10,7 +10,7 @@
         <div class="bg-gris-fonde rounded-xl p-4 md:p-6 border border-beige-peau/20 mb-8">
             <div class="flex items-center justify-between mb-4">
                 <div>
-                    <h2 class="text-sm font-bold text-beige-peau uppercase tracking-wider">🚀 Démarrage rapide</h2>
+                    <h2 class="text-sm font-bold text-beige-peau uppercase tracking-wider"> Démarrage rapide</h2>
                     <p class="text-xs text-titane mt-0.5">Configurez votre studio en quelques étapes</p>
                 </div>
                 <span class="text-sm font-bold text-beige-peau">{{ $progress }}%</span>
@@ -76,7 +76,7 @@
         </div>
         @if ($studio->onTrial())
             <div class="bg-ambre-warning/20 border border-ambre-warning/30 rounded-xl p-4">
-                <p class="text-xs text-titane uppercase tracking-wider">⏱️ Essai restant</p>
+                <p class="text-xs text-titane uppercase tracking-wider">Essai restant</p>
                 <p class="text-lg font-bold text-ambre-warning mt-1">{{ $studio->trialDaysLeft() }} jours</p>
                 <p class="text-xs text-titane mt-1">
                     @if ($studio->trialDaysLeft() > 0)
@@ -160,8 +160,8 @@
     <div class="bg-gris-fonde/50 rounded-xl p-4 border border-titane/10">
         <p class="text-xs text-titane">
             💡 Abonnement Studio : <strong class="text-ivoire-text">1 artiste inclus</strong>.
-            Artistes supplémentaires : <strong class="text-beige-peau">39,99€/mois</strong> chacun.
-            <a href="{{ route('studio.billing') }}" class="text-beige-peau hover:underline ml-1">Voir la facturation
+            Artistes supplémentaires : <strong class="text-beige-peau">24,99€/mois</strong> chacun.
+            <a href="{{ route('studio.billing') }}" class="text-beige-peau hover:underline ml-1"> <br>Voir la facturation
                 →</a>
         </p>
     </div>

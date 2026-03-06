@@ -30,7 +30,8 @@
       "Bash(do:*)",
       "Bash(ls:*)",
       "Bash(composer require:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(cp:*)"
     ]
   }
 }
