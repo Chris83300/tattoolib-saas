@@ -40,7 +40,7 @@ return new class extends Migration
             $table->text('address')->nullable();
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
-            $table->string('subscription_plan', 20)->default('free');
+            $table->string('subscription_plan', 20)->default('starter');
             $table->boolean('is_subscribed')->default(false);
             $table->boolean('is_blocked')->default(false);
             $table->timestamp('trial_ends_at')->nullable();
@@ -66,7 +66,7 @@ return new class extends Migration
             $table->integer('default_design_versions_included')->default(3);
             $table->integer('weekday_wait_days')->default(7);
             $table->integer('weekend_wait_days')->default(14);
-            $table->string('current_plan')->default('free');
+            $table->string('current_plan')->default('starter');
             $table->timestamp('upgraded_to_pro_at')->nullable();
             $table->string('instagram')->nullable();
             $table->string('facebook')->nullable();

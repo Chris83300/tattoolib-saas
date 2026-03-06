@@ -23,7 +23,7 @@ class DeactivateInactiveStripeAccounts extends Command
         // ========================================
 
         Tattooer::where('stripe_connect_status', 'active')
-            ->where('current_plan', 'free') // Seulement plan FREE
+            ->where('current_plan', 'starter') // Seulement plan FREE
             ->chunk(100, function ($tattooers) use (&$deactivatedCount) {
                 foreach ($tattooers as $tattooer) {
                     if ($tattooer->shouldBeDeactivated()) {
