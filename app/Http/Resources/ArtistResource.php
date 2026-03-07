@@ -66,6 +66,12 @@ class ArtistResource extends JsonResource
             // Badges
             'badges' => $this->getBadges(),
 
+            // Abonnement / tri marketplace
+            'is_subscribed'  => (bool) ($this->is_subscribed ?? false),
+            'current_plan'   => $this->current_plan ?? 'starter',
+            'studio_id'      => $this->studio_id ?? null,
+            'sort_rank'      => $this->sort_rank ?? \App\Helpers\ArtistSortHelper::calculateRank($this->resource),
+
             // Vérifier si le client a déjà une demande en cours
             'has_active_request' => $this->hasActiveRequestForCurrentUser(),
 
