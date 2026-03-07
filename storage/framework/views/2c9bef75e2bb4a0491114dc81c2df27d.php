@@ -6,14 +6,14 @@
     $hasPaidSubscription = $artisan?->is_subscribed ?? false;
 
     $isOnTrial = $artisan && !$hasPaidSubscription && $trialService->isOnTrial($artisan);
-    $daysRemaining = $artisan ? 0 : 0; // FORCÉ À 0 pour tester la fin d'essai
-$isBlocked = $artisan?->is_blocked ?? false;
+    $daysRemaining = $artisan ? $trialService->trialDaysRemaining($artisan) : 0;
+    $isBlocked = $artisan?->is_blocked ?? false;
 
-// Route vers la page d'abonnement selon le type d'artiste
-$subscriptionRoute =
-    $artisan instanceof \App\Models\Piercer
-        ? route('pierceur.subscription.plans')
-        : route('tattooer.subscription.plans');
+    // Route vers la page d'abonnement selon le type d'artiste
+    $subscriptionRoute =
+        $artisan instanceof \App\Models\Piercer
+            ? route('pierceur.subscription.plans')
+            : route('tattooer.subscription.plans');
 ?>
 
 <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($hasPaidSubscription): ?>
