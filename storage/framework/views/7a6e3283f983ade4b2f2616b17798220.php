@@ -1,0 +1,57 @@
+<?php $__env->startSection('title', 'Mot de passe oublié - Ink&Pik'); ?>
+
+<div class="min-h-screen bg-noir-profond flex items-center justify-center px-4 py-12">
+    <div class="max-w-md w-full">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <a href="<?php echo e(route('login')); ?>" class="text-ivoire-text/70 text-sm hover:text-beige-peau mb-4 inline-block">
+                ← Retour à la connexion
+            </a>
+            <h1 class="text-beige-peau font-display text-2xl font-bold">
+                Mot de passe oublié
+            </h1>
+            <p class="text-ivoire-text/70 text-sm mt-2">
+                Recevez un lien pour réinitialiser votre mot de passe
+            </p>
+        </div>
+
+        <!-- Formulaire -->
+        <form action="<?php echo e(route('password.email')); ?>" method="POST" class="bg-gris-fonde rounded-xl p-6 space-y-4">
+            <?php echo csrf_field(); ?>
+
+            <!-- Messages de succès -->
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(session('status')): ?>
+                <div class="bg-vert-succes/10 border border-vert-succes/30 rounded-lg p-4 mb-4">
+                    <p class="text-vert-succes text-sm"><?php echo e(session('status')); ?></p>
+                </div>
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
+            <!-- Email -->
+            <div>
+                <label class="block text-ivoire-text text-sm font-semibold mb-2">
+                    Email *
+                </label>
+                <input type="email" name="email" required value="<?php echo e(old('email')); ?>"
+                    class="w-full bg-noir-profond text-ivoire-text px-4 py-3 rounded-lg border border-titane/30 focus:border-beige-peau focus:ring-2 focus:ring-beige-peau focus:ring-opacity-50 transition-colors"
+                    placeholder="votre@email.com">
+            </div>
+
+            <!-- Erreurs -->
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($errors->any()): ?>
+                <div class="bg-rouge-alerte/10 border border-rouge-alerte/30 rounded-lg p-3">
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <p class="text-rouge-alerte text-sm"><?php echo e($error); ?></p>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                </div>
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
+            <!-- Submit -->
+            <button type="submit"
+                class="w-full bg-beige-peau hover:bg-beige-peau/90 text-noir-profond font-bold py-3 rounded-lg transition-colors">
+                Envoyer le lien de réinitialisation
+            </button>
+        </form>
+    </div>
+</div>
+
+<?php echo $__env->make('layouts.guest', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\tattoolib-saas\resources\views\auth\forgot-password.blade.php ENDPATH**/ ?>

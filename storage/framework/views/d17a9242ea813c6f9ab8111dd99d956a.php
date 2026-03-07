@@ -163,6 +163,21 @@
                 </a>
 
                 <div class="pt-4 mt-4 border-t border-titane/20">
+                    <a href="<?php echo e(route($routePrefix . '.subscription.plans')); ?>"
+                        class="flex items-center gap-3 px-4 py-3 rounded-lg <?php echo e(request()->routeIs($routePrefix . '.subscription.*') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text hover:bg-noir-profond'); ?> transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
+                            </path>
+                        </svg>
+                        <span class="font-semibold">Abonnement</span>
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(isset($artisan) && !$artisan->is_subscribed && $artisan->trial_ends_at?->isFuture()): ?>
+                            <span class="ml-auto px-1.5 py-0.5 text-[10px] bg-beige-peau/20 text-beige-peau rounded">Essai</span>
+                        <?php elseif(isset($artisan) && $artisan->is_blocked): ?>
+                            <span class="ml-auto px-1.5 py-0.5 text-[10px] bg-rouge-alerte/20 text-rouge-alerte rounded">Expiré</span>
+                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    </a>
+
                     <a href="<?php echo e(route($routePrefix . '.settings')); ?>"
                         class="flex items-center gap-3 px-4 py-3 rounded-lg <?php echo e(request()->routeIs($routePrefix . '.settings') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text hover:bg-noir-profond'); ?> transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -225,7 +240,7 @@
                             <button type="submit"
                                 class="text-ivoire-text/60 hover:text-rouge-alerte transition-colors p-1 rounded-lg"
                                 title="Se déconnecter">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
                                     </path>
