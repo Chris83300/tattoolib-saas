@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Helpers\ArtistSortHelper;
 use App\Models\Tattooer;
 use App\Models\Piercer;
 use App\Models\Studio;
@@ -72,10 +73,7 @@ class MarketplaceSearchService
             $tattooers = $tattooerQuery->get();
             $piercers  = $piercerQuery->get();
 
-            $all = $tattooers->concat($piercers)
-                ->sortByDesc('siret_verified')
-                ->sortByDesc('rating')
-                ->values();
+            $all = ArtistSortHelper::sortCollection($tattooers->concat($piercers));
 
             $page  = max(1, (int) request()->get('page', 1));
             $total = $all->count();
@@ -108,24 +106,12 @@ class MarketplaceSearchService
         return Studio::where('is_active', true)->count();
     }
 
-    public function getFeaturedArtists(int $limit = 6): Collection
+    public function getFeaturedArtists(int $limit = 6): \Illuminate\Support\Collection
     {
-        $tattooers = $this->getBaseQuery()
-            ->orderByDesc('siret_verified')
-            ->orderByDesc('rating')
-            ->orderByDesc('appointments_count')
-            ->limit($limit)
-            ->get();
+        $tattooers = $this->getBaseQuery()->get();
+        $piercers  = $this->getPiercerBaseQuery()->get();
 
-        $piercerLimit = max(1, (int) ceil($limit / 3));
-        $piercers = $this->getPiercerBaseQuery()
-            ->orderByDesc('siret_verified')
-            ->orderByDesc('rating')
-            ->limit($piercerLimit)
-            ->get();
-
-        return $tattooers->concat($piercers)
-            ->sortByDesc('rating')
+        return ArtistSortHelper::sortCollection($tattooers->concat($piercers))
             ->take($limit)
             ->values();
     }
@@ -151,6 +137,10 @@ class MarketplaceSearchService
                 'piercers.minimum_price',
                 'piercers.piercing_types as styles',
                 'piercers.working_hours',
+                'piercers.is_subscribed',
+                'piercers.current_plan',
+                'piercers.studio_id',
+                'piercers.trial_ends_at',
                 'users.status',
                 'users.pseudo',
                 DB::raw('COALESCE(AVG(reviews.rating), 0) as rating'),
@@ -181,6 +171,7 @@ class MarketplaceSearchService
                 'piercers.created_at', 'piercers.years_of_experience',
                 'piercers.wait_time_weeks_min', 'piercers.wait_time_weeks_max',
                 'piercers.minimum_price', 'piercers.piercing_types', 'piercers.working_hours',
+                'piercers.is_subscribed', 'piercers.current_plan', 'piercers.studio_id', 'piercers.trial_ends_at',
                 'users.status', 'users.pseudo'
             ]);
     }
@@ -204,10 +195,14 @@ class MarketplaceSearchService
                 'tattooers.wait_time_weeks_min',
                 'tattooers.wait_time_weeks_max',
                 'tattooers.minimum_price',
-                'tattooers.styles', // AJOUT: colonne styles
-                'tattooers.working_hours', // AJOUT: colonne working_hours
+                'tattooers.styles',
+                'tattooers.working_hours',
+                'tattooers.is_subscribed',
+                'tattooers.current_plan',
+                'tattooers.studio_id',
+                'tattooers.trial_ends_at',
                 'users.status',
-                'users.pseudo', // Ajout du pseudo
+                'users.pseudo',
                 DB::raw('COALESCE(AVG(reviews.rating), 0) as rating'),
                 DB::raw('COUNT(DISTINCT reviews.id) as reviews_count'),
                 DB::raw('COUNT(DISTINCT appointments.id) as appointments_count'),
@@ -236,6 +231,7 @@ class MarketplaceSearchService
                 'tattooers.created_at', 'tattooers.years_of_experience',
                 'tattooers.wait_time_weeks_min', 'tattooers.wait_time_weeks_max',
                 'tattooers.minimum_price', 'tattooers.styles', 'tattooers.working_hours',
+                'tattooers.is_subscribed', 'tattooers.current_plan', 'tattooers.studio_id', 'tattooers.trial_ends_at',
                 'users.status', 'users.pseudo'
             ]);
     }
@@ -309,11 +305,12 @@ class MarketplaceSearchService
                 break;
             case 'pro_first':
             default:
-                // Tri par pertinence : vérifié → notes → rendez-vous → expérience
-                $query->orderBy('siret_verified', 'desc')
+                // Tri : PRO > Studio > STARTER > Trial, puis par note
+                $table = $query->getModel()->getTable();
+                $query->orderByRaw(ArtistSortHelper::sqlOrderByRank($table))
+                      ->orderBy('siret_verified', 'desc')
                       ->orderBy('rating', 'desc')
-                      ->orderBy('appointments_count', 'desc')
-                      ->orderBy('created_at', 'desc');
+                      ->orderBy('appointments_count', 'desc');
         }
     }
 

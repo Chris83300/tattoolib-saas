@@ -50,21 +50,29 @@ class ArtistSortHelper
     {
         $weeklySeed = (int) now()->startOfWeek()->timestamp;
 
-        return $artists
-            ->map(function ($artist) {
-                $artist->sort_rank = self::calculateRank($artist);
-                return $artist;
-            })
-            ->groupBy('sort_rank')
-            ->sortKeysDesc()
-            ->map(function ($group) use ($weeklySeed) {
-                $items = $group->values()->toArray();
-                mt_srand($weeklySeed + count($items));
-                shuffle($items);
-                return collect($items);
-            })
-            ->flatten(1)
-            ->values();
+        // Ajouter sort_rank à chaque artiste
+        $withRank = $artists->map(function ($artist) {
+            $artist->sort_rank = self::calculateRank($artist);
+            return $artist;
+        });
+
+        // Grouper par rang, trier les groupes par rang décroissant
+        $groups = $withRank->groupBy('sort_rank');
+        $sortedKeys = $groups->keys()->sort()->reverse()->values();
+
+        $result = collect();
+        foreach ($sortedKeys as $rank) {
+            $group = $groups->get($rank);
+            // Rotation hebdomadaire au sein de chaque tier
+            $items = $group->values()->all();
+            mt_srand($weeklySeed + count($items));
+            shuffle($items);
+            foreach ($items as $item) {
+                $result->push($item);
+            }
+        }
+
+        return $result;
     }
 
     /**
