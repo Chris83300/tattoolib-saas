@@ -33,12 +33,12 @@ class EnsureArtisanCanOperate
         'pierceur.profile',
 
         // Billing/Subscription (pour pouvoir payer)
-        'tattooer.subscription-plans',
+        'tattooer.subscription.plans',
         'tattooer.subscribe',
         'tattooer.subscription.manage',
         'tattooer.subscription.success',
         'tattooer.payments',
-        'pierceur.subscription-plans',
+        'pierceur.subscription.plans',
         'pierceur.subscribe',
         'pierceur.subscription.manage',
         'pierceur.subscription.success',
@@ -154,12 +154,12 @@ class EnsureArtisanCanOperate
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => 'Votre essai gratuit est terminé. Activez votre abonnement pour continuer.',
-                'upgrade_url' => route($user->isTattooer() ? 'tattooer.subscription-plans' : 'pierceur.subscription-plans'),
+                'upgrade_url' => route($user->isTattooer() ? 'tattooer.subscription.plans' : 'pierceur.subscription.plans'),
             ], 403);
         }
 
         // Rediriger vers la page d'abonnement
-        $redirectRoute = $user->isTattooer() ? 'tattooer.subscription-plans' : 'pierceur.subscription-plans';
+        $redirectRoute = $user->isTattooer() ? 'tattooer.subscription.plans' : 'pierceur.subscription.plans';
 
         return redirect()->route($redirectRoute)
             ->with('error', 'Votre essai gratuit est terminé. Activez votre abonnement pour continuer à utiliser cette fonctionnalité.');
