@@ -3,15 +3,16 @@
     $trialService = app(\App\Services\TrialService::class);
 
     // Abonnement payé actif ? → pas de bannière trial
-    $hasPaidSubscription = false;
-    try {
-        $activeSub = auth()->user()->subscription('pro') ?? auth()->user()->subscription('default');
-        $hasPaidSubscription = $activeSub && $activeSub->stripe_status === 'active';
-    } catch (\Exception) {}
+    $hasPaidSubscription = $artisan?->is_subscribed ?? false;
 
     $isOnTrial = $artisan && !$hasPaidSubscription && $trialService->isOnTrial($artisan);
     $daysRemaining = $artisan ? $trialService->trialDaysRemaining($artisan) : 0;
     $isBlocked = $artisan?->is_blocked ?? false;
+
+    // Route vers la page d'abonnement selon le type d'artiste
+    $subscriptionRoute = $artisan instanceof \App\Models\Piercer
+        ? route('pierceur.subscription.plans')
+        : route('tattooer.subscription.plans');
 @endphp
 
 @if ($hasPaidSubscription)
@@ -31,8 +32,8 @@
                 </p>
             </div>
         </div>
-        <a href="{{ route('pricing') }}" class="flex-shrink-0 px-4 py-2 text-sm font-medium bg-beige-peau text-noir-profond rounded-lg hover:bg-beige-peau/80 transition-colors">
-            Voir les tarifs
+        <a href="{{ $subscriptionRoute }}" class="flex-shrink-0 px-4 py-2 text-sm font-medium bg-beige-peau text-noir-profond rounded-lg hover:bg-beige-peau/80 transition-colors">
+            Activer mon abonnement
         </a>
     </div>
 </div>
@@ -47,7 +48,7 @@
                 Essai gratuit — <strong class="text-ivoire-text">{{ $daysRemaining }} jour{{ $daysRemaining > 1 ? 's' : '' }} restant{{ $daysRemaining > 1 ? 's' : '' }}</strong>
             </p>
         </div>
-        <a href="{{ route('pricing') }}" class="text-xs text-beige-peau hover:underline whitespace-nowrap">Voir les tarifs</a>
+        <a href="{{ $subscriptionRoute }}" class="text-xs text-beige-peau hover:underline whitespace-nowrap">Activer mon abonnement</a>
     </div>
 </div>
 
@@ -59,7 +60,7 @@
     <p class="text-sm text-titane mt-2 max-w-md mx-auto">
         Votre profil n'est plus visible dans la marketplace. Choisissez un abonnement pour réactiver votre compte et recevoir des demandes.
     </p>
-    <a href="{{ route('pricing') }}" class="inline-block mt-4 px-6 py-2.5 text-sm font-medium bg-beige-peau text-noir-profond rounded-lg hover:bg-beige-peau/80 transition-colors">
+    <a href="{{ $subscriptionRoute }}" class="inline-block mt-4 px-6 py-2.5 text-sm font-medium bg-beige-peau text-noir-profond rounded-lg hover:bg-beige-peau/80 transition-colors">
         Choisir mon abonnement
     </a>
 </div>
