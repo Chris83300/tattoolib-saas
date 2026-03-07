@@ -15,7 +15,7 @@ class EnsureArtisanCanOperate
         // Dashboard (avec bannière de blocage)
         'tattooer.dashboard',
         'pierceur.dashboard',
-        
+
         // Messages (uniquement avec acompte payé)
         'tattooer.messages',
         'tattooer.message.show',
@@ -23,7 +23,7 @@ class EnsureArtisanCanOperate
         'pierceur.messages',
         'pierceur.message.show',
         'pierceur.message.send',
-        
+
         // Settings (pour pouvoir s'abonner)
         'tattooer.settings',
         'tattooer.settings.update',
@@ -31,7 +31,7 @@ class EnsureArtisanCanOperate
         'pierceur.settings',
         'pierceur.settings.update',
         'pierceur.profile',
-        
+
         // Billing/Subscription (pour pouvoir payer)
         'tattooer.subscription-plans',
         'tattooer.subscribe',
@@ -43,7 +43,7 @@ class EnsureArtisanCanOperate
         'pierceur.subscription.manage',
         'pierceur.subscription.success',
         'pierceur.payments',
-        
+
         // Compliance (obligation légale)
         'tattooer.compliance',
         'tattooer.compliance.documents',
@@ -92,11 +92,14 @@ class EnsureArtisanCanOperate
         }
 
         // Vérifier si l'artisan est bloqué (trial expiré sans abonnement)
-        if (!$artisan->is_blocked) {
+        $trialService = app(\App\Services\TrialService::class);
+
+        // Si pas bloqué ET (pas en trial OU trial pas encore expiré) → laisser passer
+        if (!$artisan->is_blocked && (!$trialService->isOnTrial($artisan) || $trialService->trialDaysRemaining($artisan) > 0)) {
             return $next($request);
         }
 
-        // Artiste bloqué — vérifier si la route est autorisée
+        // Artiste bloqué OU trial expiré — vérifier si la route est autorisée
         $currentRoute = $request->route()?->getName();
 
         // Routes totalement autorisées même bloqué
@@ -134,11 +137,11 @@ class EnsureArtisanCanOperate
     private function hasPaidDeposit(Request $request): bool
     {
         $bookingRequest = $request->route('bookingRequest');
-        
+
         if ($bookingRequest) {
             return !is_null($bookingRequest->deposit_paid_at);
         }
-        
+
         // Pour la liste des messages, on pourrait vérifier si au moins une conversation a un acompte payé
         return false; // Par défaut, bloquer si on ne peut pas vérifier
     }

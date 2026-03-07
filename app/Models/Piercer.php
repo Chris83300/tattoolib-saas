@@ -458,10 +458,22 @@ class Piercer extends Model implements HasMedia, ArtisanInterface
 
     public function scopeSearch($query, string $search)
     {
-        return $query->where(function ($q) use ($search) {
+        return $query->where(function($q) use ($search) {
             $q->where('name', 'like', "%{$search}%")
               ->orWhere('studio_name', 'like', "%{$search}%")
               ->orWhere('city', 'like', "%{$search}%");
         });
+    }
+
+    // ═══ TRIAL & SUBSCRIPTION ═══
+
+    public function canOperate(): bool
+    {
+        return !$this->is_blocked;
+    }
+
+    public function isReadOnly(): bool
+    {
+        return !$this->canOperate();
     }
 }

@@ -537,4 +537,16 @@ class Tattooer extends Model implements HasMedia, ArtisanInterface
 
         return (float) $subscription->commission_rate;
     }
+
+    // ═══ TRIAL & SUBSCRIPTION ═══
+
+    public function canOperate(): bool
+    {
+        return !$this->is_blocked;
+    }
+
+    public function isReadOnly(): bool
+    {
+        return !$this->canOperate();
+    }
 }
