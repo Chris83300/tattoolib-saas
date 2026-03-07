@@ -6,7 +6,7 @@
     $hasPaidSubscription = $artisan?->is_subscribed ?? false;
 
     $isOnTrial = $artisan && !$hasPaidSubscription && $trialService->isOnTrial($artisan);
-    $daysRemaining = $artisan ? $trialService->trialDaysRemaining($artisan) : 0;
+    $daysRemaining = $artisan ? 0 : 0; // FORCÉ À 0 pour tester la fin d'essai
     $isBlocked = $artisan?->is_blocked ?? false;
 
     // Route vers la page d'abonnement selon le type d'artiste

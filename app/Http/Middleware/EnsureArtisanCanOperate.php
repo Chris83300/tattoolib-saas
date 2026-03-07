@@ -55,20 +55,15 @@ class EnsureArtisanCanOperate
      * Routes accessibles en lecture seule même si bloqué.
      */
     private array $readOnlyRoutes = [
+        // Consultation seule autorisée
         'tattooer.clients',
         'tattooer.client.show',
         'tattooer.requests',
         'tattooer.request.show',
-        'tattooer.calendar',
-        'tattooer.portfolio',
-        'tattooer.pricing',
         'pierceur.clients',
         'pierceur.client.show',
         'pierceur.requests',
         'pierceur.request.show',
-        'pierceur.calendar',
-        'pierceur.portfolio',
-        'pierceur.pricing',
     ];
 
     public function handle(Request $request, Closure $next)
@@ -94,12 +89,12 @@ class EnsureArtisanCanOperate
         // Vérifier si l'artisan est bloqué (trial expiré sans abonnement)
         $trialService = app(\App\Services\TrialService::class);
 
-        // Si pas bloqué ET (pas en trial OU trial pas encore expiré) → laisser passer
-        if (!$artisan->is_blocked && (!$trialService->isOnTrial($artisan) || $trialService->trialDaysRemaining($artisan) > 0)) {
+        // Si pas en trial OU trial pas encore expiré → laisser passer
+        if (!$trialService->isOnTrial($artisan) || $trialService->trialDaysRemaining($artisan) > 0) {
             return $next($request);
         }
 
-        // Artiste bloqué OU trial expiré — vérifier si la route est autorisée
+        // Trial expiré (daysRemaining <= 0) — vérifier si la route est autorisée
         $currentRoute = $request->route()?->getName();
 
         // Routes totalement autorisées même bloqué
@@ -109,12 +104,13 @@ class EnsureArtisanCanOperate
 
         // Routes en lecture seule autorisées
         if ($currentRoute && in_array($currentRoute, $this->readOnlyRoutes)) {
-            // Pour les routes en lecture seule, on pourrait ajouter des vérifications supplémentaires
-            // Par exemple, vérifier si la conversation a un acompte payé pour les messages
-            if ($this->isMessagingRoute($currentRoute)) {
-                if (!$this->hasPaidDeposit($request)) {
-                    return $this->blockedResponse($request, $user);
-                }
+            return $next($request);
+        }
+
+        // Routes de messagerie - uniquement avec acompte payé
+        if ($currentRoute && $this->isMessagingRoute($currentRoute)) {
+            if (!$this->hasPaidDeposit($request)) {
+                return $this->blockedResponse($request, $user);
             }
             return $next($request);
         }
