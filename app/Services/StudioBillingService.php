@@ -34,6 +34,128 @@ class StudioBillingService
     }
 
     /**
+     * Mettre à jour les artistes supplémentaires dans l'abonnement Stripe.
+     *
+     * Le plan STUDIO inclut 1 artiste (prix de base, quantité TOUJOURS 1).
+     * Chaque artiste au-delà du 1er est facturé via le prix STUDIO_EXTRA.
+     *
+     * Utilisé après ajout/retrait d'un artiste studio.
+     */
+    public function updateArtistQuantity(Studio $studio): bool
+    {
+        try {
+            $user = $studio->user;
+            if (!$user || !$user->subscribed('default')) {
+                Log::warning('updateArtistQuantity: pas d\'abonnement actif', ['studio_id' => $studio->id]);
+                return false;
+            }
+
+            $sub = $user->subscription('default');
+            $stripe = new \Stripe\StripeClient(config('cashier.secret'));
+
+            // Compter les artistes et calculer le nombre d'extras
+            $totalArtists   = $studio->tattooers()->count() + $studio->piercers()->count();
+            $includedArtists = (int) config('inkpik.pricing.studio.included_artists', 1);
+            $extraArtists   = max(0, $totalArtists - $includedArtists);
+
+            $studioPriceId = config('inkpik.pricing.studio.stripe_price_id');
+            $extraPriceId  = config('inkpik.pricing.studio.stripe_price_id_extra');
+
+            if (!$extraPriceId) {
+                Log::error('updateArtistQuantity: STRIPE_PRICE_ID_STUDIO_EXTRA non configuré');
+                return false;
+            }
+
+            // Récupérer l'abonnement Stripe avec ses items
+            $stripeSub = $stripe->subscriptions->retrieve($sub->stripe_id, ['expand' => ['items']]);
+
+            // Identifier les items STUDIO et EXTRA
+            $studioItem = null;
+            $extraItem  = null;
+            foreach ($stripeSub->items->data as $item) {
+                if ($item->price->id === $studioPriceId) $studioItem = $item;
+                if ($item->price->id === $extraPriceId)  $extraItem  = $item;
+            }
+
+            // S'assurer que le prix STUDIO est bien à quantité 1 (jamais plus)
+            if ($studioItem && $studioItem->quantity > 1) {
+                Log::warning('updateArtistQuantity: prix STUDIO avait quantité > 1, correction', [
+                    'old_quantity' => $studioItem->quantity,
+                ]);
+                $stripe->subscriptionItems->update($studioItem->id, ['quantity' => 1]);
+            }
+
+            if ($extraArtists > 0) {
+                if ($extraItem) {
+                    // Mettre à jour la quantité de l'item EXTRA existant
+                    if ($extraItem->quantity !== $extraArtists) {
+                        $stripe->subscriptionItems->update($extraItem->id, ['quantity' => $extraArtists]);
+                    }
+                } else {
+                    // Ajouter une nouvelle ligne EXTRA à l'abonnement
+                    $stripe->subscriptionItems->create([
+                        'subscription' => $sub->stripe_id,
+                        'price'        => $extraPriceId,
+                        'quantity'     => $extraArtists,
+                    ]);
+                }
+                Log::info('updateArtistQuantity: EXTRA mis à jour', [
+                    'studio_id'    => $studio->id,
+                    'extra_artists' => $extraArtists,
+                ]);
+            } else {
+                // Aucun artiste supplémentaire — supprimer la ligne EXTRA si elle existe
+                if ($extraItem) {
+                    $stripe->subscriptionItems->delete($extraItem->id, [
+                        'proration_behavior' => 'create_prorations',
+                    ]);
+                    Log::info('updateArtistQuantity: EXTRA supprimé', ['studio_id' => $studio->id]);
+                }
+            }
+
+            // Synchroniser subscription_items Cashier avec Stripe
+            $this->syncSubscriptionItems($sub, $stripe);
+
+            return true;
+
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            Log::error('updateArtistQuantity Stripe error', [
+                'studio_id' => $studio->id,
+                'error'     => $e->getMessage(),
+                'code'      => $e->getStripeCode(),
+            ]);
+            return false;
+        } catch (\Exception $e) {
+            Log::error('updateArtistQuantity error', [
+                'studio_id' => $studio->id,
+                'error'     => $e->getMessage(),
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Synchroniser les subscription_items Cashier avec l'état réel Stripe.
+     */
+    private function syncSubscriptionItems($subscription, \Stripe\StripeClient $stripe): void
+    {
+        try {
+            $stripeSub = $stripe->subscriptions->retrieve($subscription->stripe_id, ['expand' => ['items']]);
+            $subscription->items()->delete();
+            foreach ($stripeSub->items->data as $item) {
+                $subscription->items()->create([
+                    'stripe_id'      => $item->id,
+                    'stripe_product' => $item->price->product,
+                    'stripe_price'   => $item->price->id,
+                    'quantity'       => $item->quantity,
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::warning('syncSubscriptionItems error', ['error' => $e->getMessage()]);
+        }
+    }
+
+    /**
      * Créer une session Stripe Checkout pour l'abonnement studio.
      * Utilise l'API Stripe directe pour éviter les doublons créés par Cashier ->newSubscription().
      */
