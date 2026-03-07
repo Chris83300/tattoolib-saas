@@ -103,7 +103,8 @@
             </div>
 
             <!-- RDV à venir -->
-            <div class="rounded-xl bg-beige-peau/5 border border-beige-peau/20 hover:border-beige-peau shadow-md shadow-beige-peau/20 p-6">
+            <div
+                class="rounded-xl bg-beige-peau/5 border border-beige-peau/20 hover:border-beige-peau shadow-md shadow-beige-peau/20 p-6">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 bg-beige-peau/20 rounded-lg flex items-center justify-center">
                         <svg class="w-6 h-6 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -121,7 +122,8 @@
             </div>
 
             <!-- Clients totaux -->
-            <div class="rounded-xl bg-vert-succes/5 border border-vert-succes/20 hover:border-vert-succes shadow-md shadow-vert-succes/20 p-6">
+            <div
+                class="rounded-xl bg-vert-succes/5 border border-vert-succes/20 hover:border-vert-succes shadow-md shadow-vert-succes/20 p-6">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 bg-vert-succes/20 rounded-lg flex items-center justify-center">
                         <svg class="w-6 h-6 text-vert-succes" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -139,7 +141,8 @@
             </div>
 
             <!-- Revenus du mois -->
-            <div class="rounded-xl bg-electric-blue/10 border border-electric-blue/50 hover:border-electric-blue shadow-md shadow-electric-blue/40 p-6">
+            <div
+                class="rounded-xl bg-electric-blue/10 border border-electric-blue/50 hover:border-electric-blue shadow-md shadow-electric-blue/40 p-6">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 bg-electric-blue/20 rounded-lg flex items-center justify-center">
                         <svg class="w-12 h-12 text-vert-succes/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -160,7 +163,8 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
             <!-- Prochains rendez-vous -->
-            <div class="bg-gris-fonde rounded-xl border border-titane/20 hover:border-titane/50 shadow-md shadow-titane/20 p-6">
+            <div
+                class="bg-gris-fonde rounded-xl border border-titane/20 hover:border-titane/50 shadow-md shadow-titane/20 p-6">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-xl font-bold text-ivoire-text">
                         📅 Prochains rendez-vous
@@ -189,14 +193,16 @@
 
                                 </p>
                                 <div class="flex items-center gap-4 text-xs text-ivoire-text/60">
-                                    <span>📅 <?php echo e($appointment->appointment_datetime->format('d/m/Y à H:i')); ?></span>
-                                    <span>⏱️ <?php echo e($appointment->estimated_duration ?? '60'); ?>min</span>
+                                    <span>📅
+                                        <?php echo e($appointment->start_datetime?->format('d/m/Y à H:i') ?? 'Date à confirmer'); ?></span>
+                                    <span>⏱️ <?php echo e($appointment->duration_minutes ?? '60'); ?>min</span>
                                 </div>
 
                                 
                                 <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($isConfirmed && $isPast): ?>
                                     <div class="mt-3 flex flex-wrap gap-2">
-                                        <form action="<?php echo e(route($tattooer->routePrefix() . '.appointments.complete', $appointment)); ?>"
+                                        <form
+                                            action="<?php echo e(route($tattooer->routePrefix() . '.appointments.complete', $appointment)); ?>"
                                             method="POST"
                                             onsubmit="return confirm('Confirmer que le RDV s\'est bien passé ?')">
                                             <?php echo csrf_field(); ?>
@@ -232,7 +238,8 @@
                                             <h3 class="text-lg font-bold text-noir-profond mb-1">Signaler un no-show</h3>
                                             <p class="text-sm text-noir-profond/60 mb-4">Le client ne s'est pas présenté au
                                                 rendez-vous ?</p>
-                                            <form action="<?php echo e(route($tattooer->routePrefix() . '.appointments.no-show', $appointment)); ?>"
+                                            <form
+                                                action="<?php echo e(route($tattooer->routePrefix() . '.appointments.no-show', $appointment)); ?>"
                                                 method="POST">
                                                 <?php echo csrf_field(); ?>
                                                 <textarea name="no_show_reason" rows="3" placeholder="Décrivez la situation (optionnel)..."
@@ -271,14 +278,16 @@
             </div>
 
             <!-- Activité récente -->
-            <div class="bg-gris-fonde rounded-xl border border-titane/20 hover:border-titane/50 shadow-md shadow-titane/20 p-6">
+            <div
+                class="bg-gris-fonde rounded-xl border border-titane/20 hover:border-titane/50 shadow-md shadow-titane/20 p-6">
                 <h2 class="text-xl font-bold text-ivoire-text mb-6">
                     📊 Activité cette semaine
                 </h2>
 
                 <div class="space-y-4">
                     <!-- Nouvelles demandes -->
-                    <div class="flex items-center justify-between p-4 bg-noir-profond rounded-xl border border-ambre-warning/40">
+                    <div
+                        class="flex items-center justify-between p-4 bg-noir-profond rounded-xl border border-ambre-warning/40">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 bg-ambre-warning/20 rounded-lg flex items-center justify-center">
                                 <svg class="w-5 h-5 text-ambre-warning" fill="none" stroke="currentColor"
@@ -300,7 +309,8 @@
                     </div>
 
                     <!-- RDV réalisés -->
-                    <div class="flex items-center justify-between p-4 bg-noir-profond rounded-xl border border-vert-succes/40">
+                    <div
+                        class="flex items-center justify-between p-4 bg-noir-profond rounded-xl border border-vert-succes/40">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 bg-vert-succes/20 rounded-lg flex items-center justify-center">
                                 <svg class="w-5 h-5 text-vert-succes" fill="none" stroke="currentColor"
@@ -321,7 +331,8 @@
                     </div>
 
                     <!-- Messages non lus -->
-                    <div class="flex items-center justify-between p-4 bg-noir-profond rounded-xl border border-beige-peau/40">
+                    <div
+                        class="flex items-center justify-between p-4 bg-noir-profond rounded-xl border border-beige-peau/40">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 bg-beige-peau/20 rounded-lg flex items-center justify-center">
                                 <svg class="w-5 h-5 text-beige-peau" fill="none" stroke="currentColor"
@@ -347,7 +358,8 @@
 
         <!-- Upgrade PRO (si FREE) -->
         <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tattooer->isFree()): ?>
-            <div class="bg-gradient-to-r from-beige-peau/20 to-beige-peau/5 border-2 border-beige-peau/30 hover:border-beige-peau/50 shadow-md shadow-beige-peau/20 rounded-xl p-6">
+            <div
+                class="bg-gradient-to-r from-beige-peau/20 to-beige-peau/5 border-2 border-beige-peau/30 hover:border-beige-peau/50 shadow-md shadow-beige-peau/20 rounded-xl p-6">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div class="flex-1">
                         <div class="flex items-center gap-2 mb-2">
@@ -396,7 +408,8 @@
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['variant' => 'primary','size' => 'lg','href' => ''.e(route($tattooer->routePrefix() . '.subscription.plans')).'']); ?>Passer PRO maintenant <?php echo $__env->renderComponent(); ?>
+<?php $component->withAttributes(['variant' => 'primary','size' => 'lg','href' => ''.e(route($tattooer->routePrefix() . '.subscription.plans')).'']); ?>Passer PRO
+                            maintenant <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginala8bb031a483a05f647cb99ed3a469847)): ?>
 <?php $attributes = $__attributesOriginala8bb031a483a05f647cb99ed3a469847; ?>

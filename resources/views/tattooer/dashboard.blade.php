@@ -19,7 +19,8 @@
 
                 <!-- Actions rapides -->
                 <div class="flex flex-col sm:flex-row gap-2">
-                    <x-ui.button variant="primary" size="lg" href="{{ route('marketplace.tattooer.show', $tattooer->slug) }}" target="_blank">
+                    <x-ui.button variant="primary" size="lg"
+                        href="{{ route('marketplace.tattooer.show', $tattooer->slug) }}" target="_blank">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -67,7 +68,8 @@
             </div>
 
             <!-- RDV à venir -->
-            <div class="rounded-xl bg-beige-peau/5 border border-beige-peau/20 hover:border-beige-peau shadow-md shadow-beige-peau/20 p-6">
+            <div
+                class="rounded-xl bg-beige-peau/5 border border-beige-peau/20 hover:border-beige-peau shadow-md shadow-beige-peau/20 p-6">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 bg-beige-peau/20 rounded-lg flex items-center justify-center">
                         <svg class="w-6 h-6 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,7 +86,8 @@
             </div>
 
             <!-- Clients totaux -->
-            <div class="rounded-xl bg-vert-succes/5 border border-vert-succes/20 hover:border-vert-succes shadow-md shadow-vert-succes/20 p-6">
+            <div
+                class="rounded-xl bg-vert-succes/5 border border-vert-succes/20 hover:border-vert-succes shadow-md shadow-vert-succes/20 p-6">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 bg-vert-succes/20 rounded-lg flex items-center justify-center">
                         <svg class="w-6 h-6 text-vert-succes" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -101,7 +104,8 @@
             </div>
 
             <!-- Revenus du mois -->
-            <div class="rounded-xl bg-electric-blue/10 border border-electric-blue/50 hover:border-electric-blue shadow-md shadow-electric-blue/40 p-6">
+            <div
+                class="rounded-xl bg-electric-blue/10 border border-electric-blue/50 hover:border-electric-blue shadow-md shadow-electric-blue/40 p-6">
                 <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 bg-electric-blue/20 rounded-lg flex items-center justify-center">
                         <svg class="w-12 h-12 text-vert-succes/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -122,7 +126,8 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
             <!-- Prochains rendez-vous -->
-            <div class="bg-gris-fonde rounded-xl border border-titane/20 hover:border-titane/50 shadow-md shadow-titane/20 p-6">
+            <div
+                class="bg-gris-fonde rounded-xl border border-titane/20 hover:border-titane/50 shadow-md shadow-titane/20 p-6">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-xl font-bold text-ivoire-text">
                         📅 Prochains rendez-vous
@@ -149,14 +154,16 @@
                                     {{ $appointment->tattoo_description ?? 'Nouveau tattoo' }}
                                 </p>
                                 <div class="flex items-center gap-4 text-xs text-ivoire-text/60">
-                                    <span>📅 {{ $appointment->appointment_datetime->format('d/m/Y à H:i') }}</span>
-                                    <span>⏱️ {{ $appointment->estimated_duration ?? '60' }}min</span>
+                                    <span>📅
+                                        {{ $appointment->start_datetime?->format('d/m/Y à H:i') ?? 'Date à confirmer' }}</span>
+                                    <span>⏱️ {{ $appointment->duration_minutes ?? '60' }}min</span>
                                 </div>
 
                                 {{-- Boutons de clôture pour RDV passés --}}
                                 @if ($isConfirmed && $isPast)
                                     <div class="mt-3 flex flex-wrap gap-2">
-                                        <form action="{{ route($tattooer->routePrefix() . '.appointments.complete', $appointment) }}"
+                                        <form
+                                            action="{{ route($tattooer->routePrefix() . '.appointments.complete', $appointment) }}"
                                             method="POST"
                                             onsubmit="return confirm('Confirmer que le RDV s\'est bien passé ?')">
                                             @csrf
@@ -192,7 +199,8 @@
                                             <h3 class="text-lg font-bold text-noir-profond mb-1">Signaler un no-show</h3>
                                             <p class="text-sm text-noir-profond/60 mb-4">Le client ne s'est pas présenté au
                                                 rendez-vous ?</p>
-                                            <form action="{{ route($tattooer->routePrefix() . '.appointments.no-show', $appointment) }}"
+                                            <form
+                                                action="{{ route($tattooer->routePrefix() . '.appointments.no-show', $appointment) }}"
                                                 method="POST">
                                                 @csrf
                                                 <textarea name="no_show_reason" rows="3" placeholder="Décrivez la situation (optionnel)..."
@@ -231,14 +239,16 @@
             </div>
 
             <!-- Activité récente -->
-            <div class="bg-gris-fonde rounded-xl border border-titane/20 hover:border-titane/50 shadow-md shadow-titane/20 p-6">
+            <div
+                class="bg-gris-fonde rounded-xl border border-titane/20 hover:border-titane/50 shadow-md shadow-titane/20 p-6">
                 <h2 class="text-xl font-bold text-ivoire-text mb-6">
                     📊 Activité cette semaine
                 </h2>
 
                 <div class="space-y-4">
                     <!-- Nouvelles demandes -->
-                    <div class="flex items-center justify-between p-4 bg-noir-profond rounded-xl border border-ambre-warning/40">
+                    <div
+                        class="flex items-center justify-between p-4 bg-noir-profond rounded-xl border border-ambre-warning/40">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 bg-ambre-warning/20 rounded-lg flex items-center justify-center">
                                 <svg class="w-5 h-5 text-ambre-warning" fill="none" stroke="currentColor"
@@ -259,7 +269,8 @@
                     </div>
 
                     <!-- RDV réalisés -->
-                    <div class="flex items-center justify-between p-4 bg-noir-profond rounded-xl border border-vert-succes/40">
+                    <div
+                        class="flex items-center justify-between p-4 bg-noir-profond rounded-xl border border-vert-succes/40">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 bg-vert-succes/20 rounded-lg flex items-center justify-center">
                                 <svg class="w-5 h-5 text-vert-succes" fill="none" stroke="currentColor"
@@ -279,7 +290,8 @@
                     </div>
 
                     <!-- Messages non lus -->
-                    <div class="flex items-center justify-between p-4 bg-noir-profond rounded-xl border border-beige-peau/40">
+                    <div
+                        class="flex items-center justify-between p-4 bg-noir-profond rounded-xl border border-beige-peau/40">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 bg-beige-peau/20 rounded-lg flex items-center justify-center">
                                 <svg class="w-5 h-5 text-beige-peau" fill="none" stroke="currentColor"
@@ -304,7 +316,8 @@
 
         <!-- Upgrade PRO (si FREE) -->
         @if ($tattooer->isFree())
-            <div class="bg-gradient-to-r from-beige-peau/20 to-beige-peau/5 border-2 border-beige-peau/30 hover:border-beige-peau/50 shadow-md shadow-beige-peau/20 rounded-xl p-6">
+            <div
+                class="bg-gradient-to-r from-beige-peau/20 to-beige-peau/5 border-2 border-beige-peau/30 hover:border-beige-peau/50 shadow-md shadow-beige-peau/20 rounded-xl p-6">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div class="flex-1">
                         <div class="flex items-center gap-2 mb-2">
@@ -344,8 +357,9 @@
                     <div class="text-center">
                         <div class="text-4xl font-bold text-cuivre mb-2">29,99€</div>
                         <div class="text-ivoire-text/60 text-sm mb-4">/mois</div>
-                        <x-ui.button variant="primary" size="lg" href="{{ route($tattooer->routePrefix() . '.subscription.plans') }}"
-                            >Passer PRO maintenant</x-ui.button>
+                        <x-ui.button variant="primary" size="lg"
+                            href="{{ route($tattooer->routePrefix() . '.subscription.plans') }}">Passer PRO
+                            maintenant</x-ui.button>
                     </div>
                 </div>
             </div>

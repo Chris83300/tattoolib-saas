@@ -427,12 +427,11 @@ class TattooerController extends Controller
             ->take(5)
             ->get();
 
-        // Rendez-vous à venir (pour l'instant, utilise les demandes confirmées)
-        $upcomingAppointments = BookingRequest::where('bookable_id', $tattooer->id)
-            ->where('bookable_type', 'App\Models\Tattooer')
-            ->where('status', 'confirmed')
-            ->with(['client.user'])
-            ->orderBy('created_at', 'desc')
+        // Rendez-vous à venir
+        $upcomingAppointments = \App\Models\Appointment::query()
+            ->forBookable($tattooer)
+            ->upcoming()
+            ->with(['client.user', 'bookingRequest.client.user'])
             ->take(5)
             ->get();
 
