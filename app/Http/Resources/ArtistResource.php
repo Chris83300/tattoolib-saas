@@ -236,6 +236,14 @@ class ArtistResource extends JsonResource
     {
         $badges = [];
 
+        // Badge PRO / Studio (priorité max — affiché en premier)
+        $rank = $this->sort_rank ?? \App\Helpers\ArtistSortHelper::calculateRank($this->resource);
+        if ($rank >= 100) {
+            $badges[] = ['type' => 'pro', 'label' => 'PRO', 'color' => 'beige-peau'];
+        } elseif ($rank >= 90) {
+            $badges[] = ['type' => 'studio', 'label' => 'Studio', 'color' => 'beige-peau'];
+        }
+
         if ($this->siret_verified) {
             $badges[] = [
                 'type' => 'verified',

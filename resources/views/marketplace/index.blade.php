@@ -480,9 +480,10 @@
                         return `
                             <div class="bg-noir-profond rounded-[2rem] border border-titane/40 shadow-lg shadow-electric-blue/30 overflow-hidden hover:ring-2 hover:ring-beige-peau hover:shadow-cuivre/50 transition-all relative m-2 mb-4">
                                 <!-- Badges -->
-                                <div class="absolute top-2 left-2 space-y-1 z-10">
-                                    ${artist.is_subscribed ? '<span class="badge-pro">PRO</span>' : ''}
-                                    ${artist.is_verified ? '<span class="badge-verified">Vérifié</span>' : ''}
+                                <div class="absolute top-2 left-2 flex flex-col gap-1 z-10">
+                                    ${(artist.sort_rank || 0) >= 100 ? '<span class="px-2 py-0.5 text-[10px] font-bold bg-beige-peau text-noir-profond rounded-full">PRO</span>' : ''}
+                                    ${(artist.sort_rank || 0) >= 90 && (artist.sort_rank || 0) < 100 ? '<span class="px-2 py-0.5 text-[10px] font-bold bg-beige-peau/70 text-noir-profond rounded-full">Studio</span>' : ''}
+                                    ${artist.is_verified ? '<span class="px-2 py-0.5 text-[10px] font-bold bg-vert-succes/20 text-vert-succes rounded-full">Vérifié</span>' : ''}
                                 </div>
 
                                 <!-- Image de bannière -->
