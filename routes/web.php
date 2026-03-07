@@ -35,7 +35,7 @@ Route::get('/tarifs', function () {
 Route::get('/marketplace', [MarketplaceController::class, 'index'])->name('marketplace.index');
 
 // Routes Tattooer (protégées) - AVANT les routes publiques avec slug
-Route::middleware(['auth'])->prefix('tattooer')->name('tattooer.')->group(function () {
+Route::middleware(['auth', 'artisan.can.operate'])->prefix('tattooer')->name('tattooer.')->group(function () {
     Route::get('/profil', [TattooerController::class, 'profile'])->name('profile');
     Route::get('/dashboard', [TattooerController::class, 'dashboard'])->name('dashboard');
     Route::get('/requests', [TattooerController::class, 'requests'])->name('requests');
@@ -281,7 +281,7 @@ Route::middleware(['auth'])->prefix('client')->name('client.')->group(function (
 });
 
 // Routes Pierceur — miroir exact des routes Tattooer, même TattooerController
-Route::middleware(['auth', 'role:pierceur,Piercer'])->prefix('pierceur')->name('pierceur.')->group(function () {
+Route::middleware(['auth', 'role:pierceur,Piercer', 'artisan.can.operate'])->prefix('pierceur')->name('pierceur.')->group(function () {
     Route::get('/profil', [TattooerController::class, 'profile'])->name('profile');
     Route::get('/dashboard', [TattooerController::class, 'dashboard'])->name('dashboard');
     Route::get('/requests', [TattooerController::class, 'requests'])->name('requests');
