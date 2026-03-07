@@ -6,7 +6,7 @@
     $hasPaidSubscription = $artisan?->is_subscribed ?? false;
 
     $isOnTrial = $artisan && !$hasPaidSubscription && $trialService->isOnTrial($artisan);
-    $daysRemaining = $artisan ? 0 : 0; // FORCÉ À 0 pour tester la fin d'essai
+    $daysRemaining = $artisan ? $trialService->trialDaysRemaining($artisan) : 0;
     $isBlocked = $artisan?->is_blocked ?? false;
 
     // Route vers la page d'abonnement selon le type d'artiste
@@ -65,28 +65,6 @@
             </a>
         </div>
     </div>
-@elseif($isOnTrial && $daysRemaining === 0)
-    <div
-        class="bg-gradient-to-r from-rouge-alerte/20 to-rouge-alerte/5 border border-rouge-alerte/30 rounded-xl p-4 mb-6">
-        <div class="flex items-center justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <div>
-                    <p class="text-sm font-semibold text-ivoire-text">
-                        {{ $daysRemaining }} jour{{ $daysRemaining > 1 ? 's' : '' }} d'essai gratuit
-                    </p>
-                    <p class="text-xs text-titane mt-0.5">
-                        Votre profil est masqué de la marketplace et vous n'avez plus accès au fonctionnalitées.
-                        Choisissez un abonnement
-                        pour continuer.
-                    </p>
-                </div>
-            </div>
-            <a href="{{ $subscriptionRoute }}"
-                class="flex-shrink-0 px-4 py-2 text-sm font-medium bg-beige-peau text-noir-profond rounded-lg hover:bg-beige-peau/80 transition-colors">
-                Activer mon abonnement
-            </a>
-        </div>
-    </div>
 @elseif ($isOnTrial)
     {{-- Bannière info : trial actif --}}
     <div class="bg-beige-peau/5 border border-beige-peau/20 rounded-xl p-4 mb-6">
@@ -98,8 +76,7 @@
                         jour{{ $daysRemaining > 1 ? 's' : '' }} restant{{ $daysRemaining > 1 ? 's' : '' }}</strong>
                 </p>
             </div>
-            <a href="{{ $subscriptionRoute }}"
-                class="text-xs text-beige-peau hover:underline whitespace-nowrap">Activer
+            <a href="{{ $subscriptionRoute }}" class="text-xs text-beige-peau hover:underline whitespace-nowrap">Activer
                 mon abonnement</a>
         </div>
     </div>

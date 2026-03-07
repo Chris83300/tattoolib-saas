@@ -131,7 +131,8 @@ class CacheService
      */
     public function getMarketplaceListings(array $filters = []): array
     {
-        $cacheKey = 'marketplace.listings.' . md5(json_encode($filters));
+        $version = (int) Cache::get('marketplace.version', 1);
+        $cacheKey = 'marketplace.listings.v' . $version . '.' . md5(json_encode($filters));
 
         return Cache::remember($cacheKey, self::MARKETPLACE_TTL, function() use ($filters) {
             $artisanType = $filters['artisan_type'] ?? '';
@@ -147,6 +148,7 @@ class CacheService
             if ($artisanType !== 'piercer') {
                 $query = Tattooer::query()
                     ->with(['user', 'workingHours'])
+                    ->marketplaceVisible()
                     ->whereHas('user', fn($q) => $q->where('status', 'active'));
 
                 if (isset($filters['city']) && !empty($filters['city'])) {
@@ -166,6 +168,7 @@ class CacheService
             if ($artisanType !== 'tattooer') {
                 $query = Piercer::query()
                     ->with(['user', 'workingHours'])
+                    ->marketplaceVisible()
                     ->whereHas('user', fn($q) => $q->where('status', 'active'));
 
                 if (isset($filters['city']) && !empty($filters['city'])) {
@@ -262,6 +265,10 @@ class CacheService
      */
     public function invalidateMarketplace(): void
     {
+        // Bump version to invalidate all listing keys across all cache stores (file/array/redis)
+        $current = (int) Cache::get('marketplace.version', 1);
+        Cache::forever('marketplace.version', $current + 1);
+
         // Invalider toutes les clés marketplace
         if (config('cache.default') === 'redis') {
             $keys = Cache::getRedis()->keys('marketplace.listings.*');

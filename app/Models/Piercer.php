@@ -465,6 +465,17 @@ class Piercer extends Model implements HasMedia, ArtisanInterface
         });
     }
 
+    public function scopeMarketplaceVisible($query)
+    {
+        return $query
+            ->where('is_blocked', false)
+            ->where(function ($q) {
+                $q->whereNotNull('studio_id')
+                    ->orWhere('is_subscribed', true)
+                    ->orWhere('trial_ends_at', '>', now());
+            });
+    }
+
     // ═══ TRIAL & SUBSCRIPTION ═══
 
     public function canOperate(): bool

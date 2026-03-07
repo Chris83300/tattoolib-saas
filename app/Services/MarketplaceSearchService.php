@@ -169,6 +169,11 @@ class MarketplaceSearchService
             })
             ->where('users.status', 'active')
             ->where('piercers.is_blocked', false)
+            ->where(function ($q) {
+                $q->whereNotNull('piercers.studio_id')
+                    ->orWhere('piercers.is_subscribed', true)
+                    ->orWhere('piercers.trial_ends_at', '>', now());
+            })
             ->groupBy([
                 'piercers.id', 'piercers.user_id', 'piercers.name', 'piercers.slug',
                 'piercers.city', 'piercers.postal_code', 'piercers.bio',
@@ -219,6 +224,11 @@ class MarketplaceSearchService
             })
             ->where('users.status', 'active')
             ->where('tattooers.is_blocked', false)
+            ->where(function ($q) {
+                $q->whereNotNull('tattooers.studio_id')
+                    ->orWhere('tattooers.is_subscribed', true)
+                    ->orWhere('tattooers.trial_ends_at', '>', now());
+            })
             ->groupBy([
                 'tattooers.id', 'tattooers.user_id', 'tattooers.name', 'tattooers.slug',
                 'tattooers.city', 'tattooers.postal_code', 'tattooers.bio',

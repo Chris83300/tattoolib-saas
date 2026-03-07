@@ -89,15 +89,12 @@ class EnsureArtisanCanOperate
         // Vérifier si l'artisan est bloqué (trial expiré sans abonnement)
         $trialService = app(\App\Services\TrialService::class);
 
-        // Utiliser la même logique que trial-banner.blade.php
-        $isOnTrial = $artisan && !$artisan->is_subscribed && $trialService->isOnTrial($artisan);
-
-        if (!$isOnTrial) {
+        // Laisser passer si l'artisan n'est pas bloqué et que le trial n'est pas expiré
+        if (!$artisan->is_blocked && !$trialService->isTrialExpired($artisan)) {
             return $next($request);
         }
 
-        // Pour le test: si on est en trial, on bloque systématiquement
-        // car la bannière affiche "essai terminé" avec daysRemaining = 0
+        // Si on arrive ici, l'artisan est bloqué OU le trial est expiré
         $currentRoute = $request->route()?->getName();
 
         // Routes totalement autorisées même bloqué

@@ -47,7 +47,9 @@ class MarketplaceController extends Controller
     public function show(string $slug): View
     {
         // Chercher dans tattooers
-        $artist = Tattooer::where('slug', $slug)
+        $artist = Tattooer::query()
+            ->marketplaceVisible()
+            ->where('slug', $slug)
             ->whereHas('user', fn($q) => $q->whereIn('status', ['active', 'pending_verification']))
             ->with('user')
             ->first();
@@ -56,11 +58,12 @@ class MarketplaceController extends Controller
 
         // Si pas trouvé, chercher dans Piercers
         if (!$artist) {
-            $artist = Piercer::where('slug', $slug)
+            $artist = Piercer::query()
+                ->marketplaceVisible()
+                ->where('slug', $slug)
                 ->whereHas('user', fn($q) => $q->whereIn('status', ['active', 'pending_verification']))
                 ->with('user')
                 ->first();
-
             $type = 'piercer';
         }
 
@@ -199,7 +202,9 @@ class MarketplaceController extends Controller
         $weeklySeed = (int) now()->startOfWeek()->timestamp;
 
         // Tatoueurs PRO actifs en priorité
-        $proTattooers = Tattooer::whereHas('user', fn($q) => $q->where('status', 'active'))
+        $proTattooers = Tattooer::query()
+            ->marketplaceVisible()
+            ->whereHas('user', fn($q) => $q->where('status', 'active'))
             ->whereHas('subscription', fn($q) => $q->where('plan', Subscription::PLAN_PRO)->where('status', 'active'))
             ->with(['user', 'media'])
             ->inRandomOrder($weeklySeed)
@@ -207,22 +212,29 @@ class MarketplaceController extends Controller
             ->get();
 
         // Compléter avec tatoueurs FREE si moins de 6
+        $freeTattooers = collect();
         if ($proTattooers->count() < 6) {
             $remaining = 6 - $proTattooers->count();
-            $freeTattooers = Tattooer::whereHas('user', fn($q) => $q->where('status', 'active'))
-                ->whereDoesntHave('subscription')
-                ->orWhereHas('subscription', fn($q) => $q->where('plan', Subscription::PLAN_FREE))
+            $freeTattooers = Tattooer::query()
+                ->marketplaceVisible()
+                ->whereHas('user', fn($q) => $q->where('status', 'active'))
+                ->where(function ($q) {
+                    $q->whereDoesntHave('subscription')
+                        ->orWhereHas('subscription', fn($sq) => $sq->where('plan', Subscription::PLAN_FREE));
+                })
                 ->whereNotIn('id', $proTattooers->pluck('id'))
                 ->with(['user', 'media'])
                 ->inRandomOrder($weeklySeed)
                 ->limit($remaining)
                 ->get();
-
-            $proTattooers = $proTattooers->concat($freeTattooers);
         }
 
+        $proTattooers = $proTattooers->concat($freeTattooers);
+
         // Ajouter quelques Piercers PRO
-        $proPiercers = Piercer::whereHas('user', fn($q) => $q->where('status', 'active'))
+        $proPiercers = Piercer::query()
+            ->marketplaceVisible()
+            ->whereHas('user', fn($q) => $q->where('status', 'active'))
             ->whereHas('subscription', fn($q) => $q->where('plan', Subscription::PLAN_PRO)->where('status', 'active'))
             ->with(['user', 'media'])
             ->inRandomOrder($weeklySeed)
