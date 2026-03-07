@@ -65,20 +65,41 @@
                     </div>
                 @endif
             @else
-                <div class="flex items-center gap-3">
-                    <span class="px-3 py-1 bg-titane/30 text-titane rounded-full text-sm font-bold">STARTER</span>
-                    <span class="text-ivoire-text/70">9,99€/mois · Commission 7%</span>
-                </div>
                 @php
                     $trialService = app(\App\Services\TrialService::class);
                     $daysLeft = $trialService->trialDaysRemaining($artist);
+                    $isOnTrial = $daysLeft > 0 && !$artist->is_subscribed;
                 @endphp
-                @if ($daysLeft > 0)
-                    <p class="text-sm text-titane mt-1">🎁 Essai gratuit — {{ $daysLeft }}
-                        jour{{ $daysLeft > 1 ? 's' : '' }} restant{{ $daysLeft > 1 ? 's' : '' }}</p>
+                @if ($artist->is_subscribed && $artist->current_plan === 'starter')
+                    <div class="flex items-center gap-3">
+                        <span class="px-3 py-1 bg-titane/30 text-titane rounded-full text-sm font-bold">STARTER</span>
+                        <span class="text-ivoire-text/70">9,99€/mois · Commission 7%</span>
+                    </div>
+                    <div class="mt-3 flex flex-wrap gap-3">
+                        <a href="{{ route($artist->routePrefix() . '.subscription.manage') }}"
+                            class="px-4 py-2 bg-titane/20 text-ivoire-text rounded-lg text-sm font-semibold hover:bg-titane/30 transition-colors">
+                            💳 Gérer le paiement
+                        </a>
+                        <form action="{{ route($artist->routePrefix() . '.subscription.cancel') }}" method="POST"
+                            onsubmit="return confirm('Êtes-vous sûr de vouloir annuler ?')">
+                            @csrf
+                            <button type="submit"
+                                class="px-4 py-2 border border-rouge-alerte/30 text-rouge-alerte rounded-lg text-sm hover:bg-rouge-alerte/10 transition-colors">
+                                Annuler l'abonnement
+                            </button>
+                        </form>
+                    </div>
+                @elseif ($isOnTrial)
+                    <div class="flex items-center gap-3">
+                        <span class="px-3 py-1 bg-titane/30 text-titane rounded-full text-sm font-bold">STARTER</span>
+                        <span class="text-ivoire-text/70">Essai gratuit</span>
+                    </div>
+                    <p class="text-sm text-titane mt-1">🎁 {{ $daysLeft }} jour{{ $daysLeft > 1 ? 's' : '' }} restant{{ $daysLeft > 1 ? 's' : '' }} — Activez votre abonnement pour ne pas perdre l'accès.</p>
                 @elseif ($artist->is_blocked)
-                    <p class="text-sm text-rouge-alerte mt-1">🔒 Essai expiré — choisissez un plan pour réactiver votre
-                        profil</p>
+                    <div class="flex items-center gap-3">
+                        <span class="px-3 py-1 bg-rouge-alerte/20 text-rouge-alerte rounded-full text-sm font-bold">BLOQUÉ</span>
+                    </div>
+                    <p class="text-sm text-rouge-alerte mt-1">🔒 Essai expiré — choisissez un plan pour réactiver votre profil</p>
                 @endif
             @endif
 
@@ -115,10 +136,24 @@
                     <li class="flex items-center gap-2 text-ivoire-text/40">❌ Analytics</li>
                 </ul>
 
-                @if ($artist->isFree())
+                @php
+                    $isStarterSubscribed = $artist->is_subscribed && $artist->current_plan === 'starter';
+                    $isProSubscribed = $artist->is_subscribed && $artist->current_plan === 'pro';
+                    $isNotSubscribed = !$artist->is_subscribed;
+                @endphp
+                @if ($isStarterSubscribed)
                     <div class="px-4 py-2.5 bg-titane/20 text-titane rounded-lg text-center text-sm font-semibold">
                         Plan actuel
                     </div>
+                @elseif ($isNotSubscribed)
+                    <form action="{{ route($artist->routePrefix() . '.subscription.subscribe') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="plan" value="starter">
+                        <button type="submit"
+                            class="w-full px-4 py-3 bg-titane/30 text-ivoire-text border border-titane/40 rounded-lg font-bold text-sm hover:bg-titane/50 transition-colors active:scale-95">
+                            Activer le plan Starter
+                        </button>
+                    </form>
                 @endif
             </div>
 
@@ -155,20 +190,17 @@
                         comptabilité</li>
                 </ul>
 
-                @if ($artist->isFree())
-                    <div class="px-4 py-2.5 bg-titane/20 text-titane rounded-lg text-center text-sm font-semibold">
-                        Plan actuel
-                    </div>
-                @elseif ($artist->isPro() && !$activeSubscription?->isOnGracePeriod())
+                @if ($isProSubscribed && !$activeSubscription?->isOnGracePeriod())
                     <div class="px-4 py-2.5 bg-beige-peau/20 text-beige-peau rounded-lg text-center text-sm font-semibold">
                         ✅ Plan actuel
                     </div>
-                @elseif (!$artist->isPro())
+                @else
                     <form action="{{ route($artist->routePrefix() . '.subscription.subscribe') }}" method="POST">
                         @csrf
+                        <input type="hidden" name="plan" value="pro">
                         <button type="submit"
                             class="w-full px-4 py-3 bg-beige-peau text-noir-profond rounded-lg font-bold text-sm hover:bg-beige-peau/90 transition-colors active:scale-95">
-                            Passer au plan PRO
+                            {{ $isStarterSubscribed ? 'Passer au plan PRO' : 'Activer le plan PRO' }}
                         </button>
                     </form>
                 @endif
@@ -177,7 +209,7 @@
         </div>
 
         {{-- ROI Calculator --}}
-        @if ($artist->isFree())
+        @if (!$artist->is_subscribed || $artist->current_plan === 'starter')
             <div class="bg-gris-fonde rounded-xl p-6 border border-titane/20">
                 <h3 class="text-lg font-bold text-beige-peau mb-3">"Les artistes PRO économisent en moyenne 150€/mois en
                     commission sur leurs réservations."</h3>
