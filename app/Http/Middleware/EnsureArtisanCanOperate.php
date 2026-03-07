@@ -109,6 +109,10 @@ class EnsureArtisanCanOperate
 
         // Routes de messagerie - uniquement avec acompte payé
         if ($currentRoute && $this->isMessagingRoute($currentRoute)) {
+            // Pour la route messages (liste), bloquer systématiquement car on ne peut pas vérifier l'acompte
+            if (in_array($currentRoute, ['tattooer.messages', 'pierceur.messages'])) {
+                return $this->blockedResponse($request, $user);
+            }
             if (!$this->hasPaidDeposit($request)) {
                 return $this->blockedResponse($request, $user);
             }
@@ -124,7 +128,14 @@ class EnsureArtisanCanOperate
      */
     private function isMessagingRoute(string $route): bool
     {
-        return str_contains($route, 'message');
+        return in_array($route, [
+            'tattooer.messages',
+            'tattooer.message.show',
+            'tattooer.message.send',
+            'pierceur.messages',
+            'pierceur.message.show',
+            'pierceur.message.send'
+        ]);
     }
 
     /**
