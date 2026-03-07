@@ -61,7 +61,7 @@ class SubscriptionController extends Controller
     }
 
     /**
-     * Créer une session Stripe Checkout pour l'abonnement PRO
+     * Créer une session Stripe Checkout pour l'abonnement STARTER ou PRO
      */
     public function subscribe(Request $request)
     {
@@ -78,32 +78,35 @@ class SubscriptionController extends Controller
             return redirect()->route('dashboard')->with('error', 'Aucun profil artiste trouvé.');
         }
 
-        // Vérifier qu'il n'est pas déjà PRO
-        if ($artist->isPro()) {
+        // Valider le plan demandé
+        $plan = in_array($request->get('plan'), ['starter', 'pro']) ? $request->get('plan') : 'pro';
+
+        // Vérifier qu'il n'est pas déjà abonné au même plan
+        if ($artist->is_subscribed && $artist->current_plan === $plan) {
             return redirect()->route($routePrefix . '.subscription.plans')
-                ->with('info', 'Vous êtes déjà abonné PRO.');
+                ->with('info', 'Vous êtes déjà abonné au plan ' . strtoupper($plan) . '.');
         }
 
-        $priceId = config('inkpik.stripe.pro_price_id');
+        $priceId = config("inkpik.pricing.{$plan}.stripe_price_id");
 
         if (!$priceId) {
-            return redirect()->back()->with('error', 'Configuration Stripe incomplète.');
+            return redirect()->back()->with('error', 'Configuration Stripe incomplète pour le plan ' . strtoupper($plan) . '.');
         }
 
         // Créer une session Stripe Checkout via Cashier
         $betaParams = app(BetaService::class)->getStripeCheckoutParams($user);
 
         $checkoutParams = array_merge([
-            'success_url' => route($routePrefix . '.subscription.success') . '?session_id={CHECKOUT_SESSION_ID}',
+            'success_url' => route($routePrefix . '.subscription.success') . '?session_id={CHECKOUT_SESSION_ID}&plan=' . $plan,
             'cancel_url'  => route($routePrefix . '.subscription.plans'),
             'metadata'    => [
                 'artist_id'   => $artist->id,
                 'artist_type' => get_class($artist),
-                'plan'        => 'pro',
+                'plan'        => $plan,
             ],
         ], $betaParams);
 
-        $checkout = $user->newSubscription('pro', $priceId)->checkout($checkoutParams);
+        $checkout = $user->newSubscription($plan, $priceId)->checkout($checkoutParams);
 
         return redirect($checkout->url);
     }
@@ -132,16 +135,26 @@ class SubscriptionController extends Controller
             return redirect()->route('dashboard')->with('error', 'Aucun profil artiste trouvé.');
         }
 
+        // Récupérer le plan depuis la query string (passé dans success_url)
+        $planKey = in_array($request->get('plan'), ['starter', 'pro']) ? $request->get('plan') : 'pro';
+
         // Terminer le trial immédiatement si l'artiste était en trialing
         try {
             sleep(1); // Laisser Stripe finaliser
-            $sub = $user->subscription('pro') ?? $user->subscription('default');
+            $sub = $user->subscription($planKey) ?? $user->subscription('pro') ?? $user->subscription('starter') ?? $user->subscription('default');
             if ($sub && $sub->onTrial()) {
                 $stripe = new \Stripe\StripeClient(config('cashier.secret'));
                 $stripe->subscriptions->update($sub->stripe_id, ['trial_end' => 'now']);
                 $sub->update(['stripe_status' => 'active', 'trial_ends_at' => null]);
-                $artist->update(['trial_ends_at' => null, 'is_subscribed' => true]);
             }
+
+            // Mettre à jour l'artiste avec le plan souscrit
+            $artist->update([
+                'trial_ends_at' => null,
+                'is_subscribed'  => true,
+                'current_plan'   => $planKey,
+                'is_blocked'     => false,
+            ]);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::warning('Artiste endTrialImmediately error', [
                 'user_id' => $user->id,
@@ -149,8 +162,9 @@ class SubscriptionController extends Controller
             ]);
         }
 
+        $planLabel = $planKey === 'pro' ? 'PRO' : 'Starter';
         return redirect()->route($routePrefix . '.subscription.plans')
-            ->with('success', 'Félicitations ! Votre abonnement PRO est maintenant actif.');
+            ->with('success', 'Félicitations ! Votre abonnement ' . $planLabel . ' est maintenant actif.');
     }
 
     /**
