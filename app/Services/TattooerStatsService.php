@@ -25,9 +25,9 @@ class TattooerStatsService
                     ->selectRaw('
                         COUNT(CASE WHEN status = "confirmed" THEN 1 END) as completed_projects,
                         COUNT(CASE WHEN status = "pending" THEN 1 END) as active_projects,
-                        COUNT(CASE WHEN status IN ("accepted", "awaiting_deposit", "deposit_paid", "design_sent") THEN 1 END) as accepted_projects,
+                        COUNT(CASE WHEN status IN ("accepted", "awaiting_deposit", "deposit_paid", "design_sent", "date_confirmed") THEN 1 END) as accepted_projects,
                         COUNT(DISTINCT client_id) as total_clients,
-                        COALESCE(SUM(CASE WHEN status = "confirmed" THEN total_deposit_amount ELSE 0 END), 0) as total_earnings
+                        COALESCE(SUM(CASE WHEN status IN ("confirmed", "date_confirmed") AND total_deposit_amount IS NOT NULL THEN total_deposit_amount ELSE 0 END), 0) as total_earnings
                     ')
                     ->first();
 
@@ -42,7 +42,7 @@ class TattooerStatsService
                     'total_earnings' => $bookingStats->total_earnings ?? 0,
                     'average_rating' => $reviewStats['average_rating'] ?? 0,
                     'total_reviews' => $reviewStats['total_reviews'] ?? 0,
-                    'portfolio_count' => $artisan->getMedia('portfolio')->count(),
+                    'portfolio_count' => method_exists($artisan, 'getMedia') ? $artisan->getMedia('portfolio')->count() : 0,
                 ];
             }
         );

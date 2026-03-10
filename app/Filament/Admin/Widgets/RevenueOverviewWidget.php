@@ -27,18 +27,42 @@ class RevenueOverviewWidget extends ChartWidget
                 ->where('status', 'completed')
                 ->sum('amount');
 
-            // Revenus des abonnements (estimation basée sur les prix)
+            // Revenus des abonnements (prix dynamiques avec artistes studio)
             $subscriptionRevenue = CashierSubscription::where('stripe_status', 'active')
                 ->whereDate('created_at', $date)
                 ->get()
                 ->sum(function($subscription) {
-                    // Estimation simple : 9.99€ pour starter, 29.99€ pour pro
-                    return str_contains($subscription->stripe_price ?? '', 'starter') ? 999 : 2999;
+                    // Prix dynamiques depuis .env (en euros, pas en centimes)
+                    $priceStarter = env('STRIPE_PRICE_STARTER', 9.99);
+                    $pricePro = env('STRIPE_PRICE_PRO', 29.99);
+                    $priceStudio = env('STRIPE_PRICE_STUDIO', 59.99);
+                    $priceStudioExtra = env('STRIPE_PRICE_STUDIO_EXTRA', 24.99);
+
+                    $price = $subscription->stripe_price ?? '';
+
+                    // Starter et Pro : prix fixe
+                    if (str_contains($price, '1T7E4D') || str_contains($price, 'starter')) {
+                        return $priceStarter;
+                    } elseif (str_contains($price, '1T8zRR') || str_contains($price, 'pro')) {
+                        return $pricePro;
+                    } elseif (str_contains($price, '1T8zPp') || str_contains($price, 'studio')) {
+                        // Studio : calculer avec les artistes
+                        $user = $subscription->user;
+                        if ($user && $user->role === 'studio' && $user->studio_id) {
+                            $artistCount = \DB::table('tattooers')
+                                ->where('studio_id', $user->studio_id)
+                                ->count();
+                            return $priceStudio + ($artistCount * $priceStudioExtra);
+                        }
+                        return $priceStudio;
+                    }
+
+                    return 0;
                 });
 
             $totalRevenue = $paymentRevenue + $subscriptionRevenue;
 
-            return [$date => $totalRevenue / 100]; // Conversion en euros si en centimes
+            return [$date => $totalRevenue]; // Conversion en euros
         });
 
         // Calcul du CA total avec commission STARTER 7% (approximatif — taux réel par transaction)

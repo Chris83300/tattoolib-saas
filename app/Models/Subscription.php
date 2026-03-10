@@ -3,13 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class Subscription extends Model
 {
-    use SoftDeletes;
 
     protected $table = 'subscriptions';
 
@@ -69,6 +67,14 @@ class Subscription extends Model
     // =============================================
     // RELATIONS
     // =============================================
+
+    /**
+     * Relation avec l'utilisateur (Laravel Cashier)
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     /**
      * Relation polymorphic (Tattooer ou Studio)

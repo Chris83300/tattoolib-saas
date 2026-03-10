@@ -33,6 +33,11 @@ class Payment extends Model
         return $this->belongsTo(BookingRequest::class);
     }
 
+    public function refunds()
+    {
+        return $this->hasMany(Refund::class);
+    }
+
     // Helpers
     public function isPending(): bool
     {

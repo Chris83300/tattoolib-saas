@@ -46,6 +46,12 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Admin\Widgets\RevenueOverviewWidget::class,
                 \App\Filament\Admin\Widgets\ComplaintsWidget::class,
                 \App\Filament\Admin\Widgets\RecentActivity::class,
+                // Nouveaux widgets graphiques
+                \App\Filament\Admin\Widgets\RevenueStatsWidget::class,
+                \App\Filament\Admin\Widgets\CommissionWidget::class,
+                \App\Filament\Admin\Widgets\MonthlyRevenueChartWidget::class,
+                \App\Filament\Admin\Widgets\ArtistRevenueChartWidget::class,
+                \App\Filament\Admin\Widgets\RecentActivityChartWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,

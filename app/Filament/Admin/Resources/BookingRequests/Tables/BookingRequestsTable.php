@@ -60,7 +60,7 @@ class BookingRequestsTable
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('estimated_total_price')
-                    ->money()
+                    ->money('EUR')
                     ->sortable(),
                 TextColumn::make('price_estimate_min')
                     ->numeric()

@@ -196,15 +196,15 @@
                             <!-- Détails -->
                             <div class="flex flex-wrap gap-4 text-sm text-ivoire-text/60 mb-4">
                                 <span>📍 {{ $request->body_zone }}</span>
-                                @if (auth()->user()->isPiercer())
+                                @if (auth()->user()->isTattooer())
                                     @if ($request->total_deposit_amount)
-                                        <span>� Acompte :
+                                        <span>💰 Acompte :
                                             {{ number_format($request->total_deposit_amount, 2, ',', ' ') }}€</span>
                                     @endif
                                 @else
                                     <span>� {{ $request->tattoo_size }}</span>
                                     @if ($request->price_estimate_max)
-                                        <span>💰 {{ number_format($request->price_estimate_maxe, 2, ',', ' ') }}€</span>
+                                        <span>💰 {{ number_format($request->price_estimate_max, 2, ',', ' ') }}€</span>
                                     @endif
                                 @endif
                                 @if ($request->preferred_date)

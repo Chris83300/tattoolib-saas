@@ -7,7 +7,6 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
-use Filament\Actions\Exports\ExportAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -26,16 +25,30 @@ class TransactionsTable
                     ->label('Date')
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
-                TextColumn::make('client.name')
+                TextColumn::make('client_name')
                     ->label('Client')
                     ->searchable()
-                    ->sortable(),
-                TextColumn::make('artist.name')
+                    ->sortable()
+                    ->getStateUsing(function ($record) {
+                        return $record->client ? $record->client->name : 'Client inconnu';
+                    }),
+                TextColumn::make('artist_name')
                     ->label('Artiste')
                     ->searchable()
                     ->sortable()
-                    ->formatStateUsing(function ($record) {
-                        return $record->artist ? $record->artist->name : 'N/A';
+                    ->getStateUsing(function ($record) {
+                        if (!$record->artist) {
+                            return 'Artiste inconnu';
+                        }
+
+                        // Afficher le nom selon le type d'artiste
+                        if ($record->artist_type === 'tattooer') {
+                            return $record->artist->first_name . ' ' . $record->artist->last_name;
+                        } elseif ($record->artist_type === 'piercer') {
+                            return $record->artist->first_name . ' ' . $record->artist->last_name;
+                        }
+
+                        return $record->artist->name ?? 'Artiste inconnu';
                     }),
                 TextColumn::make('artist_type')
                     ->label('Type')
@@ -164,15 +177,6 @@ class TransactionsTable
             ])
             ->actions([
                 EditAction::make(),
-            ])
-            ->toolbarActions([
-                ExportAction::make('export')
-                    ->label('Export CSV')
-                    ->icon('heroicon-o-document-arrow-down')
-                    ->color('success')
-                    ->exporter(\App\Filament\Exports\TransactionExporter::class)
-                    ->fileName(fn () => 'transactions_' . now()->format('Y-m-d_His') . '.csv')
-                    ->columnMapping(false),
             ])
             ->bulkActions([
                 //

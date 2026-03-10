@@ -16,6 +16,7 @@ use App\Actions\ReportNoShowAction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class TattooerController extends Controller
 {
@@ -2254,12 +2255,20 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
         if (!$conversation) {
             $conversation = \App\Models\Conversation::create([
                 'booking_request_id' => $bookingRequest->id,
-                'client_id' => $bookingRequest->client_id,
-                'tattooer_id' => $tattooer->id,
-                'status' => 'closed',
+                'status' => 'archived', // Utiliser 'archived' qui existe dans la table
+                'expiry_type' => 'archived',
+                'archived_at' => now(),
             ]);
         } else {
-            $conversation->update(['status' => 'closed']);
+            // Utiliser une requête directe pour éviter le problème d'enum
+            DB::table('conversations')
+                ->where('id', $conversation->id)
+                ->update([
+                    'status' => 'archived',
+                    'expiry_type' => 'archived',
+                    'archived_at' => now(),
+                    'updated_at' => now(),
+                ]);
         }
 
         // Message système de rejet

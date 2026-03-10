@@ -304,6 +304,11 @@ class Conversation extends Model
         return (bool) $this->is_expired;
     }
 
+    public function isClosed(): bool
+    {
+        return $this->status->isClosed();
+    }
+
     public function isDepositPending(): bool
     {
         return $this->expiry_type === self::EXPIRY_DEPOSIT_PENDING;

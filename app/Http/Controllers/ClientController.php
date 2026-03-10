@@ -140,8 +140,18 @@ class ClientController extends Controller
             abort(403, 'Non autorisé - Cette conversation ne vous appartient pas.');
         }
 
-        // Vérifier que le chat est ouvert (logique corrigée)
-        // Supprimé : la vue utilisera @can('sendMessage', $conversation) à la place
+        // ⭐ Vérifier si la conversation est expirée ou fermée
+        if ($conversation->isClosed() || $conversation->is_expired) {
+            // Rediriger vers la marketplace avec un message d'erreur
+            return redirect()->route('marketplace.index')
+                ->with('error', '⏰ Cette conversation a expiré car le délai de paiement de l\'acompte est dépassé. Vous pouvez soumettre une nouvelle demande de réservation depuis la marketplace.');
+        }
+
+        // ⭐ Vérifier si la demande de réservation est expirée
+        if ($bookingRequest->status === BookingRequestStatus::EXPIRED) {
+            return redirect()->route('marketplace.index')
+                ->with('error', '⏰ Cette demande de réservation a expiré. Vous pouvez soumettre une nouvelle demande depuis la marketplace.');
+        }
 
         // ⭐ Récupérer les informations d'expiration pour l'affichage
         $expiryInfo = null;

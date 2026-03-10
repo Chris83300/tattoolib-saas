@@ -9,6 +9,7 @@ enum ConversationStatus: string
     case FULL_ACCESS = 'full_access'; // après acompte (images autorisées)
     case CLOSING = 'closing';        // J+30 post-RDV, lecture seule bientôt
     case CLOSED = 'closed';          // fermé définitivement
+    case ARCHIVED = 'archived';      // archivé (pour compatibilité)
 
     /**
      * Labels français pour l'affichage
@@ -21,6 +22,7 @@ enum ConversationStatus: string
             self::FULL_ACCESS => 'Accès complet',
             self::CLOSING => 'En cours de fermeture',
             self::CLOSED => 'Fermé',
+            self::ARCHIVED => 'Archivé',
         };
     }
 
@@ -35,6 +37,7 @@ enum ConversationStatus: string
             self::FULL_ACCESS => 'blue',
             self::CLOSING => 'yellow',
             self::CLOSED => 'red',
+            self::ARCHIVED => 'gray',
         };
     }
 
@@ -44,11 +47,12 @@ enum ConversationStatus: string
     public function canTransitionTo(self $target): bool
     {
         return match($this) {
-            self::PENDING => in_array($target, [self::ACTIVE, self::CLOSED]),
-            self::ACTIVE => in_array($target, [self::FULL_ACCESS, self::CLOSING, self::CLOSED]),
-            self::FULL_ACCESS => in_array($target, [self::CLOSING, self::CLOSED]),
-            self::CLOSING => in_array($target, [self::CLOSED]),
+            self::PENDING => in_array($target, [self::ACTIVE, self::CLOSED, self::ARCHIVED]),
+            self::ACTIVE => in_array($target, [self::FULL_ACCESS, self::CLOSING, self::CLOSED, self::ARCHIVED]),
+            self::FULL_ACCESS => in_array($target, [self::CLOSING, self::CLOSED, self::ARCHIVED]),
+            self::CLOSING => in_array($target, [self::CLOSED, self::ARCHIVED]),
             self::CLOSED => false, // État terminal
+            self::ARCHIVED => false, // État terminal
         };
     }
 
@@ -58,11 +62,12 @@ enum ConversationStatus: string
     public function getPossibleTransitions(): array
     {
         return match($this) {
-            self::PENDING => [self::ACTIVE, self::CLOSED],
-            self::ACTIVE => [self::FULL_ACCESS, self::CLOSING, self::CLOSED],
-            self::FULL_ACCESS => [self::CLOSING, self::CLOSED],
-            self::CLOSING => [self::CLOSED],
+            self::PENDING => [self::ACTIVE, self::CLOSED, self::ARCHIVED],
+            self::ACTIVE => [self::FULL_ACCESS, self::CLOSING, self::CLOSED, self::ARCHIVED],
+            self::FULL_ACCESS => [self::CLOSING, self::CLOSED, self::ARCHIVED],
+            self::CLOSING => [self::CLOSED, self::ARCHIVED],
             self::CLOSED => [],
+            self::ARCHIVED => [],
         };
     }
 
@@ -111,7 +116,7 @@ enum ConversationStatus: string
      */
     public function isClosed(): bool
     {
-        return $this === self::CLOSED;
+        return in_array($this, [self::CLOSED, self::ARCHIVED]);
     }
 
     /**
@@ -119,7 +124,7 @@ enum ConversationStatus: string
      */
     public function canBeArchived(): bool
     {
-        return in_array($this, [self::CLOSING, self::CLOSED]);
+        return in_array($this, [self::CLOSING, self::CLOSED, self::ARCHIVED]);
     }
 
     /**
