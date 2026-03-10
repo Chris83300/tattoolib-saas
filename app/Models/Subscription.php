@@ -11,7 +11,7 @@ class Subscription extends Model
 {
     use SoftDeletes;
 
-    protected $table = 'tattooer_subscriptions';
+    protected $table = 'subscriptions';
 
     // =============================================
     // CONSTANTES

@@ -99,6 +99,7 @@ class SubscriptionController extends Controller
         $checkoutParams = array_merge([
             'success_url' => route($routePrefix . '.subscription.success') . '?session_id={CHECKOUT_SESSION_ID}&plan=' . $plan,
             'cancel_url'  => route($routePrefix . '.subscription.plans'),
+            'mode'        => 'subscription', // Mode subscription pour les prix récurrents
             'metadata'    => [
                 'artist_id'   => $artist->id,
                 'artist_type' => get_class($artist),
@@ -108,7 +109,8 @@ class SubscriptionController extends Controller
             'allow_promotion_codes' => true,
         ], $betaParams);
 
-        $checkout = $user->newSubscription($plan, $priceId)->checkout($checkoutParams);
+        // Utiliser checkout() directement pour créer l'abonnement
+        $checkout = $user->checkout($priceId, $checkoutParams);
 
         return redirect($checkout->url);
     }
@@ -140,14 +142,39 @@ class SubscriptionController extends Controller
         // Récupérer le plan depuis la query string (passé dans success_url)
         $planKey = in_array($request->get('plan'), ['starter', 'pro']) ? $request->get('plan') : 'pro';
 
-        // Terminer le trial immédiatement si l'artiste était en trialing
         try {
-            sleep(1); // Laisser Stripe finaliser
-            $sub = $user->subscription($planKey) ?? $user->subscription('pro') ?? $user->subscription('starter') ?? $user->subscription('default');
-            if ($sub && $sub->onTrial()) {
-                $stripe = new \Stripe\StripeClient(config('cashier.secret'));
-                $stripe->subscriptions->update($sub->stripe_id, ['trial_end' => 'now']);
-                $sub->update(['stripe_status' => 'active', 'trial_ends_at' => null]);
+            sleep(2); // Laisser Stripe finaliser la session
+            $stripe = new \Stripe\StripeClient(config('cashier.secret'));
+
+            // Récupérer la session Checkout pour obtenir le stripe_subscription_id
+            $session = $stripe->checkout->sessions->retrieve($sessionId, ['expand' => ['subscription']]);
+            $stripeSub = $session->subscription ?? null;
+
+            if ($stripeSub) {
+                // Synchroniser dans la table Cashier subscriptions (important en local sans webhook)
+                $user->subscriptions()->updateOrCreate(
+                    ['stripe_id' => $stripeSub->id],
+                    [
+                        'type'          => $planKey,
+                        'stripe_status' => $stripeSub->status,
+                        'stripe_price'  => $stripeSub->items->data[0]->price->id ?? null,
+                        'quantity'      => 1,
+                        'trial_ends_at' => $stripeSub->trial_end
+                            ? \Carbon\Carbon::createFromTimestamp($stripeSub->trial_end)
+                            : null,
+                        'ends_at'       => null,
+                    ]
+                );
+
+                // Mettre à jour le stripe_id customer sur le user si manquant
+                if (!$user->stripe_id && $stripeSub->customer) {
+                    $user->update(['stripe_id' => $stripeSub->customer]);
+                }
+
+                // Terminer le trial Stripe immédiatement si en trialing
+                if ($stripeSub->status === 'trialing') {
+                    $stripe->subscriptions->update($stripeSub->id, ['trial_end' => 'now']);
+                }
             }
 
             // Mettre à jour l'artiste avec le plan souscrit
@@ -157,10 +184,23 @@ class SubscriptionController extends Controller
                 'current_plan'   => $planKey,
                 'is_blocked'     => false,
             ]);
+
+            Log::info('Subscription success: artist updated', [
+                'artist_id'   => $artist->id,
+                'plan'        => $planKey,
+                'stripe_sub'  => $stripeSub?->id,
+            ]);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::warning('Artiste endTrialImmediately error', [
+            Log::warning('Subscription success: sync error', [
                 'user_id' => $user->id,
                 'error'   => $e->getMessage(),
+            ]);
+            // Mettre à jour l'artiste même si la sync Cashier échoue
+            $artist->update([
+                'trial_ends_at' => null,
+                'is_subscribed'  => true,
+                'current_plan'   => $planKey,
+                'is_blocked'     => false,
             ]);
         }
 

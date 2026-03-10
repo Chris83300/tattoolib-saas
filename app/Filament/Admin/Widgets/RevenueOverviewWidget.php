@@ -4,7 +4,7 @@ namespace App\Filament\Admin\Widgets;
 
 use App\Models\Payment;
 use App\Models\BookingTransaction;
-use App\Models\Subscription;
+use Laravel\Cashier\Subscription as CashierSubscription;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Carbon;
 
@@ -22,11 +22,23 @@ class RevenueOverviewWidget extends ChartWidget
         });
 
         $dailyRevenue = $days->mapWithKeys(function($date) {
-            $revenue = Payment::whereDate('created_at', $date)
+            // Revenus des paiements
+            $paymentRevenue = Payment::whereDate('created_at', $date)
                 ->where('status', 'completed')
                 ->sum('amount');
-                
-            return [$date => $revenue / 100]; // Conversion en euros si en centimes
+
+            // Revenus des abonnements (estimation basée sur les prix)
+            $subscriptionRevenue = CashierSubscription::where('stripe_status', 'active')
+                ->whereDate('created_at', $date)
+                ->get()
+                ->sum(function($subscription) {
+                    // Estimation simple : 9.99€ pour starter, 29.99€ pour pro
+                    return str_contains($subscription->stripe_price ?? '', 'starter') ? 999 : 2999;
+                });
+
+            $totalRevenue = $paymentRevenue + $subscriptionRevenue;
+
+            return [$date => $totalRevenue / 100]; // Conversion en euros si en centimes
         });
 
         // Calcul du CA total avec commission STARTER 7% (approximatif — taux réel par transaction)
@@ -62,9 +74,9 @@ class RevenueOverviewWidget extends ChartWidget
         $totalRevenue = Payment::whereDate('created_at', '>=', Carbon::now()->subDays(30))
             ->where('status', 'completed')
             ->sum('amount') / 100;
-            
+
         $platformCommission = $totalRevenue * 0.07;
-        
+
         return "CA Total 30 jours: " . number_format($totalRevenue, 2) . "€ | Commission plateforme (7%): " . number_format($platformCommission, 2) . "€";
     }
 }

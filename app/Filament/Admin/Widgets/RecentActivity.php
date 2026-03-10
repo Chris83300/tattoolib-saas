@@ -4,7 +4,7 @@ namespace App\Filament\Admin\Widgets;
 
 use App\Models\User;
 use App\Models\Appointment;
-use App\Models\Subscription;
+use Laravel\Cashier\Subscription as CashierSubscription;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Carbon;
 
@@ -33,9 +33,9 @@ class RecentActivity extends ChartWidget
             $appointments[] = Appointment::whereDate('start_datetime', $date->format('Y-m-d'))->count();
 
             // Abonnements actifs par jour
-            $activeSubscriptions[] = Subscription::where('status', 'active')
-                ->whereDate('current_period_start', '<=', $date->format('Y-m-d'))
-                ->whereDate('current_period_end', '>=', $date->format('Y-m-d'))
+            $activeSubscriptions[] = CashierSubscription::where('stripe_status', 'active')
+                ->whereDate('created_at', '<=', $date->format('Y-m-d'))
+                ->whereDate('created_at', '>=', $date->format('Y-m-d'))
                 ->count();
         }
 

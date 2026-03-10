@@ -452,17 +452,31 @@ class Piercer extends Model implements HasMedia, ArtisanInterface
 
     public function subscriptions()
     {
-        return $this->morphMany(TattooerSubscription::class, 'subscribable');
+        return $this->hasManyThrough(
+            \Laravel\Cashier\Subscription::class,
+            User::class,
+            'id', // Foreign key on users table
+            'user_id', // Foreign key on subscriptions table
+            'user_id', // Local key on piercers table
+            'id' // Local key on users table
+        );
     }
 
     public function activeSubscription()
     {
-        return $this->morphOne(TattooerSubscription::class, 'subscribable')
-                    ->where('status', 'active')
-                    ->where(function ($q) {
-                        $q->whereNull('ends_at')->orWhere('ends_at', '>', now());
-                    })
-                    ->latest();
+        return $this->hasOneThrough(
+            \Laravel\Cashier\Subscription::class,
+            User::class,
+            'id', // Foreign key on users table
+            'user_id', // Foreign key on subscriptions table
+            'user_id', // Local key on piercers table
+            'id' // Local key on users table
+        )->where('stripe_status', 'active')
+         ->where(function ($q) {
+             $q->whereNull('ends_at')
+               ->orWhere('ends_at', '>', now());
+         })
+         ->latest();
     }
 
     // ===== SCOPES =====

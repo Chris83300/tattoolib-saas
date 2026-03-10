@@ -32,14 +32,19 @@
                 $trialService = app(\App\Services\TrialService::class);
                 $daysLeft = $trialService->trialDaysRemaining($artist);
                 $isOnTrial = $daysLeft > 0 && !$artist->is_subscribed;
+                $isStarterSubscribed = $artist->current_plan === 'starter' && $artist->is_subscribed;
             @endphp
             @if ($currentPlan === 'pro')
                 <div class="flex items-center gap-3">
                     <span class="px-3 py-1 bg-beige-peau text-noir-profond rounded-full text-sm font-bold">PRO</span>
                     <span class="text-ivoire-text/70">29,99€/mois · Commission 0%</span>
+                    @if (auth()->user()->is_beta_tester)
+                        <span class="px-2 py-1 bg-beige-peau/20 text-beige-peau rounded-full text-xs font-bold">-30%
+                            BÊTA</span>
+                    @endif
                 </div>
 
-                @if ($activeSubscription?->isOnGracePeriod())
+                @if ($activeSubscription?->onGracePeriod())
                     <div class="mt-3 bg-ambre-warning/10 border border-ambre-warning/30 rounded-lg p-3">
                         <p class="text-sm text-ambre-warning">
                             ⚠️ Abonnement annulé. Accès PRO jusqu'au
@@ -70,15 +75,20 @@
                         </form>
                     </div>
                 @else
+                    {{-- Trial actif : bouton pour s'abonner au plan choisi à l'inscription --}}
                     <div class="mt-3 bg-vert-succes/10 border border-vert-succes/30 rounded-lg p-3">
                         <p class="text-sm text-vert-succes">
                             🎁 Essai gratuit — {{ $daysLeft }} jour{{ $daysLeft > 1 ? 's' : '' }}
                             restant{{ $daysLeft > 1 ? 's' : '' }}
                         </p>
-                        <a href="{{ route('tattooer.subscription.subscribeFromTrial') }}"
-                            class="inline-block mt-2 px-4 py-2 bg-beige-peau text-noir-profond rounded-lg text-sm font-semibold hover:bg-beige-peau/90 transition-colors">
-                            Activer mon abonnement
-                        </a>
+                        <form action="{{ route($artist->routePrefix() . '.subscription.subscribe') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="plan" value="{{ $currentPlan === 'starter' ? 'starter' : 'pro' }}">
+                            <button type="submit"
+                                class="mt-4 w-full px-4 py-3 bg-beige-peau text-noir-profond rounded-lg font-bold text-sm hover:bg-beige-peau/90 transition-colors active:scale-95">
+                                {{ $currentPlan === 'starter' ? 'Activer le plan Starter' : 'Activer le plan PRO' }}
+                            </button>
+                        </form>
                     </div>
                 @endif
             @else
@@ -108,6 +118,14 @@
                     </div>
                     <p class="text-sm text-titane mt-1">🎁 {{ $daysLeft }} jour{{ $daysLeft > 1 ? 's' : '' }}
                         restant{{ $daysLeft > 1 ? 's' : '' }} — Activez votre abonnement pour ne pas perdre l'accès.</p>
+                    <form action="{{ route($artist->routePrefix() . '.subscription.subscribe') }}" method="POST" class="mt-3">
+                        @csrf
+                        <input type="hidden" name="plan" value="starter">
+                        <button type="submit"
+                            class="px-4 py-2 bg-beige-peau text-noir-profond rounded-lg text-sm font-semibold hover:bg-beige-peau/90 transition-colors">
+                            Activer le plan Starter
+                        </button>
+                    </form>
                 @elseif ($artist->is_blocked)
                     <div class="flex items-center gap-3">
                         <span
@@ -191,11 +209,13 @@
                         Commission 0%</li>
                     <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Fiche client
                         (automatique) + manuelle</li>
-                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Traçabilité complète
+                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Traçabilité
+                        complète
                     </li>
                     <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Analytics &
                         statistiques</li>
-                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Support prioritaire
+                    <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Support
+                        prioritaire
                     </li>
                     <li class="flex items-center gap-2"><span class="text-sm text-vert-succes">✓</span> Portfolio illimité
                     </li>
@@ -205,7 +225,7 @@
                         comptabilité</li>
                 </ul>
 
-                @if ($isProSubscribed && !$activeSubscription?->isOnGracePeriod())
+                @if ($isProSubscribed && !$activeSubscription?->onGracePeriod())
                     <div class="px-4 py-2.5 bg-beige-peau/20 text-beige-peau rounded-lg text-center text-sm font-semibold">
                         ✅ Plan actuel
                     </div>

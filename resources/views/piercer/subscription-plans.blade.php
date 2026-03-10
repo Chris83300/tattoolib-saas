@@ -68,9 +68,13 @@
                 <div class="flex items-center gap-3">
                     <span class="px-3 py-1 bg-beige-peau text-noir-profond rounded-full text-sm font-bold">PRO</span>
                     <span class="text-ivoire-text/70">29,99€/mois · Commission 0%</span>
+                    @if (auth()->user()->is_beta_tester)
+                        <span class="px-2 py-1 bg-beige-peau/20 text-beige-peau rounded-full text-xs font-bold">-30%
+                            BÊTA</span>
+                    @endif
                 </div>
 
-                @if ($activeSubscription?->isOnGracePeriod())
+                @if ($activeSubscription?->onGracePeriod())
                     <div class="mt-3 bg-ambre-warning/10 border border-ambre-warning/30 rounded-lg p-3">
                         <p class="text-sm text-ambre-warning">
                             ⚠️ Abonnement annulé. Accès PRO jusqu'au
@@ -100,15 +104,20 @@
                         </form>
                     </div>
                 @else
+                    {{-- Trial actif : bouton s'abonner au plan choisi --}}
                     <div class="mt-3 bg-vert-succes/10 border border-vert-succes/30 rounded-lg p-3">
                         <p class="text-sm text-vert-succes">
                             🎁 Essai gratuit — {{ $daysLeft }} jour{{ $daysLeft > 1 ? 's' : '' }}
                             restant{{ $daysLeft > 1 ? 's' : '' }}
                         </p>
-                        <a href="{{ route('pierceur.subscription.subscribeFromTrial') }}"
-                            class="inline-block mt-2 px-4 py-2 bg-beige-peau text-noir-profond rounded-lg text-sm font-semibold hover:bg-beige-peau/90 transition-colors">
-                            Activer mon abonnement
-                        </a>
+                        <form action="{{ route('pierceur.subscription.subscribe') }}" method="POST" class="mt-2">
+                            @csrf
+                            <input type="hidden" name="plan" value="{{ $currentPlan === 'starter' ? 'starter' : 'pro' }}">
+                            <button type="submit"
+                                class="px-4 py-2 bg-beige-peau text-noir-profond rounded-lg text-sm font-semibold hover:bg-beige-peau/90 transition-colors">
+                                {{ $currentPlan === 'starter' ? 'Activer le plan Starter' : 'Activer le plan PRO' }}
+                            </button>
+                        </form>
                     </div>
                 @endif
             @elseif ($isSubscribed && $currentPlan === 'starter')
@@ -225,7 +234,7 @@
                     <li class="flex items-center gap-2 text-vert-succes">✅ Export CSV/Excel comptabilité</li>
                 </ul>
 
-                @if ($isProSubscribed && !$activeSubscription?->isOnGracePeriod())
+                @if ($isProSubscribed && !$activeSubscription?->onGracePeriod())
                     <div class="px-4 py-2.5 bg-beige-peau/20 text-beige-peau rounded-lg text-center text-sm font-semibold">
                         ✅ Plan actuel
                     </div>

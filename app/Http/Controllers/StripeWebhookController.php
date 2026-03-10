@@ -63,6 +63,18 @@ class StripeWebhookController extends Controller
                 $this->handleInvoicePaymentSucceeded($event->data->object);
                 break;
 
+            case 'customer.subscription.created':
+                $this->handleSubscriptionCreated($event->data->object);
+                break;
+
+            case 'customer.subscription.updated':
+                $this->handleSubscriptionUpdated($event->data->object);
+                break;
+
+            case 'customer.subscription.deleted':
+                $this->handleSubscriptionDeleted($event->data->object);
+                break;
+
             case 'invoice.payment_failed':
                 $this->handleInvoicePaymentFailed($event->data->object);
                 break;
@@ -401,5 +413,49 @@ class StripeWebhookController extends Controller
             'appointment_id' => $appointment->id,
             'appointment_datetime' => $appointment->start_datetime,
         ]);
+    }
+
+    // ═══ GESTION DES ABONNEMENTS ═══
+
+    /**
+     * Gérer la création d'un abonnement
+     */
+    private function handleSubscriptionCreated($subscription)
+    {
+        Log::info('Webhook: Abonnement créé', [
+            'subscription_id' => $subscription->id,
+            'customer_id' => $subscription->customer,
+        ]);
+
+        // Laravel Cashier gère automatiquement la synchronisation
+        // Les abonnements sont créés via la méthode checkout() du modèle User
+        // et synchronisés par Cashier
+    }
+
+    /**
+     * Gérer la mise à jour d'un abonnement
+     */
+    private function handleSubscriptionUpdated($subscription)
+    {
+        Log::info('Webhook: Abonnement mis à jour', [
+            'subscription_id' => $subscription->id,
+            'status' => $subscription->status,
+        ]);
+
+        // Laravel Cashier gère automatiquement la synchronisation
+    }
+
+    /**
+     * Gérer la suppression d'un abonnement
+     */
+    private function handleSubscriptionDeleted($subscription)
+    {
+        Log::info('Webhook: Abonnement supprimé', [
+            'subscription_id' => $subscription->id,
+            'customer_id' => $subscription->customer,
+        ]);
+
+        // Laravel Cashier gère automatiquement la synchronisation
+        // L'abonnement est marqué comme annulé mais conservé en BDD
     }
 }

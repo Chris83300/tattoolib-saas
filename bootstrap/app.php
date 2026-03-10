@@ -21,6 +21,13 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\SecurityHeaders::class,
         ]);
 
+        // Exclure les routes webhook Stripe du CSRF (Cashier + custom)
+        $middleware->validateCsrfTokens(except: [
+            'stripe/webhook',
+            'stripe/*',
+            'webhooks/stripe',
+        ]);
+
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
             'role' => \App\Http\Middleware\EnsureUserHasRole::class,

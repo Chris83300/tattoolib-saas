@@ -3,9 +3,9 @@
 namespace App\Filament\Admin\Widgets;
 
 use App\Models\Appointment;
-use App\Models\Subscription;
 use App\Models\Tattooer;
 use App\Models\Piercer;
+use Laravel\Cashier\Subscription as CashierSubscription;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Carbon;
 
@@ -27,9 +27,9 @@ class RevenueChart extends ChartWidget
             ->whereYear('start_datetime', $currentYear)
             ->count();
 
-        $activeSubscriptions = Subscription::where('status', 'active')
-            ->whereMonth('current_period_start', '<=', $currentMonth)
-            ->whereMonth('current_period_end', '>=', $currentMonth)
+        $activeSubscriptions = CashierSubscription::where('stripe_status', 'active')
+            ->whereMonth('created_at', '<=', $currentMonth)
+            ->whereMonth('created_at', '>=', $currentMonth)
             ->count();
 
         return [

@@ -2,24 +2,22 @@
 
 namespace App\Filament\Admin\Widgets;
 
-use App\Models\Tattooer;
+use App\Models\Studio;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
-use Filament\Notifications\Notification;
 use Filament\Actions\Action;
 
-class PendingActions extends BaseWidget
+class PendingStudios extends BaseWidget
 {
     protected int | string | array $columnSpan = 'full';
-
-    protected static ?int $sort = 3;
+    protected static ?int $sort = 5;
 
     public function table(Table $table): Table
     {
         return $table
             ->query(
-                Tattooer::query()
+                Studio::query()
                     ->whereHas('user', function($q) {
                         $q->where('status', 'pending_verification');
                     })
@@ -28,9 +26,12 @@ class PendingActions extends BaseWidget
                     ->limit(10)
             )
             ->columns([
-                Tables\Columns\TextColumn::make('name')
-                    ->label('Artiste')
-                    ->searchable(),
+                Tables\Columns\TextColumn::make('artist_name')
+                    ->label('Studio')
+                    ->searchable()
+                    ->getStateUsing(function ($record) {
+                        return $record->name;
+                    }),
 
                 Tables\Columns\TextColumn::make('user.status')
                     ->label('Statut')
@@ -53,7 +54,7 @@ class PendingActions extends BaseWidget
                 Action::make('view')
                     ->label('Voir')
                     ->icon('heroicon-o-eye')
-                    ->url(fn ($record) => route('filament.admin.resources.tattooers.edit', $record))
+                    ->url(fn ($record) => route('filament.admin.resources.studios.edit', $record))
                     ->openUrlInNewTab(),
             ])
             ->paginated(false);

@@ -77,7 +77,7 @@ class CacheService
         $cacheKey = "{$type}.{$artist->id}.full_profile.v{$version}";
 
         return Cache::remember($cacheKey, self::ARTIST_PROFILE_TTL, function() use ($artist) {
-            $artist->load(['user', 'workingHours', 'media', 'activeSubscription', 'subscription', 'studio.owner']);
+            $artist->load(['user', 'workingHours', 'media', 'activeSubscription', 'studio.owner']);
 
             $isPiercer = $artist instanceof Piercer;
             // Charger aussi les reviews des BookingRequests pour cet artiste
@@ -92,9 +92,9 @@ class CacheService
             // Fusionner les reviews directs et les reviews de BookingRequests
             $allReviews = $artist->reviews->merge($bookingRequestReviews);
 
-            $activePlan = $artist->subscription?->plan;
+            $activePlan = $artist->activeSubscription?->stripe_price;
             if (!$activePlan && $artist->relationLoaded('activeSubscription')) {
-                $activePlan = $artist->activeSubscription?->plan;
+                $activePlan = $artist->activeSubscription?->stripe_price;
             }
 
             $trialDays = (int) config('inkpik.trial_days', 14);
