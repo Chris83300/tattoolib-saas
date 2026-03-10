@@ -24,10 +24,47 @@
             </div>
         @endif
 
-        {{-- Status actuel --}}
+        {{-- Status actuel — structure exclusive, un seul bloc visible --}}
         <div class="bg-gris-fonde rounded-xl p-6 border border-titane/20">
             <h2 class="text-lg font-bold text-ivoire-text mb-2">Mon plan actuel</h2>
-            @if ($artist->isPro())
+            @php
+                $trialService = app(\App\Services\TrialService::class);
+                $daysLeft = $trialService->trialDaysRemaining($artist);
+                $isOnTrial = $artist->isOnTrial();
+                $isSubscribed = $artist->is_subscribed;
+                $currentPlan = $artist->current_plan;
+                $isStarterSubscribed = $artist->current_plan === 'starter' && $artist->is_subscribed;
+            @endphp
+
+            @if ($isOnTrial)
+                {{-- Essai gratuit actif --}}
+                <div class="mt-3 bg-vert-succes/10 border border-vert-succes/30 rounded-lg p-3">
+                    <p class="text-sm text-vert-succes">
+                        🎁 Essai gratuit — {{ $daysLeft }} jour{{ $daysLeft > 1 ? 's' : '' }}
+                        restant{{ $daysLeft > 1 ? 's' : '' }}
+                    </p>
+                    @if ($artist->isPro() && $currentPlan === 'starter')
+                        <form action="{{ route('pierceur.subscription.subscribe') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="plan" value="starter">
+                            <button type="submit"
+                                class=" mt-4 w-full px-4 py-3 bg-beige-peau text-noir-profond rounded-lg font-bold text-sm hover:bg-beige-peau/90 transition-colors active:scale-95">
+                                Activer le plan Starter
+                            </button>
+                        </form>
+                    @elseif ($artist->isPro() && $currentPlan === 'pro')
+                        <form action="{{ route('pierceur.subscription.subscribe') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="plan" value="pro">
+                            <button type="submit"
+                                class="mt-4 w-full px-4 py-3 bg-beige-peau text-noir-profond rounded-lg font-bold text-sm hover:bg-beige-peau/90 transition-colors active:scale-95">
+                                {{ $isStarterSubscribed ? 'Passer au plan PRO' : 'Activer le plan PRO' }}
+                            </button>
+                        </form>
+                    @endif
+                </div>
+            @elseif ($artist->isPro() && $currentPlan !== 'starter')
+                {{-- PRO payant actif --}}
                 <div class="flex items-center gap-3">
                     <span class="px-3 py-1 bg-beige-peau text-noir-profond rounded-full text-sm font-bold">PRO</span>
                     <span class="text-ivoire-text/70">29,99€/mois · Commission 0%</span>
@@ -47,7 +84,7 @@
                             </button>
                         </form>
                     </div>
-                @else
+                @elseif (!$isOnTrial)
                     <div class="mt-3 flex flex-wrap gap-3">
                         <a href="{{ route('pierceur.subscription.manage') }}"
                             class="px-4 py-2 bg-titane/20 text-ivoire-text rounded-lg text-sm font-semibold hover:bg-titane/30 transition-colors">
@@ -62,20 +99,52 @@
                             </button>
                         </form>
                     </div>
+                @else
+                    <div class="mt-3 bg-vert-succes/10 border border-vert-succes/30 rounded-lg p-3">
+                        <p class="text-sm text-vert-succes">
+                            🎁 Essai gratuit — {{ $daysLeft }} jour{{ $daysLeft > 1 ? 's' : '' }}
+                            restant{{ $daysLeft > 1 ? 's' : '' }}
+                        </p>
+                        <a href="{{ route('pierceur.subscription.subscribeFromTrial') }}"
+                            class="inline-block mt-2 px-4 py-2 bg-beige-peau text-noir-profond rounded-lg text-sm font-semibold hover:bg-beige-peau/90 transition-colors">
+                            Activer mon abonnement
+                        </a>
+                    </div>
                 @endif
-            @else
+            @elseif ($isSubscribed && $currentPlan === 'starter')
+                {{-- STARTER payant actif --}}
                 <div class="flex items-center gap-3">
                     <span class="px-3 py-1 bg-titane/30 text-titane rounded-full text-sm font-bold">STARTER</span>
                     <span class="text-ivoire-text/70">9,99€/mois · Commission 7%</span>
                 </div>
-                @php
-                    $trialService = app(\App\Services\TrialService::class);
-                    $daysLeft = $trialService->trialDaysRemaining($artist);
-                @endphp
-                @if ($daysLeft > 0)
-                    <p class="text-sm text-titane mt-1">🎁 Essai gratuit — {{ $daysLeft }} jour{{ $daysLeft > 1 ? 's' : '' }} restant{{ $daysLeft > 1 ? 's' : '' }}</p>
-                @elseif ($artist->is_blocked)
-                    <p class="text-sm text-rouge-alerte mt-1">🔒 Essai expiré — choisissez un plan pour réactiver votre profil</p>
+                <div class="mt-3 flex flex-wrap gap-3">
+                    <a href="{{ route('pierceur.subscription.manage') }}"
+                        class="px-4 py-2 bg-titane/20 text-ivoire-text rounded-lg text-sm font-semibold hover:bg-titane/30 transition-colors">
+                        💳 Gérer le paiement
+                    </a>
+                    <form action="{{ route('pierceur.subscription.cancel') }}" method="POST"
+                        onsubmit="return confirm('Êtes-vous sûr de vouloir annuler ?')">
+                        @csrf
+                        <button type="submit"
+                            class="px-4 py-2 border border-rouge-alerte/30 text-rouge-alerte rounded-lg text-sm hover:bg-rouge-alerte/10 transition-colors">
+                            Annuler l'abonnement
+                        </button>
+                    </form>
+                </div>
+            @else
+                {{-- Aucun abonnement actif (trial expiré ou jamais commencé) --}}
+                @if ($artist->is_blocked)
+                    <div class="flex items-center gap-3">
+                        <span
+                            class="px-3 py-1 bg-rouge-alerte/20 text-rouge-alerte rounded-full text-sm font-bold">BLOQUÉ</span>
+                    </div>
+                    <p class="text-sm text-rouge-alerte mt-1">🔒 Essai expiré — choisissez un plan pour réactiver votre
+                        profil</p>
+                @else
+                    <div class="flex items-center gap-3">
+                        <span class="px-3 py-1 bg-titane/30 text-titane rounded-full text-sm font-bold">STARTER</span>
+                        <span class="text-ivoire-text/70">Aucun abonnement actif</span>
+                    </div>
                 @endif
             @endif
 
@@ -90,12 +159,16 @@
             @endif
         </div>
 
-        {{-- Comparaison plans --}}
+        {{-- Comparaison plans — toujours visibles --}}
+        @php
+            $isProSubscribed = $isSubscribed && $currentPlan === 'pro';
+            $isStarterSubscribed = $isSubscribed && $currentPlan === 'starter';
+        @endphp
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
             {{-- Plan STARTER --}}
             <div
-                class="bg-gris-fonde rounded-xl p-6 border {{ $artist->isFree() ? 'border-titane/40' : 'border-titane/20' }}">
+                class="bg-gris-fonde rounded-xl p-6 border {{ $isStarterSubscribed ? 'border-titane/40' : 'border-titane/20' }}">
                 <h3 class="text-xl font-bold text-ivoire-text mb-1">Starter</h3>
                 <p class="text-3xl font-bold text-ivoire-text mb-1">9,99€<span
                         class="text-sm font-normal text-titane">/mois</span></p>
@@ -112,10 +185,19 @@
                     <li class="flex items-center gap-2 text-ivoire-text/40">❌ Analytics</li>
                 </ul>
 
-                @if ($artist->isFree())
+                @if ($isStarterSubscribed)
                     <div class="px-4 py-2.5 bg-titane/20 text-titane rounded-lg text-center text-sm font-semibold">
                         Plan actuel
                     </div>
+                @elseif (!$isProSubscribed)
+                    <form action="{{ route('pierceur.subscription.subscribe') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="plan" value="starter">
+                        <button type="submit"
+                            class="w-full px-4 py-3 bg-titane/30 text-ivoire-text border border-titane/40 rounded-lg font-bold text-sm hover:bg-titane/50 transition-colors active:scale-95">
+                            Activer le plan Starter
+                        </button>
+                    </form>
                 @endif
             </div>
 
@@ -143,27 +225,29 @@
                     <li class="flex items-center gap-2 text-vert-succes">✅ Export CSV/Excel comptabilité</li>
                 </ul>
 
-                @if ($artist->isPro() && !$activeSubscription?->isOnGracePeriod())
+                @if ($isProSubscribed && !$activeSubscription?->isOnGracePeriod())
                     <div class="px-4 py-2.5 bg-beige-peau/20 text-beige-peau rounded-lg text-center text-sm font-semibold">
                         ✅ Plan actuel
                     </div>
-                @elseif (!$artist->isPro())
+                @else
                     <form action="{{ route('pierceur.subscription.subscribe') }}" method="POST">
                         @csrf
+                        <input type="hidden" name="plan" value="pro">
                         <button type="submit"
                             class="w-full px-4 py-3 bg-beige-peau text-noir-profond rounded-lg font-bold text-sm hover:bg-beige-peau/90 transition-colors active:scale-95">
-                            🚀 Passer PRO maintenant
+                            {{ $isStarterSubscribed ? 'Passer au plan PRO' : 'Activer le plan PRO' }}
                         </button>
                     </form>
-                    <p class="text-xs text-titane text-center mt-2">Annulable à tout moment · Paiement sécurisé Stripe</p>
                 @endif
+                <p class="text-xs text-titane text-center mt-2">Annulable à tout moment · Paiement sécurisé Stripe</p>
             </div>
         </div>
 
         {{-- ROI Calculator --}}
-        @if ($artist->isFree())
+        @if (!$isProSubscribed)
             <div class="bg-gris-fonde rounded-xl p-6 border border-titane/20">
-                <h3 class="text-lg font-bold text-beige-peau mb-3">"Les piercers PRO économisent en moyenne 150€/mois en commission sur leurs réservations."</h3>
+                <h3 class="text-lg font-bold text-beige-peau mb-3">"Les piercers PRO économisent en moyenne 150€/mois en
+                    commission sur leurs réservations."</h3>
             </div>
         @endif
 

@@ -32,7 +32,8 @@
       "Bash(composer require:*)",
       "Bash(rm:*)",
       "Bash(cp:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(python3:*)"
     ]
   }
 }

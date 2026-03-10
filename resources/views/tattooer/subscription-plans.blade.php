@@ -27,7 +27,13 @@
         {{-- Status actuel --}}
         <div class="bg-gris-fonde rounded-xl p-6 border border-titane/20">
             <h2 class="text-lg font-bold text-ivoire-text mb-2">Mon plan actuel</h2>
-            @if ($artist->isPro())
+            @php
+                $currentPlan = $artist->current_plan; // 'starter', 'pro', ou null
+                $trialService = app(\App\Services\TrialService::class);
+                $daysLeft = $trialService->trialDaysRemaining($artist);
+                $isOnTrial = $daysLeft > 0 && !$artist->is_subscribed;
+            @endphp
+            @if ($currentPlan === 'pro')
                 <div class="flex items-center gap-3">
                     <span class="px-3 py-1 bg-beige-peau text-noir-profond rounded-full text-sm font-bold">PRO</span>
                     <span class="text-ivoire-text/70">29,99€/mois · Commission 0%</span>
@@ -48,7 +54,7 @@
                             </button>
                         </form>
                     </div>
-                @else
+                @elseif (!$isOnTrial)
                     <div class="mt-3 flex flex-wrap gap-3">
                         <a href="{{ route($artist->routePrefix() . '.subscription.manage') }}"
                             class="px-4 py-2 bg-titane/20 text-ivoire-text rounded-lg text-sm font-semibold hover:bg-titane/30 transition-colors">
@@ -63,13 +69,19 @@
                             </button>
                         </form>
                     </div>
+                @else
+                    <div class="mt-3 bg-vert-succes/10 border border-vert-succes/30 rounded-lg p-3">
+                        <p class="text-sm text-vert-succes">
+                            🎁 Essai gratuit — {{ $daysLeft }} jour{{ $daysLeft > 1 ? 's' : '' }}
+                            restant{{ $daysLeft > 1 ? 's' : '' }}
+                        </p>
+                        <a href="{{ route('tattooer.subscription.subscribeFromTrial') }}"
+                            class="inline-block mt-2 px-4 py-2 bg-beige-peau text-noir-profond rounded-lg text-sm font-semibold hover:bg-beige-peau/90 transition-colors">
+                            Activer mon abonnement
+                        </a>
+                    </div>
                 @endif
             @else
-                @php
-                    $trialService = app(\App\Services\TrialService::class);
-                    $daysLeft = $trialService->trialDaysRemaining($artist);
-                    $isOnTrial = $daysLeft > 0 && !$artist->is_subscribed;
-                @endphp
                 @if ($artist->is_subscribed && $artist->current_plan === 'starter')
                     <div class="flex items-center gap-3">
                         <span class="px-3 py-1 bg-titane/30 text-titane rounded-full text-sm font-bold">STARTER</span>
@@ -94,12 +106,15 @@
                         <span class="px-3 py-1 bg-titane/30 text-titane rounded-full text-sm font-bold">STARTER</span>
                         <span class="text-ivoire-text/70">Essai gratuit</span>
                     </div>
-                    <p class="text-sm text-titane mt-1">🎁 {{ $daysLeft }} jour{{ $daysLeft > 1 ? 's' : '' }} restant{{ $daysLeft > 1 ? 's' : '' }} — Activez votre abonnement pour ne pas perdre l'accès.</p>
+                    <p class="text-sm text-titane mt-1">🎁 {{ $daysLeft }} jour{{ $daysLeft > 1 ? 's' : '' }}
+                        restant{{ $daysLeft > 1 ? 's' : '' }} — Activez votre abonnement pour ne pas perdre l'accès.</p>
                 @elseif ($artist->is_blocked)
                     <div class="flex items-center gap-3">
-                        <span class="px-3 py-1 bg-rouge-alerte/20 text-rouge-alerte rounded-full text-sm font-bold">BLOQUÉ</span>
+                        <span
+                            class="px-3 py-1 bg-rouge-alerte/20 text-rouge-alerte rounded-full text-sm font-bold">BLOQUÉ</span>
                     </div>
-                    <p class="text-sm text-rouge-alerte mt-1">🔒 Essai expiré — choisissez un plan pour réactiver votre profil</p>
+                    <p class="text-sm text-rouge-alerte mt-1">🔒 Essai expiré — choisissez un plan pour réactiver votre
+                        profil</p>
                 @endif
             @endif
 

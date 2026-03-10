@@ -11,7 +11,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class StudioController extends Controller
 {
@@ -258,73 +259,103 @@ class StudioController extends Controller
 
         abort_unless($studio->canAddArtist(), 403);
 
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'name'         => 'required|string|max:255',
-            'email'        => 'required|email|unique:users,email',
+            'email'        => [
+                'required',
+                'email',
+                'max:255',
+                function (string $attribute, mixed $value, \Closure $fail) {
+                    $email = mb_strtolower(trim((string) $value));
+
+                    if ($email === '') {
+                        return;
+                    }
+
+                    $exists = User::query()
+                        ->whereRaw('LOWER(email) = ?', [$email])
+                        ->exists();
+
+                    if ($exists) {
+                        $fail("Le champ adresse email est déjà utilisé.");
+                    }
+                },
+            ],
             'password'     => 'required|string|min:8',
             'artisan_type' => 'required|in:tattooer,piercer',
         ]);
 
-        // Créer le User avec le mot de passe fourni
-        $user = User::create([
-            'name'              => $validated['name'],
-            'email'             => $validated['email'],
-            'password'          => bcrypt($validated['password']), // Utiliser le mot de passe fourni
-            'email_verified_at' => now(),
-            'role'              => $validated['artisan_type'] === 'piercer' ? 'pierceur' : 'tattooer',
-        ]);
+        $validated = $validator->validate();
 
-        // Assigner les rôles Spatie
-        $role = $validated['artisan_type'] === 'piercer' ? 'pierceur' : 'tattooer';
-        $user->assignRole($role);
-        $user->assignRole('studio_artist');
+        $validated['email'] = mb_strtolower(trim($validated['email']));
 
-        // Créer le profil artisan
-        if ($validated['artisan_type'] === 'piercer') {
-            Piercer::create([
-                'user_id'   => $user->id,
-                'studio_id' => $studio->id,
-                'siret'     => $studio->siret ?: 'STUDIO_' . $studio->id, // SIRET du studio ou placeholder
-                'name'      => $studio->name, // Nom du studio
-                'slug'      => Str::slug($user->name) . '-' . uniqid(),
-                'city'      => $studio->city,
-                'postal_code' => $studio->postal_code,
-                'current_plan'      => 'pro', // Plan Pro car inclus dans l'abonnement studio
-                'is_subscribed'     => true, // Abonnement actif via le studio
-                'upgraded_to_pro_at' => now(), // Date de l'upgrade
+        DB::transaction(function () use ($validated, $studio, &$user) {
+            // Créer le User avec le mot de passe fourni
+            $user = User::create([
+                'name'              => $validated['name'],
+                'email'             => $validated['email'],
+                'password'          => bcrypt($validated['password']), // Utiliser le mot de passe fourni
+                'email_verified_at' => now(),
+                'role'              => $validated['artisan_type'] === 'piercer' ? 'pierceur' : 'tattooer',
             ]);
-        } else {
-            Tattooer::create([
-                'user_id'   => $user->id,
-                'studio_id' => $studio->id,
-                'siret'     => $studio->siret ?: 'STUDIO_' . $studio->id, // SIRET du studio ou placeholder
-                'current_plan'      => 'pro', // Plan Pro car inclus dans l'abonnement studio
-                'is_subscribed'     => true, // Abonnement actif via le studio
-                'upgraded_to_pro_at' => now(), // Date de l'upgrade
+
+            // Assigner les rôles Spatie
+            $role = $validated['artisan_type'] === 'piercer' ? 'pierceur' : 'tattooer';
+            $user->assignRole($role);
+            $user->assignRole('studio_artist');
+
+            // `siret` est stocké sur 14 caractères (varchar(14)), donc on génère un identifiant 14 chiffres.
+            // Unicité garantie par couple (studio_id, user_id).
+            $artistSiret = sprintf('%07d%07d', (int) $studio->id, (int) $user->id);
+
+            // Créer le profil artisan
+            if ($validated['artisan_type'] === 'piercer') {
+                Piercer::create([
+                    'user_id'   => $user->id,
+                    'studio_id' => $studio->id,
+                    'siret'     => $artistSiret,
+                    'name'      => $studio->name, // Nom du studio
+                    'slug'      => Str::slug($user->name) . '-' . uniqid(),
+                    'city'      => $studio->city,
+                    'postal_code' => $studio->postal_code,
+                    'current_plan'      => 'pro', // Plan Pro car inclus dans l'abonnement studio
+                    'is_subscribed'     => true, // Abonnement actif via le studio
+                    'upgraded_to_pro_at' => now(), // Date de l'upgrade
+                ]);
+            } else {
+                Tattooer::create([
+                    'user_id'   => $user->id,
+                    'studio_id' => $studio->id,
+                    'siret'     => $artistSiret,
+                    'slug'      => Str::slug($user->name) . '-' . uniqid(),
+                    'current_plan'      => 'pro', // Plan Pro car inclus dans l'abonnement studio
+                    'is_subscribed'     => true, // Abonnement actif via le studio
+                    'upgraded_to_pro_at' => now(), // Date de l'upgrade
+                ]);
+            }
+
+            // Créer le lien StudioArtist
+            StudioArtist::create([
+                'studio_id'    => $studio->id,
+                'user_id'      => $user->id,
+                'artisan_type' => $validated['artisan_type'],
+                'role'         => 'artist',
+                'is_active'    => true,
+                'joined_at'    => now()->toDateString(), // Utiliser seulement la date
+                'artist_name'  => $user->name, // Utiliser le nom de l'utilisateur
+                'slug'         => Str::slug($user->name), // Générer un slug à partir du nom
             ]);
-        }
 
-        // Créer le lien StudioArtist
-        StudioArtist::create([
-            'studio_id'    => $studio->id,
-            'user_id'      => $user->id,
-            'artisan_type' => $validated['artisan_type'],
-            'role'         => 'artist',
-            'is_active'    => true,
-            'joined_at'    => now()->toDateString(), // Utiliser seulement la date
-            'artist_name'  => $user->name, // Utiliser le nom de l'utilisateur
-            'slug'         => Str::slug($user->name), // Générer un slug à partir du nom
-        ]);
+            Mail::to($validated['email'])->send(new \App\Mail\StudioArtistCreatedMail(
+                $studio,
+                $validated['name'],
+                $validated['email'],
+                $validated['password'], // Utiliser le mot de passe fourni
+                $validated['artisan_type']
+            ));
 
-        Mail::to($validated['email'])->send(new \App\Mail\StudioArtistCreatedMail(
-            $studio,
-            $validated['name'],
-            $validated['email'],
-            $validated['password'], // Utiliser le mot de passe fourni
-            $validated['artisan_type']
-        ));
-
-        app(\App\Services\StudioBillingService::class)->updateArtistQuantity($studio);
+            app(\App\Services\StudioBillingService::class)->updateArtistQuantity($studio);
+        });
 
         return redirect()->route('studio.artists')
             ->with('success', "Artiste {$validated['name']} créé. Il peut maintenant se connecter avec le mot de passe que vous avez défini.");
@@ -376,20 +407,63 @@ class StudioController extends Controller
     {
         abort_unless($studioArtist->studio_id === $this->studio()->id, 403);
 
-        // Désactiver plutôt que supprimer (garder l'historique)
-        $studioArtist->update(['is_active' => false]);
+        DB::transaction(function () use ($studioArtist) {
+            $user = $studioArtist->user;
+            $artisan = $user?->artisan(); // Tattooer ou Piercer
 
-        // Retirer le studio_id du profil artisan
-        if ($studioArtist->user) {
-            $artisan = $studioArtist->user->artisan();
+            // 1) Supprimer le lien StudioArtist
+            $studioArtist->delete();
+
+            // 2) Supprimer le profil artisan (tattooer/piercer) et ses médias
             if ($artisan) {
-                $artisan->update(['studio_id' => null]);
+                // Médias liés (avatar, banner, etc.)
+                $artisan->clearMediaCollection('avatar');
+                $artisan->clearMediaCollection('banner');
+                $artisan->clearMediaCollection('works');
+                $artisan->clearMediaCollection('consents');
+                $artisan->clearMediaCollection('portfolio');
+                // Supprimer le modèle artisan
+                $artisan->delete();
             }
-        }
+
+            // 3) Supprimer l'utilisateur et ses rôles
+            if ($user) {
+                // Médias éventuels sur le User
+                $user->clearMediaCollection('avatar');
+                // Supprimer les rôles liés
+                $user->roles()->detach();
+                // Supprimer le User
+                $user->delete();
+            }
+
+            // 4) Nettoyer les données liées (demandes, chats, consentements, traceability, etc.)
+            // - Demandes de booking
+            if ($artisan) {
+                \App\Models\BookingRequest::where('bookable_type', get_class($artisan))
+                    ->where('bookable_id', $artisan->id)
+                    ->each(function ($request) {
+                        // Médias liés à la demande
+                        $request->clearMediaCollection('reference_images');
+                        $request->clearMediaCollection('consent_documents');
+                        // Consent forms
+                        \App\Models\ClientConsentForm::where('booking_request_id', $request->id)->delete();
+                        // Traceability records
+                        \App\Models\TraceabilityRecord::where('booking_request_id', $request->id)->delete();
+                        // Supprimer la demande
+                        $request->delete();
+                    });
+            }
+
+            // - Messages/Chats : si une table messages existe, on peut supprimer ceux envoyés par cet utilisateur
+            // (à adapter selon ton implémentation)
+            // \App\Models\Message::where('sender_id', $user->id ?? null)->delete();
+
+            // - Autres tables liées éventuelles (reviews, etc.) à ajouter si nécessaire
+        });
 
         app(\App\Services\StudioBillingService::class)->updateArtistQuantity($this->studio());
 
-        return back()->with('success', 'Artiste retiré du studio');
+        return back()->with('success', 'Artiste et toutes ses données ont été supprimés du studio');
     }
 
     public function toggleArtist(StudioArtist $studioArtist)
@@ -626,7 +700,49 @@ class StudioController extends Controller
         $isSubscribed     = $billingService->isSubscribed($studio);
         $portalUrl        = $billingService->billingPortalUrl($studio);
 
-        return view('studio.billing', compact('studio', 'subscriptionInfo', 'isSubscribed', 'portalUrl'));
+        $totalArtists = $studio->tattooers()->count() + $studio->piercers()->count();
+        $includedArtists = (int) config('inkpik.pricing.studio.included_artists', 1);
+        $extraArtists = max(0, $totalArtists - $includedArtists);
+        $basePrice = \App\Enums\SubscriptionPlan::STUDIO->price();
+        $extraPrice = \App\Enums\SubscriptionPlan::STUDIO->pricePerExtraArtist();
+        $totalPrice = $basePrice + ($extraArtists * $extraPrice);
+
+        // Charger les subscription_items Cashier si abonnement actif
+        $subscriptionItems = [];
+        if ($isSubscribed && $studio->user && $studio->user->subscription('default')) {
+            $sub = $studio->user->subscription('default');
+            $studioPriceId = config('inkpik.pricing.studio.stripe_price_id');
+            $extraPriceId = config('inkpik.pricing.studio.stripe_price_id_extra');
+            $subscriptionItems = $sub->items()->with(['subscription'])->get()->map(function ($item) use ($studioPriceId, $extraPriceId) {
+                $unitPrice = null;
+                if ($item->stripe_price === $studioPriceId) {
+                    $unitPrice = \App\Enums\SubscriptionPlan::STUDIO->price();
+                } elseif ($item->stripe_price === $extraPriceId) {
+                    $unitPrice = \App\Enums\SubscriptionPlan::STUDIO->pricePerExtraArtist();
+                }
+                return [
+                    'stripe_id'      => $item->stripe_id,
+                    'stripe_product' => $item->stripe_product,
+                    'stripe_price'   => $item->stripe_price,
+                    'quantity'       => $item->quantity,
+                    'unit_price'     => $unitPrice,
+                ];
+            })->toArray();
+        }
+
+        return view('studio.billing', compact(
+            'studio',
+            'subscriptionInfo',
+            'isSubscribed',
+            'portalUrl',
+            'totalArtists',
+            'includedArtists',
+            'extraArtists',
+            'basePrice',
+            'extraPrice',
+            'totalPrice',
+            'subscriptionItems'
+        ));
     }
 
     public function subscribe()

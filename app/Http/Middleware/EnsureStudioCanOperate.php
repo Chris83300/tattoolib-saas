@@ -21,7 +21,7 @@ class EnsureStudioCanOperate
         'studio.stats',
         'studio.profile',
         'studio.subscribe',
-        'studio.subscribe.process',
+        'studio.subscribe.post',
         'studio.public.show',
         // Routes studio-artist autorisées en lecture seule
         'studio-artist.dashboard',

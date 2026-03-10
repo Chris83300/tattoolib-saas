@@ -169,6 +169,7 @@
                     <h2 class="text-xl font-bold text-ivoire-text">
                         📅 Prochains rendez-vous
                     </h2>
+
                     <a href="<?php echo e(route($tattooer->routePrefix() . '.calendar')); ?>"
                         class="text-beige-peau text-sm font-semibold hover:underline">
                         Voir tout →

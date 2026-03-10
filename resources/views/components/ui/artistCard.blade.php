@@ -16,16 +16,17 @@
     } else {
         $artisanModel = null;
         if ($studioArtist->user) {
-            $artisanModel = $studioArtist->artisan_type === 'piercer'
-                ? \App\Models\Piercer::where('user_id', $studioArtist->user_id)->first()
-                : \App\Models\Tattooer::where('user_id', $studioArtist->user_id)->first();
+            $artisanModel =
+                $studioArtist->artisan_type === 'piercer'
+                    ? \App\Models\Piercer::where('user_id', $studioArtist->user_id)->first()
+                    : \App\Models\Tattooer::where('user_id', $studioArtist->user_id)->first();
         }
         $banner = $artisanModel?->getFirstMediaUrl('banner') ?: null;
     }
 
     $city = $isMarketplace ? $artist['city'] ?? null : $studioArtist->studio?->city;
     $studioName = $isMarketplace ? $artist['studio_name'] ?? null : $studioArtist->studio?->name;
-    $bio = $isMarketplace ? $artist['bio'] ?? null : ($artisanModel?->bio ?? $studioArtist->user?->bio ?? null);
+    $bio = $isMarketplace ? $artist['bio'] ?? null : $artisanModel?->bio ?? ($studioArtist->user?->bio ?? null);
 @endphp
 
 <div
@@ -247,8 +248,8 @@
             @else
                 <!-- Actions studio -->
                 @if ($studioArtist->user)
-                    <x-ui.button variant="secondary" size="sm" href="{{ route('studio.artists.show', $studioArtist) }}"
-                        class="flex-1">
+                    <x-ui.button variant="secondary" size="sm"
+                        href="{{ route('studio.artists.show', $studioArtist) }}" class="flex-1">
                         Voir la gestion
                     </x-ui.button>
                 @else
@@ -258,10 +259,13 @@
                     </x-ui.button>
                 @endif
 
-                <x-ui.button variant="primary" size="sm"
-                    href="{{ route('studio.artists.toggle', $studioArtist) }}" class="flex-1">
-                    {{ $studioArtist->is_active ? 'Désactiver' : 'Activer' }}
-                </x-ui.button>
+                <form method="POST" action="{{ route('studio.artists.toggle', $studioArtist) }}" class="flex-1">
+                    @csrf
+                    @method('PUT')
+                    <x-ui.button variant="primary" size="sm" type="submit" class="w-full">
+                        {{ $studioArtist->is_active ? 'Désactiver' : 'Activer' }}
+                    </x-ui.button>
+                </form>
             @endif
         </div>
 

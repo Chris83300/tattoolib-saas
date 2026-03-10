@@ -425,12 +425,33 @@ class Tattooer extends Model implements HasMedia, ArtisanInterface
 
     public function scopeMarketplaceVisible($query)
     {
+        $trialDays = (int) config('inkpik.trial_days', 14);
+
         return $query
             ->where('is_blocked', false)
             ->where(function ($q) {
-                $q->whereNotNull('studio_id')
-                    ->orWhere('is_subscribed', true)
-                    ->orWhere('trial_ends_at', '>', now());
+                $trialDays = (int) config('inkpik.trial_days', 14);
+                $trialCutoff = now()->subDays($trialDays);
+
+                // Visible si l'artiste a un abonnement (hors studio) ou est en période d'essai
+                $q->where(function ($paid) {
+                        $paid->whereNull('studio_id')
+                            ->where('is_subscribed', true);
+                    })
+                    ->orWhere('trial_ends_at', '>', now())
+                    ->orWhere(function ($trial) use ($trialCutoff) {
+                        $trial->whereNull('trial_ends_at')
+                            ->where('created_at', '>', $trialCutoff);
+                    })
+                    // Ou si l'artiste dépend d'un studio qui est en essai / abonné
+                    ->orWhereHas('studio', function ($sq) use ($trialCutoff) {
+                        $sq->where('is_subscribed', true)
+                            ->orWhere('trial_ends_at', '>', now())
+                            ->orWhere(function ($trial) use ($trialCutoff) {
+                                $trial->whereNull('trial_ends_at')
+                                    ->where('created_at', '>', $trialCutoff);
+                            });
+                    });
             });
     }
 
@@ -501,7 +522,11 @@ class Tattooer extends Model implements HasMedia, ArtisanInterface
             return true;
         }
 
-        // Artiste indépendant : vérifier via is_subscribed ou activeSubscription
+        // Artiste indépendant : vérifier trial, is_subscribed ou activeSubscription
+        if ($this->isOnTrial()) {
+            return true;
+        }
+
         if ($this->is_subscribed) {
             return true;
         }
@@ -550,6 +575,16 @@ class Tattooer extends Model implements HasMedia, ArtisanInterface
     }
 
     // ═══ TRIAL & SUBSCRIPTION ═══
+
+    /**
+     * En période d'essai : trial non expiré ET pas encore souscrit.
+     */
+    public function isOnTrial(): bool
+    {
+        return $this->trial_ends_at
+            && $this->trial_ends_at->isFuture()
+            && !$this->is_subscribed;
+    }
 
     public function canOperate(): bool
     {

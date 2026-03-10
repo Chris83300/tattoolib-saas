@@ -39,8 +39,13 @@
 
                             <span
                                 class="bg-beige-peau/20 text-beige-peau px-3 py-1 rounded-full border border-beige-peau/20 shadow-sm shadow-beige-peau/20 text-xs font-semibold">
-                                <?php echo e($tattooer->isPro() ? '⭐ Plan PRO' : '🟡 Plan STARTER'); ?>
-
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tattooer->isOnTrial()): ?>
+                                    ⭐ Plan PRO
+                                <?php elseif($tattooer->isPro()): ?>
+                                    ⭐ Plan PRO
+                                <?php else: ?>
+                                    🟡 Plan STARTER
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </span>
 
                             <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tattooer->user->status === 'pending_verification'): ?>

@@ -311,6 +311,15 @@ Route::middleware(['auth', 'role:pierceur,Piercer', 'artisan.can.operate'])->pre
     Route::post('/clients/{client}/consent/upload', [TattooerController::class, 'uploadConsent'])->name('clients.consent.upload')->middleware('pro');
     Route::post('/clients/{client}/consent/store-digital', [TattooerController::class, 'storeDigitalConsent'])->name('clients.consent.store-digital')->middleware('pro');
     Route::delete('/clients/{client}/consent/{media}', [TattooerController::class, 'deleteConsent'])->name('clients.consent.delete')->middleware('pro');
+
+    // Routes subscription pour piercers
+    Route::get('/subscription-plans', [SubscriptionController::class, 'plans'])->name('subscription.plans');
+    Route::post('/subscribe', [SubscriptionController::class, 'subscribe'])->name('subscription.subscribe');
+    Route::get('/subscription/success', [SubscriptionController::class, 'success'])->name('subscription.success');
+    Route::post('/subscription/cancel', [SubscriptionController::class, 'cancel'])->name('subscription.cancel');
+    Route::post('/subscription/resume', [SubscriptionController::class, 'resume'])->name('subscription.resume');
+    Route::get('/subscription/manage', [SubscriptionController::class, 'manage'])->name('subscription.manage');
+    Route::get('/subscribe-from-trial', [SubscriptionController::class, 'subscribeFromTrial'])->name('subscription.subscribeFromTrial');
     Route::post('/clients/{client}/traceability', [TattooerController::class, 'storeClientTraceability'])->name('clients.traceability.store')->middleware('pro');
     Route::post('/clients/{client}/photos/upload', [TattooerController::class, 'uploadClientPhotos'])->name('clients.photos.upload')->middleware('pro');
     Route::delete('/clients/{client}/photos/{media}', [TattooerController::class, 'deleteClientPhoto'])->name('clients.photos.delete')->middleware('pro');
@@ -343,6 +352,7 @@ Route::middleware(['auth', 'role:pierceur,Piercer', 'artisan.can.operate'])->pre
     Route::post('/subscription/cancel', [SubscriptionController::class, 'cancel'])->name('subscription.cancel');
     Route::post('/subscription/resume', [SubscriptionController::class, 'resume'])->name('subscription.resume');
     Route::get('/subscription/manage', [SubscriptionController::class, 'manage'])->name('subscription.manage');
+    Route::get('/subscribe-from-trial', [SubscriptionController::class, 'subscribeFromTrial'])->name('subscription.subscribeFromTrial');
 
     // Anciennes routes Livewire (miroir du groupe tattooer)
     Route::get('/profil/edit', App\Livewire\Tattooer\Profile::class)->name('profile.edit');
@@ -391,13 +401,14 @@ Route::middleware(['auth', 'role:studio', \App\Http\Middleware\EnsureStudioCanOp
     Route::put('/clients/{client}', [App\Http\Controllers\StudioController::class, 'clientUpdate'])->name('clients.update');
     // Billing & Abonnement
     Route::get('/billing', [App\Http\Controllers\StudioController::class, 'billing'])->name('billing');
-    Route::post('/subscribe', [App\Http\Controllers\StudioController::class, 'subscribe'])->name('subscribe');
+    Route::get('/subscribe', [App\Http\Controllers\StudioController::class, 'billing'])->name('subscribe');
+    Route::post('/subscribe', [App\Http\Controllers\StudioController::class, 'subscribe'])->name('subscribe.post');
     Route::post('/subscription/cancel', [App\Http\Controllers\StudioController::class, 'cancelSubscription'])->name('subscription.cancel');
     Route::post('/subscription/resume', [App\Http\Controllers\StudioController::class, 'resumeSubscription'])->name('subscription.resume');
     Route::post('/subscription/sync', [App\Http\Controllers\StudioController::class, 'syncSubscription'])->name('subscription.sync');
     // Compatibilité ancienne URL /souscrire
     Route::get('/souscrire', [App\Http\Controllers\StudioController::class, 'showSubscribe'])->name('subscribe.legacy');
-    Route::post('/souscrire', [App\Http\Controllers\StudioController::class, 'processSubscribe'])->name('subscribe.process');
+    Route::post('/souscrire', [App\Http\Controllers\StudioController::class, 'processSubscribe'])->name('subscribe.legacy.process');
     Route::get('/stats', [App\Http\Controllers\StudioController::class, 'stats'])->name('stats');
     Route::get('/upgrade', function () {
         return view('professionnels.index');

@@ -172,7 +172,7 @@ class RegisterController extends Controller
                 'phone' => $validated['phone'] ?? null,
                 'email' => $validated['email'],
                 'current_plan' => $validated['plan'], // Utiliser le plan sélectionné
-                'is_subscribed' => $validated['plan'] === 'pro', // Abonnement actif si plan pro
+                'is_subscribed' => false, // Toujours false à la création (trial d'abord)
                 'has_compliance_badge' => false,
                 'trial_ends_at' => $validated['plan'] === 'starter'
                     ? now()->addDays(\App\Enums\SubscriptionPlan::STARTER->trialDays())
@@ -273,11 +273,9 @@ class RegisterController extends Controller
                 'phone' => $validated['phone'] ?? null,
                 'email' => $validated['email'],
                 'current_plan' => $validated['plan'], // Utiliser le plan sélectionné
-                'is_subscribed' => $validated['plan'] === 'pro', // Abonnement actif si plan pro
+                'is_subscribed' => false, // Toujours false à la création (trial d'abord)
                 'has_compliance_badge' => false,
-                'trial_ends_at' => $validated['plan'] === 'starter'
-                    ? now()->addDays(\App\Enums\SubscriptionPlan::STARTER->trialDays())
-                    : now()->addDays(\App\Enums\SubscriptionPlan::PRO->trialDays()),
+                'trial_ends_at' => now()->addDays(14), // 14 jours d'essai pour tous
             ]);
 
             Log::info('Piercer créé: ' . json_encode($piercer));

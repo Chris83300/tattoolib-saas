@@ -73,10 +73,11 @@ class CacheService
     public function getArtistProfile(Tattooer|Piercer $artist): array
     {
         $type = $artist instanceof Piercer ? 'piercer' : 'tattooer';
-        $cacheKey = "{$type}.{$artist->id}.full_profile";
+        $version = (int) Cache::get('marketplace.version', 1);
+        $cacheKey = "{$type}.{$artist->id}.full_profile.v{$version}";
 
         return Cache::remember($cacheKey, self::ARTIST_PROFILE_TTL, function() use ($artist) {
-            $artist->load(['user', 'workingHours', 'media']);
+            $artist->load(['user', 'workingHours', 'media', 'activeSubscription', 'subscription', 'studio.owner']);
 
             $isPiercer = $artist instanceof Piercer;
             // Charger aussi les reviews des BookingRequests pour cet artiste
@@ -91,6 +92,40 @@ class CacheService
             // Fusionner les reviews directs et les reviews de BookingRequests
             $allReviews = $artist->reviews->merge($bookingRequestReviews);
 
+            $activePlan = $artist->subscription?->plan;
+            if (!$activePlan && $artist->relationLoaded('activeSubscription')) {
+                $activePlan = $artist->activeSubscription?->plan;
+            }
+
+            $trialDays = (int) config('inkpik.trial_days', 14);
+            $trialCutoff = now()->subDays($trialDays);
+            $isOnTrial = ($artist->trial_ends_at && $artist->trial_ends_at->isFuture())
+                || ($artist->trial_ends_at === null && $artist->created_at && $artist->created_at->isAfter($trialCutoff));
+
+            $isStudioArtist = !empty($artist->studio_id);
+
+            $studioHasActiveSubscription = false;
+            if ($isStudioArtist && $artist->relationLoaded('studio') && $artist->studio) {
+                $studioHasActiveSubscription = (bool) ($artist->studio->is_subscribed ?? false);
+                if (!$studioHasActiveSubscription && $artist->studio->relationLoaded('owner') && $artist->studio->owner) {
+                    // Cashier local state (no API call)
+                    $studioHasActiveSubscription = (bool) $artist->studio->owner->subscribed('default');
+                }
+            }
+
+            $isDirectPaidPro = ($activePlan === \App\Models\Subscription::PLAN_PRO)
+                || (!$isStudioArtist && (bool) ($artist->is_subscribed ?? false));
+
+            $isPro = $isDirectPaidPro || $studioHasActiveSubscription;
+
+            $isStarter = !$isPro && ($activePlan === \App\Models\Subscription::PLAN_STARTER);
+
+            // Tri interne du groupe PRO :
+            // - 2 = PRO payé directement par l'artiste
+            // - 1 = PRO via abonnement studio
+            // - 0 = non PRO
+            $proTier = $isDirectPaidPro ? 2 : ($studioHasActiveSubscription ? 1 : 0);
+
             return [
                 'id' => $artist->id,
                 'type' => $isPiercer ? 'piercer' : 'tattooer',
@@ -98,6 +133,11 @@ class CacheService
                 'slug' => $artist->slug,
                 'bio' => $artist->bio,
                 'studio_name' => $artist->studio_name,
+                'plan' => $activePlan,
+                'is_pro' => $isPro,
+                'pro_tier' => $proTier,
+                'is_starter' => $isStarter,
+                'is_on_trial' => $isOnTrial,
                 'styles' => $isPiercer ? ($artist->piercing_types ?? []) : ($artist->styles ?? []),
                 'city' => $artist->city,
                 'avatar_url' => $this->getAvatarUrl($artist),
@@ -111,7 +151,8 @@ class CacheService
                 })->toArray(),
                 'average_rating' => $allReviews->avg('rating') ?? 0,
                 'total_reviews' => $allReviews->count() ?? 0,
-                'is_subscribed' => $artist->is_subscribed ?? false,
+                // Garder ce champ pour compat UI existante: "abonné" = PRO/studio
+                'is_subscribed' => $isPro,
                 'siret_verified' => $artist->siret_verified ?? false,
                 'status' => $artist->user?->status ?? 'active',
                 'experience_years' => $artist->years_of_experience ?? 0,
@@ -149,7 +190,7 @@ class CacheService
                 $query = Tattooer::query()
                     ->with(['user', 'workingHours'])
                     ->marketplaceVisible()
-                    ->whereHas('user', fn($q) => $q->where('status', 'active'));
+                    ->whereHas('user', fn($q) => $q->whereIn('status', ['active', 'pending_verification']));
 
                 if (isset($filters['city']) && !empty($filters['city'])) {
                     $query->where('city', 'LIKE', '%' . $filters['city'] . '%');
@@ -169,7 +210,7 @@ class CacheService
                 $query = Piercer::query()
                     ->with(['user', 'workingHours'])
                     ->marketplaceVisible()
-                    ->whereHas('user', fn($q) => $q->where('status', 'active'));
+                    ->whereHas('user', fn($q) => $q->whereIn('status', ['active', 'pending_verification']));
 
                 if (isset($filters['city']) && !empty($filters['city'])) {
                     $query->where('city', 'LIKE', '%' . $filters['city'] . '%');
@@ -181,11 +222,18 @@ class CacheService
             // PRO en premier, puis par note décroissante
             return $results
                 ->sort(function ($a, $b) {
-                    $proA = (bool) ($a['is_subscribed'] ?? false);
-                    $proB = (bool) ($b['is_subscribed'] ?? false);
-                    if ($proA !== $proB) {
-                        return $proB <=> $proA; // PRO (true=1) avant FREE (false=0)
+                    $rankA = ($a['is_pro'] ?? false) ? 3 : (($a['is_starter'] ?? false) ? 2 : 1);
+                    $rankB = ($b['is_pro'] ?? false) ? 3 : (($b['is_starter'] ?? false) ? 2 : 1);
+                    if ($rankA !== $rankB) {
+                        return $rankB <=> $rankA;
                     }
+
+                    $tierA = (int) ($a['pro_tier'] ?? 0);
+                    $tierB = (int) ($b['pro_tier'] ?? 0);
+                    if ($tierA !== $tierB) {
+                        return $tierB <=> $tierA;
+                    }
+
                     return ($b['average_rating'] ?? 0) <=> ($a['average_rating'] ?? 0);
                 })
                 ->values()

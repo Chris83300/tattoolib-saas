@@ -24,7 +24,7 @@ class SubscriptionController extends Controller
         } elseif ($user->piercer) {
             $artist = $user->piercer;
             $activeSubscription = $artist->activeSubscription;
-            $routePrefix = 'piercer';
+            $routePrefix = 'pierceur';
         } else {
             return redirect()->route('dashboard')->with('error', 'Aucun profil artiste trouvé.');
         }
@@ -73,7 +73,7 @@ class SubscriptionController extends Controller
             $routePrefix = 'tattooer';
         } elseif ($user->piercer) {
             $artist = $user->piercer;
-            $routePrefix = 'piercer';
+            $routePrefix = 'pierceur';
         } else {
             return redirect()->route('dashboard')->with('error', 'Aucun profil artiste trouvé.');
         }
@@ -104,6 +104,8 @@ class SubscriptionController extends Controller
                 'artist_type' => get_class($artist),
                 'plan'        => $plan,
             ],
+            // Permettre à l'utilisateur d'entrer un code manuellement (temporairement, en attendant le coupon)
+            'allow_promotion_codes' => true,
         ], $betaParams);
 
         $checkout = $user->newSubscription($plan, $priceId)->checkout($checkoutParams);
@@ -130,7 +132,7 @@ class SubscriptionController extends Controller
             $routePrefix = 'tattooer';
         } elseif ($user->piercer) {
             $artist      = $user->piercer;
-            $routePrefix = 'piercer';
+            $routePrefix = 'pierceur';
         } else {
             return redirect()->route('dashboard')->with('error', 'Aucun profil artiste trouvé.');
         }
@@ -168,6 +170,48 @@ class SubscriptionController extends Controller
     }
 
     /**
+     * S'abonner depuis le trial
+     */
+    public function subscribeFromTrial(Request $request)
+    {
+        $user = auth()->user();
+
+        // Déterminer si c'est un tattooer ou un piercer
+        if ($user->tattooer) {
+            $artist = $user->tattooer;
+            $routePrefix = 'tattooer';
+        } elseif ($user->piercer) {
+            $artist = $user->piercer;
+            $routePrefix = 'pierceur';
+        } else {
+            return redirect()->route('dashboard')->with('error', 'Aucun profil artiste trouvé.');
+        }
+
+        // Créer une session Stripe Checkout pour le plan PRO
+        try {
+            $checkoutSession = $user->checkout('pro', [
+                'success_url' => route($routePrefix . '.subscription.success'),
+                'cancel_url' => route($routePrefix . '.subscription.plans'),
+                'metadata' => [
+                    'user_id' => $user->id,
+                    'plan' => 'pro',
+                    'source' => 'trial_upgrade',
+                ],
+            ]);
+
+            return redirect()->away($checkoutSession->url);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Checkout session creation error', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect()->route($routePrefix . '.subscription.plans')
+                ->with('error', 'Une erreur est survenue lors de la création de votre session de paiement.');
+        }
+    }
+
+    /**
      * Gérer l'abonnement (portail client Stripe)
      */
     public function manage(Request $request)
@@ -178,7 +222,7 @@ class SubscriptionController extends Controller
         if ($user->tattooer) {
             $routePrefix = 'tattooer';
         } elseif ($user->piercer) {
-            $routePrefix = 'piercer';
+            $routePrefix = 'pierceur';
         } else {
             return redirect()->route('dashboard')->with('error', 'Aucun profil artiste trouvé.');
         }
@@ -201,7 +245,7 @@ class SubscriptionController extends Controller
             $routePrefix = 'tattooer';
         } elseif ($user->piercer) {
             $artist = $user->piercer;
-            $routePrefix = 'piercer';
+            $routePrefix = 'pierceur';
         } else {
             return redirect()->route('dashboard')->with('error', 'Aucun profil artiste trouvé.');
         }
@@ -232,7 +276,7 @@ class SubscriptionController extends Controller
             $routePrefix = 'tattooer';
         } elseif ($user->piercer) {
             $artist = $user->piercer;
-            $routePrefix = 'piercer';
+            $routePrefix = 'pierceur';
         } else {
             return redirect()->route('dashboard')->with('error', 'Aucun profil artiste trouvé.');
         }

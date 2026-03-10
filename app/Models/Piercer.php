@@ -38,6 +38,11 @@ class Piercer extends Model implements HasMedia, ArtisanInterface
             if (empty($piercer->slug)) {
                 $piercer->slug = Str::slug(($piercer->user->name ?? 'piercer') . '-' . uniqid());
             }
+
+            // Initialiser le trial de 14 jours pour les nouveaux piercers
+            if (is_null($piercer->trial_ends_at)) {
+                $piercer->trial_ends_at = now()->addDays(14);
+            }
         });
 
         static::updating(function ($piercer) {
@@ -241,6 +246,25 @@ class Piercer extends Model implements HasMedia, ArtisanInterface
         return $this->city . ($this->postal_code ? ' (' . $this->postal_code . ')' : '');
     }
 
+    /**
+     * Plan enregistré en base (ne tient pas compte du trial).
+     * Utiliser isOnTrial() pour savoir si l'accès PRO vient du trial.
+     */
+    public function getCurrentPlanAttribute(): string
+    {
+        return $this->attributes['current_plan'] ?? 'starter';
+    }
+
+    /**
+     * En période d'essai : trial non expiré ET pas encore souscrit.
+     */
+    public function isOnTrial(): bool
+    {
+        return $this->trial_ends_at
+            && $this->trial_ends_at->isFuture()
+            && !$this->is_subscribed;
+    }
+
     public function getUserStatusAttribute(): string
     {
         return $this->user->status ?? 'pending_verification';
@@ -350,7 +374,11 @@ class Piercer extends Model implements HasMedia, ArtisanInterface
             return true;
         }
 
-        // Artiste indépendant : vérifier via is_subscribed ou activeSubscription
+        // Artiste indépendant : vérifier trial, is_subscribed ou activeSubscription
+        if ($this->isOnTrial()) {
+            return true;
+        }
+
         if ($this->is_subscribed) {
             return true;
         }
