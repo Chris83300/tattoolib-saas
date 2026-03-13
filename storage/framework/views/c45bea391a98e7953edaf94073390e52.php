@@ -54,6 +54,7 @@ if (isset($__slots)) unset($__slots);
             'completed' => 'Terminées',
             'expired' => 'Expirées',
             'cancelled' => 'Annulées',
+            'rejected' => 'Refusées',
         ]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $label): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <a href="<?php echo e(route($tattooer->routePrefix() . '.requests')); ?>?status=<?php echo e($key); ?>"
                         class="px-4 py-2 rounded-lg text-sm font-semibold transition-all relative
@@ -80,21 +81,23 @@ if (isset($__slots)) unset($__slots);
                     <option value="">Tous les statuts</option>
                     <option value="pending">En attente</option>
                     <option value="accepted">Acceptées</option>
-                    <option value="rejected">Refusées</option>
+                    <option value="confirmed">Confirmées</option>
+                    <option value="completed">Terminées</option>
                     <option value="expired">Expirées</option>
+                    <option value="rejected">Refusées</option>
                     <option value="cancelled">Annulées</option>
                 </select>
             </div>
         </div>
 
         <!-- Stats rapides -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-6 gap-4">
             <?php
                 $statusCounts = $requests->groupBy('status')->map->count();
             ?>
 
             <div class="bg-gris-fonde rounded-xl p-4 text-center">
-                <div class="text-2xl font-bold text-ambre-warning mb-1">
+                <div id="count-pending" class="text-2xl font-bold text-ambre-warning mb-1">
                     <?php echo e($statusCounts->get('pending', 0)); ?>
 
                 </div>
@@ -102,7 +105,7 @@ if (isset($__slots)) unset($__slots);
             </div>
 
             <div class="bg-gris-fonde rounded-xl p-4 text-center">
-                <div class="text-2xl font-bold text-beige-peau mb-1">
+                <div id="count-accepted" class="text-2xl font-bold text-beige-peau mb-1">
                     <?php echo e($statusCounts->get('accepted', 0)); ?>
 
                 </div>
@@ -110,7 +113,15 @@ if (isset($__slots)) unset($__slots);
             </div>
 
             <div class="bg-gris-fonde rounded-xl p-4 text-center">
-                <div class="text-2xl font-bold text-vert-succes mb-1">
+                <div id="count-confirmed" class="text-2xl font-bold text-vert-succes mb-1">
+                    <?php echo e($statusCounts->get('date_confirmed', 0)); ?>
+
+                </div>
+                <div class="text-ivoire-text/60 text-xs">Confirmées</div>
+            </div>
+
+            <div class="bg-gris-fonde rounded-xl p-4 text-center">
+                <div id="count-completed" class="text-2xl font-bold text-vert-succes mb-1">
                     <?php echo e($statusCounts->get('completed', 0)); ?>
 
                 </div>
@@ -118,11 +129,27 @@ if (isset($__slots)) unset($__slots);
             </div>
 
             <div class="bg-gris-fonde rounded-xl p-4 text-center">
-                <div class="text-2xl font-bold text-rouge-alerte mb-1">
+                <div id="count-expired" class="text-2xl font-bold text-rouge-alerte mb-1">
+                    <?php echo e($statusCounts->get('expired', 0)); ?>
+
+                </div>
+                <div class="text-ivoire-text/60 text-xs">Expirées</div>
+            </div>
+
+            <div class="bg-gris-fonde rounded-xl p-4 text-center">
+                <div id="count-cancelled" class="text-2xl font-bold text-rouge-alerte mb-1">
                     <?php echo e($statusCounts->get('cancelled', 0)); ?>
 
                 </div>
                 <div class="text-ivoire-text/60 text-xs">Annulées</div>
+            </div>
+
+            <div class="bg-gris-fonde rounded-xl p-4 text-center">
+                <div id="count-rejected" class="text-2xl font-bold text-rouge-alerte mb-1">
+                    <?php echo e($statusCounts->get('rejected', 0)); ?>
+
+                </div>
+                <div class="text-ivoire-text/60 text-xs">Refusées</div>
             </div>
         </div>
 
@@ -335,14 +362,47 @@ if (isset($__slots)) unset($__slots);
             const status = this.value;
             const cards = document.querySelectorAll('[data-status]');
 
+            // Mettre à jour les compteurs
+            const statusCounts = {
+                pending: 0,
+                accepted: 0,
+                completed: 0,
+                expired: 0,
+                cancelled: 0,
+                rejected: 0
+            };
+
             cards.forEach(card => {
+                const cardStatus = card.dataset.status;
+
+                // Compter pour les stats
+                if (cardStatus === 'pending') statusCounts.pending++;
+                else if (cardStatus === 'accepted' || cardStatus === 'deposit_requested' || cardStatus ===
+                    'deposit_paid') statusCounts.accepted++;
+                else if (cardStatus === 'date_confirmed') statusCounts.date_confirmed++;
+                else if (cardStatus === 'completed') statusCounts.completed++;
+                else if (cardStatus === 'cancelled') statusCounts.cancelled++;
+                else if (cardStatus === 'rejected') statusCounts.rejected++;
+
+                // Afficher/masquer la carte
                 if (!status || card.dataset.status === status) {
                     card.style.display = 'block';
                 } else {
                     card.style.display = 'none';
                 }
             });
+
+            // Mettre à jour les compteurs dans le DOM
+            document.getElementById('count-pending').textContent = statusCounts.pending;
+            document.getElementById('count-accepted').textContent = statusCounts.accepted;
+            document.getElementById('count-date_confirmed').textContent = statusCounts.date_confirmed;
+            document.getElementById('count-completed').textContent = statusCounts.completed;
+            document.getElementById('count-cancelled').textContent = statusCounts.cancelled;
+            document.getElementById('count-rejected').textContent = statusCounts.rejected;
         });
+
+        // Mettre à jour les compteurs au chargement
+        updateCounters();
 
         // Recherche
         document.getElementById('search-client').addEventListener('input', function() {
@@ -357,6 +417,9 @@ if (isset($__slots)) unset($__slots);
                     card.style.display = 'none';
                 }
             });
+
+            // Mettre à jour les compteurs après recherche
+            updateCounters();
         });
     </script>
 <?php $__env->stopSection(); ?>

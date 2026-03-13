@@ -6,6 +6,9 @@ use App\Models\BookingRequest;
 use App\Models\AccountingTransaction;
 use App\Models\Payment;
 use App\Models\Conversation;
+use App\Models\Tattooer;
+use App\Models\Piercer;
+use App\Models\Studio;
 use App\Enums\BookingRequestStatus;
 use App\Enums\ConversationStatus;
 use Illuminate\Http\Request;
@@ -77,6 +80,10 @@ class StripeWebhookController extends Controller
 
             case 'invoice.payment_failed':
                 $this->handleInvoicePaymentFailed($event->data->object);
+                break;
+
+            case 'account.updated':
+                $this->handleAccountUpdated($event->data->object);
                 break;
 
             default:
@@ -412,6 +419,99 @@ class StripeWebhookController extends Controller
             'booking_request_id' => $bookingRequest->id,
             'appointment_id' => $appointment->id,
             'appointment_datetime' => $appointment->start_datetime,
+        ]);
+    }
+
+    // ═══ STRIPE CONNECT — MISES À JOUR COMPTE ═══
+
+    /**
+     * Gérer les changements d'état d'un compte Connect (account.updated)
+     * Synchronise stripe_connect_status sur Tattooer, Piercer, ou Studio.
+     */
+    private function handleAccountUpdated($account): void
+    {
+        $accountId = $account->id;
+        $chargesEnabled = $account->charges_enabled ?? false;
+        $payoutsEnabled = $account->payouts_enabled ?? false;
+        $detailsSubmitted = $account->details_submitted ?? false;
+        $requirements = $account->requirements?->currently_due ?? [];
+
+        // Déterminer le statut local
+        $newStatus = match(true) {
+            $chargesEnabled && $payoutsEnabled           => 'active',
+            $detailsSubmitted && count($requirements) > 0 => 'restricted',
+            $detailsSubmitted                            => 'onboarding',
+            default                                      => 'not_connected',
+        };
+
+        Log::info('Webhook: account.updated reçu', [
+            'account_id'       => $accountId,
+            'charges_enabled'  => $chargesEnabled,
+            'payouts_enabled'  => $payoutsEnabled,
+            'resolved_status'  => $newStatus,
+            'requirements_due' => $requirements,
+        ]);
+
+        // Chercher parmi Tattooer
+        $tattooer = Tattooer::where('stripe_connect_account_id', $accountId)->first();
+        if ($tattooer) {
+            $this->syncArtistConnectStatus($tattooer, $newStatus, $chargesEnabled);
+            return;
+        }
+
+        // Chercher parmi Piercer
+        $piercer = Piercer::where('stripe_connect_account_id', $accountId)->first();
+        if ($piercer) {
+            $this->syncArtistConnectStatus($piercer, $newStatus, $chargesEnabled);
+            return;
+        }
+
+        // Chercher parmi Studio (mode studio_managed)
+        $studio = Studio::where('stripe_account_id', $accountId)->first();
+        if ($studio) {
+            $studio->update([
+                'stripe_onboarding_complete' => $chargesEnabled,
+            ]);
+
+            Log::info('Webhook: Studio Connect statut mis à jour', [
+                'studio_id'  => $studio->id,
+                'charges_enabled' => $chargesEnabled,
+            ]);
+            return;
+        }
+
+        Log::warning('Webhook: account.updated — aucun artiste/studio trouvé', [
+            'account_id' => $accountId,
+        ]);
+    }
+
+    /**
+     * Synchronise le statut Stripe Connect d'un artiste (Tattooer ou Piercer).
+     */
+    private function syncArtistConnectStatus($artist, string $newStatus, bool $chargesEnabled): void
+    {
+        $oldStatus = $artist->stripe_connect_status;
+
+        $artist->update([
+            'stripe_connect_status'    => $newStatus,
+            'stripe_onboarding_complete' => $chargesEnabled,
+        ]);
+
+        // Activer si nouveaux droits
+        if ($newStatus === 'active' && $oldStatus !== 'active') {
+            $artist->activateStripeConnect();
+        }
+
+        // Désactiver si charges désactivées et était actif
+        if (!$chargesEnabled && $oldStatus === 'active') {
+            $artist->deactivateStripeConnect('stripe_account_restricted');
+        }
+
+        Log::info('Webhook: Artiste Connect statut synchronisé', [
+            'artist_id'   => $artist->id,
+            'artist_type' => get_class($artist),
+            'old_status'  => $oldStatus,
+            'new_status'  => $newStatus,
         ]);
     }
 

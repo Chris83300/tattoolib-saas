@@ -54,8 +54,10 @@ class BalancePaymentController extends Controller
         abort_unless($stripeAccountId, 500, 'Compte Stripe artiste non configuré.');
 
         // Calculer la commission basée sur le plan (STARTER=7%, PRO/STUDIO=0%)
-        $commissionRate = $tattooer?->getCommissionRate() ?? 0.07;
-        $applicationFee = $commissionRate > 0 ? (int) round($balanceRemaining * 100 * $commissionRate) : 0;
+        $amountCents    = (int) round($balanceRemaining * 100);
+        $studio         = method_exists($tattooer, 'studio') ? $tattooer->studio : null;
+        $applicationFee = app(\App\Services\StripeService::class)
+            ->calculateApplicationFee($amountCents, $tattooer, $studio);
 
         $sessionParams = [
             'payment_method_types' => ['card'],
@@ -63,7 +65,7 @@ class BalancePaymentController extends Controller
             'line_items' => [[
                 'price_data' => [
                     'currency' => 'eur',
-                    'unit_amount' => (int) round($balanceRemaining * 100),
+                    'unit_amount' => $amountCents,
                     'product_data' => [
                         'name' => 'Solde tattoo - ' . ($bookingRequest->description ?? 'Prestation'),
                         'description' => 'Paiement du solde restant',
@@ -72,10 +74,9 @@ class BalancePaymentController extends Controller
                 'quantity' => 1,
             ]],
             'payment_intent_data' => [
+                'on_behalf_of'           => $stripeAccountId,
+                'transfer_data'          => ['destination' => $stripeAccountId],
                 'application_fee_amount' => $applicationFee,
-                'transfer_data' => [
-                    'destination' => $stripeAccountId,
-                ],
                 'metadata' => [
                     'booking_request_id' => $bookingRequest->id,
                     'payment_type' => 'balance',

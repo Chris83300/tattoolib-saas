@@ -1,6 +1,4 @@
-@extends('layouts.tattooer')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="space-y-6">
 
         <!-- Header -->
@@ -27,7 +25,7 @@
                     <span class="text-sm text-ivoire-text/60">Total gagné</span>
                 </div>
                 <div class="text-2xl font-bold text-ivoire-text">
-                    {{ number_format($paymentStats['total_earned'], 2, ',', ' ') }} €
+                    <?php echo e(number_format($paymentStats['total_earned'], 2, ',', ' ')); ?> €
                 </div>
                 <p class="text-sm text-ivoire-text/50 mt-2">
                     Depuis le début
@@ -46,10 +44,11 @@
                     <span class="text-sm text-ivoire-text/60">Ce mois</span>
                 </div>
                 <div class="text-2xl font-bold text-vert-succes">
-                    {{ number_format($paymentStats['this_month'], 2, ',', ' ') }} €
+                    <?php echo e(number_format($paymentStats['this_month'], 2, ',', ' ')); ?> €
                 </div>
                 <p class="text-sm text-ivoire-text/50 mt-2">
-                    {{ now()->format('F Y') }}
+                    <?php echo e(now()->format('F Y')); ?>
+
                 </p>
             </div>
 
@@ -64,7 +63,7 @@
                     <span class="text-sm text-ivoire-text/60">Acomptes en attente</span>
                 </div>
                 <div class="text-2xl font-bold text-ambre-warning">
-                    {{ number_format($paymentStats['pending_deposits'], 2, ',', ' ') }} €
+                    <?php echo e(number_format($paymentStats['pending_deposits'], 2, ',', ' ')); ?> €
                 </div>
                 <p class="text-sm text-ivoire-text/50 mt-2">
                     En attente de paiement
@@ -72,57 +71,60 @@
             </div>
         </div>
 
-        {{-- Flash messages --}}
-        @if (session('success'))
+        
+        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(session('success')): ?>
             <div class="p-4 bg-vert-succes/10 border border-vert-succes/30 rounded-xl text-vert-succes text-sm">
-                {{ session('success') }}
+                <?php echo e(session('success')); ?>
+
             </div>
-        @endif
-        @if (session('error'))
+        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(session('error')): ?>
             <div class="p-4 bg-rouge-erreur/10 border border-rouge-erreur/30 rounded-xl text-rouge-erreur text-sm">
-                {{ session('error') }}
+                <?php echo e(session('error')); ?>
+
             </div>
-        @endif
-        @if (session('info'))
+        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(session('info')): ?>
             <div class="p-4 bg-beige-peau/10 border border-beige-peau/30 rounded-xl text-beige-peau text-sm">
-                {{ session('info') }}
+                <?php echo e(session('info')); ?>
+
             </div>
-        @endif
+        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
         <!-- Stripe Connect -->
-        @php
+        <?php
             $connectStatus = $tattooer->stripe_connect_status ?? 'not_connected';
             $isActive      = $connectStatus === 'active' && !empty($tattooer->stripe_connect_account_id);
             $isPending     = in_array($connectStatus, ['onboarding', 'pending', 'restricted'])
                              && !empty($tattooer->stripe_connect_account_id);
-        @endphp
+        ?>
 
         <div class="bg-gris-fonde rounded-xl p-6">
             <h2 class="text-xl font-semibold text-ivoire-text mb-4">
                 Stripe Connect
             </h2>
 
-            @if (!$tattooer->needsOwnStripeConnect())
-                {{-- Studio centralisé --}}
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!$tattooer->needsOwnStripeConnect()): ?>
+                
                 <div class="flex items-center gap-3 p-4 bg-noir-profond rounded-xl border border-titane/20">
                     <span class="text-2xl">🏢</span>
                     <p class="text-sm text-titane">
                         Les paiements sont gérés par votre studio
-                        <strong class="text-ivoire-text">{{ $tattooer->studio?->name }}</strong>.
+                        <strong class="text-ivoire-text"><?php echo e($tattooer->studio?->name); ?></strong>.
                         Vous n'avez pas besoin de configurer Stripe Connect.
                     </p>
                 </div>
 
-            @elseif ($isActive)
-                {{-- Compte actif --}}
+            <?php elseif($isActive): ?>
+                
                 <div class="flex items-center gap-3 p-4 bg-vert-succes/10 rounded-xl border border-vert-succes/30">
                     <span class="text-2xl">✅</span>
                     <div class="flex-1">
                         <p class="font-semibold text-vert-succes">Stripe Connect actif</p>
                         <p class="text-sm text-ivoire-text/60">Vous recevez les paiements directement sur votre compte bancaire.</p>
                     </div>
-                    <form action="{{ route($tattooer->routePrefix() . '.stripe.connect') }}" method="POST">
-                        @csrf
+                    <form action="<?php echo e(route($tattooer->routePrefix() . '.stripe.connect')); ?>" method="POST">
+                        <?php echo csrf_field(); ?>
                         <button type="submit"
                             class="px-4 py-2 bg-titane text-ivoire-text rounded-lg hover:bg-titane/80 transition-colors text-sm">
                             Gérer le compte
@@ -130,16 +132,16 @@
                     </form>
                 </div>
 
-            @elseif ($isPending)
-                {{-- Vérification en cours --}}
+            <?php elseif($isPending): ?>
+                
                 <div class="flex items-center gap-3 p-4 bg-ambre-warning/10 rounded-xl border border-ambre-warning/30">
                     <span class="text-2xl">⏳</span>
                     <div class="flex-1">
                         <p class="font-semibold text-ambre-warning">Vérification en cours</p>
                         <p class="text-sm text-ivoire-text/60">Stripe peut vous demander des documents. Vérifiez votre email.</p>
                     </div>
-                    <form action="{{ route($tattooer->routePrefix() . '.stripe.connect') }}" method="POST">
-                        @csrf
+                    <form action="<?php echo e(route($tattooer->routePrefix() . '.stripe.connect')); ?>" method="POST">
+                        <?php echo csrf_field(); ?>
                         <button type="submit"
                             class="px-4 py-2 bg-ambre-warning/20 text-ambre-warning rounded-lg hover:bg-ambre-warning/30 transition-colors text-sm">
                             Compléter mon profil
@@ -147,8 +149,8 @@
                     </form>
                 </div>
 
-            @else
-                {{-- Pas encore configuré --}}
+            <?php else: ?>
+                
                 <div class="text-center py-8">
                     <div class="w-16 h-16 bg-noir-profond rounded-full flex items-center justify-center mx-auto mb-4">
                         <svg class="w-8 h-8 text-ivoire-text/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -163,15 +165,15 @@
                     <p class="text-ivoire-text/60 mb-6">
                         Recevez vos paiements directement sur votre compte bancaire
                     </p>
-                    <form action="{{ route($tattooer->routePrefix() . '.stripe.connect') }}" method="POST">
-                        @csrf
+                    <form action="<?php echo e(route($tattooer->routePrefix() . '.stripe.connect')); ?>" method="POST">
+                        <?php echo csrf_field(); ?>
                         <button type="submit"
                             class="px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors">
                             Connecter Stripe Connect
                         </button>
                     </form>
                 </div>
-            @endif
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
         </div>
 
         <!-- Transactions récentes -->
@@ -185,7 +187,7 @@
                 </button>
             </div>
 
-            @if ($payments->count() > 0)
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($payments->count() > 0): ?>
                 <div class="overflow-x-auto">
                     <table class="w-full">
                         <thead>
@@ -198,47 +200,52 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($payments as $payment)
-                                @php
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $payments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $payment): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <?php
                                     $depositTx = $payment->bookingTransactions->where('type', 'deposit')->where('status', 'completed')->first();
                                     $balanceTx = $payment->bookingTransactions->where('type', 'final_payment')->where('status', 'completed')->first();
                                     $paidAmount = ($depositTx?->amount ?? 0) + ($balanceTx?->amount ?? 0);
                                     $paymentMethod = $depositTx?->payment_method ?? $balanceTx?->payment_method ?? 'stripe';
-                                @endphp
+                                ?>
                                 <tr class="border-b border-titane/20 hover:bg-noir-profond/50 transition-colors">
                                     <td class="py-3 px-4 text-ivoire-text">
-                                        {{ $payment->deposit_paid_at?->format('d/m/Y') ?? 'N/A' }}
+                                        <?php echo e($payment->deposit_paid_at?->format('d/m/Y') ?? 'N/A'); ?>
+
                                     </td>
                                     <td class="py-3 px-4 text-ivoire-text">
-                                        {{ $payment->client->first_name }} {{ $payment->client->last_name }}
+                                        <?php echo e($payment->client->first_name); ?> <?php echo e($payment->client->last_name); ?>
+
                                     </td>
                                     <td class="py-3 px-4 text-ivoire-text">
-                                        {{ $payment->description }}
-                                        @if ($payment->body_zone)
+                                        <?php echo e($payment->description); ?>
+
+                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($payment->body_zone): ?>
                                             <span class="text-xs text-ivoire-text/60 ml-2">
-                                                ({{ $payment->body_zone }})
+                                                (<?php echo e($payment->body_zone); ?>)
                                             </span>
-                                        @endif
+                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                     </td>
                                     <td class="py-3 px-4">
                                         <span class="px-2 py-1 bg-titane/20 text-titane rounded-full text-xs font-medium">
-                                            {{ $paymentMethod }}
+                                            <?php echo e($paymentMethod); ?>
+
                                         </span>
                                     </td>
                                     <td class="py-3 px-4 text-right font-semibold text-vert-succes">
-                                        {{ number_format($paidAmount, 2, ',', ' ') }} €
+                                        <?php echo e(number_format($paidAmount, 2, ',', ' ')); ?> €
                                     </td>
                                 </tr>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </tbody>
                     </table>
                 </div>
 
                 <!-- Pagination -->
                 <div class="mt-6 flex justify-center">
-                    {{ $payments->links() }}
+                    <?php echo e($payments->links()); ?>
+
                 </div>
-            @else
+            <?php else: ?>
                 <div class="text-center py-12">
                     <div class="w-16 h-16 bg-noir-profond rounded-full flex items-center justify-center mx-auto mb-4">
                         <svg class="w-8 h-8 text-ivoire-text/40" fill="none" stroke="currentColor"
@@ -255,12 +262,12 @@
                         Vous n'avez pas encore de transactions enregistrées.
                     </p>
                 </div>
-            @endif
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
         </div>
 
     </div>
 
-    @push('scripts')
+    <?php $__env->startPush('scripts'); ?>
         <script>
             // Gestion du bouton "Gérer le compte" (placeholder)
             document.querySelectorAll('button').forEach(button => {
@@ -272,5 +279,7 @@
                 }
             });
         </script>
-    @endpush
-@endsection
+    <?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.tattooer', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\tattoolib-saas\resources\views/tattooer/payments.blade.php ENDPATH**/ ?>

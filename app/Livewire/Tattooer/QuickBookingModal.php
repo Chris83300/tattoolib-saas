@@ -2,11 +2,12 @@
 
 namespace App\Livewire\Tattooer;
 
-use App\Models\BookingRequest;
 use App\Models\Appointment;
+use App\Models\BookingRequest;
 use App\Models\CalendarEvent;
 use App\Notifications\AppointmentConfirmedNotification;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\On;
@@ -14,10 +15,11 @@ use Livewire\Component;
 
 class QuickBookingModal extends Component
 {
-    public bool $showModal = false;
-    public ?int $bookingRequestId = null;
+    public bool $showQuickBookingModal = false;
+    public string $appointmentStartTime = '';
+    public string $appointmentEndTime = '';
+    public ?int $currentBookingRequestId = null;
     public ?BookingRequest $bookingRequest = null;
-
     public string $appointmentTitle = '';
     public string $appointmentDate = '';
     public string $appointmentDateDisplay = '';
@@ -35,11 +37,15 @@ class QuickBookingModal extends Component
         'endTime.after'         => 'L\'heure de fin doit être après l\'heure de début.',
     ];
 
+    #[On('open-booking-modal')]
     #[On('open-booking-from-chat')]
-    public function openFromChat(int $bookingRequestId, string $date, string $period): void
+    public function openBookingModal(string $date, string $period, int $bookingRequestId): void
     {
+        $this->bookingRequestId = $bookingRequestId;
+        $this->showQuickBookingModal = true;
+
         // Debug logs
-        Log::info('🎯 QuickBookingModal.openFromChat called', [
+        Log::info('🎯 QuickBookingModal.openBookingModal called', [
             'bookingRequestId' => $bookingRequestId,
             'date' => $date,
             'period' => $period,
@@ -53,11 +59,8 @@ class QuickBookingModal extends Component
             throw new \Exception('Aucun artisan (tattooer/piercer) trouvé');
         }
 
-        $this->bookingRequest = BookingRequest::with(['client.user'])
-            ->where('id', $bookingRequestId)
-            ->where('bookable_id', $artisan->id)
-            ->where('bookable_type', get_class($artisan))
-            ->firstOrFail();
+        // Récupérer la demande de réservation
+        $this->bookingRequest = BookingRequest::with(['client.user'])->findOrFail($bookingRequestId);
 
         // Debug: Vérifier la demande
         Log::info('📋 BookingRequest found', [
@@ -66,7 +69,7 @@ class QuickBookingModal extends Component
             'status' => $this->bookingRequest->status->value,
         ]);
 
-        $this->bookingRequestId = $bookingRequestId;
+        $this->currentBookingRequestId = $bookingRequestId;
 
         // Titre pré-rempli avec le pseudo du client
         $clientPseudo = $this->bookingRequest->client?->user?->pseudo
@@ -108,9 +111,9 @@ class QuickBookingModal extends Component
         ]);
 
         // Ouvrir la modal
-        $this->showModal = true;
+        $this->showQuickBookingModal = true;
 
-        Log::info('✅ Modal should be open now');
+        Log::info('✅ QuickBookingModal should be open now');
     }
 
     public function createAppointment(): void
@@ -189,11 +192,25 @@ class QuickBookingModal extends Component
             }
         });
 
-        $this->showModal = false;
+        $this->showQuickBookingModal = false;
+        $this->resetForm();
         session()->flash('success', '✅ Rendez-vous créé avec succès !');
 
         // Rafraîchir le calendrier FullCalendar
         $this->dispatch('refresh-quick-booking');
+    }
+
+    public function resetForm(): void
+    {
+        $this->reset([
+            'appointmentTitle',
+            'appointmentDate',
+            'appointmentDateDisplay',
+            'startTime',
+            'endTime',
+            'currentBookingRequestId',
+            'bookingRequest',
+        ]);
     }
 
     public function render()

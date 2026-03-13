@@ -445,8 +445,7 @@
                                 </form>
 
                                 @if ($bookingRequest->status->value === 'date_confirmed')
-                                    <form
-                                        action="{{ route($tattooer->routePrefix() . '.booking-requests.complete', $bookingRequest) }}"
+                                    <form action="{{ route('booking-requests.complete', $bookingRequest) }}"
                                         method="POST">
                                         @csrf
                                         <button type="submit"
@@ -455,8 +454,7 @@
                                         </button>
                                     </form>
 
-                                    <form
-                                        action="{{ route($tattooer->routePrefix() . '.booking-requests.no-show', $bookingRequest) }}"
+                                    <form action="{{ route('booking-requests.no-show', $bookingRequest) }}"
                                         method="POST"
                                         onsubmit="return confirm('Êtes-vous sûr de vouloir déclarer ce client comme absent ? Cette action est irréversible et incrémentera son compteur de no-show.')">
                                         @csrf

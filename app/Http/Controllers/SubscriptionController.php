@@ -29,6 +29,12 @@ class SubscriptionController extends Controller
             return redirect()->route('dashboard')->with('error', 'Aucun profil artiste trouvé.');
         }
 
+        // Artiste rattaché à un studio : pas d'abonnement individuel
+        if ($artist->studio_id) {
+            return redirect()->route($routePrefix . '.dashboard')
+                ->with('info', 'Votre abonnement est géré par votre studio. Vous n\'avez pas besoin de souscrire individuellement.');
+        }
+
         // Compteurs pour le layout
         $pendingCount = \App\Models\BookingRequest::where('bookable_id', $artist->id)
             ->where('bookable_type', get_class($artist))
@@ -76,6 +82,12 @@ class SubscriptionController extends Controller
             $routePrefix = 'pierceur';
         } else {
             return redirect()->route('dashboard')->with('error', 'Aucun profil artiste trouvé.');
+        }
+
+        // Artiste de studio : pas d'abonnement individuel
+        if ($artist->studio_id) {
+            return redirect()->route($routePrefix . '.dashboard')
+                ->with('info', 'Votre abonnement est géré par votre studio.');
         }
 
         // Valider le plan demandé

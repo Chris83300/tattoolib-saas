@@ -367,24 +367,32 @@ class Piercer extends Model implements HasMedia, ArtisanInterface
         return max($calculated, $this->minimum_deposit);
     }
 
+    public function isStarter(): bool
+    {
+        return $this->is_subscribed
+            && !$this->studio_id
+            && $this->getCurrentPlan() === \App\Models\Subscription::PLAN_STARTER;
+    }
+
     public function isPro(): bool
     {
-        // Artiste studio = toujours PRO (le studio paie, is_subscribed=true)
+        // Artiste studio = toujours PRO (le studio paie)
         if ($this->studio_id) {
             return true;
         }
 
-        // Artiste indépendant : vérifier trial, is_subscribed ou activeSubscription
+        // Trial actif = accès PRO complet, pas encore souscrit
         if ($this->isOnTrial()) {
             return true;
         }
 
+        // Abonné : vérifier que le plan est PRO (pas STARTER)
         if ($this->is_subscribed) {
-            return true;
+            $plan = $this->getCurrentPlan();
+            return in_array($plan, [\App\Models\Subscription::PLAN_PRO, \App\Models\Subscription::PLAN_STUDIO]);
         }
 
-        return $this->activeSubscription !== null
-            && $this->activeSubscription->plan === 'pro';
+        return false;
     }
 
     public function isFree(): bool
@@ -399,6 +407,7 @@ class Piercer extends Model implements HasMedia, ArtisanInterface
 
     /**
      * Override HasSubscription::getCurrentPlan() pour les artistes studio.
+     * Priorité : studio → PRO, puis colonne current_plan, puis morphOne, puis FREE.
      */
     public function getCurrentPlan(): string
     {
@@ -406,11 +415,16 @@ class Piercer extends Model implements HasMedia, ArtisanInterface
             return \App\Models\Subscription::PLAN_PRO;
         }
 
+        if (!empty($this->current_plan)) {
+            return $this->current_plan;
+        }
+
         return $this->subscription?->plan ?? \App\Models\Subscription::PLAN_FREE;
     }
 
     /**
      * Override HasSubscription::getCommissionRate() pour les artistes studio.
+     * Fallback sur le plan actuel si aucun record de subscription en DB.
      */
     public function getCommissionRate(): float
     {
@@ -418,12 +432,10 @@ class Piercer extends Model implements HasMedia, ArtisanInterface
             return 0.0;
         }
 
-        $subscription = $this->subscription;
-        if (!$subscription) {
-            return \App\Models\Subscription::COMMISSION_FREE;
-        }
-
-        return (float) $subscription->commission_rate;
+        // Dériver du plan actuel (current_plan est la source de vérité)
+        return $this->isStarter()
+            ? \App\Models\Subscription::COMMISSION_STARTER
+            : 0.0;
     }
 
     // ===== MÉTHODES SPÉCIFIQUES PIERCING =====

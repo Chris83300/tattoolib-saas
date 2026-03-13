@@ -33,7 +33,9 @@
       "Bash(rm:*)",
       "Bash(cp:*)",
       "Bash(sed:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(find \"C:/laragon/www/tattoolib-saas\" -type f \\\\\\( -name \"*subscription*\" -o -name \"*commission*\" \\\\\\) ! -path \"*/node_modules/*\" ! -path \"*/.git/*\" 2>/dev/null | head -30)",
+      "Bash(cd C:/laragon/www/tattoolib-saas && php artisan tinker --execute=\"\nuse App\\\\Models\\\\Tattooer;\nuse App\\\\Models\\\\Subscription;\n\n// Trouver des artistes de chaque type pour tester\necho 'Plan constants: STARTER=' . Subscription::PLAN_STARTER . ' PRO=' . Subscription::PLAN_PRO . PHP_EOL;\necho 'Commission constants: STARTER=' . Subscription::COMMISSION_STARTER . '% PRO=' . Subscription::COMMISSION_PRO . '%' . PHP_EOL;\n\n// Test sur des vrais artistes\necho PHP_EOL . '--- Artistes en DB ---' . PHP_EOL;\nTattooer::limit\\(5\\)->get\\(['id','current_plan','is_subscribed','studio_id']\\)->each\\(function\\(\\\\$t\\) {\n    echo 'ID:'.\\\\$t->id.' plan='.\\\\$t->current_plan.' subscribed='.\\(\\\\$t->is_subscribed?'Y':'N'\\).' studio='.\\(\\\\$t->studio_id?:'null'\\);\n    echo ' | isPro='.\\(\\\\$t->isPro\\(\\)?'Y':'N'\\).' isStarter='.\\(\\\\$t->isStarter\\(\\)?'Y':'N'\\).' isFree='.\\(\\\\$t->isFree\\(\\)?'Y':'N'\\);\n    echo ' commRate='.\\\\$t->getCommissionRate\\(\\).'%';\n    echo PHP_EOL;\n}\\);\n\" 2>&1)"
     ]
   }
 }

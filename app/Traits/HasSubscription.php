@@ -35,10 +35,16 @@ trait HasSubscription
     // =============================================
 
     /**
-     * Plan actuel (FREE par défaut)
+     * Plan actuel.
+     * Priorité : colonne current_plan sur le modèle (mise à jour par SubscriptionController),
+     * puis la table subscriptions (morphOne), puis FREE par défaut.
      */
     public function getCurrentPlan(): string
     {
+        if (!empty($this->current_plan)) {
+            return $this->current_plan;
+        }
+
         return $this->subscription?->plan ?? Subscription::PLAN_FREE;
     }
 
@@ -76,15 +82,48 @@ trait HasSubscription
     }
 
     /**
-     * Vérifier si abonnement PRO actif
+     * Vérifier si plan STARTER actif (abonné STARTER, pas trial, pas PRO)
      */
-    public function isPro(): bool
+    public function isStarter(): bool
     {
-        return $this->is_subscribed === true || $this->isOnProPlan();
+        return $this->is_subscribed
+            && $this->getCurrentPlan() === Subscription::PLAN_STARTER;
     }
 
     /**
-     * Vérifier si plan FREE
+     * Vérifier si abonnement PRO actif (PRO payant OU trial actif)
+     * ⚠️ is_subscribed seul ne suffit pas : STARTER a aussi is_subscribed = true
+     */
+    public function isPro(): bool
+    {
+        if ($this->is_subscribed) {
+            $plan = $this->getCurrentPlan();
+            return in_array($plan, [Subscription::PLAN_PRO, Subscription::PLAN_STUDIO]);
+        }
+
+        return $this->isOnTrial();
+    }
+
+    /**
+     * Accès feature PRO (PRO payant OU trial)
+     */
+    public function canAccessProFeature(): bool
+    {
+        return $this->isPro();
+    }
+
+    /**
+     * Accès feature STARTER minimum (STARTER OU PRO)
+     */
+    public function canAccessStarterFeature(): bool
+    {
+        return $this->isStarter() || $this->isPro();
+    }
+
+    /**
+     * Vérifier si plan FREE/STARTER (= pas d'accès PRO)
+     * Utilisé pour bloquer les features PRO-only (middleware EnsureProPlan).
+     * Retourne true pour STARTER ET pour les non-abonnés.
      */
     public function isFree(): bool
     {
@@ -306,11 +345,13 @@ trait HasSubscription
     }
 
     /**
-     * Vérifier si en période d'essai
+     * Vérifier si en période d'essai (trial non expiré ET pas encore souscrit)
      */
     public function isOnTrial(): bool
     {
-        return $this->trial_ends_at && $this->trial_ends_at->isFuture();
+        return $this->trial_ends_at
+            && $this->trial_ends_at->isFuture()
+            && !$this->is_subscribed;
     }
 
     /**

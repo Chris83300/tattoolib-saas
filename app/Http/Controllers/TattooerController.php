@@ -123,8 +123,9 @@ class TattooerController extends Controller
             ]),
             'confirmed' => $query->where('status', BookingRequestStatus::DATE_CONFIRMED->value),
             'completed' => $query->where('status', BookingRequestStatus::COMPLETED->value),
-            'rejected'  => $query->where('status', BookingRequestStatus::CANCELLED->value), // utiliser CANCELLED pour rejected
+            'rejected'  => $query->where('status', BookingRequestStatus::REJECTED->value),
             'cancelled' => $query->where('status', BookingRequestStatus::CANCELLED->value),
+            'expired'  => $query->where('status', BookingRequestStatus::EXPIRED->value),
             default     => $query,
         };
 
@@ -2096,21 +2097,29 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
         // Charger les relations nécessaires
         $tattooer->load(['media', 'user']);
 
-        // Récupérer les paiements (pour l'instant, utilise les demandes confirmées)
+        // Récupérer les paiements : demandes avec acompte payé ou solde payé
         $payments = BookingRequest::where('bookable_id', $tattooer->id)
             ->where('bookable_type', get_class($tattooer))
-            ->where('status', 'confirmed')
-            ->with(['client.user'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->whereNotNull('deposit_paid_at')
+            ->with(['client', 'bookingTransactions'])
+            ->orderBy('deposit_paid_at', 'desc')
+            ->paginate(10);
 
-        // Statistiques des paiements
+        // Statistiques depuis les vraies transactions comptables
+        $transactionsQuery = \App\Models\BookingTransaction::whereHas('bookingRequest', function ($q) use ($tattooer) {
+            $q->where('bookable_id', $tattooer->id)
+              ->where('bookable_type', get_class($tattooer));
+        })->where('status', 'completed');
+
         $paymentStats = [
-            'total_earned' => $payments->sum('estimated_total_price'),
-            'this_month' => $payments->where('created_at', '>=', now()->startOfMonth())->sum('estimated_total_price'),
+            'total_earned'    => (clone $transactionsQuery)->sum('amount'),
+            'this_month'      => (clone $transactionsQuery)
+                ->whereMonth('created_at', now()->month)
+                ->whereYear('created_at', now()->year)
+                ->sum('amount'),
             'pending_deposits' => BookingRequest::where('bookable_id', $tattooer->id)
                 ->where('bookable_type', get_class($tattooer))
-                ->whereIn('status', ['accepted', 'deposit_requested'])
+                ->whereIn('status', ['accepted', 'deposit_requested', 'awaiting_deposit'])
                 ->sum('total_deposit_amount'),
         ];
 
@@ -2143,6 +2152,36 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
         ];
 
         return view('tattooer.payments', compact('tattooer', 'payments', 'paymentStats', 'stats', 'pendingCount', 'unreadCount'));
+    }
+
+    /**
+     * Connecter Stripe Connect — initie ou reprend l'onboarding Stripe.
+     */
+    public function connectStripe(Request $request)
+    {
+        $tattooer = $this->artisan();
+
+        if (!$tattooer) {
+            return redirect()->back()->with('error', 'Profil artiste introuvable.');
+        }
+
+        // Studio centralisé : l'artiste n'a pas besoin de son propre Connect
+        if (!$tattooer->needsOwnStripeConnect()) {
+            return redirect()->route($this->routePrefix() . '.payments')
+                ->with('info', 'Les paiements sont gérés par votre studio.');
+        }
+
+        try {
+            $connectLink = $tattooer->generateStripeConnectLink();
+            return redirect($connectLink);
+        } catch (\Exception $e) {
+            Log::error('Erreur génération lien Stripe Connect', [
+                'tattooer_id' => $tattooer->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect()->back()->with('error', 'Impossible de générer le lien Stripe Connect. Veuillez réessayer.');
+        }
     }
 
     /**

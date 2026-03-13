@@ -1,30 +1,30 @@
-@extends('layouts.tattooer')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="space-y-4 md:space-y-6">
 
         <!-- Messages Flash -->
-        @if (session('success'))
+        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(session('success')): ?>
             <div class="bg-vert-succes/20 border border-vert-succes/50 text-vert-succes px-4 py-3 rounded-lg">
-                {{ session('success') }}
-            </div>
-        @endif
+                <?php echo e(session('success')); ?>
 
-        @if (session('error'))
+            </div>
+        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
+        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(session('error')): ?>
             <div class="bg-rouge-alerte/20 border border-rouge-alerte/50 text-rouge-alerte px-4 py-3 rounded-lg">
-                {{ session('error') }}
-            </div>
-        @endif
+                <?php echo e(session('error')); ?>
 
-        @if ($errors->any())
+            </div>
+        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
+        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($errors->any()): ?>
             <div class="bg-ambre-warning/20 border border-ambre-warning/50 text-ambre-warning px-4 py-3 rounded-lg">
                 <ul class="list-disc list-inside">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <li><?php echo e($error); ?></li>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </ul>
             </div>
-        @endif
+        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
         <!-- Header -->
         <div>
@@ -54,20 +54,20 @@
                     data-tab="stripe">
                     💳 Stripe
                 </button>
-                @if ($tattooer->isPro())
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tattooer->isPro()): ?>
                     <button onclick="switchTab('aftercare')"
                         class="tab-btn min-h-11 px-4 py-2.5 md:py-2 rounded-lg font-semibold whitespace-nowrap snap-start flex-shrink-0 text-sm md:text-base"
                         data-tab="aftercare">
                         🩹 Soins
                     </button>
-                @endif
-                @if ($tattooer->isPiercer())
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tattooer->isPiercer()): ?>
                     <button onclick="switchTab('pricing')"
                         class="tab-btn min-h-11 px-4 py-2.5 md:py-2 rounded-lg font-semibold whitespace-nowrap snap-start flex-shrink-0 text-sm md:text-base"
                         data-tab="pricing">
                         💰 Tarifs
                     </button>
-                @endif
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 <button onclick="switchTab('password')"
                     class="tab-btn min-h-11 px-4 py-2.5 md:py-2 rounded-lg font-semibold whitespace-nowrap snap-start flex-shrink-0 text-sm md:text-base"
                     data-tab="password">
@@ -78,8 +78,8 @@
 
         <!-- TAB: Profil -->
         <div id="tab-profile" class="tab-content">
-            <form action="{{ route($tattooer->routePrefix() . '.settings.update') }}" method="POST" enctype="multipart/form-data">
-                @csrf
+            <form action="<?php echo e(route($tattooer->routePrefix() . '.settings.update')); ?>" method="POST" enctype="multipart/form-data">
+                <?php echo csrf_field(); ?>
 
                 <div class="bg-gris-fonde rounded-xl p-4 md:p-6 space-y-6">
 
@@ -88,7 +88,7 @@
                         <label class="block font-semibold text-ivoire-text mb-3">Photo de profil</label>
                         <div class="flex flex-col sm:flex-row sm:items-center gap-4">
                             <img id="avatar-preview"
-                                src="{{ auth()->user()->getFirstMediaUrl('avatar') ?: asset('images/default-tattooer-avatar.png') }}"
+                                src="<?php echo e(auth()->user()->getFirstMediaUrl('avatar') ?: asset('images/default-tattooer-avatar.png')); ?>"
                                 alt="Avatar" class="w-24 h-24 rounded-full object-cover">
 
                             <div class="flex flex-col gap-2">
@@ -98,12 +98,12 @@
                                     <input type="file" name="avatar" accept="image/*" class="hidden"
                                         onchange="previewAvatar(this)">
                                 </label>
-                                @if (auth()->user()->hasMedia('avatar'))
+                                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->hasMedia('avatar')): ?>
                                     <button type="button" onclick="deleteAvatar()"
                                         class="min-h-11 px-4 py-3 md:py-2 bg-rouge-alerte/20 text-rouge-alerte rounded-lg font-semibold hover:bg-rouge-alerte/30 transition-colors text-sm md:text-base active:scale-95">
                                         Supprimer
                                     </button>
-                                @endif
+                                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -117,10 +117,10 @@
                                 <p class="text-sm text-ivoire-text/70 mb-2">Aperçu actuel</p>
                                 <div
                                     class="relative w-full h-32 md:h-48 rounded-lg overflow-hidden bg-noir-profond border border-titane/30">
-                                    <img id="banner-preview" src="{{ $tattooer->getFirstMediaUrl('banner') ?: '' }}"
+                                    <img id="banner-preview" src="<?php echo e($tattooer->getFirstMediaUrl('banner') ?: ''); ?>"
                                         alt="Bannière"
-                                        class="w-full h-full object-cover {{ !$tattooer->hasMedia('banner') ? 'hidden' : '' }}">
-                                    @if (!$tattooer->hasMedia('banner'))
+                                        class="w-full h-full object-cover <?php echo e(!$tattooer->hasMedia('banner') ? 'hidden' : ''); ?>">
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!$tattooer->hasMedia('banner')): ?>
                                         <div class="absolute inset-0 flex items-center justify-center bg-titane/20">
                                             <div class="text-center">
                                                 <svg class="w-12 h-12 text-ivoire-text/40 mx-auto mb-2" fill="none"
@@ -131,7 +131,7 @@
                                                 <p class="text-ivoire-text/40 text-sm">Pas de bannière</p>
                                             </div>
                                         </div>
-                                    @endif
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 </div>
                             </div>
 
@@ -157,12 +157,12 @@
                                         <input type="file" name="banner" accept="image/*" class="hidden"
                                             onchange="previewBanner(this)">
                                     </label>
-                                    @if ($tattooer->hasMedia('banner'))
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tattooer->hasMedia('banner')): ?>
                                         <button type="button" onclick="deleteBanner()"
                                             class="min-h-11 px-4 py-3 md:py-2 bg-rouge-alerte/20 text-rouge-alerte rounded-lg font-semibold hover:bg-rouge-alerte/30 transition-colors text-sm md:text-base active:scale-95">
                                             Supprimer la bannière
                                         </button>
-                                    @endif
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -172,38 +172,38 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block font-semibold text-ivoire-text mb-2">Prénom *</label>
-                            <input type="text" name="first_name" value="{{ auth()->user()->first_name ?? '' }}" required
+                            <input type="text" name="first_name" value="<?php echo e(auth()->user()->first_name ?? ''); ?>" required
                                 class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
                         </div>
 
                         <div>
                             <label class="block font-semibold text-ivoire-text mb-2">Nom *</label>
-                            <input type="text" name="last_name" value="{{ auth()->user()->last_name ?? '' }}" required
+                            <input type="text" name="last_name" value="<?php echo e(auth()->user()->last_name ?? ''); ?>" required
                                 class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
                         </div>
 
                         <div>
                             <label class="block font-semibold text-ivoire-text mb-2">Pseudo</label>
-                            <input type="text" name="pseudo" value="{{ auth()->user()->pseudo ?? '' }}"
+                            <input type="text" name="pseudo" value="<?php echo e(auth()->user()->pseudo ?? ''); ?>"
                                 class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
                             <p class="text-xs text-ivoire-text/60 mt-1">Affiché sur votre profil public</p>
                         </div>
 
                         <div>
                             <label class="block font-semibold text-ivoire-text mb-2">Nom du salon</label>
-                            <input type="text" name="studio_name" value="{{ $tattooer->studio_name ?? '' }}"
+                            <input type="text" name="studio_name" value="<?php echo e($tattooer->studio_name ?? ''); ?>"
                                 class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
                         </div>
 
                         <div>
                             <label class="block font-semibold text-ivoire-text mb-2">Email *</label>
-                            <input type="email" name="email" value="{{ $tattooer->user->email }}" required
+                            <input type="email" name="email" value="<?php echo e($tattooer->user->email); ?>" required
                                 class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
                         </div>
 
                         <div>
                             <label class="block font-semibold text-ivoire-text mb-2">Téléphone *</label>
-                            <input type="tel" name="phone" value="{{ $tattooer->phone ?? '' }}" required
+                            <input type="tel" name="phone" value="<?php echo e($tattooer->phone ?? ''); ?>" required
                                 class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
                         </div>
                     </div>
@@ -212,13 +212,13 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="md:col-span-2">
                             <label class="block font-semibold text-ivoire-text mb-2">Adresse</label>
-                            <input type="text" name="address" value="{{ $tattooer->address ?? '' }}"
+                            <input type="text" name="address" value="<?php echo e($tattooer->address ?? ''); ?>"
                                 class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
                         </div>
 
                         <div>
                             <label class="block font-semibold text-ivoire-text mb-2">Ville *</label>
-                            <input type="text" name="city" value="{{ $tattooer->city ?? '' }}" required
+                            <input type="text" name="city" value="<?php echo e($tattooer->city ?? ''); ?>" required
                                 class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
                         </div>
                     </div>
@@ -228,18 +228,18 @@
                         <label class="block font-semibold text-ivoire-text mb-2">Bio / Présentation</label>
                         <textarea name="bio" rows="6" maxlength="1000"
                             class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base"
-                            onkeyup="updateCharCount(this, 'bio-count')">{{ $tattooer->bio ?? '' }}</textarea>
+                            onkeyup="updateCharCount(this, 'bio-count')"><?php echo e($tattooer->bio ?? ''); ?></textarea>
                         <p class="text-xs text-ivoire-text/60 mt-1">
-                            <span id="bio-count">{{ strlen($tattooer->bio ?? '') }}</span>/1000 caractères
+                            <span id="bio-count"><?php echo e(strlen($tattooer->bio ?? '')); ?></span>/1000 caractères
                         </p>
                     </div>
 
-                    @if (!$tattooer->isPiercer())
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!$tattooer->isPiercer()): ?>
                     <!-- Styles pratiqués (tatoueur uniquement) -->
                     <div>
                         <label class="block font-semibold text-ivoire-text mb-2">Styles pratiqués</label>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            @php
+                            <?php
                                 $allStyles = [
                                     'Réalisme',
                                     'Japonais',
@@ -260,23 +260,24 @@
                                 $currentCustomStyles = is_array($tattooer->custom_styles)
                                     ? $tattooer->custom_styles
                                     : json_decode($tattooer->custom_styles ?? '[]', true) ?? [];
-                            @endphp
+                            ?>
 
-                            @foreach ($allStyles as $style)
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $allStyles; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $style): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <label
                                     class="flex items-center gap-2 p-3 bg-noir-profond rounded-lg cursor-pointer hover:bg-noir-profond/80 transition-colors active:scale-95">
-                                    <input type="checkbox" name="styles[]" value="{{ $style }}"
-                                        {{ in_array($style, $currentStyles) ? 'checked' : '' }}
+                                    <input type="checkbox" name="styles[]" value="<?php echo e($style); ?>"
+                                        <?php echo e(in_array($style, $currentStyles) ? 'checked' : ''); ?>
+
                                         class="w-4 h-4 text-beige-peau focus:ring-beige-peau">
-                                    <span class="text-ivoire-text text-sm">{{ $style }}</span>
+                                    <span class="text-ivoire-text text-sm"><?php echo e($style); ?></span>
                                 </label>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
 
                         <!-- Styles personnalisés -->
                         <div class="mt-4" x-data="{
-                            showCustom: {{ in_array('Autres', $currentStyles) ? 'true' : 'false' }},
-                            customStyles: {{ json_encode(
+                            showCustom: <?php echo e(in_array('Autres', $currentStyles) ? 'true' : 'false'); ?>,
+                            customStyles: <?php echo e(json_encode(
                                 array_values(
                                     array_unique(
                                         array_filter(
@@ -287,7 +288,7 @@
                                         ),
                                     ),
                                 ),
-                            ) }},
+                            )); ?>,
                             addStyle() {
                                 this.customStyles.push('');
                                 this.$nextTick(() => {
@@ -335,7 +336,7 @@
                             </div>
                         </div>
                     </div>
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
 
                 <!-- Informations professionnelles -->
@@ -343,7 +344,7 @@
                     <div>
                         <label class="block font-semibold text-ivoire-text mb-2">Années d'expérience</label>
                         <input type="number" name="years_of_experience"
-                            value="{{ $tattooer->years_of_experience ?? '' }}" min="0" max="50"
+                            value="<?php echo e($tattooer->years_of_experience ?? ''); ?>" min="0" max="50"
                             class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
                         <p class="text-xs text-ivoire-text/60 mt-1">Nombre d'années de pratique</p>
                     </div>
@@ -351,7 +352,7 @@
                     <div>
                         <label class="block font-semibold text-ivoire-text mb-2">Prix minimum</label>
                         <div class="relative">
-                            <input type="number" name="minimum_price" value="{{ $tattooer->minimum_price ?? '' }}"
+                            <input type="number" name="minimum_price" value="<?php echo e($tattooer->minimum_price ?? ''); ?>"
                                 min="0" max="1000" step="0.01"
                                 class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base pr-8">
                             <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-ivoire-text/60">€</span>
@@ -365,14 +366,14 @@
                             <div class="flex items-center gap-3">
                                 <div class="flex-1">
                                     <input type="number" name="wait_time_weeks_min"
-                                        value="{{ $tattooer->wait_time_weeks_min ?? '' }}" min="0" max="52"
+                                        value="<?php echo e($tattooer->wait_time_weeks_min ?? ''); ?>" min="0" max="52"
                                         class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm"
                                         placeholder="Min">
                                 </div>
                                 <span class="text-ivoire-text/60">à</span>
                                 <div class="flex-1">
                                     <input type="number" name="wait_time_weeks_max"
-                                        value="{{ $tattooer->wait_time_weeks_max ?? '' }}" min="0" max="52"
+                                        value="<?php echo e($tattooer->wait_time_weeks_max ?? ''); ?>" min="0" max="52"
                                         class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm"
                                         placeholder="Max">
                                 </div>
@@ -396,7 +397,7 @@
                             <div class="relative">
                                 <span
                                     class="absolute left-3 top-1/2 transform -translate-y-1/2 text-ivoire-text/60">@</span>
-                                <input type="text" name="instagram" value="{{ $tattooer->instagram ?? '' }}"
+                                <input type="text" name="instagram" value="<?php echo e($tattooer->instagram ?? ''); ?>"
                                     placeholder="votre_pseudo"
                                     class="w-full pl-8 pr-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
                             </div>
@@ -407,7 +408,7 @@
                             <label class="block font-semibold text-ivoire-text mb-2">
                                 📘 Facebook
                             </label>
-                            <input type="text" name="facebook" value="{{ $tattooer->facebook ?? '' }}"
+                            <input type="text" name="facebook" value="<?php echo e($tattooer->facebook ?? ''); ?>"
                                 placeholder="https://facebook.com/votre-page"
                                 class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
                             <p class="text-xs text-ivoire-text/60 mt-1">URL de votre page Facebook</p>
@@ -417,7 +418,7 @@
                             <label class="block font-semibold text-ivoire-text mb-2">
                                 🌐 Site web
                             </label>
-                            <input type="url" name="website" value="{{ $tattooer->website ?? '' }}"
+                            <input type="url" name="website" value="<?php echo e($tattooer->website ?? ''); ?>"
                                 placeholder="https://votre-site.com"
                                 class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm md:text-base">
                             <p class="text-xs text-ivoire-text/60 mt-1">URL de votre site web ou portfolio</p>
@@ -441,10 +442,10 @@
         <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
             <h3 class="text-xl font-bold text-ivoire-text mb-4">Horaires d'ouverture</h3>
 
-            <form action="{{ route($tattooer->routePrefix() . '.settings.update-schedule') }}" method="POST">
-                @csrf
+            <form action="<?php echo e(route($tattooer->routePrefix() . '.settings.update-schedule')); ?>" method="POST">
+                <?php echo csrf_field(); ?>
 
-                @php
+                <?php
                     $days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
                     // Lire les horaires depuis le champ JSON working_hours du tattooer
@@ -462,56 +463,57 @@
                             'is_open' => !empty($dayData['open']) && !empty($dayData['close']),
                         ];
                     }
-                @endphp
+                ?>
 
                 <div class="space-y-3">
-                    @foreach ($days as $day)
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__currentLoopData = $days; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $day): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <div class="flex flex-col gap-3 p-3 sm:p-4 bg-noir-profond rounded-lg">
                             <!-- Header du jour -->
                             <div class="flex flex-row items-center justify-between gap-3">
                                 <div class="flex-1 min-w-0">
                                     <span
-                                        class="font-semibold text-ivoire-text text-sm sm:text-base">{{ $day }}</span>
+                                        class="font-semibold text-ivoire-text text-sm sm:text-base"><?php echo e($day); ?></span>
                                 </div>
 
                                 <label class="flex items-center gap-2 flex-shrink-0">
-                                    <input type="checkbox" name="working_hours[{{ strtolower($day) }}][is_open]"
-                                        value="1" {{ $schedule[strtolower($day)]['is_open'] ? 'checked' : '' }}
-                                        onchange="toggleDayInputs(this, '{{ strtolower($day) }}')" class="w-4 h-4">
+                                    <input type="checkbox" name="working_hours[<?php echo e(strtolower($day)); ?>][is_open]"
+                                        value="1" <?php echo e($schedule[strtolower($day)]['is_open'] ? 'checked' : ''); ?>
+
+                                        onchange="toggleDayInputs(this, '<?php echo e(strtolower($day)); ?>')" class="w-4 h-4">
                                     <span class="text-ivoire-text/70 text-xs sm:text-sm whitespace-nowrap">Ouvert</span>
                                 </label>
                             </div>
 
                             <!-- Inputs horaires -->
-                            <div id="{{ strtolower($day) }}-inputs"
-                                class="flex flex-col gap-3 {{ !$schedule[strtolower($day)]['is_open'] ? 'hidden' : '' }}">
+                            <div id="<?php echo e(strtolower($day)); ?>-inputs"
+                                class="flex flex-col gap-3 <?php echo e(!$schedule[strtolower($day)]['is_open'] ? 'hidden' : ''); ?>">
                                 <span class="text-ivoire-text/70 text-sm">Horaires d'ouverture</span>
                                 <div class="flex items-center gap-2">
-                                    <input type="time" name="working_hours[{{ strtolower($day) }}][open]"
-                                        value="{{ $schedule[strtolower($day)]['open'] ?? '09:00' }}"
+                                    <input type="time" name="working_hours[<?php echo e(strtolower($day)); ?>][open]"
+                                        value="<?php echo e($schedule[strtolower($day)]['open'] ?? '09:00'); ?>"
                                         class="flex-1 px-3 py-2 bg-gris-fonde border border-titane/30 rounded text-ivoire-text text-sm">
                                     <span class="text-ivoire-text/60 text-sm whitespace-nowrap">à</span>
-                                    <input type="time" name="working_hours[{{ strtolower($day) }}][close]"
-                                        value="{{ $schedule[strtolower($day)]['close'] ?? '18:00' }}"
+                                    <input type="time" name="working_hours[<?php echo e(strtolower($day)); ?>][close]"
+                                        value="<?php echo e($schedule[strtolower($day)]['close'] ?? '18:00'); ?>"
                                         class="flex-1 px-3 py-2 bg-gris-fonde border border-titane/30 rounded text-ivoire-text text-sm">
                                 </div>
 
                                 <!-- Pause déjeuner -->
                                 <span class="text-ivoire-text/70 text-sm">Pause déjeuner</span>
                                 <div class="flex items-center gap-2">
-                                    <input type="time" name="working_hours[{{ strtolower($day) }}][break_start]"
-                                        value="{{ $schedule[strtolower($day)]['break_start'] ?? '' }}"
+                                    <input type="time" name="working_hours[<?php echo e(strtolower($day)); ?>][break_start]"
+                                        value="<?php echo e($schedule[strtolower($day)]['break_start'] ?? ''); ?>"
                                         placeholder="Pause"
                                         class="flex-1 px-3 py-2 bg-gris-fonde border border-titane/30 rounded text-ivoire-text text-sm">
                                     <span class="text-ivoire-text/60 text-sm whitespace-nowrap">à</span>
-                                    <input type="time" name="working_hours[{{ strtolower($day) }}][break_end]"
-                                        value="{{ $schedule[strtolower($day)]['break_end'] ?? '' }}"
+                                    <input type="time" name="working_hours[<?php echo e(strtolower($day)); ?>][break_end]"
+                                        value="<?php echo e($schedule[strtolower($day)]['break_end'] ?? ''); ?>"
                                         placeholder="Fin pause"
                                         class="flex-1 px-3 py-2 bg-gris-fonde border border-titane/30 rounded text-ivoire-text text-sm">
                                 </div>
                             </div>
                         </div>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </div>
 
                 <div class="mt-6 flex justify-end">
@@ -529,7 +531,7 @@
         <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
             <h3 class="text-xl font-bold text-ivoire-text mb-4">Configuration Stripe Connect</h3>
 
-            @if (auth()->user()->is_beta_tester)
+            <?php if(auth()->user()->is_beta_tester): ?>
             <div class="flex items-center gap-2 px-3 py-2 bg-beige-peau/10 border border-beige-peau/30 rounded-lg mb-4">
                 <span class="text-beige-peau text-lg">🏆</span>
                 <div>
@@ -537,10 +539,10 @@
                     <p class="text-xs text-titane">-30% à vie sur votre abonnement, merci pour votre confiance !</p>
                 </div>
             </div>
-            @endif
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-            @if ($tattooer->isStudioArtist() && !$tattooer->needsOwnStripeConnect())
-                {{-- Artiste studio en mode centralisé : paiements gérés par le studio --}}
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tattooer->isStudioArtist() && !$tattooer->needsOwnStripeConnect()): ?>
+                
                 <div class="bg-gris-fonde border border-titane/20 rounded-xl p-4 sm:p-6 mb-6">
                     <div class="flex items-center gap-3">
                         <span class="text-2xl">💳</span>
@@ -548,13 +550,13 @@
                             <p class="text-sm font-semibold text-ivoire-text">Paiements gérés par le studio</p>
                             <p class="text-xs text-titane mt-1">
                                 Les paiements clients sont encaissés par
-                                <strong class="text-beige-peau">{{ $tattooer->studio?->name }}</strong>.
+                                <strong class="text-beige-peau"><?php echo e($tattooer->studio?->name); ?></strong>.
                                 Vous n'avez pas besoin de configurer Stripe Connect.
                             </p>
                         </div>
                     </div>
                 </div>
-            @elseif ($tattooer->stripe_connect_account_id ?? false)
+            <?php elseif($tattooer->stripe_connect_account_id ?? false): ?>
                 <div class="bg-vert-succes/20 border border-vert-succes/30 rounded-xl p-4 sm:p-6 mb-6">
                     <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4">
                         <svg class="w-8 h-8 text-vert-succes flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -569,8 +571,8 @@
                     </div>
 
                     <div class="flex flex-col sm:flex-row gap-3">
-                        <form action="{{ route($tattooer->routePrefix() . '.stripe.connect') }}" method="POST">
-                            @csrf
+                        <form action="<?php echo e(route($tattooer->routePrefix() . '.stripe.connect')); ?>" method="POST">
+                            <?php echo csrf_field(); ?>
                             <button type="submit"
                                 class="inline-block w-full sm:w-auto px-4 sm:px-6 py-3 bg-noir-profond text-ivoire-text rounded-lg font-semibold hover:bg-noir-profond/80 transition-colors text-center">
                                 📊 Gérer mon compte Stripe
@@ -578,7 +580,7 @@
                         </form>
                     </div>
                 </div>
-            @else
+            <?php else: ?>
                 <div class="bg-ambre-warning/20 border border-ambre-warning/30 rounded-xl p-4 sm:p-6 mb-6">
                     <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4">
                         <svg class="w-8 h-8 text-ambre-warning flex-shrink-0" fill="none" stroke="currentColor"
@@ -595,8 +597,8 @@
                     </div>
 
                     <div class="flex flex-col sm:flex-row gap-3">
-                        <form action="{{ route($tattooer->routePrefix() . '.stripe.connect') }}" method="POST">
-                            @csrf
+                        <form action="<?php echo e(route($tattooer->routePrefix() . '.stripe.connect')); ?>" method="POST">
+                            <?php echo csrf_field(); ?>
                             <button type="submit"
                                 class="inline-block w-full sm:w-auto px-4 sm:px-6 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90 transition-colors text-center">
                                 🔗 Connecter Stripe Connect
@@ -604,7 +606,7 @@
                         </form>
                     </div>
                 </div>
-            @endif
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
             <div class="bg-noir-profond rounded-xl p-4 sm:p-6">
                 <h4 class="font-semibold text-ivoire-text mb-3 text-lg">Avantages Stripe Connect</h4>
@@ -646,8 +648,8 @@
         <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
             <h3 class="text-xl font-bold text-ivoire-text mb-4">Changer mon mot de passe</h3>
 
-            <form action="{{ route($tattooer->routePrefix() . '.settings.update-password') }}" method="POST" class="max-w-md">
-                @csrf
+            <form action="<?php echo e(route($tattooer->routePrefix() . '.settings.update-password')); ?>" method="POST" class="max-w-md">
+                <?php echo csrf_field(); ?>
 
                 <div class="space-y-4">
                     <div>
@@ -682,23 +684,23 @@
             </form>
         </div>
 
-        @include('partials.two-factor-settings')
+        <?php echo $__env->make('partials.two-factor-settings', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     </div>
 
     <!-- TAB: Soins (uniquement Pro) -->
-    @if ($tattooer->isPro())
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tattooer->isPro()): ?>
         <div id="tab-aftercare" class="tab-content hidden">
             <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
                 <h3 class="text-xl font-bold text-ivoire-text mb-4">
-                    @if ($tattooer->isPiercer())
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tattooer->isPiercer()): ?>
                         💉 Fiche de soins post-piercing
-                    @else
+                    <?php else: ?>
                         🩹 Fiche de soins post-tatouage
-                    @endif
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </h3>
 
-                <form action="{{ route($tattooer->routePrefix() . '.settings.aftercare') }}" method="POST" class="space-y-6">
-                    @csrf
+                <form action="<?php echo e(route($tattooer->routePrefix() . '.settings.aftercare')); ?>" method="POST" class="space-y-6">
+                    <?php echo csrf_field(); ?>
 
                     <!-- Fiche de soins -->
                     <div>
@@ -707,19 +709,19 @@
                         </label>
                         <textarea name="aftercare_sheet" rows="8"
                             class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm sm:text-base"
-                            @if ($tattooer->isPiercer())
+                            <?php if($tattooer->isPiercer()): ?>
                             placeholder="- Nettoyer 2x/jour avec du sérum physiologique
                                 - Éviter la piscine et les bains pendant 4 semaines
                                 - Ne pas appliquer d'alcool ou d'eau oxygénée
                                 - Contacter votre pierceur en cas de rougeur ou gonflement anormal"
-                            @else
+                            <?php else: ?>
                             placeholder="- Ne pas gratter la zone tatouée
                                 - Appliquer la crème cicatrisante 2x/jour pendant 15 jours
                                 - Éviter le soleil direct pendant 1 mois
                                 - Ne pas tremper (piscine, bain) pendant 2 semaines
                                 - Contacter votre tattooer en cas de rougeur anormale"
-                            @endif
-                            >{{ $tattooer->aftercare_sheet ?? '' }}</textarea>
+                            <?php endif; ?>
+                            ><?php echo e($tattooer->aftercare_sheet ?? ''); ?></textarea>
                         <p class="text-xs text-ivoire-text/60 mt-1">
                             Ces instructions seront envoyées automatiquement à vos clients (2h, 7j, 14j après le RDV)
                         </p>
@@ -731,21 +733,24 @@
 
                         <label class="flex items-center gap-3 cursor-pointer">
                             <input type="checkbox" name="aftercare_reminder_2h" value="1"
-                                {{ $tattooer->aftercare_reminder_2h ? 'checked' : '' }}
+                                <?php echo e($tattooer->aftercare_reminder_2h ? 'checked' : ''); ?>
+
                                 class="rounded border-titane/30 bg-noir-profond text-beige-peau w-5 h-5">
                             <span class="text-sm text-ivoire-text">Envoyer 2 heures après le RDV</span>
                         </label>
 
                         <label class="flex items-center gap-3 cursor-pointer">
                             <input type="checkbox" name="aftercare_reminder_7d" value="1"
-                                {{ $tattooer->aftercare_reminder_7d ? 'checked' : '' }}
+                                <?php echo e($tattooer->aftercare_reminder_7d ? 'checked' : ''); ?>
+
                                 class="rounded border-titane/30 bg-noir-profond text-beige-peau w-5 h-5">
                             <span class="text-sm text-ivoire-text">Envoyer 7 jours après le RDV</span>
                         </label>
 
                         <label class="flex items-center gap-3 cursor-pointer">
                             <input type="checkbox" name="aftercare_reminder_14d" value="1"
-                                {{ $tattooer->aftercare_reminder_14d ? 'checked' : '' }}
+                                <?php echo e($tattooer->aftercare_reminder_14d ? 'checked' : ''); ?>
+
                                 class="rounded border-titane/30 bg-noir-profond text-beige-peau w-5 h-5">
                             <span class="text-sm text-ivoire-text">Envoyer 14 jours après le RDV</span>
                         </label>
@@ -760,10 +765,10 @@
                 </form>
             </div>
         </div>
-    @endif
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
     <!-- TAB: Grille tarifaire (pierceur uniquement) -->
-    @if ($tattooer->isPiercer())
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tattooer->isPiercer()): ?>
         <div id="tab-pricing" class="tab-content hidden">
             <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
                 <h3 class="text-xl font-bold text-ivoire-text mb-4">💰 Grille tarifaire Piercing / Bodemode</h3>
@@ -771,9 +776,9 @@
                     Définissez vos tarifs par type de piercing. Ces tarifs seront affichés sur votre profil public.
                 </p>
 
-                <form action="{{ route($tattooer->routePrefix() . '.settings.pricing') }}" method="POST" class="space-y-4"
+                <form action="<?php echo e(route($tattooer->routePrefix() . '.settings.pricing')); ?>" method="POST" class="space-y-4"
                       x-data="{
-                        grid: {{ json_encode($tattooer->getPricingGrid() ?: []) }},
+                        grid: <?php echo e(json_encode($tattooer->getPricingGrid() ?: [])); ?>,
                         newType: '',
                         newPrice: '',
                         addEntry() {
@@ -785,7 +790,7 @@
                         },
                         removeEntry(index) { this.grid.splice(index, 1); }
                       }">
-                    @csrf
+                    <?php echo csrf_field(); ?>
 
                     <template x-for="(entry, i) in grid" :key="i">
                         <div class="flex items-center gap-3 p-3 bg-noir-profond rounded-lg">
@@ -822,7 +827,7 @@
                     <div class="mt-4">
                         <label class="text-xs text-titane block mb-1">💬 Note tarifaire (cas particuliers)</label>
                         <input type="text" name="custom_pricing_note"
-                            value="{{ $tattooer->custom_pricing_note ?? '' }}"
+                            value="<?php echo e($tattooer->custom_pricing_note ?? ''); ?>"
                             placeholder="Ex : Piercing génital sur devis, bijou premium +15€, tarif étudiant -10%..."
                             class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text placeholder-titane text-sm focus:border-beige-peau">
                     </div>
@@ -836,7 +841,7 @@
                 </form>
             </div>
         </div>
-    @endif
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
     <!-- TAB: Suppression du compte -->
     <div id="tab-delete-account" class="tab-content hidden">
@@ -872,7 +877,7 @@
         </div>
     </div>
 
-    @push('scripts')
+    <?php $__env->startPush('scripts'); ?>
         <style>
             .hide-scrollbar {
                 -ms-overflow-style: none;
@@ -948,10 +953,10 @@
 
             function deleteBanner() {
                 if (confirm('Supprimer votre bannière ?')) {
-                    fetch('{{ route($tattooer->routePrefix() . '.settings.delete-banner') }}', {
+                    fetch('<?php echo e(route($tattooer->routePrefix() . '.settings.delete-banner')); ?>', {
                             method: 'DELETE',
                             headers: {
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
                                 'Content-Type': 'application/json'
                             }
                         })
@@ -986,10 +991,10 @@
 
             function deleteAvatar() {
                 if (confirm('Supprimer votre photo de profil ?')) {
-                    fetch('{{ route($tattooer->routePrefix() . '.settings.delete-avatar') }}', {
+                    fetch('<?php echo e(route($tattooer->routePrefix() . '.settings.delete-avatar')); ?>', {
                             method: 'DELETE',
                             headers: {
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
                                 'Content-Type': 'application/json'
                             }
                         })
@@ -1025,7 +1030,7 @@
 
                     if (userInput === 'SUPPRIMER') {
                         // Rediriger vers la route de suppression
-                        window.location.href = '{{ route($tattooer->routePrefix() . '.delete-account') }}';
+                        window.location.href = '<?php echo e(route($tattooer->routePrefix() . '.delete-account')); ?>';
                     } else {
                         alert('❌ Texte de confirmation incorrect. Suppression annulée.');
                     }
@@ -1083,7 +1088,7 @@
                                 method: 'POST',
                                 body: formData,
                                 headers: {
-                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                    'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>',
                                     'Accept': 'application/json'
                                 }
                             })
@@ -1196,5 +1201,7 @@
                 }
             });
         </script>
-    @endpush
-@endsection
+    <?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.tattooer', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\laragon\www\tattoolib-saas\resources\views/tattooer/settings.blade.php ENDPATH**/ ?>

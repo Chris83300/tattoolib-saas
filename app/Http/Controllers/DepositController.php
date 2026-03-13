@@ -131,26 +131,66 @@ class DepositController extends Controller
         Stripe::setApiKey(env('STRIPE_SECRET'));
 
         try {
+            $amountCents = (int) round($bookingRequest->total_deposit_amount * 100);
+
+            // Déterminer le compte Connect destinataire
+            $artist = $bookingRequest->bookable;
+            $destinationAccountId = $artist?->getStripeAccountId();
+
+            // Calculer la commission plateforme
+            $feeAmount = 0;
+            if ($destinationAccountId && $artist) {
+                $studio = method_exists($artist, 'studio') ? $artist->studio : null;
+                $feeAmount = app(\App\Services\StripeService::class)
+                    ->calculateApplicationFee($amountCents, $artist, $studio);
+            }
+
+            // Construire les payment_intent_data avec transfer_data si compte Connect disponible
+            $paymentIntentData = [
+                'metadata' => [
+                    'booking_request_id' => $bookingRequest->id,
+                    'client_id'          => $client->id,
+                    'payment_type'       => 'deposit',
+                ],
+            ];
+
+            if ($destinationAccountId) {
+                $paymentIntentData['on_behalf_of']  = $destinationAccountId;
+                $paymentIntentData['transfer_data'] = ['destination' => $destinationAccountId];
+                if ($feeAmount > 0) {
+                    $paymentIntentData['application_fee_amount'] = $feeAmount;
+                }
+            }
+
+            Log::info('Stripe Connect — dépôt', [
+                'artist_id'             => $artist?->id,
+                'destination_account'   => $destinationAccountId ?? 'AUCUN (plateforme)',
+                'amount_cents'          => $amountCents,
+                'application_fee_cents' => $feeAmount,
+            ]);
+
             $session = Session::create([
                 'payment_method_types' => ['card'],
                 'line_items' => [[
                     'price_data' => [
-                        'currency' => 'eur',
-                        'unit_amount' => $bookingRequest->total_deposit_amount * 100, // Convert to cents
+                        'currency'     => 'eur',
+                        'unit_amount'  => $amountCents,
                         'product_data' => [
-                            'name' => 'Acompte - Réservation tattoo',
+                            'name'        => 'Acompte - Réservation tattoo',
                             'description' => 'Acompte pour réservation avec ' . $bookingRequest->bookable->user->name,
                         ],
                     ],
                     'quantity' => 1,
                 ]],
-                'mode' => 'payment',
+                'mode'        => 'payment',
                 'success_url' => route('deposit.success', $bookingRequest) . '?session_id={CHECKOUT_SESSION_ID}',
-                'cancel_url' => route('deposit.cancel', $bookingRequest),
-                'metadata' => [
+                'cancel_url'  => route('deposit.cancel', $bookingRequest),
+                'metadata'    => [
                     'booking_request_id' => $bookingRequest->id,
-                    'client_id' => $client->id,
+                    'client_id'          => $client->id,
+                    'payment_type'       => 'deposit',
                 ],
+                'payment_intent_data' => $paymentIntentData,
             ]);
 
             Log::info('Stripe session created successfully', [

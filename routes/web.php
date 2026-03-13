@@ -112,6 +112,7 @@ Route::middleware(['auth', 'artisan.can.operate'])->prefix('tattooer')->name('ta
     Route::post('/settings/password', [TattooerController::class, 'settingsUpdatePassword'])->name('settings.update-password');
     Route::post('/settings/hours', [TattooerController::class, 'updateHours'])->name('settings.hours.update');
     Route::get('/payments', [TattooerController::class, 'payments'])->name('payments');
+    Route::post('/stripe/connect', [TattooerController::class, 'connectStripe'])->name('stripe.connect');
 
     // ═══ Subscription ═══
     Route::get('/subscription-plans', [SubscriptionController::class, 'plans'])
@@ -345,6 +346,7 @@ Route::middleware(['auth', 'role:pierceur,Piercer', 'artisan.can.operate'])->pre
     Route::post('/settings/password', [TattooerController::class, 'settingsUpdatePassword'])->name('settings.update-password');
     Route::post('/settings/hours', [TattooerController::class, 'updateHours'])->name('settings.hours.update');
     Route::get('/payments', [TattooerController::class, 'payments'])->name('payments');
+    Route::post('/stripe/connect', [TattooerController::class, 'connectStripe'])->name('stripe.connect');
     Route::get('/compliance', [TattooerController::class, 'compliance'])->name('compliance');
     Route::get('/subscription-plans', [SubscriptionController::class, 'plans'])->name('subscription.plans');
     Route::post('/subscribe', [SubscriptionController::class, 'subscribe'])->name('subscription.subscribe');
@@ -410,6 +412,7 @@ Route::middleware(['auth', 'role:studio', \App\Http\Middleware\EnsureStudioCanOp
     Route::get('/souscrire', [App\Http\Controllers\StudioController::class, 'showSubscribe'])->name('subscribe.legacy');
     Route::post('/souscrire', [App\Http\Controllers\StudioController::class, 'processSubscribe'])->name('subscribe.legacy.process');
     Route::get('/stats', [App\Http\Controllers\StudioController::class, 'stats'])->name('stats');
+    Route::post('/stripe/connect', [App\Http\Controllers\StudioController::class, 'connectStripe'])->name('stripe.connect');
     Route::get('/upgrade', function () {
         return view('professionnels.index');
     })->name('upgrade');
@@ -488,6 +491,35 @@ Route::delete('/pierceur/delete-account', [App\Http\Controllers\Tattooer\Account
 // Routes webhook Stripe (sans CSRF)
 Route::post('/webhooks/stripe', [App\Http\Controllers\StripeWebhookController::class, 'handleWebhook'])
     ->name('webhooks.stripe');
+
+// ─── Stripe Connect — Artiste indépendant (Tattooer / Piercer) ──────────────
+// Utilisé par HasStripeConnect::generateStripeConnectLink()
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/stripe/connect/return/{artist}', [App\Http\Controllers\StripeConnectController::class, 'returnFromOnboarding'])
+        ->name('stripe.connect.return');
+
+    Route::get('/stripe/connect/refresh/{artist}', [App\Http\Controllers\StripeConnectController::class, 'refreshOnboarding'])
+        ->name('stripe.connect.refresh');
+});
+
+// ─── Stripe Connect — Artiste de studio ─────────────────────────────────────
+// Utilisé par StripeService::createConnectOnboardingLink()
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/studio/artist/stripe/return', [App\Http\Controllers\StripeConnectController::class, 'studioArtistReturn'])
+        ->name('studio.artist.stripe.return');
+
+    Route::get('/studio/artist/stripe/refresh', [App\Http\Controllers\StripeConnectController::class, 'studioArtistRefresh'])
+        ->name('studio.artist.stripe.refresh');
+});
+
+// ─── Stripe Connect — Propriétaire de studio ────────────────────────────────
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/studio/stripe/return', [App\Http\Controllers\StripeConnectController::class, 'studioOwnerReturn'])
+        ->name('studio.stripe.return');
+
+    Route::get('/studio/stripe/refresh', [App\Http\Controllers\StripeConnectController::class, 'studioOwnerRefresh'])
+        ->name('studio.stripe.refresh');
+});
 
 // Routes paiement acompte
 Route::middleware(['auth'])->prefix('deposit')->name('deposit.')->group(function () {

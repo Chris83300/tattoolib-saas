@@ -115,6 +115,31 @@ class StripeService
     }
 
     /**
+     * Calculer le montant de l'application fee en centimes.
+     *
+     * - Artiste de studio : utilise studio->artist_commission_rate (0 si null)
+     * - Artiste indépendant STARTER : 7%
+     * - Artiste indépendant PRO / trial : 0%
+     *
+     * @param int $amountCents  Montant total en centimes
+     * @param mixed $artist     Tattooer|Piercer
+     * @param \App\Models\Studio|null $studio  Studio si artiste studio
+     */
+    public function calculateApplicationFee(int $amountCents, $artist, ?\App\Models\Studio $studio = null): int
+    {
+        if ($studio) {
+            $rate = $studio->artist_commission_rate;
+            if (is_null($rate) || $rate <= 0) {
+                return 0;
+            }
+            return (int) round($amountCents * ($rate / 100));
+        }
+
+        // Artiste indépendant — délègue au modèle (7% STARTER, 0% PRO/trial)
+        return $artist->calculateCommission($amountCents);
+    }
+
+    /**
      * Vérifier le statut d'un compte Connect
      */
     public function getConnectAccountStatus(string $accountId): array

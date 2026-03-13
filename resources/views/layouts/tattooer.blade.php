@@ -160,6 +160,7 @@
                 </a>
 
                 <div class="pt-4 mt-4 border-t border-titane/20">
+                    @if (!isset($artisan) || !$artisan->studio_id)
                     <a href="{{ route($routePrefix . '.subscription.plans') }}"
                         class="flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs($routePrefix . '.subscription.*') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text hover:bg-noir-profond' }} transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,6 +175,7 @@
                             <span class="ml-auto px-1.5 py-0.5 text-[10px] bg-rouge-alerte/20 text-rouge-alerte rounded">Expiré</span>
                         @endif
                     </a>
+                    @endif
 
                     <a href="{{ route($routePrefix . '.settings') }}"
                         class="flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs($routePrefix . '.settings') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text hover:bg-noir-profond' }} transition-colors">

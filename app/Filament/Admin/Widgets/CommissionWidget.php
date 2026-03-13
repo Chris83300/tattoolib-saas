@@ -38,7 +38,7 @@ class CommissionWidget extends BaseWidget
             // Vérifier si l'utilisateur est sur un plan starter
             if ($payment->bookingRequest && $payment->bookingRequest->user) {
                 $user = $payment->bookingRequest->user;
-                
+
                 // Vérifier l'abonnement actif de l'utilisateur
                 $activeSubscription = CashierSubscription::where('user_id', $user->id)
                     ->where('stripe_status', 'active')
@@ -46,7 +46,7 @@ class CommissionWidget extends BaseWidget
 
                 if ($activeSubscription) {
                     $price = $activeSubscription->stripe_price ?? '';
-                    
+
                     // Vérifier si c'est un plan starter
                     if (str_contains($price, '1T7E4D') || str_contains($price, 'starter')) {
                         $isStarterCommission = true;
@@ -76,14 +76,14 @@ class CommissionWidget extends BaseWidget
 
             if ($payment->bookingRequest && $payment->bookingRequest->user) {
                 $user = $payment->bookingRequest->user;
-                
+
                 $activeSubscription = CashierSubscription::where('user_id', $user->id)
                     ->where('stripe_status', 'active')
                     ->first();
 
                 if ($activeSubscription) {
                     $price = $activeSubscription->stripe_price ?? '';
-                    
+
                     if (str_contains($price, '1T7E4D') || str_contains($price, 'starter')) {
                         $isStarterCommission = true;
                     }
@@ -119,7 +119,7 @@ class CommissionWidget extends BaseWidget
 
             Stat::make('💵 Commission par transaction', $starterTransactions > 0 ? number_format($commissionRevenue / $starterTransactions, 2) . '€' : '0.00€')
                 ->description('Moyenne Starter')
-                ->descriptionIcon('heroicon-m-banknote')
+                ->descriptionIcon('heroicon-m-currency-dollar')
                 ->color('primary'),
         ];
     }

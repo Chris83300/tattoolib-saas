@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class StudioController extends Controller
 {
@@ -102,19 +103,25 @@ class StudioController extends Controller
         $studio = $this->studio();
 
         $validated = $request->validate([
-            'name'          => 'required|string|max:255',
-            'description'   => 'nullable|string|max:2000',
-            'address'       => 'nullable|string|max:255',
-            'city'          => 'nullable|string|max:255',
-            'postal_code'   => 'nullable|string|max:10',
-            'phone'         => 'nullable|string|max:20',
-            'email'         => 'nullable|email|max:255',
-            'website'       => 'nullable|url|max:255',
-            'siret'         => 'nullable|string|size:14',
-            'payment_mode'  => 'required|in:artist_direct,studio_managed',
-            'opening_hours' => 'nullable|array',
-            'social_media_links' => 'nullable|array',
+            'name'                   => 'required|string|max:255',
+            'description'            => 'nullable|string|max:2000',
+            'address'                => 'nullable|string|max:255',
+            'city'                   => 'nullable|string|max:255',
+            'postal_code'            => 'nullable|string|max:10',
+            'phone'                  => 'nullable|string|max:20',
+            'email'                  => 'nullable|email|max:255',
+            'website'                => 'nullable|url|max:255',
+            'siret'                  => 'nullable|string|size:14',
+            'payment_mode'           => 'required|in:artist_direct,studio_managed',
+            'artist_commission_rate' => 'nullable|numeric|min:0|max:99.99',
+            'opening_hours'          => 'nullable|array',
+            'social_media_links'     => 'nullable|array',
         ]);
+
+        // En mode studio_managed, pas de commission artiste directe
+        if ($validated['payment_mode'] === 'studio_managed') {
+            $validated['artist_commission_rate'] = null;
+        }
 
         $validated['slug'] = Str::slug($validated['name']);
         $studio->update($validated);
@@ -132,6 +139,67 @@ class StudioController extends Controller
         }
 
         return back()->with('success', 'Paramètres mis à jour');
+    }
+
+    /**
+     * Initier le Stripe Connect du studio (mode studio_managed).
+     * Crée ou reprend l'onboarding Express et redirige vers Stripe.
+     */
+    public function connectStripe(Request $request)
+    {
+        $studio = $this->studio();
+
+        // Sécurité : uniquement si le mode le requiert
+        if ($studio->payment_mode !== 'studio_managed') {
+            return back()->with('info', 'Le Stripe Connect du studio n\'est utile qu\'en mode "Géré par le studio".');
+        }
+
+        try {
+            $stripe = new \Stripe\StripeClient(config('services.stripe.secret'));
+
+            // Créer le compte Connect s'il n'existe pas encore
+            if (!$studio->stripe_account_id) {
+                $account = $stripe->accounts->create([
+                    'type'          => 'express',
+                    'country'       => 'FR',
+                    'email'         => $studio->stripeEmail(),
+                    'capabilities'  => [
+                        'card_payments' => ['requested' => true],
+                        'transfers'     => ['requested' => true],
+                    ],
+                    'business_type' => 'company',
+                    'metadata'      => [
+                        'studio_id'    => $studio->id,
+                        'user_id'      => auth()->id(),
+                        'account_type' => 'studio_owner',
+                    ],
+                ]);
+
+                $studio->update(['stripe_account_id' => $account->id]);
+
+                Log::info('Compte Stripe Connect Studio créé', [
+                    'studio_id'  => $studio->id,
+                    'account_id' => $account->id,
+                ]);
+            }
+
+            // Générer le lien d'onboarding
+            $accountLink = $stripe->accountLinks->create([
+                'account'     => $studio->stripe_account_id,
+                'refresh_url' => route('studio.stripe.refresh'),
+                'return_url'  => route('studio.stripe.return'),
+                'type'        => 'account_onboarding',
+            ]);
+
+            return redirect($accountLink->url);
+        } catch (\Exception $e) {
+            Log::error('Erreur Stripe Connect Studio', [
+                'studio_id' => $studio->id,
+                'error'     => $e->getMessage(),
+            ]);
+
+            return back()->with('error', 'Impossible de connecter Stripe. Veuillez réessayer.');
+        }
     }
 
     // ═══ ARTISTES ═══

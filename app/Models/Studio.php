@@ -32,8 +32,9 @@ class Studio extends Model implements HasMedia
         'ars_declaration_number',
         'logo_url',
         'banner_url',
-        'payment_mode',        // 'artist_direct' ou 'studio_managed' (colonne DB existante)
-        'stripe_account_id',   // Stripe Connect du studio
+        'payment_mode',              // 'artist_direct' ou 'studio_managed' (colonne DB existante)
+        'artist_commission_rate',    // % prélevé par le studio sur ses artistes (null = aucune)
+        'stripe_account_id',         // Stripe Connect du studio
         'stripe_onboarding_complete',
         'max_artists',         // Limite contractuelle (null = illimité)
         'is_active',

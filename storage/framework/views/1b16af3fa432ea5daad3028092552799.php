@@ -1,5 +1,5 @@
 <div>
-    @if ($showQuickBookingModal)
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($showQuickBookingModal): ?>
         <div class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" x-data="{
             calculateDuration() {
                 const start = document.querySelector('[wire\\:model=startTime]')?.value || '';
@@ -28,15 +28,16 @@
             <!-- Client info -->
             <div class="bg-noir-profond/50 rounded-lg p-3 mb-4">
                 <p class="text-sm text-ivoire-text/80 mb-1">Client</p>
-                <p class="text-ivoire-text font-medium">{{ $bookingRequest?->client?->user?->pseudo ?? 'Client' }}
+                <p class="text-ivoire-text font-medium"><?php echo e($bookingRequest?->client?->user?->pseudo ?? 'Client'); ?>
+
                 </p>
-                <p class="text-xs text-titane mt-1">{{ $bookingRequest?->tattoo_description }}</p>
+                <p class="text-xs text-titane mt-1"><?php echo e($bookingRequest?->tattoo_description); ?></p>
             </div>
 
             <!-- Date verrouillée -->
             <div class="bg-vert-succes/10 border border-vert-succes/30 rounded-lg p-3 mb-4">
                 <p class="text-sm text-vert-succes font-medium mb-1">📅 Date choisie par le client</p>
-                <p class="text-ivoire-text font-bold">{{ $appointmentDateDisplay }}</p>
+                <p class="text-ivoire-text font-bold"><?php echo e($appointmentDateDisplay); ?></p>
             </div>
 
             <!-- Formulaire -->
@@ -78,12 +79,26 @@
                 </div>
 
                 <!-- Erreurs -->
-                @error('startTime')
-                    <p class="text-rouge-alerte text-sm">{{ $message }}</p>
-                @enderror
-                @error('endTime')
-                    <p class="text-rouge-alerte text-sm">{{ $message }}</p>
-                @enderror
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['startTime'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                    <p class="text-rouge-alerte text-sm"><?php echo e($message); ?></p>
+                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php $__errorArgs = ['endTime'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                    <p class="text-rouge-alerte text-sm"><?php echo e($message); ?></p>
+                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                 <!-- Actions -->
                 <div class="flex gap-3 pt-4">
@@ -98,5 +113,6 @@
                 </div>
             </form>
         </div>
-    @endif
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 </div>
+<?php /**PATH C:\laragon\www\tattoolib-saas\resources\views/livewire/tattooer/quick-booking-modal.blade.php ENDPATH**/ ?>

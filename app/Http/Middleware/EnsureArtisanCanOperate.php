@@ -38,11 +38,13 @@ class EnsureArtisanCanOperate
         'tattooer.subscription.manage',
         'tattooer.subscription.success',
         'tattooer.payments',
+        'tattooer.stripe.connect',   // Onboarding Stripe Connect (requis pour recevoir des paiements)
         'pierceur.subscription.plans',
         'pierceur.subscribe',
         'pierceur.subscription.manage',
         'pierceur.subscription.success',
         'pierceur.payments',
+        'pierceur.stripe.connect',   // Onboarding Stripe Connect (requis pour recevoir des paiements)
 
         // Compliance (obligation légale)
         'tattooer.compliance',

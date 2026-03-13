@@ -1,4 +1,4 @@
-@php
+<?php
     $artisan = auth()->user()->tattooer ?? (auth()->user()->piercer ?? null);
     $trialService = app(\App\Services\TrialService::class);
 
@@ -17,12 +17,12 @@
         $artisan instanceof \App\Models\Piercer
             ? route('pierceur.subscription.plans')
             : route('tattooer.subscription.plans');
-@endphp
+?>
 
-@if ($isStudioArtist || $hasPaidSubscription)
-    {{-- Abonnement actif payé — aucune bannière --}}
-@elseif($isOnTrial && $daysRemaining === 0)
-    {{-- Bannière fin d'essai : 0 jour --}}
+<?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($isStudioArtist || $hasPaidSubscription): ?>
+    
+<?php elseif($isOnTrial && $daysRemaining === 0): ?>
+    
     <div
         class="bg-gradient-to-r from-rouge-alerte/20 to-rouge-alerte/5 border border-rouge-alerte/30 rounded-xl p-4 mb-6">
         <div class="flex items-center justify-between gap-4">
@@ -39,21 +39,21 @@
                     </p>
                 </div>
             </div>
-            <a href="{{ $subscriptionRoute }}"
+            <a href="<?php echo e($subscriptionRoute); ?>"
                 class="flex-shrink-0 px-4 py-2 text-sm font-medium bg-beige-peau text-noir-profond rounded-lg hover:bg-beige-peau/80 transition-colors">
                 Activer mon abonnement
             </a>
         </div>
     </div>
-@elseif ($isOnTrial && $daysRemaining <= 7 && $daysRemaining > 0)
-    {{-- Bannière urgente : moins de 7 jours --}}
+<?php elseif($isOnTrial && $daysRemaining <= 7 && $daysRemaining > 0): ?>
+    
     <div
         class="bg-gradient-to-r from-rouge-alerte/20 to-rouge-alerte/5 border border-rouge-alerte/30 rounded-xl p-4 mb-6">
         <div class="flex items-center justify-between gap-4">
             <div class="flex items-center gap-3">
                 <div>
                     <p class="text-sm font-semibold text-ivoire-text">
-                        Plus que {{ $daysRemaining }} jour{{ $daysRemaining > 1 ? 's' : '' }} d'essai gratuit
+                        Plus que <?php echo e($daysRemaining); ?> jour<?php echo e($daysRemaining > 1 ? 's' : ''); ?> d'essai gratuit
                     </p>
                     <p class="text-xs text-titane mt-0.5">
                         Votre profil sera masqué de la marketplace après la fin de l'essai et vous n'aurez plus accès au
@@ -62,29 +62,30 @@
                     </p>
                 </div>
             </div>
-            <a href="{{ $subscriptionRoute }}"
+            <a href="<?php echo e($subscriptionRoute); ?>"
                 class="flex-shrink-0 px-4 py-2 text-sm font-medium bg-beige-peau text-noir-profond rounded-lg hover:bg-beige-peau/80 transition-colors">
                 Activer mon abonnement
             </a>
         </div>
     </div>
-@elseif ($isOnTrial)
-    {{-- Bannière info : trial actif --}}
+<?php elseif($isOnTrial): ?>
+    
     <div class="bg-beige-peau/5 border border-beige-peau/20 rounded-xl p-4 mb-6">
         <div class="flex items-center justify-between gap-4">
             <div class="flex items-center gap-3">
                 <span class="text-lg">🎁</span>
                 <p class="text-sm text-titane">
-                    Essai gratuit — <strong class="text-ivoire-text">{{ $daysRemaining }}
-                        jour{{ $daysRemaining > 1 ? 's' : '' }} restant{{ $daysRemaining > 1 ? 's' : '' }}</strong>
+                    Essai gratuit — <strong class="text-ivoire-text"><?php echo e($daysRemaining); ?>
+
+                        jour<?php echo e($daysRemaining > 1 ? 's' : ''); ?> restant<?php echo e($daysRemaining > 1 ? 's' : ''); ?></strong>
                 </p>
             </div>
-            <a href="{{ $subscriptionRoute }}" class="text-xs text-beige-peau hover:underline whitespace-nowrap">Activer
+            <a href="<?php echo e($subscriptionRoute); ?>" class="text-xs text-beige-peau hover:underline whitespace-nowrap">Activer
                 mon abonnement</a>
         </div>
     </div>
-@elseif ($isBlocked)
-    {{-- Bannière compte bloqué --}}
+<?php elseif($isBlocked): ?>
+    
     <div class="bg-rouge-alerte/10 border border-rouge-alerte/30 rounded-xl p-6 mb-6 text-center">
         <span class="text-3xl">🔒</span>
         <h3 class="text-lg font-semibold text-ivoire-text mt-3">Votre essai gratuit est terminé</h3>
@@ -92,9 +93,10 @@
             Votre profil n'est plus visible dans la marketplace. Choisissez un abonnement pour réactiver votre compte et
             recevoir des demandes.
         </p>
-        <a href="{{ $subscriptionRoute }}"
+        <a href="<?php echo e($subscriptionRoute); ?>"
             class="inline-block mt-4 px-6 py-2.5 text-sm font-medium bg-beige-peau text-noir-profond rounded-lg hover:bg-beige-peau/80 transition-colors">
             Choisir mon abonnement
         </a>
     </div>
-@endif
+<?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+<?php /**PATH C:\laragon\www\tattoolib-saas\resources\views/partials/trial-banner.blade.php ENDPATH**/ ?>
