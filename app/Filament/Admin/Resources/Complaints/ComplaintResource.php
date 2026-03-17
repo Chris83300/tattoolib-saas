@@ -9,6 +9,7 @@ use App\Filament\Admin\Resources\Complaints\Schemas\ComplaintForm;
 use App\Filament\Admin\Resources\Complaints\Tables\ComplaintsTable;
 use App\Models\Complaint;
 use BackedEnum;
+use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -18,7 +19,12 @@ class ComplaintResource extends Resource
 {
     protected static ?string $model = Complaint::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-exclamation-triangle';
+    protected static ?string $navigationLabel = 'Réclamations';
+    protected static ?string $modelLabel = 'Réclamation';
+    protected static ?string $pluralModelLabel = 'Réclamations';
+    protected static UnitEnum|string|null $navigationGroup = 'Qualité';
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $recordTitleAttribute = 'title';
 

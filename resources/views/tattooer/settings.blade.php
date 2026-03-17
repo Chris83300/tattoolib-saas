@@ -842,33 +842,9 @@
     <div id="tab-delete-account" class="tab-content hidden">
         <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
             <h3 class="text-xl font-bold text-ivoire-text mb-4">⚠️ Supprimer mon compte</h3>
-
-            <div class="bg-rouge-alerte/10 border border-rouge-alerte/30 rounded-lg p-4 mb-4">
-                <h4 class="font-semibold text-rouge-alerte mb-2">🚨 ATTENTION - Action irréversible</h4>
-                <ul class="text-sm text-rouge-alerte space-y-1">
-                    <li>• Cette action est <span class="font-bold">définitive et irréversible</span></li>
-                    <li>• Toutes vos données seront <span class="font-bold">permanemment supprimées</span></li>
-                    <li>• Profil, photos, portfolio, avis</li>
-                    <li>• Historique des rendez-vous et clients</li>
-                    <li>• Données de traçabilité et conformité</li>
-                    <li>• Messages et conversations</li>
-                </ul>
-
-                <div class="mt-3 p-3 bg-noir-profond rounded border border-titane/20">
-                    <p class="text-xs text-ivoire-text/80">
-                        💡 <strong>Conseil avant suppression :</strong><br>
-                        Exportez vos données clients, sauvegardez vos portfolios et archives importantes.
-                        Une fois supprimé, aucun récupération ne sera possible.
-                    </p>
-                </div>
-            </div>
-
-            <div class="mt-6">
-                <button onclick="confirmDeleteAccount()"
-                    class="w-full sm:w-auto min-h-11 px-6 py-3 bg-rouge-alerte text-white rounded-lg font-semibold hover:bg-rouge-alerte/90 transition-colors text-sm sm:text-base active:scale-95">
-                    🗑️ Supprimer définitivement mon compte
-                </button>
-            </div>
+            <x-delete-account-section
+                :deleteRoute="$tattooer->routePrefix() . '.delete-account'"
+                :isArtist="true" />
         </div>
     </div>
 
@@ -1006,29 +982,6 @@
                             console.error('Erreur:', error);
                             alert('Erreur lors de la suppression de l\'avatar');
                         });
-                }
-            }
-
-            function confirmDeleteAccount() {
-                const confirmation = confirm('⚠️ Êtes-vous absolument certain ?\n\n' +
-                    'TOUTES vos données seront définitivement supprimées :\n' +
-                    '• Profil et photos\n' +
-                    '• Portfolio et œuvres\n' +
-                    '• Clients et historique\n' +
-                    '• Messages et conversations\n' +
-                    '• Données de traçabilité\n\n' +
-                    'Cette action est IRRÉVERSIBLE !\n\n' +
-                    'Tapez "SUPPRIMER" pour confirmer :');
-
-                if (confirmation) {
-                    const userInput = prompt('Pour confirmer, tapez exactement : SUPPRIMER');
-
-                    if (userInput === 'SUPPRIMER') {
-                        // Rediriger vers la route de suppression
-                        window.location.href = '{{ route($tattooer->routePrefix() . '.delete-account') }}';
-                    } else {
-                        alert('❌ Texte de confirmation incorrect. Suppression annulée.');
-                    }
                 }
             }
 

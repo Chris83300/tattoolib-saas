@@ -31,13 +31,14 @@ class StudioArtistForm
                 TextInput::make('specialties'),
                 TextInput::make('stripe_connect_account_id'),
                 Select::make('stripe_connect_status')
+                    ->label('Statut Stripe Connect')
                     ->options([
-            'not_connected' => 'Not connected',
-            'onboarding' => 'Onboarding',
-            'active' => 'Active',
-            'inactive' => 'Inactive',
-            'reactivating' => 'Reactivating',
-        ])
+                        'not_connected' => 'Non connecté',
+                        'onboarding' => 'En cours d\'intégration',
+                        'active' => 'Actif',
+                        'inactive' => 'Inactif',
+                        'reactivating' => 'En réactivation',
+                    ])
                     ->default('not_connected')
                     ->required(),
                 DateTimePicker::make('stripe_connect_activated_at'),
@@ -49,21 +50,23 @@ class StudioArtistForm
                 Toggle::make('is_decision_maker')
                     ->required(),
                 Select::make('compliance_status')
+                    ->label('Conformité')
                     ->options([
-            'non_compliant' => 'Non compliant',
-            'compliant' => 'Compliant',
-            'expiring_soon' => 'Expiring soon',
-        ])
+                        'non_compliant' => 'Non conforme',
+                        'compliant' => 'Conforme',
+                        'expiring_soon' => 'Expiration proche',
+                    ])
                     ->default('non_compliant')
                     ->required(),
                 DateTimePicker::make('last_compliance_check_at'),
                 Select::make('status')
+                    ->label('Statut')
                     ->options([
-            'active' => 'Active',
-            'inactive' => 'Inactive',
-            'on_leave' => 'On leave',
-            'deleted' => 'Deleted',
-        ])
+                        'active' => 'Actif',
+                        'inactive' => 'Inactif',
+                        'on_leave' => 'En congé',
+                        'deleted' => 'Supprimé',
+                    ])
                     ->default('active')
                     ->required(),
                 Toggle::make('is_active')

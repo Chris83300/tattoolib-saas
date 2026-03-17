@@ -2988,4 +2988,75 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
         return redirect()->route('tattooer.compliance.documents')
             ->with('success', 'Document supprimé avec succès.');
     }
+
+    /**
+     * Supprimer une demande expirée, refusée ou annulée
+     */
+    public function destroyRequest(Request $request, BookingRequest $bookingRequest)
+    {
+        $user   = $request->user();
+        $artist = $user->tattooer ?? $user->piercer;
+
+        abort_unless(
+            $artist
+            && $bookingRequest->bookable_id === $artist->id
+            && $bookingRequest->bookable_type === get_class($artist),
+            403,
+            'Non autorisé'
+        );
+
+        $deletableStatuses = ['expired', 'rejected', 'cancelled'];
+        abort_unless(
+            in_array($bookingRequest->status->value, $deletableStatuses),
+            422,
+            'Seules les demandes expirées, refusées ou annulées peuvent être supprimées.'
+        );
+
+        $bookingRequest->conversation?->messages()->forceDelete();
+        $bookingRequest->conversation?->forceDelete();
+        $bookingRequest->forceDelete();
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true]);
+        }
+
+        return redirect()->back()->with('success', 'Demande supprimée.');
+    }
+
+    /**
+     * Annuler une demande de réservation (côté artiste)
+     */
+    public function cancelRequest(Request $request, BookingRequest $bookingRequest)
+    {
+        $artist = $this->artisan();
+        abort_unless($artist, 403);
+        abort_unless($bookingRequest->bookable_id === $artist->id, 403);
+        abort_unless(
+            !in_array($bookingRequest->status->value, ['completed', 'cancelled']),
+            422,
+            'Cette demande ne peut plus être annulée.'
+        );
+
+        $refundInfo = app(\App\Services\CancellationService::class)->processCancellation(
+            $bookingRequest,
+            'artist',
+            $request->input('cancellation_message', '')
+        );
+
+        // Notifier le client
+        try {
+            $bookingRequest->client?->user?->notify(
+                new \App\Notifications\BookingCancelledNotification($bookingRequest)
+            );
+        } catch (\Exception $e) {
+            Log::warning('Notification annulation artiste échouée: ' . $e->getMessage());
+        }
+
+        $msg = 'Demande annulée.';
+        if ($refundInfo['refund_amount'] > 0) {
+            $msg .= ' Remboursement de ' . number_format($refundInfo['refund_amount'], 2, ',', ' ') . '€ en cours.';
+        }
+
+        return redirect()->back()->with('success', $msg);
+    }
 }

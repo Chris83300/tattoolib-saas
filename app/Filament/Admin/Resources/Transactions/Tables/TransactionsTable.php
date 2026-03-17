@@ -113,7 +113,7 @@ class TransactionsTable
                         default => $state,
                     }),
                 TextColumn::make('stripe_payment_intent_id')
-                    ->label('Payment Intent')
+                    ->label('Réf. Stripe')
                     ->copyable()
                     ->limit(15)
                     ->toggleable(),
@@ -175,11 +175,10 @@ class TransactionsTable
                         return $indicators;
                     }),
             ])
-            ->actions([
+            ->recordActions([
                 EditAction::make(),
             ])
-            ->bulkActions([
-                //
-            ]);
+            ->defaultSort('processed_at', 'desc')
+            ->striped();
     }
 }

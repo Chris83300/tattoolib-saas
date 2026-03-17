@@ -217,7 +217,9 @@
                         </div>
 
                         <!-- Si acompte déjà payé, montrer le chat + option annulation différente -->
-                    @elseif ($bookingRequest->deposit_paid_at)
+                    @elseif (
+                        $bookingRequest->deposit_paid_at &&
+                            $bookingRequest->status->value !== \App\Enums\BookingRequestStatus::CANCELLED->value)
                         <div class="bg-titane/20 rounded-xl p-6 border border-titane/30">
                             <h3 class="text-lg font-bold text-ivoire-text mb-4">Actions</h3>
                             <div class="space-y-3">
@@ -248,6 +250,44 @@
                             </div>
                         </div>
                     @endif
+
+                    <!-- Section pour demandes annulées avec acompte payé -->
+                    @if (
+                        $bookingRequest->status->value === \App\Enums\BookingRequestStatus::CANCELLED->value &&
+                            $bookingRequest->deposit_paid_at)
+                        <div class="bg-titane/20 rounded-xl p-6 border border-titane/30">
+                            <h3 class="text-lg font-bold text-ivoire-text mb-4">Remboursement</h3>
+                            <div class="space-y-3">
+                                <!-- Statut du remboursement -->
+                                @if ($bookingRequest->refund_processed_at)
+                                    <div class="bg-vert-succes/10 border border-vert-succes/30 rounded-lg px-4 py-3">
+                                        <p class="text-vert-succes font-semibold text-center">
+                                            ✅ Remboursement de
+                                            {{ number_format($bookingRequest->refund_amount ?? $bookingRequest->total_deposit_amount, 2, ',', ' ') }}
+                                            € traité le {{ $bookingRequest->refund_processed_at->format('d/m/Y') }}
+                                        </p>
+                                    </div>
+                                @else
+                                    <div class="bg-ambre-warning/10 border border-ambre-warning/30 rounded-lg px-4 py-3">
+                                        <p class="text-ambre-warning font-semibold text-center">
+                                            ⏳ En attente de remboursement
+                                        </p>
+                                        <p class="text-ambre-warning/80 text-sm text-center mt-1">
+                                            Le remboursement sera traité selon les conditions d'annulation
+                                        </p>
+                                    </div>
+                                @endif
+
+                                <!-- Chat avec l'artiste -->
+                                @if ($bookingRequest->conversation)
+                                    <a href="{{ route('client.chat', $bookingRequest->conversation) }}"
+                                        class="block w-full px-4 py-3 bg-beige-peau text-noir-profond rounded-xl font-bold text-center hover:bg-beige-peau/90 transition-all">
+                                        💬 Discuter avec l'artiste
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Colonne latérale -->
@@ -272,7 +312,8 @@
                                 @endif
                             </div>
                             <div>
-                                <p class="font-semibold text-ivoire-text">{{ $bookingRequest->bookable->user->pseudo }}</p>
+                                <p class="font-semibold text-ivoire-text">{{ $bookingRequest->bookable->user->pseudo }}
+                                </p>
                                 <p class="text-sm text-ivoire-text/70">
                                     @if ($bookingRequest->bookable_type === 'App\\Models\\Tattooer')
                                         Tatoueur indépendant

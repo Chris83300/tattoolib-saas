@@ -4,6 +4,18 @@
     <div class="max-w-lg mx-auto py-8 px-4">
         <h1 class="text-2xl font-bold text-noir-profond mb-6">Paiement du solde</h1>
 
+        @if (session('error'))
+            <div class="bg-ambre-warning/10 border border-ambre-warning/30 rounded-xl p-4 mb-6">
+                <div class="flex items-start gap-3">
+                    <span class="text-2xl">⚠️</span>
+                    <div>
+                        <p class="font-semibold text-ambre-warning">Paiement en ligne indisponible</p>
+                        <p class="text-sm text-ambre-warning/80 mt-1">{{ session('error') }}</p>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
             <div class="flex justify-between items-center mb-4">
                 <span class="text-noir-profond/70">Prix total</span>

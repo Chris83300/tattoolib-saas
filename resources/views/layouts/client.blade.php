@@ -377,6 +377,11 @@ try {
 
     @stack('scripts')
     @livewireScripts
+
+    {{-- Chat support admin (bouton flottant) --}}
+    @auth
+        @livewire('admin-chat')
+    @endauth
 </body>
 
 </html>

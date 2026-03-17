@@ -9,6 +9,7 @@ use App\Filament\Admin\Resources\Reviews\Schemas\ReviewForm;
 use App\Filament\Admin\Resources\Reviews\Tables\ReviewsTable;
 use App\Models\Review;
 use BackedEnum;
+use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -18,7 +19,12 @@ class ReviewResource extends Resource
 {
     protected static ?string $model = Review::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-star';
+    protected static ?string $navigationLabel = 'Avis';
+    protected static ?string $modelLabel = 'Avis';
+    protected static ?string $pluralModelLabel = 'Avis';
+    protected static UnitEnum|string|null $navigationGroup = 'Qualité';
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $recordTitleAttribute = 'title';
 

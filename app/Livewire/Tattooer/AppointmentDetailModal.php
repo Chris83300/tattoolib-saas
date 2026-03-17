@@ -112,8 +112,10 @@ class AppointmentDetailModal extends Component
     public function cancelAppointment(): void
     {
         DB::transaction(function () {
-            // 1. Annuler l'Appointment
-            $this->appointment->update(['status' => AppointmentStatus::CANCELLED]);
+            $reason = $this->cancelReason ?: 'Annulé par le tatoueur';
+
+            // 1. Annuler via le modèle (gère statut + remboursement Stripe + event)
+            $this->appointment->cancel('tattooer', $reason);
 
             // 2. Supprimer le CalendarEvent
             CalendarEvent::where('appointment_id', $this->appointment->id)->delete();
@@ -122,10 +124,8 @@ class AppointmentDetailModal extends Component
             $bookingRequest = $this->appointment->bookingRequest;
             $bookingRequest->update([
                 'status' => BookingRequestStatus::CANCELLED,
-                'cancellation_reason' => $this->cancelReason ?: 'Annulé par le tatoueur',
+                'cancellation_reason' => $reason,
             ]);
-
-            // TODO: Calcul remboursement selon politique (existant)
 
             // 4. Message système chat
             $conversation = $bookingRequest->conversation;

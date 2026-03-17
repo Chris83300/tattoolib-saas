@@ -9,6 +9,7 @@ use App\Filament\Admin\Resources\BookingRequests\Schemas\BookingRequestForm;
 use App\Filament\Admin\Resources\BookingRequests\Tables\BookingRequestsTable;
 use App\Models\BookingRequest;
 use BackedEnum;
+use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -20,7 +21,12 @@ class BookingRequestResource extends Resource
 {
     protected static ?string $model = BookingRequest::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-calendar';
+    protected static ?string $navigationLabel = 'Demandes';
+    protected static ?string $modelLabel = 'Demande';
+    protected static ?string $pluralModelLabel = 'Demandes';
+    protected static UnitEnum|string|null $navigationGroup = 'Réservations';
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $recordTitleAttribute = 'title';
 

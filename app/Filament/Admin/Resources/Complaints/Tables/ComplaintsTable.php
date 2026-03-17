@@ -36,8 +36,12 @@ class ComplaintsTable
                 TextColumn::make('status')
                     ->label('Statut')
                     ->badge()
-                    ->color(fn (ComplaintStatus $status): string => $status->getColor())
-                    ->formatStateUsing(fn (ComplaintStatus $status): string => $status->getLabel()),
+                    ->color(fn ($state): string =>
+                        is_string($state) ? ComplaintStatus::from($state)->getColor() : $state->getColor()
+                    )
+                    ->formatStateUsing(fn ($state): string =>
+                        is_string($state) ? ComplaintStatus::from($state)->getLabel() : $state->getLabel()
+                    ),
                 TextColumn::make('created_at')
                     ->label('Date')
                     ->dateTime('d/m/Y H:i')

@@ -286,6 +286,8 @@
                             {{ $booking->status === \App\Enums\BookingRequestStatus::DATE_CONFIRMED ? 'bg-vert-succes/20 text-vert-succes' : '' }}
                             {{ $booking->status === \App\Enums\BookingRequestStatus::COMPLETED ? 'bg-beige-peau/20 text-beige-peau' : '' }}
                             {{ $booking->status === \App\Enums\BookingRequestStatus::CANCELLED ? 'bg-rouge-alerte/20 text-rouge-alerte' : '' }}
+                            {{ $booking->status === \App\Enums\BookingRequestStatus::REJECTED ? 'bg-rouge-alerte/20 text-rouge-alerte' : '' }}
+                            {{ $booking->status === \App\Enums\BookingRequestStatus::EXPIRED ? 'bg-rouge-alerte/20 text-rouge-alerte' : '' }}
                             {{ $booking->status === \App\Enums\BookingRequestStatus::NO_SHOW ? 'bg-rouge-alerte/20 text-rouge-alerte' : '' }}">
                                 {{ $booking->status->label() }}
                             </span>

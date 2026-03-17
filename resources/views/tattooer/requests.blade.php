@@ -278,6 +278,20 @@
                                         </button>
                                     </form>
                                 @endif
+
+                                @if (in_array($request->status->value, ['expired', 'rejected', 'cancelled']))
+                                    <form action="{{ route($tattooer->routePrefix() . '.requests.destroy', $request) }}"
+                                        method="POST" class="inline"
+                                        x-data
+                                        @submit.prevent="if (confirm('Supprimer définitivement cette demande ?')) { $el.submit(); }">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
+                                            class="px-3 py-2 text-xs bg-rouge-alerte/10 border border-rouge-alerte/20 text-rouge-alerte rounded-lg hover:bg-rouge-alerte/20 transition-colors flex items-center gap-1">
+                                            🗑 Supprimer
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -322,6 +336,13 @@
 
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') closeLightbox();
+        });
+
+        // Rafraîchir la liste après acceptation d'une demande
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('booking-accepted', () => {
+                window.location.reload();
+            });
         });
 
         // Filtrage

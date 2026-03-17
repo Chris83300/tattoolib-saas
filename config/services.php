@@ -41,8 +41,15 @@ return [
         'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
         'default_deposit_amount' => env('STRIPE_DEFAULT_DEPOSIT_AMOUNT', 5000),
         'default_deposit_percentage' => env('STRIPE_DEFAULT_DEPOSIT_PERCENTAGE', 30),
-        'studio_price_id' => env('STRIPE_PRICE_ID_STUDIO'),          // 59.99€/mois
+        'studio_price_id' => env('STRIPE_PRICE_ID_STUDIO'),              // 59.99€/mois
         'studio_artist_price_id' => env('STRIPE_PRICE_ID_STUDIO_EXTRA'), // 24.99€/artiste/mois
+        // Mapping price IDs Stripe → plans internes (utilisé par les webhooks)
+        'prices' => [
+            'starter'      => env('STRIPE_PRICE_ID_STARTER'),
+            'pro'          => env('STRIPE_PRICE_ID_PRO'),
+            'studio'       => env('STRIPE_PRICE_ID_STUDIO'),
+            'studio_extra' => env('STRIPE_PRICE_ID_STUDIO_EXTRA'),
+        ],
     ],
 
 ];

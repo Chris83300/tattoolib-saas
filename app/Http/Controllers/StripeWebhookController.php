@@ -9,6 +9,7 @@ use App\Models\Conversation;
 use App\Models\Tattooer;
 use App\Models\Piercer;
 use App\Models\Studio;
+use App\Models\User;
 use App\Enums\BookingRequestStatus;
 use App\Enums\ConversationStatus;
 use Illuminate\Http\Request;
@@ -307,25 +308,54 @@ class StripeWebhookController extends Controller
     }
 
     /**
-     * Gérer le succès de paiement d'invoice
+     * Gérer le succès de paiement d'invoice (renouvellement abonnement)
      */
-    private function handleInvoicePaymentSucceeded($invoice)
+    private function handleInvoicePaymentSucceeded($invoice): void
     {
         Log::info('Webhook: Invoice payment succeeded', [
             'invoice_id' => $invoice->id,
             'amount' => $invoice->amount_paid,
         ]);
+
+        // Si c'est un renouvellement d'abonnement, synchroniser les modèles métier
+        $subscriptionId = $invoice->subscription ?? null;
+        if ($subscriptionId) {
+            try {
+                $stripe = new \Stripe\StripeClient(config('cashier.secret'));
+                $subscription = $stripe->subscriptions->retrieve($subscriptionId);
+                $this->syncArtistSubscription($subscription);
+            } catch (\Exception $e) {
+                Log::error('Webhook: Impossible de récupérer l\'abonnement pour sync', [
+                    'subscription_id' => $subscriptionId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
     }
 
     /**
      * Gérer l'échec de paiement d'invoice
      */
-    private function handleInvoicePaymentFailed($invoice)
+    private function handleInvoicePaymentFailed($invoice): void
     {
         Log::warning('Webhook: Invoice payment failed', [
             'invoice_id' => $invoice->id,
             'attempt_count' => $invoice->attempt_count,
         ]);
+
+        // Notifier l'artiste : son paiement a échoué, is_subscribed reste inchangé
+        // (Cashier gère la mise en grace_period automatiquement via past_due)
+        $stripeCustomerId = $invoice->customer ?? null;
+        if ($stripeCustomerId) {
+            $user = User::where('stripe_id', $stripeCustomerId)->first();
+            if ($user) {
+                Log::warning('Webhook: Paiement facture échoué', [
+                    'user_id' => $user->id,
+                    'invoice_id' => $invoice->id,
+                ]);
+                // TODO post-lancement : envoyer notification email à l'artiste
+            }
+        }
     }
 
     /**
@@ -334,7 +364,7 @@ class StripeWebhookController extends Controller
     private function storeReceiptUrl(AccountingTransaction $transaction, string $paymentIntentId): void
     {
         try {
-            $stripe = new Stripe(config('services.stripe.secret_key'));
+            $stripe = new \Stripe\StripeClient(config('cashier.secret'));
             $paymentIntent = $stripe->paymentIntents->retrieve($paymentIntentId);
 
             if ($paymentIntent->latest_charge) {
@@ -520,42 +550,144 @@ class StripeWebhookController extends Controller
     /**
      * Gérer la création d'un abonnement
      */
-    private function handleSubscriptionCreated($subscription)
+    private function handleSubscriptionCreated($subscription): void
     {
         Log::info('Webhook: Abonnement créé', [
             'subscription_id' => $subscription->id,
-            'customer_id' => $subscription->customer,
+            'customer_id'     => $subscription->customer,
+            'status'          => $subscription->status,
         ]);
 
-        // Laravel Cashier gère automatiquement la synchronisation
-        // Les abonnements sont créés via la méthode checkout() du modèle User
-        // et synchronisés par Cashier
+        $this->syncArtistSubscription($subscription);
     }
 
     /**
      * Gérer la mise à jour d'un abonnement
      */
-    private function handleSubscriptionUpdated($subscription)
+    private function handleSubscriptionUpdated($subscription): void
     {
         Log::info('Webhook: Abonnement mis à jour', [
             'subscription_id' => $subscription->id,
-            'status' => $subscription->status,
+            'status'          => $subscription->status,
         ]);
 
-        // Laravel Cashier gère automatiquement la synchronisation
+        $this->syncArtistSubscription($subscription);
     }
 
     /**
      * Gérer la suppression d'un abonnement
      */
-    private function handleSubscriptionDeleted($subscription)
+    private function handleSubscriptionDeleted($subscription): void
     {
         Log::info('Webhook: Abonnement supprimé', [
             'subscription_id' => $subscription->id,
-            'customer_id' => $subscription->customer,
+            'customer_id'     => $subscription->customer,
         ]);
 
-        // Laravel Cashier gère automatiquement la synchronisation
-        // L'abonnement est marqué comme annulé mais conservé en BDD
+        $stripeCustomerId = $subscription->customer ?? $subscription['customer'] ?? null;
+        if (!$stripeCustomerId) return;
+
+        $user = User::where('stripe_id', $stripeCustomerId)->first();
+        if (!$user) {
+            Log::warning('Webhook: user non trouvé pour suppression abonnement', [
+                'customer_id' => $stripeCustomerId,
+            ]);
+            return;
+        }
+
+        if ($user->tattooer) {
+            $user->tattooer->update(['is_subscribed' => false]);
+        }
+        if ($user->piercer) {
+            $user->piercer->update(['is_subscribed' => false]);
+        }
+        if ($user->studio) {
+            $user->studio->update(['is_subscribed' => false]);
+        }
+
+        Log::info('Webhook: Abonnement supprimé — modèles métier mis à jour', [
+            'user_id' => $user->id,
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // HELPERS ABONNEMENT
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Synchronise is_subscribed + current_plan sur Tattooer/Piercer/Studio
+     * à partir d'un objet Stripe Subscription.
+     */
+    private function syncArtistSubscription($subscription): void
+    {
+        $stripeCustomerId = $subscription->customer ?? $subscription['customer'] ?? null;
+        if (!$stripeCustomerId) return;
+
+        $user = User::where('stripe_id', $stripeCustomerId)->first();
+        if (!$user) {
+            Log::warning('Webhook: syncArtistSubscription — user non trouvé', [
+                'customer_id' => $stripeCustomerId,
+            ]);
+            return;
+        }
+
+        $stripeStatus = $subscription->status ?? $subscription['status'] ?? 'canceled';
+        $items        = $subscription->items ?? $subscription['items'] ?? null;
+        $priceId      = $items->data[0]->price->id
+                        ?? $items['data'][0]['price']['id']
+                        ?? null;
+
+        $plan     = $this->resolvePlanFromPriceId($priceId);
+        $isActive = in_array($stripeStatus, ['active', 'trialing']);
+
+        if ($user->tattooer) {
+            $user->tattooer->update([
+                'is_subscribed' => $isActive,
+                'current_plan'  => $isActive ? $plan : $user->tattooer->current_plan,
+            ]);
+            Log::info('Webhook: Tattooer sync abonnement', [
+                'tattooer_id'   => $user->tattooer->id,
+                'plan'          => $plan,
+                'is_subscribed' => $isActive,
+            ]);
+        }
+
+        if ($user->piercer) {
+            $user->piercer->update([
+                'is_subscribed' => $isActive,
+                'current_plan'  => $isActive ? $plan : $user->piercer->current_plan,
+            ]);
+            Log::info('Webhook: Piercer sync abonnement', [
+                'piercer_id'    => $user->piercer->id,
+                'plan'          => $plan,
+                'is_subscribed' => $isActive,
+            ]);
+        }
+
+        if ($user->studio) {
+            $user->studio->update(['is_subscribed' => $isActive]);
+            Log::info('Webhook: Studio sync abonnement', [
+                'studio_id'     => $user->studio->id,
+                'is_subscribed' => $isActive,
+            ]);
+        }
+    }
+
+    /**
+     * Résout le plan interne depuis le price ID Stripe.
+     * Utilise config('services.stripe.prices.*') — renseigné via .env.
+     */
+    private function resolvePlanFromPriceId(?string $priceId): string
+    {
+        if (!$priceId) return 'starter';
+
+        $map = array_filter([
+            config('services.stripe.prices.starter')      => 'starter',
+            config('services.stripe.prices.pro')          => 'pro',
+            config('services.stripe.prices.studio')       => 'studio',
+            config('services.stripe.prices.studio_extra') => 'studio',
+        ]);
+
+        return $map[$priceId] ?? 'starter';
     }
 }

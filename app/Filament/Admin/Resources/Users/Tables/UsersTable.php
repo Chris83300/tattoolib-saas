@@ -58,52 +58,58 @@ class UsersTable
                     ->iconColor('primary'),
 
                 // COLONNE 6 : Rôle (badge coloré)
-                Tables\Columns\BadgeColumn::make('role')
+                Tables\Columns\TextColumn::make('role')
                     ->label('Rôle')
-                    ->colors([
-                        'danger' => 'admin',
-                        'success' => 'tattooer',
-                        'warning' => 'pierceur',
-                        'info' => 'studio',
-                        'secondary' => 'studio_artist',
-                        'gray' => 'client',
-                    ])
-                    ->icons([
-                        'heroicon-o-shield-check' => 'admin',
-                        'heroicon-o-paint-brush' => 'tattooer',
-                        'heroicon-o-scissors' => 'pierceur',
-                        'heroicon-o-building-office-2' => 'studio',
-                        'heroicon-o-user-group' => 'studio_artist',
-                        'heroicon-o-user' => 'client',
-                    ])
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'admin'         => 'danger',
+                        'tattooer'      => 'success',
+                        'pierceur'      => 'warning',
+                        'studio'        => 'info',
+                        'studio_artist' => 'primary',
+                        'client'        => 'gray',
+                        default         => 'gray',
+                    })
+                    ->icon(fn (string $state): string => match ($state) {
+                        'admin'         => 'heroicon-o-shield-check',
+                        'tattooer'      => 'heroicon-o-paint-brush',
+                        'pierceur'      => 'heroicon-o-scissors',
+                        'studio'        => 'heroicon-o-building-office-2',
+                        'studio_artist' => 'heroicon-o-user-group',
+                        'client'        => 'heroicon-o-user',
+                        default         => '',
+                    })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'admin' => 'Admin',
-                        'tattooer' => 'Tatoueur',
-                        'pierceur' => 'Pierceur',
-                        'studio' => 'Studio',
+                        'admin'         => 'Admin',
+                        'tattooer'      => 'Tatoueur',
+                        'pierceur'      => 'Pierceur',
+                        'studio'        => 'Studio',
                         'studio_artist' => 'Artiste Studio',
-                        'client' => 'Client',
-                        default => $state,
+                        'client'        => 'Client',
+                        default         => $state,
                     }),
 
                 // COLONNE 7 : Statut (badge coloré)
-                Tables\Columns\BadgeColumn::make('status')
+                Tables\Columns\TextColumn::make('status')
                     ->label('Statut')
-                    ->colors([
-                        'warning' => 'pending_verification',
-                        'success' => 'active',
-                        'danger' => 'suspended',
-                    ])
-                    ->icons([
-                        'heroicon-o-clock' => 'pending_verification',
-                        'heroicon-o-check-circle' => 'active',
-                        'heroicon-o-x-circle' => 'suspended',
-                    ])
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'pending_verification' => 'warning',
+                        'active'               => 'success',
+                        'suspended'            => 'danger',
+                        default                => 'gray',
+                    })
+                    ->icon(fn (string $state): string => match ($state) {
+                        'pending_verification' => 'heroicon-o-clock',
+                        'active'               => 'heroicon-o-check-circle',
+                        'suspended'            => 'heroicon-o-x-circle',
+                        default                => '',
+                    })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'pending_verification' => 'En attente',
-                        'active' => 'Actif',
-                        'suspended' => 'Suspendu',
-                        default => $state,
+                        'active'               => 'Actif',
+                        'suspended'            => 'Suspendu',
+                        default                => $state,
                     }),
 
                 // COLONNE 8 : Compte actif

@@ -158,6 +158,8 @@ class BookingRequest extends Model implements HasMedia
         'cancellation_reason',
         'cancelled_at',
         'refund_amount',
+        'refund_percent',
+        'refund_processed_at',
 
         // === ⚖️ CONTESTATION ===
         'dispute_status',
@@ -235,6 +237,8 @@ class BookingRequest extends Model implements HasMedia
         'chat_closes_at' => 'datetime',
         'cancelled_at' => 'datetime',
         'refund_amount' => 'decimal:2',
+        'refund_percent' => 'integer',
+        'refund_processed_at' => 'datetime',
         'dispute_opened_at' => 'datetime',
         'dispute_resolved_at' => 'datetime',
         'dispute_refund_amount' => 'decimal:2',
@@ -802,7 +806,7 @@ class BookingRequest extends Model implements HasMedia
         // Créer la conversation
         $this->createConversation();
 
-        // TODO: Event BookingRequestAccepted
+        event(new \App\Events\BookingRequestAccepted($this));
     }
 
     /**
@@ -812,7 +816,7 @@ class BookingRequest extends Model implements HasMedia
     {
         $this->transitionTo(BookingRequestStatus::CANCELLED);
 
-        // TODO: Event BookingRequestRejected
+        event(new \App\Events\BookingRequestRejected($this));
     }
 
     /**
@@ -828,7 +832,7 @@ class BookingRequest extends Model implements HasMedia
 
         $this->transitionTo(BookingRequestStatus::DEPOSIT_REQUESTED);
 
-        // TODO: Event DepositRequested
+        event(new \App\Events\DepositRequested($this));
     }
 
     /**
@@ -846,7 +850,7 @@ class BookingRequest extends Model implements HasMedia
 
         $this->transitionTo(BookingRequestStatus::DEPOSIT_PAID);
 
-        // TODO: Event DepositPaid
+        event(new \App\Events\DepositPaid($this));
     }
 
     /**
@@ -861,7 +865,7 @@ class BookingRequest extends Model implements HasMedia
 
         $this->transitionTo(BookingRequestStatus::DATE_CONFIRMED);
 
-        // TODO: Event DesignSent
+        event(new \App\Events\DesignSent($this));
     }
 
     /**
@@ -879,7 +883,7 @@ class BookingRequest extends Model implements HasMedia
         // Créer l'appointment
         $this->createAppointment();
 
-        // TODO: Event BookingConfirmed
+        event(new \App\Events\BookingConfirmed($this));
     }
 
     /**

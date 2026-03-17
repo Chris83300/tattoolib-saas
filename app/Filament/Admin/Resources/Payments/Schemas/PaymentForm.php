@@ -15,35 +15,50 @@ class PaymentForm
         return $schema
             ->components([
                 TextInput::make('booking_request_id')
+                    ->label('Réservation (ID)')
                     ->required()
                     ->numeric(),
                 TextInput::make('stripe_payment_intent_id')
+                    ->label('Intent Stripe')
                     ->required(),
-                TextInput::make('stripe_charge_id'),
+                TextInput::make('stripe_charge_id')
+                    ->label('Charge Stripe'),
                 TextInput::make('amount')
+                    ->label('Montant')
                     ->required()
                     ->numeric(),
                 TextInput::make('currency')
+                    ->label('Devise')
                     ->required()
                     ->default('EUR'),
                 Select::make('status')
+                    ->label('Statut')
                     ->options([
-            'pending' => 'Pending',
-            'succeeded' => 'Succeeded',
-            'failed' => 'Failed',
-            'canceled' => 'Canceled',
-        ])
+                        'pending' => 'En attente',
+                        'succeeded' => 'Réussi',
+                        'failed' => 'Échoué',
+                        'canceled' => 'Annulé',
+                    ])
                     ->default('pending')
                     ->required(),
                 Select::make('payment_type')
-                    ->options(['deposit' => 'Deposit', 'remaining' => 'Remaining', 'full' => 'Full'])
+                    ->label('Type de paiement')
+                    ->options([
+                        'deposit' => 'Acompte',
+                        'remaining' => 'Solde',
+                        'full' => 'Paiement complet',
+                    ])
                     ->default('deposit')
                     ->required(),
                 Select::make('recipient_type')
-                    ->options(['artist' => 'Artist', 'studio' => 'Studio']),
-                TextInput::make('recipient_name'),
-                DateTimePicker::make('paid_at'),
+                    ->label('Destinataire')
+                    ->options(['artist' => 'Artiste', 'studio' => 'Studio']),
+                TextInput::make('recipient_name')
+                    ->label('Nom destinataire'),
+                DateTimePicker::make('paid_at')
+                    ->label('Payé le'),
                 Textarea::make('failure_reason')
+                    ->label('Raison de l\'échec')
                     ->columnSpanFull(),
             ]);
     }

@@ -51,6 +51,10 @@ class BookingRequestPolicy
      */
     public function update(User $user, BookingRequest $bookingRequest): bool
     {
+        if ($user->isAdmin()) {
+            return true;
+        }
+
         if (!($user->isTattooer() || $user->isPiercer() || $user->isStudioArtist())) {
             return false;
         }

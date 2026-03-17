@@ -841,6 +841,9 @@
                 Livewire.on('redirect', (event) => {
                     window.location.href = event.url;
                 });
+                Livewire.on('booking-accepted', () => {
+                    window.location.reload();
+                });
             });
 
             // Alternative : écouter aussi au cas où livewire:initialized ne se déclenche pas

@@ -98,9 +98,9 @@ Route::middleware(['auth:sanctum', 'throttle:payments'])->group(function () {
         [PaymentController::class, 'createDepositPayment']);
 });
 
-// ===== WEBHOOKS (PAS d'auth, vérifié par signature) =====
-Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook'])
-    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+// ===== WEBHOOKS =====
+// ⚠️ Endpoint supprimé — doublon du handler custom sur POST /webhooks/stripe (web.php).
+// Endpoint actif unique : POST /webhooks/stripe → StripeWebhookController@handleWebhook
 
 // ===== TATTOOERS (Protected routes) =====
 Route::middleware('auth:sanctum')->prefix('tattooers/{tattooer}')->group(function () {

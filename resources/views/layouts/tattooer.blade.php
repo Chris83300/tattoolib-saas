@@ -161,20 +161,22 @@
 
                 <div class="pt-4 mt-4 border-t border-titane/20">
                     @if (!isset($artisan) || !$artisan->studio_id)
-                    <a href="{{ route($routePrefix . '.subscription.plans') }}"
-                        class="flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs($routePrefix . '.subscription.*') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text hover:bg-noir-profond' }} transition-colors">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
-                            </path>
-                        </svg>
-                        <span class="font-semibold">Abonnement</span>
-                        @if (isset($artisan) && !$artisan->is_subscribed && $artisan->trial_ends_at?->isFuture())
-                            <span class="ml-auto px-1.5 py-0.5 text-[10px] bg-beige-peau/20 text-beige-peau rounded">Essai</span>
-                        @elseif (isset($artisan) && $artisan->is_blocked)
-                            <span class="ml-auto px-1.5 py-0.5 text-[10px] bg-rouge-alerte/20 text-rouge-alerte rounded">Expiré</span>
-                        @endif
-                    </a>
+                        <a href="{{ route($routePrefix . '.subscription.plans') }}"
+                            class="flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs($routePrefix . '.subscription.*') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text hover:bg-noir-profond' }} transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
+                                </path>
+                            </svg>
+                            <span class="font-semibold">Abonnement</span>
+                            @if (isset($artisan) && !$artisan->is_subscribed && $artisan->trial_ends_at?->isFuture())
+                                <span
+                                    class="ml-auto px-1.5 py-0.5 text-[10px] bg-beige-peau/20 text-beige-peau rounded">Essai</span>
+                            @elseif (isset($artisan) && $artisan->is_blocked)
+                                <span
+                                    class="ml-auto px-1.5 py-0.5 text-[10px] bg-rouge-alerte/20 text-rouge-alerte rounded">Expiré</span>
+                            @endif
+                        </a>
                     @endif
 
                     <a href="{{ route($routePrefix . '.settings') }}"
@@ -378,6 +380,8 @@
 
     @stack('scripts')
     @livewireScripts
+    @livewire('admin-chat')
+
 </body>
 
 </html>

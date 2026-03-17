@@ -20,9 +20,10 @@ class SecurityHeaders
         $response->headers->set('X-XSS-Protection', '1; mode=block');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
-        // CSP adaptée à l'environnement
-        // $csp = $this->buildCspHeader($request);
-        // $response->headers->set('Content-Security-Policy', $csp);
+        // CSP adaptée à l'environnement (Report-Only : observe sans bloquer)
+        // Passer en 'Content-Security-Policy' après validation console navigateur
+        $csp = $this->buildCspHeader($request);
+        $response->headers->set('Content-Security-Policy-Report-Only', $csp);
 
         // Permissions Policy
         $permissionsPolicy = implode(', ', [

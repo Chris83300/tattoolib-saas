@@ -27,7 +27,7 @@ class StudioArtistResource extends Resource
 
     protected static ?string $navigationLabel = 'Artistes Studio';
 
-    protected static UnitEnum|string|null $navigationGroup = 'Moderation';
+    protected static UnitEnum|string|null $navigationGroup = 'Modération';
 
     protected static ?int $navigationSort = 5;
 

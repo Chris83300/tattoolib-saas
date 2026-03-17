@@ -129,6 +129,10 @@
                                                         bg-rouge-alerte/20 text-rouge-alerte border border-rouge-alerte/30
                                                     @break
 
+                                                    @case('rejected')
+                                                        bg-rouge-alerte/20 text-rouge-alerte border border-rouge-alerte/30
+                                                    @break
+
                                                     @default
                                                         bg-titane/30 text-ivoire-text/80
                                                 @endswitch
@@ -164,6 +168,10 @@
 
                                             @case('completed')
                                                 Terminé
+                                            @break
+
+                                            @case('rejected')
+                                                Rejeté
                                             @break
 
                                             @case('cancelled')

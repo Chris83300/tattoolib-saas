@@ -92,9 +92,10 @@
         <!-- Stripe Connect -->
         @php
             $connectStatus = $tattooer->stripe_connect_status ?? 'not_connected';
-            $isActive      = $connectStatus === 'active' && !empty($tattooer->stripe_connect_account_id);
-            $isPending     = in_array($connectStatus, ['onboarding', 'pending', 'restricted'])
-                             && !empty($tattooer->stripe_connect_account_id);
+            $isActive = $connectStatus === 'active' && !empty($tattooer->stripe_connect_account_id);
+            $isPending =
+                in_array($connectStatus, ['onboarding', 'pending', 'restricted']) &&
+                !empty($tattooer->stripe_connect_account_id);
         @endphp
 
         <div class="bg-gris-fonde rounded-xl p-6">
@@ -104,22 +105,46 @@
 
             @if (!$tattooer->needsOwnStripeConnect())
                 {{-- Studio centralisé --}}
-                <div class="flex items-center gap-3 p-4 bg-noir-profond rounded-xl border border-titane/20">
+                <div class="flex items-start gap-3 p-4 bg-noir-profond rounded-xl border border-titane/20">
                     <span class="text-2xl">🏢</span>
-                    <p class="text-sm text-titane">
-                        Les paiements sont gérés par votre studio
-                        <strong class="text-ivoire-text">{{ $tattooer->studio?->name }}</strong>.
-                        Vous n'avez pas besoin de configurer Stripe Connect.
-                    </p>
-                </div>
+                    <div class="flex-1">
+                        <p class="text-sm text-titane mb-2">
+                            Les paiements sont gérés par votre studio
+                            <strong class="text-ivoire-text">{{ $tattooer->studio?->name }}</strong>.
+                            Vous n'avez pas besoin de configurer Stripe Connect.
+                        </p>
 
+                        @if ($tattooer->studio)
+                            <div class="bg-beige-peau/10 rounded-lg p-3 border border-beige-peau/20">
+                                <p class="text-xs text-beige-peau font-semibold mb-1">💰 Paiement direct Artiste</p>
+                                @php
+                                    $commissionRate = $tattooer->studio->commission_rate ?? 0;
+                                    $takesCommission = $commissionRate > 0;
+                                @endphp
+                                @if ($takesCommission)
+                                    <p class="text-xs text-ivoire-text/80">
+                                        Votre studio prend une commission de
+                                        <span
+                                            class="text-beige-peau font-bold">{{ number_format($commissionRate, 1) }}%</span>
+                                        sur vos paiements.
+                                    </p>
+                                @else
+                                    <p class="text-xs text-vert-succes">
+                                        ✅ Votre studio ne prend aucune commission sur vos paiements.
+                                    </p>
+                                @endif
+                            </div>
+                        @endif
+                    </div>
+                </div>
             @elseif ($isActive)
                 {{-- Compte actif --}}
                 <div class="flex items-center gap-3 p-4 bg-vert-succes/10 rounded-xl border border-vert-succes/30">
                     <span class="text-2xl">✅</span>
                     <div class="flex-1">
                         <p class="font-semibold text-vert-succes">Stripe Connect actif</p>
-                        <p class="text-sm text-ivoire-text/60">Vous recevez les paiements directement sur votre compte bancaire.</p>
+                        <p class="text-sm text-ivoire-text/60">Vous recevez les paiements directement sur votre compte
+                            bancaire.</p>
                     </div>
                     <form action="{{ route($tattooer->routePrefix() . '.stripe.connect') }}" method="POST">
                         @csrf
@@ -129,14 +154,14 @@
                         </button>
                     </form>
                 </div>
-
             @elseif ($isPending)
                 {{-- Vérification en cours --}}
                 <div class="flex items-center gap-3 p-4 bg-ambre-warning/10 rounded-xl border border-ambre-warning/30">
                     <span class="text-2xl">⏳</span>
                     <div class="flex-1">
                         <p class="font-semibold text-ambre-warning">Vérification en cours</p>
-                        <p class="text-sm text-ivoire-text/60">Stripe peut vous demander des documents. Vérifiez votre email.</p>
+                        <p class="text-sm text-ivoire-text/60">Stripe peut vous demander des documents. Vérifiez votre
+                            email.</p>
                     </div>
                     <form action="{{ route($tattooer->routePrefix() . '.stripe.connect') }}" method="POST">
                         @csrf
@@ -146,7 +171,6 @@
                         </button>
                     </form>
                 </div>
-
             @else
                 {{-- Pas encore configuré --}}
                 <div class="text-center py-8">
@@ -200,10 +224,17 @@
                         <tbody>
                             @foreach ($payments as $payment)
                                 @php
-                                    $depositTx = $payment->bookingTransactions->where('type', 'deposit')->where('status', 'completed')->first();
-                                    $balanceTx = $payment->bookingTransactions->where('type', 'final_payment')->where('status', 'completed')->first();
+                                    $depositTx = $payment->bookingTransactions
+                                        ->where('type', 'deposit')
+                                        ->where('status', 'completed')
+                                        ->first();
+                                    $balanceTx = $payment->bookingTransactions
+                                        ->where('type', 'final_payment')
+                                        ->where('status', 'completed')
+                                        ->first();
                                     $paidAmount = ($depositTx?->amount ?? 0) + ($balanceTx?->amount ?? 0);
-                                    $paymentMethod = $depositTx?->payment_method ?? $balanceTx?->payment_method ?? 'stripe';
+                                    $paymentMethod =
+                                        $depositTx?->payment_method ?? ($balanceTx?->payment_method ?? 'stripe');
                                 @endphp
                                 <tr class="border-b border-titane/20 hover:bg-noir-profond/50 transition-colors">
                                     <td class="py-3 px-4 text-ivoire-text">

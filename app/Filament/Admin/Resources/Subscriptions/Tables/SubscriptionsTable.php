@@ -11,7 +11,6 @@ use Dom\Text;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -56,13 +55,15 @@ class SubscriptionsTable
 
                         return $artistName . ' (' . $artistType . ')';
                     }),
-                BadgeColumn::make('plan')
+                TextColumn::make('plan')
+                    ->badge()
                     ->label('Plan')
-                    ->colors([
-                        'warning' => 'starter',
-                        'success' => 'pro',
-                        'primary' => 'studio',
-                    ])
+                    ->color(fn (string $state): string => match ($state) {
+                        'STARTER' => 'warning',
+                        'PRO' => 'success',
+                        'STUDIO' => 'primary',
+                        default => 'gray',
+                    })
                     ->getStateUsing(function ($record) {
                         $plan = $record->plan ?? 'unknown';
                         return match ($plan) {
@@ -73,16 +74,18 @@ class SubscriptionsTable
                         };
                     }),
 
-                BadgeColumn::make('stripe_status')
+                TextColumn::make('stripe_status')
+                    ->badge()
                     ->label('Statut')
-                    ->colors([
-                        'success' => 'active',
-                        'warning' => 'trialing',
-                        'danger' => 'canceled',
-                        'incomplete' => 'incomplete',
-                        'past_due' => 'past_due',
-                        'unpaid' => 'unpaid',
-                    ])
+                    ->color(fn (string $state): string => match ($state) {
+                        'active' => 'success',
+                        'trialing' => 'warning',
+                        'canceled' => 'danger',
+                        'incomplete' => 'gray',
+                        'past_due' => 'danger',
+                        'unpaid' => 'danger',
+                        default => 'gray',
+                    })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'active' => 'Actif',
                         'trialing' => 'Essai',

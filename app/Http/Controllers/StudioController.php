@@ -7,6 +7,7 @@ use App\Models\StudioArtist;
 use App\Models\User;
 use App\Models\Tattooer;
 use App\Models\Piercer;
+use App\Traits\HasAccountDeletion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\Log;
 
 class StudioController extends Controller
 {
+    use HasAccountDeletion;
     /**
      * Récupère le studio que l'utilisateur connecté POSSÈDE.
      */
@@ -1194,5 +1196,47 @@ class StudioController extends Controller
         $redirect = $roleSlug === 'pierceur' ? 'pierceur.dashboard' : 'tattooer.dashboard';
         return redirect()->route($redirect)
             ->with('success', 'Bienvenue dans le studio ' . $invitation->studio->name . ' !');
+    }
+
+    protected function performDeletion(\App\Models\User $user): void
+    {
+        DB::transaction(function () use ($user) {
+            $studio = $user->studio;
+            if (!$studio) return;
+
+            // 1. Annuler l'abonnement Stripe
+            try {
+                if ($user->subscribed('default')) {
+                    $user->subscription('default')->cancelNow();
+                }
+            } catch (\Exception $e) {
+                Log::warning('Annulation abo studio impossible: ' . $e->getMessage());
+            }
+
+            // 2. Détacher les artistes (ils deviennent indépendants)
+            foreach ($studio->studioArtists as $sa) {
+                if ($linkedUser = $sa->user) {
+                    $linkedUser->tattooer?->update(['studio_id' => null]);
+                    $linkedUser->piercer?->update(['studio_id' => null]);
+                }
+                $sa->forceDelete();
+            }
+
+            // 3. Supprimer les médias studio
+            $studio->media()->each(fn($m) => $m->delete());
+            $studio->forceDelete();
+
+            // 4. Anonymiser l'user
+            $user->notifications()->delete();
+            $user->update([
+                'name'      => 'Compte supprimé',
+                'email'     => 'deleted_' . $user->id . '@inkpik.deleted',
+                'phone'     => null,
+                'password'  => bcrypt(\Str::random(40)),
+                'stripe_id' => null,
+                'fcm_token' => null,
+            ]);
+            $user->forceDelete();
+        });
     }
 }

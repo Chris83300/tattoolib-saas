@@ -19,7 +19,7 @@ class AppointmentResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-calendar-days';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Activite';
+    protected static string|UnitEnum|null $navigationGroup = 'Réservations';
 
     protected static ?string $modelLabel = 'Rendez-vous';
 
@@ -62,15 +62,17 @@ class AppointmentResource extends Resource
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
 
-                Tables\Columns\BadgeColumn::make('status')
+                Tables\Columns\TextColumn::make('status')
                     ->label('Statut')
-                    ->colors([
-                        'warning' => 'pending',
-                        'success' => 'confirmed',
-                        'primary' => 'completed',
-                        'danger' => 'cancelled',
-                        'secondary' => 'client_no_show',
-                    ])
+                    ->badge()
+                    ->color(fn ($state) => match($state) {
+                        'pending' => 'warning',
+                        'confirmed' => 'success',
+                        'completed' => 'primary',
+                        'cancelled' => 'danger',
+                        'client_no_show' => 'gray',
+                        default => 'gray',
+                    })
                     ->formatStateUsing(fn ($state) => match($state) {
                         'pending' => 'En attente',
                         'confirmed' => 'Confirmé',

@@ -3,61 +3,83 @@
 namespace App\Http\Controllers\Tattooer;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Models\Tattooer;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Traits\HasAccountDeletion;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class AccountController extends Controller
 {
-    /**
-     * Supprime définitivement le compte du tattooer
-     */
-    public function delete(Request $request)
+    use HasAccountDeletion;
+
+    protected function performDeletion(\App\Models\User $user): void
     {
-        $user = Auth::user();
-        $tattooer = $user->tattooer;
+        DB::transaction(function () use ($user) {
+            $artist = $user->tattooer ?? $user->piercer;
+            if (!$artist) return;
 
-        if (!$tattooer) {
-            return response()->json(['error' => 'Profil tattooer non trouvé'], 404);
-        }
+            // 1. Annuler l'abonnement Stripe
+            try {
+                if ($user->subscribed('default')) {
+                    $user->subscription('default')->cancelNow();
+                }
+            } catch (\Exception $e) {
+                Log::warning('Annulation abo impossible lors suppression: ' . $e->getMessage());
+            }
 
-        try {
-            DB::beginTransaction();
+            // 2. Rembourser les acomptes en cours et annuler les bookings
+            $artist->bookingRequests()
+                ->whereNotNull('deposit_paid_at')
+                ->whereIn('status', ['date_confirmed', 'awaiting_balance', 'design_pending', 'deposit_paid'])
+                ->each(function ($booking) {
+                    try {
+                        app(\App\Services\BookingRequestService::class)
+                            ->processStripeRefund($booking, $booking->total_deposit_amount);
+                        $booking->update([
+                            'status'              => 'cancelled',
+                            'cancellation_reason' => 'Compte artiste supprimé',
+                            'cancelled_by'        => 'artist',
+                            'cancelled_at'        => now(),
+                        ]);
+                    } catch (\Exception $e) {
+                        Log::warning("Remboursement impossible booking {$booking->id}: " . $e->getMessage());
+                    }
+                });
 
-            // Supprimer les médias (avatar, bannière, portfolio)
-            $tattooer->clearMediaCollection('avatar');
-            $tattooer->clearMediaCollection('banner');
-            $tattooer->clearMediaCollection('portfolio');
+            // 3. Anonymiser les bookings complétés (archives comptables)
+            $artist->bookingRequests()
+                ->whereIn('status', ['completed', 'fully_completed'])
+                ->update(['bookable_id' => null, 'bookable_type' => null]);
 
-            // Supprimer les données liées
-            $tattooer->delete();
+            // 4. Supprimer les médias
+            $artist->media()->each(fn($m) => $m->delete());
 
-            // Supprimer l'utilisateur
-            $user->delete();
+            // 5. Supprimer les conversations
+            $artist->conversations()->each(function ($conv) {
+                $conv->messages()->forceDelete();
+                $conv->forceDelete();
+            });
 
-            DB::commit();
+            // 6. Détacher les clients et supprimer les bookings non complétés
+            $artist->clients()->detach();
+            $artist->bookingRequests()
+                ->whereNotIn('status', ['completed', 'fully_completed'])
+                ->forceDelete();
 
-            // Déconnexion
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+            // 7. Supprimer le profil artiste
+            $artist->forceDelete();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Compte supprimé avec succès'
+            // 8. Anonymiser l'user
+            $user->notifications()->delete();
+            $user->update([
+                'name'      => 'Compte supprimé',
+                'email'     => 'deleted_' . $user->id . '@inkpik.deleted',
+                'phone'     => null,
+                'password'  => bcrypt(\Str::random(40)),
+                'stripe_id' => null,
+                'fcm_token' => null,
+                'status'    => 'deleted',
             ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Erreur suppression compte tattooer: ' . $e->getMessage());
-
-            return response()->json([
-                'error' => true,
-                'message' => 'Erreur lors de la suppression du compte'
-            ], 500);
-        }
+            $user->forceDelete();
+        });
     }
 }

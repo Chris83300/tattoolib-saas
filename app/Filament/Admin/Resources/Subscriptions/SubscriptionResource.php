@@ -18,7 +18,7 @@ class SubscriptionResource extends Resource
 {
     protected static ?string $model = Subscription::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-credit-card';
 
     protected static ?string $recordTitleAttribute = 'plan';
 
@@ -28,7 +28,8 @@ class SubscriptionResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Abonnements Artistes';
 
-    protected static UnitEnum|string|null $navigationGroup = 'Gestion';
+    protected static UnitEnum|string|null $navigationGroup = 'Finances';
+    protected static ?int $navigationSort = 3;
 
     public static function getEloquentQuery(): Builder
     {

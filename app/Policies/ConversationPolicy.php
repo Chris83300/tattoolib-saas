@@ -12,10 +12,22 @@ use App\Enums\BookingRequestStatus;
 class ConversationPolicy
 {
     /**
+     * Lister les conversations (admin uniquement)
+     */
+    public function viewAny(User $user): bool
+    {
+        return $user->isAdmin();
+    }
+
+    /**
      * Voir une conversation
      */
     public function view(User $user, Conversation $conversation): bool
     {
+        if ($user->isAdmin()) {
+            return true;
+        }
+
         return $this->isParticipant($user, $conversation);
     }
 

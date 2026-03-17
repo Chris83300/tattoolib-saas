@@ -574,14 +574,88 @@ class BookingRequestService
     }
 
     /**
-     * Traiter le remboursement
+     * Traiter le remboursement de l'acompte via Stripe
      */
     private function processRefund(BookingRequest $bookingRequest): void
     {
-        // TODO: Implémenter remboursement Stripe
-        Log::info('Refund processed', [
-            'booking_request_id' => $bookingRequest->id,
-            'amount' => $bookingRequest->total_deposit_amount,
-        ]);
+        $refundAmount = $bookingRequest->total_deposit_amount;
+
+        if (!$refundAmount || $refundAmount <= 0) {
+            return;
+        }
+
+        $this->processStripeRefund($bookingRequest, $refundAmount);
+    }
+
+    /**
+     * Émettre un remboursement Stripe pour un booking donné
+     */
+    public function processStripeRefund(BookingRequest $booking, float $refundAmount): bool
+    {
+        $paymentIntentId = $booking->stripe_payment_intent_id;
+
+        if (!$paymentIntentId) {
+            Log::warning("Remboursement impossible : pas de PaymentIntent pour booking {$booking->id}");
+            return false;
+        }
+
+        try {
+            $stripe = new \Stripe\StripeClient(config('cashier.secret'));
+
+            // Récupérer le charge ID via le PaymentIntent (plus fiable avec Connect)
+            $pi = $stripe->paymentIntents->retrieve(
+                $paymentIntentId,
+                ['expand' => ['latest_charge']]
+            );
+
+            $chargeId = $pi->latest_charge?->id ?? null;
+
+            if (!$chargeId) {
+                Log::warning("Remboursement impossible : pas de charge pour PI {$paymentIntentId}");
+                return false;
+            }
+
+            // Déterminer si remboursement via compte Connect
+            $artist = $booking->bookable;
+            $stripeConnectId = $artist?->stripe_connect_id ?? null;
+            $refundOptions = [];
+            if ($stripeConnectId && ($artist->stripe_connect_charges_enabled ?? false)) {
+                $refundOptions = ['stripe_account' => $stripeConnectId];
+            }
+
+            $refund = $stripe->refunds->create([
+                'charge'   => $chargeId,
+                'amount'   => (int) round($refundAmount * 100),
+                'reason'   => 'requested_by_customer',
+                'metadata' => [
+                    'booking_id'  => $booking->id,
+                    'refunded_by' => 'platform',
+                ],
+            ], $refundOptions);
+
+            if (in_array($refund->status, ['succeeded', 'pending'])) {
+                $booking->update([
+                    'refund_amount'       => $refundAmount,
+                    'refund_processed_at' => now(),
+                    'refund_percent'      => $booking->total_deposit_amount > 0
+                        ? round(($refundAmount / $booking->total_deposit_amount) * 100)
+                        : 0,
+                ]);
+
+                Log::info("Remboursement Stripe réussi : {$refund->id} pour booking {$booking->id}", [
+                    'charge_id'  => $chargeId,
+                    'amount'     => $refundAmount,
+                    'connect_id' => $stripeConnectId,
+                ]);
+                return true;
+            }
+
+            Log::warning("Remboursement Stripe non succeeded : status={$refund->status}");
+            throw new \Exception("Remboursement Stripe échoué : status={$refund->status}");
+
+        } catch (\Stripe\Exception\InvalidRequestException $e) {
+            Log::error("Remboursement Stripe échoué pour booking {$booking->id}: " . $e->getMessage());
+            throw $e;
+        }
     }
 }

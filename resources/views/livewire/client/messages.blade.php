@@ -231,6 +231,30 @@
             </div>
         @endif
     </div>
+
+    {{-- Messages privés de l'équipe Ink&Pik --}}
+    @php
+        $adminConversation = \App\Models\Conversation::where('type', 'admin_private')
+            ->whereHas('participants', fn($q) => $q->where('users.id', auth()->id()))
+            ->with(['messages' => fn($q) => $q->latest()->limit(5)])
+            ->first();
+    @endphp
+    @if ($adminConversation && $adminConversation->messages->count() > 0)
+        <div class="mt-6 border border-blue-500/20 rounded-xl overflow-hidden">
+            <div class="bg-blue-500/5 px-4 py-3 flex items-center gap-2">
+                <span>🛡️</span>
+                <span class="font-semibold text-blue-300 text-sm">Messages de l'équipe Ink&amp;Pik</span>
+            </div>
+            <div class="p-4 space-y-3">
+                @foreach ($adminConversation->messages as $msg)
+                    <div class="text-sm">
+                        <p class="text-ivoire-text/40 text-xs">{{ $msg->created_at->diffForHumans() }}</p>
+                        <p class="text-ivoire-text mt-0.5 whitespace-pre-wrap">{{ $msg->content }}</p>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
 </div>
 
 @push('scripts')

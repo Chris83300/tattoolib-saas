@@ -20,29 +20,34 @@ class ComplaintForm
                     ->required()
                     ->numeric(),
                 Select::make('type')
+                    ->label('Type')
                     ->options([
-            'no_show' => 'No show',
-            'quality' => 'Quality',
-            'hygiene' => 'Hygiene',
-            'payment' => 'Payment',
-            'other' => 'Other',
-        ])
+                        'no_show' => 'Absence client',
+                        'quality' => 'Qualité',
+                        'hygiene' => 'Hygiène',
+                        'payment' => 'Paiement',
+                        'other' => 'Autre',
+                    ])
                     ->default('no_show')
                     ->required(),
                 Textarea::make('description')
+                    ->label('Description')
                     ->columnSpanFull(),
                 Select::make('status')
+                    ->label('Statut')
                     ->options([
-            'pending' => 'Pending',
-            'investigating' => 'Investigating',
-            'resolved' => 'Resolved',
-            'rejected' => 'Rejected',
-        ])
+                        'pending' => 'En attente',
+                        'investigating' => 'En cours d\'enquête',
+                        'resolved' => 'Résolu',
+                        'rejected' => 'Rejeté',
+                    ])
                     ->default('pending')
                     ->required(),
                 Textarea::make('admin_notes')
+                    ->label('Notes administrateur')
                     ->columnSpanFull(),
-                DateTimePicker::make('resolved_at'),
+                DateTimePicker::make('resolved_at')
+                    ->label('Résolu le'),
             ]);
     }
 }

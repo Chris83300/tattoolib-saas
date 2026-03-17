@@ -19,7 +19,7 @@
                     💰 Payer l'acompte
                 </h1>
                 <p class="text-ivoire-text/70">
-                    Finalisez votre réservation avec {{ $bookingRequest->bookable->user->name }}
+                    Finalisez votre réservation avec <span class="text-lg text-beige-peau "> {{ $bookingRequest->bookable->user->pseudo }}</span>
                 </p>
             </div>
 
@@ -33,7 +33,7 @@
                         <div class="space-y-3">
                             <div class="flex justify-between">
                                 <span class="text-ivoire-text/70">Artiste:</span>
-                                <span class="text-ivoire-text">{{ $bookingRequest->bookable->user->name }}</span>
+                                <span class="text-ivoire-text">{{ $bookingRequest->bookable->user->pseudo }}</span>
                             </div>
 
                             @if ($bookingRequest->tattoo_size)
@@ -150,9 +150,25 @@
                     </div>
                 </div>
 
+                <!-- Avertissement si Connect non configuré -->
+                @if (!$connectReady)
+                    <div class="bg-ambre-warning/10 border border-ambre-warning/30 rounded-lg p-4 mb-6">
+                        <div class="flex items-start gap-3">
+                            <span class="text-2xl">⚠️</span>
+                            <div>
+                                <p class="font-semibold text-ambre-warning">Paiement en ligne temporairement indisponible</p>
+                                <p class="text-sm text-ambre-warning/80 mt-1">
+                                    {{ $bookingRequest->bookable->user->pseudo }} n'a pas encore configuré son compte de paiement Stripe.
+                                    Contactez-le directement pour convenir d'un autre mode de règlement.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
                 <!-- Bouton de paiement -->
                 <div class="text-center">
-                    <button id="pay-deposit-btn"
+                    <button id="pay-deposit-btn" {{ !$connectReady ? 'disabled' : '' }}
                         class="inline-flex items-center px-8 py-4 bg-beige-peau text-noir-profond rounded-lg font-semibold text-lg hover:bg-beige-peau/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                         <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

@@ -19,6 +19,11 @@ class Conversation extends Model
     // CONSTANTES EXPIRATION
     // ===========================================
 
+    // Types de conversation
+    const TYPE_BOOKING       = 'booking';
+    const TYPE_SUPPORT       = 'support';
+    const TYPE_ADMIN_PRIVATE = 'admin_private';
+
     // Garder pour rétrocompatibilité mais déprécié
     const EXPIRY_DEPOSIT_PENDING = 'deposit_pending';
     const EXPIRY_PERMANENT = 'permanent';
@@ -31,6 +36,8 @@ class Conversation extends Model
 
     protected $fillable = [
         'booking_request_id',
+        'type',
+        'admin_user_id',
         'subject',
         'status',
         'last_message_at',
@@ -194,6 +201,50 @@ class Conversation extends Model
     // ===========================================
     // SCOPES
     // ===========================================
+
+    // ===========================================
+    // SCOPES TYPE
+    // ===========================================
+
+    public function scopeSupport($query)
+    {
+        return $query->where('type', self::TYPE_SUPPORT);
+    }
+
+    public function scopeAdminPrivate($query)
+    {
+        return $query->where('type', self::TYPE_ADMIN_PRIVATE);
+    }
+
+    public function scopeBooking($query)
+    {
+        return $query->where('type', self::TYPE_BOOKING);
+    }
+
+    /**
+     * Créer ou récupérer un canal privé admin ↔ utilisateur
+     */
+    public static function getOrCreateAdminChannel(int $adminId, int $userId): self
+    {
+        $existing = self::where('type', self::TYPE_ADMIN_PRIVATE)
+            ->where('admin_user_id', $adminId)
+            ->whereHas('participants', fn ($q) => $q->where('users.id', $userId))
+            ->first();
+
+        if ($existing) {
+            return $existing;
+        }
+
+        $conversation = self::create([
+            'type'          => self::TYPE_ADMIN_PRIVATE,
+            'admin_user_id' => $adminId,
+            'status'        => 'active',
+        ]);
+
+        $conversation->participants()->attach($userId);
+
+        return $conversation;
+    }
 
     public function scopeExpired($query)
     {

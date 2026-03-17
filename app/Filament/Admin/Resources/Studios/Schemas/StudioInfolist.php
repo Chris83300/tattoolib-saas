@@ -25,7 +25,7 @@ class StudioInfolist
                 TextEntry::make('phone')
                     ->placeholder('-'),
                 TextEntry::make('email')
-                    ->label('Email address')
+                    ->label('Email')
                     ->placeholder('-'),
                 TextEntry::make('website')
                     ->placeholder('-'),

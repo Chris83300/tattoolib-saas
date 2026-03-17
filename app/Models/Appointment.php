@@ -346,7 +346,7 @@ class Appointment extends Model
 
         $this->transitionTo(AppointmentStatus::COMPLETED);
 
-        // TODO: Event AppointmentCompleted
+        event(new \App\Events\AppointmentCompleted($this));
     }
 
     /**
@@ -365,7 +365,7 @@ class Appointment extends Model
         // Incrémenter le compteur de no-show du client
         $this->client->incrementNoShow();
 
-        // TODO: Event ClientNoShow
+        event(new \App\Events\ClientNoShow($this));
     }
 
     /**
@@ -382,7 +382,7 @@ class Appointment extends Model
 
         $this->transitionTo(AppointmentStatus::CANCELLED);
 
-        // TODO: Event AppointmentDisputed
+        event(new \App\Events\AppointmentDisputed($this));
     }
 
     /**
@@ -404,7 +404,7 @@ class Appointment extends Model
         // Logique de remboursement selon les conditions
         $this->processRefund($cancelledBy, $daysBeforeAppointment);
 
-        // TODO: Event AppointmentCancelled
+        event(new \App\Events\AppointmentCancelled($this));
     }
 
     /**
@@ -464,8 +464,12 @@ class Appointment extends Model
                 'refunded_at' => now(),
             ]);
 
-            // TODO: Lancer le job de remboursement Stripe
-            // \App\Jobs\ProcessStripeRefund::dispatch($this);
+            // Déclencher le remboursement Stripe via le BookingRequest associé
+            $bookingRequest = $this->bookingRequest;
+            if ($bookingRequest && $bookingRequest->stripe_payment_intent_id) {
+                app(\App\Services\BookingRequestService::class)
+                    ->processStripeRefund($bookingRequest, $refundAmount);
+            }
         } else {
             // Pas de remboursement mais on enregistre la décision
             $this->update([

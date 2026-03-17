@@ -26,7 +26,7 @@ class TattooerResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-paint-brush';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Moderation';
+    protected static string|UnitEnum|null $navigationGroup = 'Modération';
 
     protected static ?string $modelLabel = 'Tatoueur';
 

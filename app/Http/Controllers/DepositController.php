@@ -61,7 +61,21 @@ class DepositController extends Controller
             'stripe_key_value' => substr($stripeKey, 0, 20) . '...'
         ]);
 
-        return view('client.deposit-payment', compact('bookingRequest', 'stripeKey'));
+        // Vérifier si le compte Connect de l'artiste est actif
+        $artist = $bookingRequest->bookable;
+        $connectReady = false;
+        if ($artist) {
+            $accountId = $artist->getStripeAccountId();
+            if ($accountId) {
+                if ($artist->studio_id && $artist->studio?->payment_mode === 'studio_managed') {
+                    $connectReady = (bool) $artist->studio->stripe_onboarding_complete;
+                } else {
+                    $connectReady = $artist->hasCompletedStripeOnboarding();
+                }
+            }
+        }
+
+        return view('client.deposit-payment', compact('bookingRequest', 'stripeKey', 'connectReady'));
     }
 
     /**
@@ -124,18 +138,32 @@ class DepositController extends Controller
 
         // Configuration Stripe
         Log::info('Stripe configuration', [
-            'secret_key' => env('STRIPE_SECRET') ? 'SET' : 'NOT_SET',
-            'publishable_key' => env('STRIPE_KEY') ? 'SET' : 'NOT_SET'
+            'secret_key' => config('cashier.secret') ? 'SET' : 'NOT_SET',
+            'publishable_key' => config('cashier.key') ? 'SET' : 'NOT_SET'
         ]);
 
-        Stripe::setApiKey(env('STRIPE_SECRET'));
+        Stripe::setApiKey(config('cashier.secret'));
 
         try {
             $amountCents = (int) round($bookingRequest->total_deposit_amount * 100);
 
-            // Déterminer le compte Connect destinataire
+            // Déterminer le compte Connect destinataire (uniquement si onboarding complet)
             $artist = $bookingRequest->bookable;
-            $destinationAccountId = $artist?->getStripeAccountId();
+            $destinationAccountId = null;
+
+            if ($artist) {
+                $accountId = $artist->getStripeAccountId();
+                if ($accountId) {
+                    // Vérifier que l'onboarding est vraiment complet selon le mode
+                    $isReady = false;
+                    if ($artist->studio_id && $artist->studio?->payment_mode === 'studio_managed') {
+                        $isReady = (bool) $artist->studio->stripe_onboarding_complete;
+                    } else {
+                        $isReady = $artist->hasCompletedStripeOnboarding();
+                    }
+                    $destinationAccountId = $isReady ? $accountId : null;
+                }
+            }
 
             // Calculer la commission plateforme
             $feeAmount = 0;
@@ -145,7 +173,7 @@ class DepositController extends Controller
                     ->calculateApplicationFee($amountCents, $artist, $studio);
             }
 
-            // Construire les payment_intent_data avec transfer_data si compte Connect disponible
+            // Construire les payment_intent_data avec transfer_data si compte Connect prêt
             $paymentIntentData = [
                 'metadata' => [
                     'booking_request_id' => $bookingRequest->id,
@@ -164,7 +192,7 @@ class DepositController extends Controller
 
             Log::info('Stripe Connect — dépôt', [
                 'artist_id'             => $artist?->id,
-                'destination_account'   => $destinationAccountId ?? 'AUCUN (plateforme)',
+                'destination_account'   => $destinationAccountId ?? 'AUCUN — onboarding incomplet ou absent',
                 'amount_cents'          => $amountCents,
                 'application_fee_cents' => $feeAmount,
             ]);
@@ -228,7 +256,7 @@ class DepositController extends Controller
         if ($sessionId && !$bookingRequest->deposit_paid_at) {
             try {
                 // Configuration Stripe pour vérifier la session
-                Stripe::setApiKey(env('STRIPE_SECRET'));
+                Stripe::setApiKey(config('cashier.secret'));
 
                 $session = Session::retrieve($sessionId);
 

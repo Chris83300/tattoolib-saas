@@ -31,8 +31,8 @@ class SubscriptionForm
                         Select::make('plan')
                             ->label('Plan')
                             ->options([
-                                'starter' => 'Starter (7% commission)',
-                                'pro' => 'Pro (0% commission)',
+                                'starter' => 'Starter (commission 7%)',
+                                'pro' => 'Pro (commission 0%)',
                                 'studio' => 'Studio',
                             ])
                             ->required(),

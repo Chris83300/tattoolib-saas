@@ -11,6 +11,7 @@ use App\Filament\Admin\Resources\Payments\Schemas\PaymentInfolist;
 use App\Filament\Admin\Resources\Payments\Tables\PaymentsTable;
 use App\Models\BookingTransaction;
 use BackedEnum;
+use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -20,7 +21,12 @@ class PaymentResource extends Resource
 {
     protected static ?string $model = BookingTransaction::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-credit-card';
+    protected static ?string $navigationLabel = 'Paiements';
+    protected static ?string $modelLabel = 'Paiement';
+    protected static ?string $pluralModelLabel = 'Paiements';
+    protected static UnitEnum|string|null $navigationGroup = 'Finances';
+    protected static ?int $navigationSort = 1;
 
     public static function form(Schema $schema): Schema
     {

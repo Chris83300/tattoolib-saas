@@ -47,6 +47,8 @@ Route::middleware(['auth', 'artisan.can.operate'])->prefix('tattooer')->name('ta
     })->name('request.accept.get');
     Route::post('/requests/{bookingRequest}/accept', [TattooerController::class, 'acceptRequest'])->name('request.accept');
     Route::post('/requests/{bookingRequest}/reject', [TattooerController::class, 'requestReject'])->name('request-reject');
+    Route::delete('/requests/{bookingRequest}', [TattooerController::class, 'destroyRequest'])->name('requests.destroy');
+    Route::patch('/requests/{bookingRequest}/cancel', [TattooerController::class, 'cancelRequest'])->name('requests.cancel');
     Route::post('/booking-requests/{bookingRequest}/repropose-dates', [TattooerController::class, 'reproposeDates'])->name('booking-requests.repropose-dates');
     Route::get('/calendar', [TattooerController::class, 'calendar'])->name('calendar');
     Route::get('/calendar/events', [TattooerController::class, 'calendarEvents'])->name('calendar.events');
@@ -276,9 +278,14 @@ Route::middleware(['auth'])->prefix('client')->name('client.')->group(function (
     Route::post('/reviews/{bookingRequest}', [App\Http\Controllers\ClientController::class, 'createReview'])->name('reviews.create');
     Route::post('/complaints/{bookingRequest}', [App\Http\Controllers\ClientController::class, 'createComplaint'])->name('complaints.create');
     Route::post('/booking-requests/{bookingRequest}/cancel', [App\Http\Controllers\ClientController::class, 'bookingRequestCancel'])->name('booking-request.cancel');
+    Route::patch('/requests/{bookingRequest}/cancel', [App\Http\Controllers\ClientController::class, 'cancelRequest'])->name('requests.cancel');
     Route::delete('/booking-request/{bookingRequest}/delete', [App\Http\Controllers\ClientController::class, 'bookingRequestDelete'])->name('booking-request.delete');
     Route::get('/bookings/{bookingRequest}/balance', [App\Http\Controllers\BalancePaymentController::class, 'show'])
         ->name('balance.show');
+    Route::post('/bookings/{bookingRequest}/balance/checkout', [App\Http\Controllers\BalancePaymentController::class, 'checkout'])
+        ->name('balance-payment.checkout');
+    Route::get('/bookings/{bookingRequest}/balance/success', [App\Http\Controllers\BalancePaymentController::class, 'success'])
+        ->name('balance-payment.success');
 });
 
 // Routes Pierceur — miroir exact des routes Tattooer, même TattooerController
@@ -293,6 +300,8 @@ Route::middleware(['auth', 'role:pierceur,Piercer', 'artisan.can.operate'])->pre
     })->name('request.accept.get');
     Route::post('/requests/{bookingRequest}/accept', [TattooerController::class, 'acceptRequest'])->name('request.accept');
     Route::post('/requests/{bookingRequest}/reject', [TattooerController::class, 'requestReject'])->name('request-reject');
+    Route::delete('/requests/{bookingRequest}', [TattooerController::class, 'destroyRequest'])->name('requests.destroy');
+    Route::patch('/requests/{bookingRequest}/cancel', [TattooerController::class, 'cancelRequest'])->name('requests.cancel');
     Route::post('/booking-requests/{bookingRequest}/repropose-dates', [TattooerController::class, 'reproposeDates'])->name('booking-requests.repropose-dates');
     Route::get('/calendar', [TattooerController::class, 'calendar'])->name('calendar');
     Route::get('/calendar/events', [TattooerController::class, 'calendarEvents'])->name('calendar.events');
@@ -477,16 +486,15 @@ Route::get('/client/bookings', [App\Http\Controllers\Client\ProfileController::c
     ->middleware(['auth'])
     ->name('client.bookings');
 
-// Route suppression compte tattooer
-Route::delete('/tattooer/delete-account', [App\Http\Controllers\Tattooer\AccountController::class, 'delete'])
-    ->middleware(['auth'])
-    ->name('tattooer.delete-account');
-
-// Route suppression compte pierceur
-Route::delete('/pierceur/delete-account', [App\Http\Controllers\Tattooer\AccountController::class, 'delete'])
-    ->middleware(['auth'])
-    ->name('pierceur.delete-account');
-
+// Suppression de compte — tous profils
+Route::delete('/tattooer/delete-account', [App\Http\Controllers\Tattooer\AccountController::class, 'destroyAccount'])
+    ->middleware(['auth'])->name('tattooer.delete-account');
+Route::delete('/pierceur/delete-account', [App\Http\Controllers\Tattooer\AccountController::class, 'destroyAccount'])
+    ->middleware(['auth'])->name('pierceur.delete-account');
+Route::delete('/studio/delete-account', [App\Http\Controllers\StudioController::class, 'destroyAccount'])
+    ->middleware(['auth'])->name('studio.delete-account');
+Route::delete('/client/delete-account', [App\Http\Controllers\ClientController::class, 'destroyAccount'])
+    ->middleware(['auth'])->name('client.delete-account');
 
 // Routes webhook Stripe (sans CSRF)
 Route::post('/webhooks/stripe', [App\Http\Controllers\StripeWebhookController::class, 'handleWebhook'])
@@ -553,6 +561,13 @@ Route::prefix('booking-request')->name('booking-request.')->group(function () {
 // Routes chat conversation
 Route::middleware(['auth'])->prefix('conversation/{conversation}/chat')->name('conversation.chat.')->group(function () {
     Route::get('/', [App\Http\Controllers\ClientController::class, 'chat'])->name('show');
+});
+
+// Routes admin conversations — redirige vers Filament ConversationResource
+Route::middleware(['auth', \App\Http\Middleware\EnsureUserIsAdmin::class])->prefix('admin/conversation')->name('admin.conversation.')->group(function () {
+    Route::get('/{conversation}', function ($conversation) {
+        return redirect('/admin/conversations/' . $conversation);
+    })->name('show');
 });
 
 // Routes consentement client

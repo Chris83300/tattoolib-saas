@@ -17,8 +17,9 @@ class BalancePaymentController extends Controller
      */
     public function show(BookingRequest $bookingRequest)
     {
-        // Vérifier propriété
-        abort_unless($bookingRequest->client_id === auth()->id(), 403);
+        // Vérifier propriété (client.id ≠ user.id — comparer via la relation)
+        $client = auth()->user()->client;
+        abort_unless($client && $bookingRequest->client_id === $client->id, 403);
 
         // Vérifier que le RDV est terminé
         abort_unless(
@@ -41,7 +42,8 @@ class BalancePaymentController extends Controller
      */
     public function checkout(BookingRequest $bookingRequest)
     {
-        abort_unless($bookingRequest->client_id === auth()->id(), 403);
+        $client = auth()->user()->client;
+        abort_unless($client && $bookingRequest->client_id === $client->id, 403);
         abort_unless($bookingRequest->status === BookingRequestStatus::COMPLETED, 403);
 
         $balanceRemaining = $bookingRequest->balance_remaining;
@@ -50,8 +52,24 @@ class BalancePaymentController extends Controller
         Stripe::setApiKey(config('services.stripe.secret'));
 
         $tattooer = $bookingRequest->bookable;
-        $stripeAccountId = $tattooer?->getStripeAccountId();
-        abort_unless($stripeAccountId, 500, 'Compte Stripe artiste non configuré.');
+        $rawAccountId = $tattooer?->getStripeAccountId();
+
+        // Vérifier que l'onboarding Connect est complet avant d'utiliser le compte
+        $stripeAccountId = null;
+        if ($rawAccountId && $tattooer) {
+            $isReady = false;
+            if ($tattooer->studio_id && $tattooer->studio?->payment_mode === 'studio_managed') {
+                $isReady = (bool) $tattooer->studio->stripe_onboarding_complete;
+            } else {
+                $isReady = $tattooer->hasCompletedStripeOnboarding();
+            }
+            $stripeAccountId = $isReady ? $rawAccountId : null;
+        }
+
+        if (!$stripeAccountId) {
+            return redirect()->route('client.balance.show', $bookingRequest)
+                ->with('error', 'Le paiement en ligne n\'est pas disponible : l\'artiste n\'a pas encore configuré son compte Stripe. Contactez-le directement pour convenir d\'un mode de règlement.');
+        }
 
         // Calculer la commission basée sur le plan (STARTER=7%, PRO/STUDIO=0%)
         $amountCents    = (int) round($balanceRemaining * 100);
@@ -67,8 +85,13 @@ class BalancePaymentController extends Controller
                     'currency' => 'eur',
                     'unit_amount' => $amountCents,
                     'product_data' => [
-                        'name' => 'Solde tattoo - ' . ($bookingRequest->description ?? 'Prestation'),
-                        'description' => 'Paiement du solde restant',
+                        'name' => 'Solde — ' . ($bookingRequest->description ?? 'Prestation'),
+                        'description' => sprintf(
+                            'Total: %s€ — Acompte déjà réglé: %s€ — Solde restant: %s€',
+                            number_format($bookingRequest->total_price, 2, ',', ' '),
+                            number_format($bookingRequest->total_deposit_amount, 2, ',', ' '),
+                            number_format($balanceRemaining, 2, ',', ' ')
+                        ),
                     ],
                 ],
                 'quantity' => 1,
@@ -107,7 +130,8 @@ class BalancePaymentController extends Controller
      */
     public function success(Request $request, BookingRequest $bookingRequest)
     {
-        abort_unless($bookingRequest->client_id === auth()->id(), 403);
+        $client = auth()->user()->client;
+        abort_unless($client && $bookingRequest->client_id === $client->id, 403);
 
         // Le webhook Stripe gère la vraie confirmation
         // Ici on affiche juste une page de confirmation optimiste

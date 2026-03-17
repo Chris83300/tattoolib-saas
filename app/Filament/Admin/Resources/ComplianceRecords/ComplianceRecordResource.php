@@ -22,7 +22,7 @@ class ComplianceRecordResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-document-check';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Qualite';
+    protected static string|UnitEnum|null $navigationGroup = 'Qualité';
 
     protected static ?string $modelLabel = 'Document de conformité';
 

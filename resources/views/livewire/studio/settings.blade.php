@@ -1,35 +1,8 @@
-<div
-    x-data="{
-        tab: new URLSearchParams(window.location.search).get('tab') || 'informations',
-        paymentMode: '{{ old('payment_mode', $studio->payment_mode ?? 'artist_direct') }}'
-    }"
-    class="space-y-4"
->
-    {{-- ═══ FLASH MESSAGES ═══ --}}
-    @if (session('success'))
-        <div class="bg-vert-succes/20 border border-vert-succes/50 text-vert-succes px-4 py-3 rounded-lg text-sm">
-            {{ session('success') }}
-        </div>
-    @endif
-    @if (session('error'))
-        <div class="bg-rouge-alerte/20 border border-rouge-alerte/50 text-rouge-alerte px-4 py-3 rounded-lg text-sm">
-            {{ session('error') }}
-        </div>
-    @endif
-    @if (session('info'))
-        <div class="bg-ambre-warning/20 border border-ambre-warning/50 text-ambre-warning px-4 py-3 rounded-lg text-sm">
-            {{ session('info') }}
-        </div>
-    @endif
-    @if ($errors->any())
-        <div class="bg-rouge-alerte/20 border border-rouge-alerte/50 text-rouge-alerte px-4 py-3 rounded-lg text-sm">
-            <ul class="list-disc list-inside space-y-1">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
+<div x-data="{
+    tab: new URLSearchParams(window.location.search).get('tab') || 'informations',
+    paymentMode: '{{ old('payment_mode', $studio->payment_mode ?? 'artist_direct') }}'
+}" class="space-y-4">
+    {{-- Flash messages gérés par layouts.studio --}}
 
     {{-- ═══ TITRE ═══ --}}
     <h1 class="text-2xl font-bold text-ivoire-text">Paramètres du studio</h1>
@@ -37,18 +10,14 @@
     {{-- ═══ NAVIGATION DES ONGLETS ═══ --}}
     <div class="bg-gris-fonde rounded-xl p-2">
         <div class="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
-            <button
-                @click="tab = 'informations'"
+            <button @click="tab = 'informations'"
                 :class="tab === 'informations' ? 'bg-beige-peau text-noir-profond' : 'text-titane hover:text-ivoire-text'"
-                class="px-4 py-2.5 rounded-lg font-semibold whitespace-nowrap text-sm transition-colors flex-shrink-0"
-            >
+                class="px-4 py-2.5 rounded-lg font-semibold whitespace-nowrap text-sm transition-colors flex-shrink-0">
                 🏢 Informations
             </button>
-            <button
-                @click="tab = 'paiement'"
+            <button @click="tab = 'paiement'"
                 :class="tab === 'paiement' ? 'bg-beige-peau text-noir-profond' : 'text-titane hover:text-ivoire-text'"
-                class="px-4 py-2.5 rounded-lg font-semibold whitespace-nowrap text-sm transition-colors flex-shrink-0"
-            >
+                class="px-4 py-2.5 rounded-lg font-semibold whitespace-nowrap text-sm transition-colors flex-shrink-0">
                 💳 Paiement
                 @if (!$studio->payment_mode)
                     <span class="ml-1 inline-block w-2 h-2 rounded-full bg-ambre-warning"></span>
@@ -184,13 +153,13 @@
                 daysOrder: ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'],
                 hours: {{ Js::from(
                     $studio->opening_hours ?? [
-                        'lundi'     => ['open' => '09:00', 'close' => '19:00', 'closed' => true],
-                        'mardi'     => ['open' => '09:00', 'close' => '19:00', 'closed' => false],
-                        'mercredi'  => ['open' => '09:00', 'close' => '19:00', 'closed' => false],
-                        'jeudi'     => ['open' => '09:00', 'close' => '19:00', 'closed' => false],
-                        'vendredi'  => ['open' => '09:00', 'close' => '19:00', 'closed' => false],
-                        'samedi'    => ['open' => '10:00', 'close' => '18:00', 'closed' => false],
-                        'dimanche'  => ['open' => '', 'close' => '', 'closed' => true],
+                        'lundi' => ['open' => '09:00', 'close' => '19:00', 'closed' => true],
+                        'mardi' => ['open' => '09:00', 'close' => '19:00', 'closed' => false],
+                        'mercredi' => ['open' => '09:00', 'close' => '19:00', 'closed' => false],
+                        'jeudi' => ['open' => '09:00', 'close' => '19:00', 'closed' => false],
+                        'vendredi' => ['open' => '09:00', 'close' => '19:00', 'closed' => false],
+                        'samedi' => ['open' => '10:00', 'close' => '18:00', 'closed' => false],
+                        'dimanche' => ['open' => '', 'close' => '', 'closed' => true],
                     ],
                 ) }},
                 toggleDay(dayName, isClosed) {
@@ -199,12 +168,13 @@
                         day.open = '';
                         day.close = '';
                     } else {
-                        if (!day.open)  day.open  = dayName === 'samedi' ? '10:00' : '09:00';
+                        if (!day.open) day.open = dayName === 'samedi' ? '10:00' : '09:00';
                         if (!day.close) day.close = dayName === 'samedi' ? '18:00' : '19:00';
                     }
                 }
             }">
-                <h2 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider mb-4">🕐 Horaires d'ouverture</h2>
+                <h2 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider mb-4">🕐 Horaires d'ouverture
+                </h2>
                 <div class="space-y-2">
                     <template x-for="dayName in daysOrder" :key="dayName">
                         <div class="flex items-center gap-2 flex-wrap">
@@ -251,7 +221,8 @@
             {{-- Mode de paiement --}}
             <div class="bg-gris-fonde rounded-xl p-4 md:p-6 space-y-4">
                 <div>
-                    <h2 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider mb-1">💳 Mode de paiement</h2>
+                    <h2 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider mb-1">💳 Mode de paiement
+                    </h2>
                     <p class="text-xs text-titane">Comment les clients paient-ils les prestations de vos artistes ?</p>
                 </div>
 
@@ -260,9 +231,9 @@
                     <label class="cursor-pointer" @click="paymentMode = 'studio_managed'">
                         <input type="radio" name="payment_mode" value="studio_managed"
                             {{ old('payment_mode', $studio->payment_mode ?? '') === 'studio_managed' ? 'checked' : '' }}
-                            x-model="paymentMode"
-                            class="peer hidden">
-                        <div class="peer-checked:border-beige-peau peer-checked:bg-beige-peau/10 border-2 border-titane/30 rounded-xl p-4 transition-colors h-full">
+                            x-model="paymentMode" class="peer hidden">
+                        <div
+                            class="peer-checked:border-beige-peau peer-checked:bg-beige-peau/10 border-2 border-titane/30 rounded-xl p-4 transition-colors h-full">
                             <p class="font-semibold text-ivoire-text text-sm">🏦 Géré par le studio</p>
                             <p class="text-xs text-titane mt-1">
                                 Le studio encaisse tout via son compte Stripe Connect.
@@ -275,64 +246,25 @@
                     <label class="cursor-pointer" @click="paymentMode = 'artist_direct'">
                         <input type="radio" name="payment_mode" value="artist_direct"
                             {{ old('payment_mode', $studio->payment_mode ?? 'artist_direct') === 'artist_direct' ? 'checked' : '' }}
-                            x-model="paymentMode"
-                            class="peer hidden">
-                        <div class="peer-checked:border-beige-peau peer-checked:bg-beige-peau/10 border-2 border-titane/30 rounded-xl p-4 transition-colors h-full">
+                            x-model="paymentMode" class="peer hidden">
+                        <div
+                            class="peer-checked:border-beige-peau peer-checked:bg-beige-peau/10 border-2 border-titane/30 rounded-xl p-4 transition-colors h-full">
                             <p class="font-semibold text-ivoire-text text-sm">👤 Direct par artiste</p>
                             <p class="text-xs text-titane mt-1">
                                 Chaque artiste a son propre compte Stripe Connect.
-                                Vous prélevez une commission sur chaque paiement.
+                                Les paiements vont directement aux artistes.
                             </p>
                         </div>
                     </label>
                 </div>
             </div>
 
-            {{-- Commission (affiché seulement en mode artist_direct) --}}
-            <div x-show="paymentMode === 'artist_direct'" class="bg-gris-fonde rounded-xl p-4 md:p-6 space-y-4">
-                <div>
-                    <h2 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider mb-1">📊 Commission artiste</h2>
-                    <p class="text-xs text-titane">
-                        Pourcentage prélevé sur chaque paiement client en faveur du studio.
-                        Laissez vide ou à 0 pour ne prélever aucune commission.
-                    </p>
-                </div>
-
-                <div class="flex items-center gap-3">
-                    <div class="relative flex-1 max-w-xs">
-                        <input
-                            type="number"
-                            name="artist_commission_rate"
-                            value="{{ old('artist_commission_rate', $studio->artist_commission_rate) }}"
-                            min="0" max="99.99" step="0.01"
-                            placeholder="ex : 10"
-                            class="w-full px-3 py-2.5 pr-8 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau focus:outline-none"
-                        >
-                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-titane text-sm font-semibold">%</span>
-                    </div>
-                    <p class="text-xs text-titane">
-                        0 % = aucune commission prélevée
-                    </p>
-                </div>
-
-                @if ($studio->artist_commission_rate !== null)
-                    <div class="flex items-center gap-2 px-3 py-2 bg-beige-peau/10 border border-beige-peau/30 rounded-lg">
-                        <span class="text-beige-peau text-sm">ℹ️</span>
-                        <p class="text-xs text-beige-peau">
-                            Commission actuelle :
-                            <strong>{{ number_format($studio->artist_commission_rate, 2) }} %</strong>
-                            par paiement client.
-                        </p>
-                    </div>
-                @endif
-            </div>
-
             {{-- Note info en mode studio_managed --}}
             <div x-show="paymentMode === 'studio_managed'"
-                class="bg-ambre-warning/10 border border-ambre-warning/30 rounded-xl p-4 text-xs text-ambre-warning space-y-1">
-                <p class="font-semibold">⚠️ Mode Studio géré activé</p>
+                class="bg-vert-succes/10 border border-vert-succes/30 rounded-xl p-4 text-xs text-vert-succes space-y-1">
+                <p class="font-semibold">Mode Studio géré activé</p>
                 <p>Les artistes rattachés à ce studio ne pourront pas configurer leur propre Stripe Connect.
-                   Tous les paiements clients seront redirigés vers le compte Stripe du studio ci-dessous.</p>
+                    Tous les paiements clients seront redirigés vers le compte Stripe du studio ci-dessous.</p>
             </div>
 
             {{-- Bouton sauvegarder --}}
@@ -353,7 +285,8 @@
 
         <div class="bg-gris-fonde rounded-xl p-4 md:p-6 space-y-4">
             <div>
-                <h2 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider mb-1">🔗 Compte Stripe du studio</h2>
+                <h2 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider mb-1">🔗 Compte Stripe du
+                    studio</h2>
                 <p class="text-xs text-titane">
                     Pour encaisser les paiements clients, votre studio doit avoir un compte Stripe Connect actif.
                 </p>
@@ -361,7 +294,8 @@
 
             @if ($studio->stripe_onboarding_complete && $studio->stripe_account_id)
                 {{-- ✅ Compte actif --}}
-                <div class="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-vert-succes/10 border border-vert-succes/30 rounded-xl">
+                <div
+                    class="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-vert-succes/10 border border-vert-succes/30 rounded-xl">
                     <div class="flex items-center gap-3 flex-1 min-w-0">
                         <span class="text-2xl">✅</span>
                         <div>
@@ -379,10 +313,10 @@
                         </button>
                     </form>
                 </div>
-
             @elseif ($studio->stripe_account_id && !$studio->stripe_onboarding_complete)
                 {{-- ⏳ Onboarding en cours --}}
-                <div class="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-ambre-warning/10 border border-ambre-warning/30 rounded-xl">
+                <div
+                    class="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-ambre-warning/10 border border-ambre-warning/30 rounded-xl">
                     <div class="flex items-center gap-3 flex-1 min-w-0">
                         <span class="text-2xl">⏳</span>
                         <div>
@@ -401,10 +335,10 @@
                         </button>
                     </form>
                 </div>
-
             @else
                 {{-- ❌ Pas encore connecté --}}
-                <div class="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-rouge-alerte/10 border border-rouge-alerte/30 rounded-xl">
+                <div
+                    class="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-rouge-alerte/10 border border-rouge-alerte/30 rounded-xl">
                     <div class="flex items-center gap-3 flex-1 min-w-0">
                         <span class="text-2xl">💳</span>
                         <div>
@@ -431,11 +365,13 @@
                 <ul class="space-y-1.5 text-xs text-titane">
                     <li class="flex items-start gap-2">
                         <span class="text-beige-peau mt-0.5">›</span>
-                        Le client paie l'acompte ou le solde → l'argent arrive sur <strong class="text-ivoire-text">le compte Stripe du studio</strong>.
+                        Le client paie l'acompte ou le solde → l'argent arrive sur <strong class="text-ivoire-text">le
+                            compte Stripe du studio</strong>.
                     </li>
                     <li class="flex items-start gap-2">
                         <span class="text-beige-peau mt-0.5">›</span>
-                        Les artistes n'ont <strong class="text-ivoire-text">pas besoin</strong> de configurer leur propre Stripe Connect.
+                        Les artistes n'ont <strong class="text-ivoire-text">pas besoin</strong> de configurer leur
+                        propre Stripe Connect.
                     </li>
                     <li class="flex items-start gap-2">
                         <span class="text-beige-peau mt-0.5">›</span>
@@ -449,6 +385,11 @@
     {{-- ═══ 2FA ═══ --}}
     <div x-show="tab === 'informations'">
         @include('partials.two-factor-settings')
+    </div>
+
+    {{-- ═══ ZONE DE DANGER — Suppression compte ═══ --}}
+    <div x-show="tab === 'informations'">
+        <x-delete-account-section deleteRoute="studio.delete-account" :isStudio="true" />
     </div>
 
 </div>

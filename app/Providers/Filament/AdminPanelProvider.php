@@ -39,19 +39,21 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 Dashboard::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Admin/Widgets'), for: 'App\\Filament\\Admin\\Widgets')
             ->widgets([
+                // Stats générales
                 \App\Filament\Admin\Widgets\StatsOverview::class,
-                \App\Filament\Admin\Widgets\RevenueChart::class,
-                \App\Filament\Admin\Widgets\RevenueOverviewWidget::class,
-                \App\Filament\Admin\Widgets\ComplaintsWidget::class,
-                \App\Filament\Admin\Widgets\RecentActivity::class,
-                // Nouveaux widgets graphiques
                 \App\Filament\Admin\Widgets\RevenueStatsWidget::class,
-                \App\Filament\Admin\Widgets\CommissionWidget::class,
+                // Graphiques revenus
                 \App\Filament\Admin\Widgets\MonthlyRevenueChartWidget::class,
                 \App\Filament\Admin\Widgets\ArtistRevenueChartWidget::class,
+                // Activité
                 \App\Filament\Admin\Widgets\RecentActivityChartWidget::class,
+                // Modération & alertes
+                \App\Filament\Admin\Widgets\ComplaintsWidget::class,
+                \App\Filament\Admin\Widgets\PendingTattooers::class,
+                \App\Filament\Admin\Widgets\PendingPierceurs::class,
+                \App\Filament\Admin\Widgets\PendingStudios::class,
+                \App\Filament\Admin\Widgets\QualityAlerts::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -70,12 +72,12 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->databaseNotifications()
             ->navigationGroups([
-                'Vue d\'ensemble',
-                'Moderation',
+                'Modération',
+                'Réservations',
+                'Finances',
                 'Utilisateurs',
-                'Activite',
-                'Qualite',
-                'Parametres',
+                'Communication',
+                'Qualité',
             ]);
     }
 }

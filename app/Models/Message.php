@@ -23,7 +23,10 @@ class Message extends Model implements HasMedia
         'attachment_type', // ✅ Ajouté depuis migration
         'is_design_version',
         'design_version_number',
+        'read_at',
     ];
+
+    protected $dates = ['read_at'];
 
     protected $dispatchesEvents = [
         'created' => \App\Events\MessageCreated::class,

@@ -14,18 +14,21 @@ class ComplianceRecordsTable
             ->columns([
 
                 // Type de document (badge coloré)
-                Tables\Columns\BadgeColumn::make('type')
+                Tables\Columns\TextColumn::make('type')
                     ->label('Type')
-                    ->colors([
-                        'primary' => 'hygiene',
-                        'success' => 'ars',
-                        'warning' => 'certibiocide',
-                    ])
-                    ->icons([
-                        'heroicon-o-academic-cap' => 'hygiene',
-                        'heroicon-o-building-office-2' => 'ars',
-                        'heroicon-o-beaker' => 'certibiocide',
-                    ])
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'hygiene' => 'primary',
+                        'ars' => 'success',
+                        'certibiocide' => 'warning',
+                        default => 'gray',
+                    })
+                    ->icon(fn (string $state): string => match ($state) {
+                        'hygiene' => 'heroicon-o-academic-cap',
+                        'ars' => 'heroicon-o-building-office-2',
+                        'certibiocide' => 'heroicon-o-beaker',
+                        default => '',
+                    })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'hygiene' => 'Formation Hygiène',
                         'ars' => 'Déclaration ARS',

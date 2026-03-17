@@ -41,18 +41,25 @@ class BookingRequestForm
                 TextInput::make('estimated_budget')
                     ->numeric(),
                 Select::make('preferred_timeframe')
-                    ->options(['asap' => 'Asap', '3-4months' => '3 4months', '5-6months' => '5 6months', '6plus' => '6plus']),
+                    ->label('Délai souhaité')
+                    ->options([
+                        'asap' => 'Dès que possible',
+                        '3-4months' => '3 à 4 mois',
+                        '5-6months' => '5 à 6 mois',
+                        '6plus' => 'Plus de 6 mois',
+                    ]),
                 TextInput::make('preferred_days'),
                 Textarea::make('date_notes')
                     ->columnSpanFull(),
                 DatePicker::make('preferred_date'),
                 Select::make('preferred_time_slot')
+                    ->label('Créneau horaire')
                     ->options([
-            'morning' => 'Morning',
-            'afternoon' => 'Afternoon',
-            'evening' => 'Evening',
-            'anytime' => 'Anytime',
-        ]),
+                        'morning' => 'Matin',
+                        'afternoon' => 'Après-midi',
+                        'evening' => 'Soir',
+                        'anytime' => 'Peu importe',
+                    ]),
                 Textarea::make('preferred_time_notes')
                     ->columnSpanFull(),
                 TextInput::make('proposed_dates'),

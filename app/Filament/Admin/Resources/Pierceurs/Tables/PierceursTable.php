@@ -68,18 +68,21 @@ class PierceursTable
                     ->color('primary'),
 
                 // COLONNE 7 : Statut (badge coloré)
-                Tables\Columns\BadgeColumn::make('user.status')
+                Tables\Columns\TextColumn::make('user.status')
                     ->label('Statut')
-                    ->colors([
-                        'warning' => 'pending_verification',
-                        'success' => 'active',
-                        'danger' => 'suspended',
-                    ])
-                    ->icons([
-                        'heroicon-o-clock' => 'pending_verification',
-                        'heroicon-o-check-circle' => 'active',
-                        'heroicon-o-x-circle' => 'suspended',
-                    ])
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'pending_verification' => 'warning',
+                        'active' => 'success',
+                        'suspended' => 'danger',
+                        default => 'gray',
+                    })
+                    ->icon(fn (string $state): string => match ($state) {
+                        'pending_verification' => 'heroicon-o-clock',
+                        'active' => 'heroicon-o-check-circle',
+                        'suspended' => 'heroicon-o-x-circle',
+                        default => '',
+                    })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'pending_verification' => 'En attente',
                         'active' => 'Actif',

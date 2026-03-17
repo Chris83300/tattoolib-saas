@@ -323,3 +323,5 @@
             }
         }
     </script>
+
+    <x-delete-account-section deleteRoute="client.delete-account" :isClient="true" />

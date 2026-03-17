@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Traits\HasAccountDeletion;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\BookingRequest;
 use App\Models\Client;
@@ -22,6 +24,8 @@ use Illuminate\Support\Facades\Auth;
 
 class ClientController extends Controller
 {
+    use HasAccountDeletion;
+
     /**
      * Dashboard client avec demandes et messages
      */
@@ -122,8 +126,11 @@ class ClientController extends Controller
     {
         $client = Auth::user()->client;
 
-        // DEBUG : Log les IDs pour vérification
-        Log::info('ClientController::chat - DEBUG', [
+        if (!$client) {
+            abort(403, 'Seuls les clients peuvent accéder au chat');
+        }
+
+        Log::debug('ClientController::chat', [
             'conversation_id' => $conversation->id,
             'auth_user_id' => Auth::user()->id,
             'client_id' => $client ? $client->id : 'null',
@@ -185,34 +192,28 @@ class ClientController extends Controller
     }
 
     /**
-     * Supprimer une demande de réservation (uniquement si rejetée)
+     * Supprimer une demande de réservation (expirée, refusée ou annulée)
      */
     public function bookingRequestDelete(BookingRequest $bookingRequest)
     {
         $client = auth()->user()->client;
 
-        // Vérifier que la demande appartient au client
         if ($bookingRequest->client_id !== $client->id) {
             abort(403, 'Cette demande ne vous appartient pas.');
         }
 
-        // Vérifier que la demande est rejetée (seul statut autorisé pour suppression)
-        if ($bookingRequest->status !== 'rejected') {
+        $deletableStatuses = ['expired', 'rejected', 'cancelled'];
+        if (!in_array($bookingRequest->status->value, $deletableStatuses)) {
             return redirect()->back()
-                ->with('error', 'Seules les demandes refusées peuvent être supprimées.');
+                ->with('error', 'Seules les demandes expirées, refusées ou annulées peuvent être supprimées.');
         }
 
-        // Supprimer la conversation associée si elle existe (hard delete)
-        if ($bookingRequest->conversation) {
-            $bookingRequest->conversation->messages()->delete(); // Supprimer messages
-            $bookingRequest->conversation->delete(); // Supprimer conversation
-        }
-
-        // Supprimer la demande (hard delete - définitif)
-        $bookingRequest->forceDelete(); // Hard delete au lieu de soft delete
+        $bookingRequest->conversation?->messages()->forceDelete();
+        $bookingRequest->conversation?->forceDelete();
+        $bookingRequest->forceDelete();
 
         return redirect()->route('client.booking-requests')
-            ->with('success', 'La demande refusée a été supprimée définitivement de la base de données.');
+            ->with('success', 'Demande supprimée.');
     }
 
     /**
@@ -241,7 +242,11 @@ class ClientController extends Controller
         }
 
         // Vérifier que la demande peut être annulée
-        if (!in_array($bookingRequest->status->value, ['pending', 'accepted'])) {
+        $cancellableStatuses = [
+            'pending', 'accepted', 'awaiting_deposit', 'deposit_paid',
+            'date_confirmed', 'design_pending', 'design_sent', 'awaiting_balance',
+        ];
+        if (!in_array($bookingRequest->status->value, $cancellableStatuses)) {
             Log::error('Tentative annulation demande statut non autorisé', [
                 'booking_request_id' => $bookingRequest->id,
                 'status' => $bookingRequest->status->value,
@@ -260,11 +265,47 @@ class ClientController extends Controller
 
         // Fermer la conversation associée
         if ($bookingRequest->conversation) {
-            $bookingRequest->conversation->update(['status' => \App\Enums\ConversationStatus::CLOSED->value]);
+            $bookingRequest->conversation->update(['status' => 'archived']);
         }
 
         return redirect()->route('client.booking-requests')
             ->with('success', 'Votre demande a été annulée avec succès.');
+    }
+
+    /**
+     * Annuler une demande avec remboursement conditionnel (nouvelle route)
+     */
+    public function cancelRequest(Request $request, BookingRequest $bookingRequest)
+    {
+        $client = auth()->user()->client;
+        abort_unless($client && $bookingRequest->client_id === $client->id, 403);
+        abort_unless(
+            !in_array($bookingRequest->status->value, ['completed', 'cancelled']),
+            422,
+            'Cette demande ne peut plus être annulée.'
+        );
+
+        $refundInfo = app(\App\Services\CancellationService::class)->processCancellation(
+            $bookingRequest,
+            'client',
+            $request->input('cancellation_message', '')
+        );
+
+        // Notifier l'artiste
+        try {
+            $bookingRequest->bookable?->user?->notify(
+                new \App\Notifications\BookingCancelledNotification($bookingRequest)
+            );
+        } catch (\Exception $e) {
+            Log::warning('Notification annulation client échouée: ' . $e->getMessage());
+        }
+
+        $msg = 'Votre demande a été annulée.';
+        if ($refundInfo['refund_amount'] > 0) {
+            $msg .= ' Remboursement de ' . number_format($refundInfo['refund_amount'], 2, ',', ' ') . '€ en cours (5-10 jours ouvrés).';
+        }
+
+        return redirect()->route('client.booking-requests')->with('success', $msg);
     }
 
     /**
@@ -663,8 +704,7 @@ class ClientController extends Controller
     public function createReview(Request $request, BookingRequest $bookingRequest)
     {
         try {
-            // Debug: Vérifier l'authentification
-            Log::info('createReview DEBUG', [
+            Log::debug('createReview', [
                 'auth_check' => Auth::check(),
                 'auth_id' => Auth::id(),
                 'booking_request_id' => $bookingRequest->id,
@@ -817,5 +857,61 @@ class ClientController extends Controller
         ]);
 
         return back()->with('success', 'Votre réclamation a été soumise. Notre équipe va l\'examiner.');
+    }
+
+    /**
+     * Supprime définitivement le compte client
+     */
+    protected function performDeletion(\App\Models\User $user): void
+    {
+        DB::transaction(function () use ($user) {
+            $client = $user->client;
+            if (!$client) return;
+
+            // 1. Rembourser les acomptes actifs et annuler les bookings
+            \App\Models\BookingRequest::where('client_id', $client->id)
+                ->whereNotNull('deposit_paid_at')
+                ->whereNotIn('status', ['completed', 'fully_completed', 'cancelled'])
+                ->each(function ($booking) {
+                    try {
+                        app(\App\Services\BookingRequestService::class)
+                            ->processStripeRefund($booking, $booking->total_deposit_amount);
+                    } catch (\Exception $e) {
+                        Log::warning("Remboursement client impossible booking {$booking->id}: " . $e->getMessage());
+                    }
+                    $booking->update([
+                        'status'              => 'cancelled',
+                        'cancellation_reason' => 'Compte client supprimé',
+                        'cancelled_by'        => 'client',
+                        'cancelled_at'        => now(),
+                    ]);
+                });
+
+            // 2. Anonymiser les bookings complétés (archives pour les artistes)
+            \App\Models\BookingRequest::where('client_id', $client->id)
+                ->whereIn('status', ['completed', 'fully_completed'])
+                ->update(['client_id' => null]);
+
+            // 3. Supprimer les conversations
+            $client->conversations()->each(function ($conv) {
+                $conv->messages()->forceDelete();
+                $conv->forceDelete();
+            });
+
+            // 4. Supprimer le profil client
+            $client->forceDelete();
+
+            // 5. Anonymiser l'user
+            $user->notifications()->delete();
+            $user->update([
+                'name'      => 'Client supprimé',
+                'email'     => 'deleted_' . $user->id . '@inkpik.deleted',
+                'phone'     => null,
+                'password'  => bcrypt(\Str::random(40)),
+                'stripe_id' => null,
+                'fcm_token' => null,
+            ]);
+            $user->forceDelete();
+        });
     }
 }
