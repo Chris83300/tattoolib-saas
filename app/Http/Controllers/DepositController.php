@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\Log;
 
 class DepositController extends Controller
 {
+    public function __construct(
+        protected \App\Services\StripeService $stripeService,
+    ) {}
+
     /**
      * Afficher la page de paiement de l'acompte
      */
@@ -58,7 +62,6 @@ class DepositController extends Controller
         $stripeKey = config('services.stripe.key');
         Log::info('Stripe key loaded', [
             'stripe_key' => $stripeKey ? 'SET' : 'NOT_SET',
-            'stripe_key_value' => substr($stripeKey, 0, 20) . '...'
         ]);
 
         // Vérifier si le compte Connect de l'artiste est actif
@@ -169,7 +172,7 @@ class DepositController extends Controller
             $feeAmount = 0;
             if ($destinationAccountId && $artist) {
                 $studio = method_exists($artist, 'studio') ? $artist->studio : null;
-                $feeAmount = app(\App\Services\StripeService::class)
+                $feeAmount = $this->stripeService
                     ->calculateApplicationFee($amountCents, $artist, $studio);
             }
 
@@ -282,9 +285,8 @@ class DepositController extends Controller
                             'deposit_paid_at' => now(),
                         ]);
 
-                        Log::info('Booking request updated', [
-                            'new_status' => $bookingRequest->fresh()->status->value,
-                            'deposit_paid_at' => $bookingRequest->fresh()->deposit_paid_at,
+                        Log::debug('Booking request updated: deposit paid', [
+                            'booking_request_id' => $bookingRequest->id,
                         ]);
 
                         // 2. Créer la transaction de booking

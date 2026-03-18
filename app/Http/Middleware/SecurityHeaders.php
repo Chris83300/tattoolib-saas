@@ -12,6 +12,10 @@ class SecurityHeaders
      */
     public function handle(Request $request, Closure $next)
     {
+        // Générer un nonce unique par requête (avant le rendu des vues)
+        $nonce = base64_encode(random_bytes(16));
+        app()->instance('csp-nonce', $nonce);
+
         $response = $next($request);
 
         // Headers de sécurité
@@ -20,10 +24,9 @@ class SecurityHeaders
         $response->headers->set('X-XSS-Protection', '1; mode=block');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
-        // CSP adaptée à l'environnement (Report-Only : observe sans bloquer)
-        // Passer en 'Content-Security-Policy' après validation console navigateur
-        $csp = $this->buildCspHeader($request);
-        $response->headers->set('Content-Security-Policy-Report-Only', $csp);
+        // CSP active (bloque les violations)
+        $csp = $this->buildCspHeader($request, $nonce);
+        $response->headers->set('Content-Security-Policy', $csp);
 
         // Permissions Policy
         $permissionsPolicy = implode(', ', [
@@ -46,49 +49,43 @@ class SecurityHeaders
             );
         }
 
+        // Anti-indexation du panel admin
+        if ($request->is('admin/*') || $request->is('admin')) {
+            $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
+        }
+
         return $response;
     }
 
     /**
      * Construit le header CSP adapté au contexte
      */
-    private function buildCspHeader(Request $request): string
+    private function buildCspHeader(Request $request, string $nonce): string
     {
-        // ENVIRONNEMENT LOCAL/TESTING : CSP permissif pour Vite (IPv4 uniquement)
+        // ENVIRONNEMENT LOCAL/TESTING : CSP permissif pour Vite HMR
+        // unsafe-inline/eval conservés car Vite dev mode les requiert
         if (app()->environment(['local', 'testing'])) {
             return implode('; ', [
                 "default-src 'self'",
-                // Scripts - Vite HMR + Livewire/Alpine + CDN
-                "script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* wss://localhost:* wss://127.0.0.1:* https://js.stripe.com https://cdn.jsdelivr.net",
-                // Styles - Vite + Google Fonts + CDN
+                "script-src 'self' 'nonce-{$nonce}' 'unsafe-inline' 'unsafe-eval' http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* wss://localhost:* wss://127.0.0.1:* https://js.stripe.com https://cdn.jsdelivr.net",
                 "style-src 'self' 'unsafe-inline' http://localhost:* http://127.0.0.1:* https://fonts.googleapis.com https://cdn.jsdelivr.net",
-                // Images
                 "img-src 'self' data: https: http://localhost:* http://127.0.0.1:*",
-                // Fonts
                 "font-src 'self' data: https://fonts.gstatic.com",
-                // Connections - WebSocket Vite + API
                 "connect-src 'self' ws://localhost:* ws://127.0.0.1:* wss://localhost:* wss://127.0.0.1:* http://localhost:* http://127.0.0.1:* https://api.stripe.com",
-                // Frames
                 "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
-                // Media
                 "media-src 'self'",
-                // Objects
                 "object-src 'none'",
-                // Base
                 "base-uri 'self'",
-                // Forms - autoriser 'self' pour les formulaires normaux
                 "form-action 'self'",
-                // Frame ancestors
                 "frame-ancestors 'none'",
-                // Manifest PWA
                 "manifest-src 'self'",
             ]);
         }
 
-        // ENVIRONNEMENT PRODUCTION : CSP strict
+        // ENVIRONNEMENT PRODUCTION : CSP strict avec nonce — sans unsafe-inline/eval sur script-src
         return implode('; ', [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://www.googletagmanager.com https://cdn.jsdelivr.net",
+            "script-src 'self' 'nonce-{$nonce}' https://js.stripe.com https://www.googletagmanager.com https://cdn.jsdelivr.net",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
             "img-src 'self' data: https:",
             "font-src 'self' data: https://fonts.gstatic.com",

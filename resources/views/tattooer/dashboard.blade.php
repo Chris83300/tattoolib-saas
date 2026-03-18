@@ -115,10 +115,48 @@
                         </svg>
                     </div>
                 </div>
-                <h3 class="text-3xl font-bold text-ivoire-text mb-1">
-                    {{ number_format($stats['total_earnings'], 0) }}€
-                </h3>
-                <p class="text-ivoire-text/60 text-sm">Revenus ce mois</p>
+
+                @if ($tattooer->isFree())
+                    <!-- Plan Starter - Afficher revenu après commission -->
+                    <h3 class="text-3xl font-bold text-ivoire-text mb-1">
+                        {{ number_format($monthlyEarnings['net_earnings'], 0) }}€
+                    </h3>
+                    <p class="text-ivoire-text/60 text-sm mb-2">Revenus ce mois (après commission)</p>
+
+                    <!-- Détails commission -->
+                    <div class="mt-3 p-3 bg-noir-profond/50 rounded-lg">
+                        <div class="flex justify-between items-center text-xs mb-1">
+                            <span class="text-ivoire-text/70">Total brut:</span>
+                            <span
+                                class="text-ivoire-text">{{ number_format($monthlyEarnings['total_earnings'], 0) }}€</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs mb-1">
+                            <span class="text-ivoire-text/70">Commission (7%):</span>
+                            <span
+                                class="text-rouge-alerte">-{{ number_format($monthlyEarnings['commission_amount'], 0) }}€</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs pt-1 border-t border-ivoire-text/20">
+                            <span class="text-ivoire-text font-semibold">Net reçu:</span>
+                            <span
+                                class="text-vert-succes font-bold">{{ number_format($monthlyEarnings['net_earnings'], 0) }}€</span>
+                        </div>
+                    </div>
+
+                    <!-- Message incitation PRO -->
+                    <div class="mt-3 text-xs text-ambre-warning text-center">
+                        💡 Passez PRO pour 0% de commission
+                    </div>
+                @else
+                    <!-- Plan PRO - Afficher revenu total -->
+                    <h3 class="text-3xl font-bold text-ivoire-text mb-1">
+                        {{ number_format($monthlyEarnings['total_earnings'], 0) }}€
+                    </h3>
+                    <p class="text-ivoire-text/60 text-sm">Revenus ce mois (0% commission)</p>
+
+                    <div class="mt-3 text-xs text-vert-succes text-center">
+                        ✨ Plan PRO - 0% de commission
+                    </div>
+                @endif
             </div>
         </div>
 

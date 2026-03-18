@@ -113,6 +113,7 @@ Route::middleware(['auth', 'artisan.can.operate'])->prefix('tattooer')->name('ta
     Route::post('/settings/schedule', [TattooerController::class, 'settingsUpdateSchedule'])->name('settings.update-schedule');
     Route::post('/settings/password', [TattooerController::class, 'settingsUpdatePassword'])->name('settings.update-password');
     Route::post('/settings/hours', [TattooerController::class, 'updateHours'])->name('settings.hours.update');
+    Route::get('/settings/export-gdpr', [TattooerController::class, 'exportGdpr'])->name('gdpr.export')->middleware('throttle:3,60');
     Route::get('/payments', [TattooerController::class, 'payments'])->name('payments');
     Route::post('/stripe/connect', [TattooerController::class, 'connectStripe'])->name('stripe.connect');
 
@@ -133,6 +134,7 @@ Route::middleware(['auth', 'artisan.can.operate'])->prefix('tattooer')->name('ta
     Route::get('/compliance', [TattooerController::class, 'compliance'])->name('compliance');
     Route::get('/compliance/documents', [TattooerController::class, 'complianceDocuments'])->name('compliance.documents');
     Route::post('/compliance/documents', [TattooerController::class, 'complianceDocumentsUpload'])->name('compliance.documents.upload');
+    Route::get('/compliance/documents/{complianceRecord}/view/{field}', [TattooerController::class, 'complianceDocumentServe'])->name('compliance.documents.serve');
     Route::delete('/compliance/documents/{complianceRecord}', [TattooerController::class, 'complianceDocumentDelete'])->name('compliance.documents.delete');
 
     // Anciennes routes Livewire (gardées pour compatibilité)
@@ -245,22 +247,24 @@ Route::post('/login', [LoginController::class, 'authenticate'])
 Route::post('/logout', [App\Http\Controllers\Auth\LogoutController::class, 'logout'])->name('logout');
 
 // Routes POST d'inscription (accessibles par tout le monde)
-Route::post('/register/client', function (Illuminate\Http\Request $request) {
-    return app(App\Http\Controllers\RegisterController::class)->submitClient($request);
-})->name('register.client.submit');
+Route::middleware(['throttle:10,5'])->group(function () {
+    Route::post('/register/client', function (Illuminate\Http\Request $request) {
+        return app(App\Http\Controllers\RegisterController::class)->submitClient($request);
+    })->name('register.client.submit');
 
-Route::post('/register/tattooer', function (Illuminate\Http\Request $request) {
-    return app(App\Http\Controllers\RegisterController::class)->submitTattooer($request);
-})->name('register.tattooer.submit');
+    Route::post('/register/tattooer', function (Illuminate\Http\Request $request) {
+        return app(App\Http\Controllers\RegisterController::class)->submitTattooer($request);
+    })->name('register.tattooer.submit');
 
-// Inscription pierceur — Phase 8 : sera adapté
-Route::post('/register/pierceur', function (Illuminate\Http\Request $request) {
-    return app(App\Http\Controllers\RegisterController::class)->submitPiercer($request);
-})->name('register.pierceur.submit');
+    // Inscription pierceur — Phase 8 : sera adapté
+    Route::post('/register/pierceur', function (Illuminate\Http\Request $request) {
+        return app(App\Http\Controllers\RegisterController::class)->submitPiercer($request);
+    })->name('register.pierceur.submit');
 
-Route::post('/register/studio', function (Illuminate\Http\Request $request) {
-    return app(App\Http\Controllers\RegisterController::class)->submitStudio($request);
-})->name('register.studio.submit');
+    Route::post('/register/studio', function (Illuminate\Http\Request $request) {
+        return app(App\Http\Controllers\RegisterController::class)->submitStudio($request);
+    })->name('register.studio.submit');
+});
 
 // Routes Client (protégées)
 Route::middleware(['auth'])->prefix('client')->name('client.')->group(function () {
@@ -354,17 +358,10 @@ Route::middleware(['auth', 'role:pierceur,Piercer', 'artisan.can.operate'])->pre
     Route::post('/settings/schedule', [TattooerController::class, 'settingsUpdateSchedule'])->name('settings.update-schedule');
     Route::post('/settings/password', [TattooerController::class, 'settingsUpdatePassword'])->name('settings.update-password');
     Route::post('/settings/hours', [TattooerController::class, 'updateHours'])->name('settings.hours.update');
+    Route::get('/settings/export-gdpr', [TattooerController::class, 'exportGdpr'])->name('gdpr.export')->middleware('throttle:3,60');
     Route::get('/payments', [TattooerController::class, 'payments'])->name('payments');
     Route::post('/stripe/connect', [TattooerController::class, 'connectStripe'])->name('stripe.connect');
     Route::get('/compliance', [TattooerController::class, 'compliance'])->name('compliance');
-    Route::get('/subscription-plans', [SubscriptionController::class, 'plans'])->name('subscription.plans');
-    Route::post('/subscribe', [SubscriptionController::class, 'subscribe'])->name('subscription.subscribe');
-    Route::get('/subscription/success', [SubscriptionController::class, 'success'])->name('subscription.success');
-    Route::post('/subscription/cancel', [SubscriptionController::class, 'cancel'])->name('subscription.cancel');
-    Route::post('/subscription/resume', [SubscriptionController::class, 'resume'])->name('subscription.resume');
-    Route::get('/subscription/manage', [SubscriptionController::class, 'manage'])->name('subscription.manage');
-    Route::get('/subscribe-from-trial', [SubscriptionController::class, 'subscribeFromTrial'])->name('subscription.subscribeFromTrial');
-
     // Anciennes routes Livewire (miroir du groupe tattooer)
     Route::get('/profil/edit', App\Livewire\Tattooer\Profile::class)->name('profile.edit');
     Route::get('/disponibilites', App\Livewire\Tattooer\Availability::class)->name('availability');
@@ -470,6 +467,10 @@ Route::get('/client/settings', [App\Http\Controllers\Client\ProfileController::c
     ->middleware(['auth'])
     ->name('client.settings');
 
+Route::get('/client/settings/export-gdpr', [App\Http\Controllers\Client\ProfileController::class, 'exportGdpr'])
+    ->middleware(['auth', 'throttle:3,60'])
+    ->name('client.gdpr.export');
+
 Route::post('/client/settings/avatar', [App\Http\Controllers\Client\ProfileController::class, 'updateAvatar'])
     ->middleware(['auth'])
     ->name('client.settings.update-avatar');
@@ -498,6 +499,7 @@ Route::delete('/client/delete-account', [App\Http\Controllers\ClientController::
 
 // Routes webhook Stripe (sans CSRF)
 Route::post('/webhooks/stripe', [App\Http\Controllers\StripeWebhookController::class, 'handleWebhook'])
+    ->middleware(['throttle:60,1'])
     ->name('webhooks.stripe');
 
 // ─── Stripe Connect — Artiste indépendant (Tattooer / Piercer) ──────────────
@@ -582,9 +584,10 @@ Route::prefix('auth')->name('auth.')->group(function () {
     })->name('login');
 
     Route::get('/forgot-password', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'showForgotForm'])->name('password.request');
-    Route::post('/forgot-password', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'sendResetLink'])->name('password.email');
     Route::get('/reset-password/{token}', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'showResetForm'])->name('password.reset');
-    Route::post('/reset-password', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'resetPassword'])->name('password.update');
+    // Rate limiting anti-énumération email : 5 tentatives par 10 minutes
+    Route::post('/forgot-password', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'sendResetLink'])->name('password.email')->middleware('throttle:5,10');
+    Route::post('/reset-password', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'resetPassword'])->name('password.update')->middleware('throttle:5,10');
 });
 
 // Routes demande acompte

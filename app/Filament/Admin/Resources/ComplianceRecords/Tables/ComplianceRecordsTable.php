@@ -78,7 +78,7 @@ class ComplianceRecordsTable
                 Tables\Columns\TextColumn::make('document')
                     ->label('Document')
                     ->getStateUsing(fn ($record) => $record->certificate_file_path ? 'Voir document' : 'Aucun')
-                    ->url(fn ($record) => $record->certificate_file_path ? Storage::url($record->certificate_file_path) : null)
+                    ->url(fn ($record) => $record->certificate_file_path ? route('tattooer.compliance.documents.serve', [$record, 'certificate_file_path']) : null)
                     ->openUrlInNewTab()
                     ->color('info')
                     ->icon('heroicon-o-document'),

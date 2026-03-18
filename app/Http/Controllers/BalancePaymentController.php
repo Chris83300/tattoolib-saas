@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\Log;
 
 class BalancePaymentController extends Controller
 {
+    public function __construct(
+        protected \App\Services\StripeService $stripeService,
+    ) {}
+
     /**
      * Page de paiement du solde (client)
      */
@@ -74,7 +78,7 @@ class BalancePaymentController extends Controller
         // Calculer la commission basée sur le plan (STARTER=7%, PRO/STUDIO=0%)
         $amountCents    = (int) round($balanceRemaining * 100);
         $studio         = method_exists($tattooer, 'studio') ? $tattooer->studio : null;
-        $applicationFee = app(\App\Services\StripeService::class)
+        $applicationFee = $this->stripeService
             ->calculateApplicationFee($amountCents, $tattooer, $studio);
 
         $sessionParams = [
@@ -117,7 +121,16 @@ class BalancePaymentController extends Controller
         // TODO: Si Klarna disponible, ajouter 'klarna' aux payment_method_types
         // Vérifier d'abord l'éligibilité du compte Connect
 
-        $session = StripeSession::create($sessionParams);
+        try {
+            $session = StripeSession::create($sessionParams);
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            \Illuminate\Support\Facades\Log::error('Stripe balance session error', [
+                'booking_request_id' => $bookingRequest->id,
+                'error' => $e->getMessage(),
+            ]);
+            return redirect()->route('client.balance-payment.show', $bookingRequest)
+                ->with('error', 'Une erreur est survenue lors de la création de la session de paiement. Veuillez réessayer.');
+        }
 
         // Sauvegarder l'ID session
         $bookingRequest->update(['balance_stripe_session_id' => $session->id]);

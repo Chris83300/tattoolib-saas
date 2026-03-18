@@ -131,6 +131,37 @@ class TattooerStatsService
     }
 
     /**
+     * Get monthly earnings with commission details
+     */
+    public function getMonthlyEarningsWithCommission(ArtisanInterface $artisan, int $year, int $month): array
+    {
+        return Cache::remember(
+            "tattooer.{$artisan->id}.earnings_with_commission.{$year}.{$month}",
+            now()->addDay(),
+            function () use ($artisan, $year, $month) {
+                $totalEarnings = BookingRequest::where('bookable_type', get_class($artisan))
+                    ->where('bookable_id', $artisan->id)
+                    ->whereIn('status', ['deposit_paid', 'date_confirmed', 'completed', 'balance_paid', 'fully_completed'])
+                    ->whereYear('deposit_paid_at', $year)
+                    ->whereMonth('deposit_paid_at', $month)
+                    ->sum('deposit_amount');
+
+                // Commission de 7% pour les plans starter
+                $commissionRate = 0.07;
+                $commissionAmount = $totalEarnings * $commissionRate;
+                $netEarnings = $totalEarnings - $commissionAmount;
+
+                return [
+                    'total_earnings' => $totalEarnings,
+                    'commission_rate' => $commissionRate * 100,
+                    'commission_amount' => $commissionAmount,
+                    'net_earnings' => $netEarnings,
+                ];
+            }
+        );
+    }
+
+    /**
      * Get client statistics efficiently
      */
     public function getClientStats(ArtisanInterface $artisan): array

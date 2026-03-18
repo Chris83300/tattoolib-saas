@@ -89,7 +89,7 @@ class PierceurForm
                             ])
                             ->native(false)
                             ->helperText('Statut actuel du pierceur')
-                            ->reactive(),
+                            ->live(),
 
                         Forms\Components\Toggle::make('has_compliance_badge')
                             ->label('Badge de conformité')

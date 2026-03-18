@@ -1,7 +1,7 @@
 <x-filament-panels::page>
 <div
     class="flex h-[calc(100vh-180px)] rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm"
-    wire:poll.4s="$refresh">
+    wire:poll.15s="$refresh">
 
     {{-- ═══════════════════════════════════════════════════════
          COLONNE GAUCHE — Liste des conversations (fixe 320px)

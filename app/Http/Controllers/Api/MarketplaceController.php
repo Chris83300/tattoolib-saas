@@ -84,8 +84,6 @@ class MarketplaceController extends Controller
      */
     public function search(Request $request): JsonResponse
     {
-        // Debug
-        \Log::info('API search received filters:', $request->all());
 
         $filters = $request->only([
             'specialization',

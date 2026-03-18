@@ -72,6 +72,15 @@ class RegisterController extends Controller
 
             Log::info('Client créé: ' . json_encode($client));
 
+            // Traçage du consentement RGPD (Art. 7 + Art. 9)
+            $user->update([
+                'cgu_accepted_at'          => now(),
+                'cgu_version_accepted'     => config('app.cgu_version', '1.0'),
+                'privacy_accepted_at'      => now(),
+                'privacy_version_accepted' => config('app.privacy_version', '1.0'),
+                'consent_ip'               => $request->ip(),
+            ]);
+
             // Valider la transaction
             DB::commit();
 
@@ -109,7 +118,9 @@ class RegisterController extends Controller
     public function submitTattooer(Request $request)
     {
         // Debug pour voir si la méthode est appelée
-        Log::info('submitTattooer appelé avec: ' . json_encode($request->all()));
+        if (app()->environment('local')) {
+            Log::debug('submitTattooer appelé', ['fields' => array_keys($request->except(['password', 'password_confirmation'])), 'ip' => $request->ip()]);
+        }
 
         try {
             $validated = $request->validate([
@@ -138,7 +149,6 @@ class RegisterController extends Controller
                 'plan.in' => 'Le plan sélectionné n\'est pas valide.',
             ]);
 
-            Log::info('Validation passée: ' . json_encode($validated));
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Erreur validation: ' . json_encode($e->errors()));
@@ -182,6 +192,15 @@ class RegisterController extends Controller
             Log::info('Tattooer créé: ' . json_encode($tattooer));
             Log::info('Données insérées - first_name: ' . ($tattooer->first_name ?? 'NULL') . ', last_name: ' . ($tattooer->last_name ?? 'NULL') . ', pseudo: ' . ($tattooer->pseudo ?? 'NULL'));
 
+            // Traçage du consentement RGPD
+            $user->update([
+                'cgu_accepted_at'          => now(),
+                'cgu_version_accepted'     => config('app.cgu_version', '1.0'),
+                'privacy_accepted_at'      => now(),
+                'privacy_version_accepted' => config('app.privacy_version', '1.0'),
+                'consent_ip'               => $request->ip(),
+            ]);
+
             // Login automatique
             Auth::login($user);
 
@@ -209,7 +228,9 @@ class RegisterController extends Controller
 
     public function submitPiercer(Request $request)
     {
-        Log::info('submitPiercer appelé avec: ' . json_encode($request->all()));
+        if (app()->environment('local')) {
+            Log::debug('submitPiercer appelé', ['fields' => array_keys($request->except(['password', 'password_confirmation'])), 'ip' => $request->ip()]);
+        }
 
         try {
             $validated = $request->validate([
@@ -280,6 +301,15 @@ class RegisterController extends Controller
 
             Log::info('Piercer créé: ' . json_encode($piercer));
 
+            // Traçage du consentement RGPD
+            $user->update([
+                'cgu_accepted_at'          => now(),
+                'cgu_version_accepted'     => config('app.cgu_version', '1.0'),
+                'privacy_accepted_at'      => now(),
+                'privacy_version_accepted' => config('app.privacy_version', '1.0'),
+                'consent_ip'               => $request->ip(),
+            ]);
+
             // Login automatique
             Auth::login($user);
 
@@ -307,7 +337,9 @@ class RegisterController extends Controller
 
     public function submitStudio(Request $request)
     {
-        Log::info('submitStudio appelé avec: ' . json_encode($request->all()));
+        if (app()->environment('local')) {
+            Log::debug('submitStudio appelé', ['fields' => array_keys($request->except(['password', 'password_confirmation'])), 'ip' => $request->ip()]);
+        }
 
         try {
             $validated = $request->validate([
@@ -370,6 +402,15 @@ class RegisterController extends Controller
             ]);
 
             Log::info('Studio créé: ' . json_encode($studio));
+
+            // Traçage du consentement RGPD
+            $user->update([
+                'cgu_accepted_at'          => now(),
+                'cgu_version_accepted'     => config('app.cgu_version', '1.0'),
+                'privacy_accepted_at'      => now(),
+                'privacy_version_accepted' => config('app.privacy_version', '1.0'),
+                'consent_ip'               => $request->ip(),
+            ]);
 
             // Login automatique
             Auth::login($user);

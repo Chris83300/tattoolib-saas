@@ -770,7 +770,7 @@ class ClientController extends Controller
             Log::error('Erreur createReview: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la sauvegarde de votre avis: ' . $e->getMessage()
+                'message' => 'Une erreur est survenue lors de la sauvegarde de votre avis. Veuillez réessayer.'
             ], 500);
         }
     }

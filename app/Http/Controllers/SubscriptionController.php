@@ -155,7 +155,6 @@ class SubscriptionController extends Controller
         $planKey = in_array($request->get('plan'), ['starter', 'pro']) ? $request->get('plan') : 'pro';
 
         try {
-            sleep(2); // Laisser Stripe finaliser la session
             $stripe = new \Stripe\StripeClient(config('cashier.secret'));
 
             // Récupérer la session Checkout pour obtenir le stripe_subscription_id

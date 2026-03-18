@@ -283,7 +283,7 @@
                                                 <!-- Liens vers les fichiers -->
                                                 <div class="flex gap-4 mt-4">
                                                     @if ($record->certificate_file_path)
-                                                        <a href="{{ Storage::url($record->certificate_file_path) }}"
+                                                        <a href="{{ route('tattooer.compliance.documents.serve', [$record, 'certificate_file_path']) }}"
                                                             target="_blank"
                                                             class="text-beige-peau hover:underline text-sm flex items-center gap-1">
                                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"
@@ -301,7 +301,7 @@
                                                     @endif
 
                                                     @if ($record->ars_proof_file_path)
-                                                        <a href="{{ Storage::url($record->ars_proof_file_path) }}"
+                                                        <a href="{{ route('tattooer.compliance.documents.serve', [$record, 'ars_proof_file_path']) }}"
                                                             target="_blank"
                                                             class="text-beige-peau hover:underline text-sm flex items-center gap-1">
                                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"

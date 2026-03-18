@@ -734,9 +734,6 @@ class StudioController extends Controller
         if ($request->get('checkout') === 'success') {
             $sessionId = $request->get('session_id');
 
-            // Laisser Stripe finaliser (délai Stripe)
-            sleep(2);
-
             // Sync via session d'abord (plus précis), puis fallback syncFromStripe
             $synced = false;
             if ($sessionId) {

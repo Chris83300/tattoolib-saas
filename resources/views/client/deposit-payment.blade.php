@@ -167,7 +167,12 @@
                 @endif
 
                 <!-- Bouton de paiement -->
-                <div class="text-center">
+                <div class="text-center"
+                    id="stripe-deposit-form"
+                    data-stripe-key="{{ $stripeKey }}"
+                    data-process-url="{{ route('deposit.process', $bookingRequest) }}"
+                    data-csrf="{{ csrf_token() }}"
+                    data-button-label="💳 Payer {{ number_format($bookingRequest->total_deposit_amount, 0) }}€ avec Stripe">
                     <button id="pay-deposit-btn" {{ !$connectReady ? 'disabled' : '' }}
                         class="inline-flex items-center px-8 py-4 bg-beige-peau text-noir-profond rounded-lg font-semibold text-lg hover:bg-beige-peau/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                         <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -217,59 +222,5 @@
 
     @push('scripts')
         <script src="https://js.stripe.com/v3/"></script>
-        <script>
-            // Vérifier que la clé Stripe est disponible
-            const stripePublishableKey = '{{ $stripeKey }}';
-            console.log('Stripe publishable key:', stripePublishableKey);
-
-            document.addEventListener('DOMContentLoaded', function() {
-                if (!stripePublishableKey) {
-                    console.error('Stripe publishable key is empty');
-                    alert('Configuration Stripe manquante. Veuillez contacter le support.');
-                    return;
-                }
-
-                const payButton = document.getElementById('pay-deposit-btn');
-
-                payButton.addEventListener('click', async function() {
-                    payButton.disabled = true;
-                    payButton.innerHTML = '⏳ Chargement...';
-
-                    try {
-                        const response = await fetch('{{ route('deposit.process', $bookingRequest) }}', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            },
-                            body: JSON.stringify({})
-                        });
-
-                        const data = await response.json();
-
-                        if (data.sessionId) {
-                            const stripe = Stripe(stripePublishableKey);
-
-                            const {
-                                error
-                            } = await stripe.redirectToCheckout({
-                                sessionId: data.sessionId
-                            });
-
-                            if (error) {
-                                throw error;
-                            }
-                        } else {
-                            throw new Error('Session non créée');
-                        }
-                    } catch (error) {
-                        console.error('Erreur:', error);
-                        payButton.disabled = false;
-                        payButton.innerHTML =
-                            '💳 Payer {{ number_format($bookingRequest->total_deposit_amount, 0) }}€ avec Stripe';
-                        alert('Une erreur est survenue: ' + error.message);
-                    }
-                });
-            });
-        </script>
+        @vite('resources/js/stripe-deposit.js')
     @endpush

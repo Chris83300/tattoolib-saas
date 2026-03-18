@@ -23,15 +23,19 @@ class Consent extends Model implements HasMedia
     ];
 
     protected $casts = [
-        'signed_at' => 'datetime',
-        'medical_conditions' => 'array',
-        'allergies' => 'array',
-        'medications' => 'array',
-        'is_pregnant' => 'boolean',
-        'has_skin_conditions' => 'boolean',
-        'is_minor' => 'boolean',
-        'accepts_terms' => 'boolean',
-        'accepts_aftercare' => 'boolean',
+        'signed_at'              => 'datetime',
+        // Colonnes médicales chiffrées (données sensibles RGPD)
+        'medical_conditions'     => 'encrypted:array',
+        'allergies'              => 'encrypted:array',
+        'medications'            => 'encrypted:array',
+        'parent_name'            => 'encrypted',
+        'parent_signature_data'  => 'encrypted',
+        // Booléens
+        'is_pregnant'            => 'boolean',
+        'has_skin_conditions'    => 'boolean',
+        'is_minor'               => 'boolean',
+        'accepts_terms'          => 'boolean',
+        'accepts_aftercare'      => 'boolean',
     ];
 
     // ===== RELATIONS =====

@@ -136,5 +136,6 @@ unset($__errorArgs, $__bag); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendB
             </div>
         </div>
     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+    
 </div>
 <?php /**PATH C:\laragon\www\tattoolib-saas\resources\views/livewire/admin-chat.blade.php ENDPATH**/ ?>

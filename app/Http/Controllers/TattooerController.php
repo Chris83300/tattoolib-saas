@@ -29,6 +29,35 @@ class TattooerController extends Controller
         return auth()->user()->artisan();
     }
 
+    /**
+     * Retourne les compteurs pendingCount et unreadCount pour le layout artiste.
+     * Évite la duplication du même bloc dans chaque méthode du controller.
+     */
+    private function getDashboardCounts(\Illuminate\Database\Eloquent\Model $artisan): array
+    {
+        $pendingCount = BookingRequest::where('bookable_id', $artisan->id)
+            ->where('bookable_type', get_class($artisan))
+            ->where('status', 'pending')
+            ->count();
+
+        $unreadCount = \App\Models\Conversation::whereHas('messages', function ($query) {
+                $query->where(function ($q) {
+                    if (auth()->user()->isTattooer() || auth()->user()->isPiercer()) {
+                        $q->whereNull('read_by_tattooer_at');
+                    } else {
+                        $q->whereNull('read_by_client_at');
+                    }
+                })
+                ->where('sender_id', '!=', auth()->id());
+            })
+            ->whereHas('participants', function ($query) {
+                $query->where('user_id', auth()->id());
+            })
+            ->count();
+
+        return compact('pendingCount', 'unreadCount');
+    }
+
     private function artisanType(): string
     {
         return auth()->user()->artisanType() ?? 'tattooer';
@@ -59,26 +88,7 @@ class TattooerController extends Controller
         $stats = $cacheService->getDashboardStats($tattooer);
 
         // Compteurs pour le layout
-        $pendingCount = BookingRequest::where('bookable_id', $tattooer->id)
-            ->where('bookable_type', get_class($tattooer))
-            ->where('status', 'pending')
-            ->count();
-
-        $unreadCount = \App\Models\Conversation::whereHas('messages', function ($query) {
-                $query->where(function ($q) {
-                    // Si l'utilisateur est un tattooer/piercer, vérifier read_by_tattooer_at
-                    if (auth()->user()->isTattooer() || auth()->user()->isPiercer()) {
-                        $q->whereNull('read_by_tattooer_at');
-                    } else {
-                        $q->whereNull('read_by_client_at');
-                    }
-                })
-                ->where('sender_id', '!=', auth()->id());
-            })
-            ->whereHas('participants', function ($query) {
-                $query->where('user_id', auth()->id());
-            })
-            ->count();
+        ['pendingCount' => $pendingCount, 'unreadCount' => $unreadCount] = $this->getDashboardCounts($tattooer);
 
         return view('tattooer.profile', compact(
             'tattooer',
@@ -132,26 +142,7 @@ class TattooerController extends Controller
         $requests = $query->orderBy('created_at', 'desc')->get();
 
         // Compteurs pour le layout
-        $pendingCount = BookingRequest::where('bookable_id', $tattooer->id)
-            ->where('bookable_type', get_class($tattooer))
-            ->where('status', 'pending')
-            ->count();
-
-        $unreadCount = \App\Models\Conversation::whereHas('messages', function ($query) {
-                $query->where(function ($q) {
-                    // Si l'utilisateur est un tattooer/piercer, vérifier read_by_tattooer_at
-                    if (auth()->user()->isTattooer() || auth()->user()->isPiercer()) {
-                        $q->whereNull('read_by_tattooer_at');
-                    } else {
-                        $q->whereNull('read_by_client_at');
-                    }
-                })
-                ->where('sender_id', '!=', auth()->id());
-            })
-            ->whereHas('participants', function ($query) {
-                $query->where('user_id', auth()->id());
-            })
-            ->count();
+        ['pendingCount' => $pendingCount, 'unreadCount' => $unreadCount] = $this->getDashboardCounts($tattooer);
 
         // Utiliser la vue tattooer.requests pour tout le monde (tattooers et pierceurs)
         // La vue contient déjà les conditions pour adapter l'affichage selon le type d'artisan
@@ -221,28 +212,23 @@ class TattooerController extends Controller
         $tattooer->load(['media', 'user']);
 
         // Compteurs pour le layout
-        $pendingCount = BookingRequest::where('bookable_id', $tattooer->id)
-            ->where('bookable_type', get_class($tattooer))
-            ->where('status', 'pending')
-            ->count();
-
-        $unreadCount = \App\Models\Conversation::whereHas('messages', function ($query) {
-                $query->where(function ($q) {
-                    // Si l'utilisateur est un tattooer/piercer, vérifier read_by_tattooer_at
-                    if (auth()->user()->isTattooer() || auth()->user()->isPiercer()) {
-                        $q->whereNull('read_by_tattooer_at');
-                    } else {
-                        $q->whereNull('read_by_client_at');
-                    }
-                })
-                ->where('sender_id', '!=', auth()->id());
-            })
-            ->whereHas('participants', function ($query) {
-                $query->where('user_id', auth()->id());
-            })
-            ->count();
+        ['pendingCount' => $pendingCount, 'unreadCount' => $unreadCount] = $this->getDashboardCounts($tattooer);
 
         return view('tattooer.settings', compact('tattooer', 'pendingCount', 'unreadCount'));
+    }
+
+    /**
+     * Export RGPD — droit à la portabilité (Art. 20 RGPD)
+     */
+    public function exportGdpr(Request $request)
+    {
+        $user = $request->user();
+        $path = app(\App\Services\GdprExportService::class)->exportUserData($user);
+
+        return \Illuminate\Support\Facades\Storage::disk('local')->download(
+            $path,
+            'mes-donnees-inkpik-' . now()->format('Y-m-d') . '.json'
+        );
     }
 
     /**
@@ -421,9 +407,14 @@ class TattooerController extends Controller
         $statsService = app(\App\Services\TattooerStatsService::class);
         $stats = $statsService->getDashboardStats($tattooer);
 
+        // Revenus du mois avec commission (pour les plans starter)
+        $currentMonth = now()->month;
+        $currentYear = now()->year;
+        $monthlyEarnings = $statsService->getMonthlyEarningsWithCommission($tattooer, $currentYear, $currentMonth);
+
         // Demandes récentes
         $recentRequests = BookingRequest::where('bookable_id', $tattooer->id)
-            ->where('bookable_type', 'App\Models\Tattooer')
+            ->where('bookable_type', get_class($tattooer))
             ->with(['client.user'])
             ->orderBy('created_at', 'desc')
             ->take(5)
@@ -440,41 +431,21 @@ class TattooerController extends Controller
         // Activité récente
         $recentActivity = [
             'new_requests' => BookingRequest::where('bookable_id', $tattooer->id)
-                ->where('bookable_type', 'App\Models\Tattooer')
+                ->where('bookable_type', get_class($tattooer))
                 ->where('created_at', '>=', now()->subDays(7))
                 ->count(),
 
             'completed_appointments' => BookingRequest::where('bookable_id', $tattooer->id)
-                ->where('bookable_type', 'App\Models\Tattooer')
+                ->where('bookable_type', get_class($tattooer))
                 ->where('status', 'completed')
                 ->where('updated_at', '>=', now()->subDays(7))
                 ->count(),
         ];
 
-        // Compteur de demandes en attente
-        $pendingCount = BookingRequest::where('bookable_id', $tattooer->id)
-            ->where('bookable_type', get_class($tattooer))
-            ->where('status', 'pending')
-            ->count();
+        // Compteurs pour le layout
+        ['pendingCount' => $pendingCount, 'unreadCount' => $unreadCount] = $this->getDashboardCounts($tattooer);
 
-        // Compteur de messages non lus
-        $unreadCount = \App\Models\Conversation::whereHas('messages', function ($query) {
-                $query->where(function ($q) {
-                    // Si l'utilisateur est un tattooer/piercer, vérifier read_by_tattooer_at
-                    if (auth()->user()->isTattooer() || auth()->user()->isPiercer()) {
-                        $q->whereNull('read_by_tattooer_at');
-                    } else {
-                        $q->whereNull('read_by_client_at');
-                    }
-                })
-                ->where('sender_id', '!=', auth()->id());
-            })
-            ->whereHas('participants', function ($query) {
-                $query->where('user_id', auth()->id());
-            })
-            ->count();
-
-        return view('tattooer.dashboard', compact('tattooer', 'stats', 'recentRequests', 'upcomingAppointments', 'recentActivity', 'pendingCount', 'unreadCount'));
+        return view('tattooer.dashboard', compact('tattooer', 'stats', 'monthlyEarnings', 'recentRequests', 'upcomingAppointments', 'recentActivity', 'pendingCount', 'unreadCount'));
     }
 
     /**
@@ -579,26 +550,7 @@ class TattooerController extends Controller
         $events = array_merge($calendarEvents, $appointments, $bookingEvents);
 
         // Compteurs pour le layout
-        $pendingCount = BookingRequest::where('bookable_id', $tattooer->id)
-            ->where('bookable_type', get_class($tattooer))
-            ->where('status', 'pending')
-            ->count();
-
-        $unreadCount = \App\Models\Conversation::whereHas('messages', function ($query) {
-                $query->where(function ($q) {
-                    // Si l'utilisateur est un tattooer/piercer, vérifier read_by_tattooer_at
-                    if (auth()->user()->isTattooer() || auth()->user()->isPiercer()) {
-                        $q->whereNull('read_by_tattooer_at');
-                    } else {
-                        $q->whereNull('read_by_client_at');
-                    }
-                })
-                ->where('sender_id', '!=', auth()->id());
-            })
-            ->whereHas('participants', function ($query) {
-                $query->where('user_id', auth()->id());
-            })
-            ->count();
+        ['pendingCount' => $pendingCount, 'unreadCount' => $unreadCount] = $this->getDashboardCounts($tattooer);
 
         return view('tattooer.calendar', compact('tattooer', 'events', 'pendingCount', 'unreadCount'));
     }
@@ -650,7 +602,7 @@ class TattooerController extends Controller
 
             return response()->json([
                 'success' => false,
-                'error' => 'Erreur serveur : ' . $e->getMessage(),
+                'error' => 'Une erreur est survenue. Veuillez réessayer.',
             ], 500);
         }
     }
@@ -733,7 +685,7 @@ class TattooerController extends Controller
 
         // Récupérer les rendez-vous confirmés comme événements
         $appointments = Appointment::where('bookable_id', $tattooer->id)
-            ->where('bookable_type', 'App\Models\Tattooer')
+            ->where('bookable_type', get_class($tattooer))
             ->where('status', 'scheduled')
             ->with(['bookingRequest.client.user'])
             ->orderBy('start_datetime', 'asc')
@@ -760,7 +712,7 @@ class TattooerController extends Controller
 
         // Récupérer les demandes confirmées comme événements (pour compatibilité)
         $bookingRequests = BookingRequest::where('bookable_id', $tattooer->id)
-            ->where('bookable_type', 'App\Models\Tattooer')
+            ->where('bookable_type', get_class($tattooer))
             ->where('status', 'date_confirmed')
             ->whereDoesntHave('appointment') // Éviter les doublons
             ->with(['client.user'])
@@ -1034,26 +986,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
             ->get();
 
         // Compteurs pour le layout
-        $pendingCount = BookingRequest::where('bookable_id', $tattooer->id)
-            ->where('bookable_type', get_class($tattooer))
-            ->where('status', 'pending')
-            ->count();
-
-        $unreadCount = \App\Models\Conversation::whereHas('messages', function ($query) {
-                $query->where(function ($q) {
-                    // Si l'utilisateur est un tattooer/piercer, vérifier read_by_tattooer_at
-                    if (auth()->user()->isTattooer() || auth()->user()->isPiercer()) {
-                        $q->whereNull('read_by_tattooer_at');
-                    } else {
-                        $q->whereNull('read_by_client_at');
-                    }
-                })
-                ->where('sender_id', '!=', auth()->id());
-            })
-            ->whereHas('participants', function ($query) {
-                $query->where('user_id', auth()->id());
-            })
-            ->count();
+        ['pendingCount' => $pendingCount, 'unreadCount' => $unreadCount] = $this->getDashboardCounts($tattooer);
 
         return view('tattooer.messages', compact('tattooer', 'conversations', 'pendingCount', 'unreadCount'));
     }
@@ -1067,26 +1000,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
         $tattooer = $this->artisan();
 
         // Compteurs pour le layout
-        $pendingCount = BookingRequest::where('bookable_id', $tattooer->id)
-            ->where('bookable_type', get_class($tattooer))
-            ->where('status', 'pending')
-            ->count();
-
-        $unreadCount = \App\Models\Conversation::whereHas('messages', function ($query) {
-                $query->where(function ($q) {
-                    // Si l'utilisateur est un tattooer/piercer, vérifier read_by_tattooer_at
-                    if (auth()->user()->isTattooer() || auth()->user()->isPiercer()) {
-                        $q->whereNull('read_by_tattooer_at');
-                    } else {
-                        $q->whereNull('read_by_client_at');
-                    }
-                })
-                ->where('sender_id', '!=', auth()->id());
-            })
-            ->whereHas('participants', function ($query) {
-                $query->where('user_id', auth()->id());
-            })
-            ->count();
+        ['pendingCount' => $pendingCount, 'unreadCount' => $unreadCount] = $this->getDashboardCounts($tattooer);
 
         // Recherche
         $search = request('search');
@@ -1785,26 +1699,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
         ]);
 
         // Compteurs pour le layout
-        $pendingCount = BookingRequest::where('bookable_id', $tattooer->id)
-            ->where('bookable_type', get_class($tattooer))
-            ->where('status', 'pending')
-            ->count();
-
-        $unreadCount = \App\Models\Conversation::whereHas('messages', function ($query) {
-                $query->where(function ($q) {
-                    // Si l'utilisateur est un tattooer/piercer, vérifier read_by_tattooer_at
-                    if (auth()->user()->isTattooer() || auth()->user()->isPiercer()) {
-                        $q->whereNull('read_by_tattooer_at');
-                    } else {
-                        $q->whereNull('read_by_client_at');
-                    }
-                })
-                ->where('sender_id', '!=', auth()->id());
-            })
-            ->whereHas('participants', function ($query) {
-                $query->where('user_id', auth()->id());
-            })
-            ->count();
+        ['pendingCount' => $pendingCount, 'unreadCount' => $unreadCount] = $this->getDashboardCounts($tattooer);
 
         return view('tattooer.portfolio', compact('tattooer', 'tattoos', 'drawings', 'beforeAfter', 'pendingCount', 'unreadCount'));
     }
@@ -1865,7 +1760,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
 
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de l\'upload: ' . $e->getMessage()
+                'message' => 'Une erreur est survenue lors de l\'upload. Veuillez réessayer.'
             ], 500);
         }
     }
@@ -1929,7 +1824,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
 
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de l\'upload: ' . $e->getMessage()
+                'message' => 'Une erreur est survenue lors de l\'upload. Veuillez réessayer.'
             ], 500);
         }
     }
@@ -1973,7 +1868,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
 
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la suppression: ' . $e->getMessage()
+                'message' => 'Une erreur est survenue lors de la suppression. Veuillez réessayer.'
             ], 500);
         }
     }
@@ -2019,7 +1914,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
 
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la suppression: ' . $e->getMessage()
+                'message' => 'Une erreur est survenue lors de la suppression. Veuillez réessayer.'
             ], 500);
         }
     }
@@ -2124,26 +2019,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
         ];
 
         // Compteurs pour le layout
-        $pendingCount = BookingRequest::where('bookable_id', $tattooer->id)
-            ->where('bookable_type', get_class($tattooer))
-            ->where('status', 'pending')
-            ->count();
-
-        $unreadCount = \App\Models\Conversation::whereHas('messages', function ($query) {
-                $query->where(function ($q) {
-                    // Si l'utilisateur est un tattooer/piercer, vérifier read_by_tattooer_at
-                    if (auth()->user()->isTattooer() || auth()->user()->isPiercer()) {
-                        $q->whereNull('read_by_tattooer_at');
-                    } else {
-                        $q->whereNull('read_by_client_at');
-                    }
-                })
-                ->where('sender_id', '!=', auth()->id());
-            })
-            ->whereHas('participants', function ($query) {
-                $query->where('user_id', auth()->id());
-            })
-            ->count();
+        ['pendingCount' => $pendingCount, 'unreadCount' => $unreadCount] = $this->getDashboardCounts($tattooer);
 
         $stats = [
             'total_revenue' => $paymentStats['total_earned'],
@@ -2193,7 +2069,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
         $tattooer = $this->artisan();
 
         if ($bookingRequest->bookable_id !== $tattooer->id ||
-            $bookingRequest->bookable_type !== 'App\Models\Tattooer') {
+            $bookingRequest->bookable_type !== get_class($tattooer)) {
             abort(403, 'Non autorisé');
         }
 
@@ -2269,7 +2145,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
         $tattooer = $this->artisan();
 
         if ($bookingRequest->bookable_id !== $tattooer->id ||
-            $bookingRequest->bookable_type !== 'App\Models\Tattooer') {
+            $bookingRequest->bookable_type !== get_class($tattooer)) {
             abort(403, 'Non autorisé');
         }
 
@@ -2337,7 +2213,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
         $tattooer = $this->artisan();
 
         if ($bookingRequest->bookable_id !== $tattooer->id ||
-            $bookingRequest->bookable_type !== 'App\Models\Tattooer') {
+            $bookingRequest->bookable_type !== get_class($tattooer)) {
             abort(403, 'Non autorisé');
         }
 
@@ -2710,7 +2586,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
         $tattooer = $this->artisan();
 
         // Vérifier que la demande appartient bien au tattooer
-        if ($bookingRequest->bookable_id !== $tattooer->id || $bookingRequest->bookable_type !== 'App\\Models\\Tattooer') {
+        if ($bookingRequest->bookable_id !== $tattooer->id || $bookingRequest->bookable_type !== get_class($tattooer)) {
             abort(403, 'Non autorisé');
         }
 
@@ -2734,7 +2610,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
         $tattooer = $this->artisan();
 
         // Vérifier que la demande appartient bien au tattooer
-        if ($bookingRequest->bookable_id !== $tattooer->id || $bookingRequest->bookable_type !== 'App\\Models\\Tattooer') {
+        if ($bookingRequest->bookable_id !== $tattooer->id || $bookingRequest->bookable_type !== get_class($tattooer)) {
             abort(403, 'Non autorisé');
         }
 
@@ -2882,12 +2758,12 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
         if ($hasFile) {
             $file = $request->file('certificate_file');
             $filename = time() . '_' . $file->getClientOriginalName();
-            $filePath = $file->storeAs('compliance-documents', $filename, 'public');
+            $filePath = $file->storeAs('compliance-documents', $filename, 'local');
 
             // Créer une copie du fichier pour chaque type sélectionné
             foreach ($certificationTypes as $certificationType) {
                 $typeFilename = time() . '_' . $certificationType . '_' . $file->getClientOriginalName();
-                $typePath = $file->storeAs('compliance-documents', $typeFilename, 'public');
+                $typePath = $file->storeAs('compliance-documents', $typeFilename, 'local');
                 $filePaths[$certificationType] = $typePath;
             }
         }
@@ -2896,7 +2772,7 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
         if ($request->hasFile('ars_proof_file') && in_array('declaration_ars', $certificationTypes)) {
             $file = $request->file('ars_proof_file');
             $filename = time() . '_ars_' . $file->getClientOriginalName();
-            $arsProofPath = $file->storeAs('compliance-documents', $filename, 'public');
+            $arsProofPath = $file->storeAs('compliance-documents', $filename, 'local');
         }
 
         $createdRecords = [];
@@ -2966,6 +2842,30 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
             ->with('success', $message);
     }
 
+    public function complianceDocumentServe(\App\Models\ComplianceRecord $complianceRecord, string $field)
+    {
+        $tattooer = $this->artisan();
+        $user = auth()->user();
+
+        // Seul le propriétaire ou un admin peut consulter le document
+        if (!$user->hasRole('admin')) {
+            if ($complianceRecord->compliant_type !== get_class($tattooer) || $complianceRecord->compliant_id !== $tattooer->id) {
+                abort(403);
+            }
+        }
+
+        if (!in_array($field, ['certificate_file_path', 'ars_proof_file_path'])) {
+            abort(404);
+        }
+
+        $path = $complianceRecord->$field;
+        if (!$path || !Storage::disk('local')->exists($path)) {
+            abort(404);
+        }
+
+        return Storage::disk('local')->response($path);
+    }
+
     public function complianceDocumentDelete(\App\Models\ComplianceRecord $complianceRecord)
     {
         $tattooer = $this->artisan();
@@ -2977,10 +2877,10 @@ public function messageSend(Request $request, BookingRequest $bookingRequest)
 
         // Supprimer les fichiers physiques
         if ($complianceRecord->certificate_file_path) {
-            Storage::disk('public')->delete($complianceRecord->certificate_file_path);
+            Storage::disk('local')->delete($complianceRecord->certificate_file_path);
         }
         if ($complianceRecord->ars_proof_file_path) {
-            Storage::disk('public')->delete($complianceRecord->ars_proof_file_path);
+            Storage::disk('local')->delete($complianceRecord->ars_proof_file_path);
         }
 
         $complianceRecord->delete();

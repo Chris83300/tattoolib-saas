@@ -17,6 +17,8 @@
 
     <!-- CSRF Token for AJAX -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <!-- VAPID public key (notifications push) -->
+    <meta name="vapid-public-key" content="{{ config('webpush.vapid.public_key', env('VAPID_PUBLIC_KEY', '')) }}">
 </head>
 
 @php
@@ -366,7 +368,7 @@
 
     </div>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         function openMobileMoreMenu() {
             const el = document.getElementById('mobile-more-menu');
             if (el) el.classList.remove('hidden');

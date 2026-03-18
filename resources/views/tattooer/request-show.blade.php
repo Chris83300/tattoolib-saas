@@ -852,13 +852,6 @@
                     window.location.href = event.url;
                 });
 
-                // Écouter l'événement execute-script pour redirection directe
-                Livewire.on('execute-script', (event) => {
-                    if (event.script) {
-                        eval(event.script);
-                    }
-                });
-
                 // Écouter l'événement booking-accepted pour rafraîchir la page
                 Livewire.on('booking-accepted', () => {
                     // Rafraîchir la page pour afficher les nouvelles informations

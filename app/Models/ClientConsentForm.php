@@ -61,8 +61,16 @@ class ClientConsentForm extends Model implements HasMedia
     ];
 
     protected $casts = [
-        'client_birth_date' => 'date',
-        'id_document_expiry' => 'date',
+        'client_birth_date'          => 'date',
+        'id_document_expiry'         => 'date',
+        // Données personnelles sensibles chiffrées (RGPD)
+        'parent_name'                => 'encrypted',
+        'parent_id_number'           => 'encrypted',
+        'medical_allergies_detail'   => 'encrypted',
+        'medical_skin_disease_detail'=> 'encrypted',
+        'signature_data'             => 'encrypted',
+        'parent_signature_data'      => 'encrypted',
+        // Booléens
         'is_minor' => 'boolean',
         'medical_allergies' => 'boolean',
         'medical_anticoagulant' => 'boolean',

@@ -11,12 +11,20 @@ use App\Models\StudioArtist;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 class StatsOverview extends BaseWidget
 {
     protected static ?int $sort = 1;
 
     protected function getStats(): array
+    {
+        return Cache::remember('admin.widget.stats_overview', 300, function () {
+            return $this->buildStats();
+        });
+    }
+
+    private function buildStats(): array
     {
         $totalUsers = User::count();
         $usersThisMonth = User::whereMonth('created_at', Carbon::now()->month)->count();
@@ -91,3 +99,4 @@ class StatsOverview extends BaseWidget
         ];
     }
 }
+

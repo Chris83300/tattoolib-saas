@@ -17,6 +17,7 @@ class TransactionsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn ($query) => $query->with('client'))
             ->columns([
                 TextColumn::make('id')
                     ->label('ID')

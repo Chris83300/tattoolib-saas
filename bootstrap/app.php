@@ -37,6 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'custom.throttle' => \App\Http\Middleware\CustomThrottle::class,
             'pro' => \App\Http\Middleware\EnsureProPlan::class,
             'artisan.can.operate' => \App\Http\Middleware\EnsureArtisanCanOperate::class,
+            'artist.2fa' => \App\Http\Middleware\EnsureArtistHas2FA::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

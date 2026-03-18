@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
@@ -38,6 +39,20 @@ class ProfileController extends Controller
         $user->addMediaFromRequest('avatar')->toMediaCollection('avatar');
 
         return redirect()->route('client.settings')->with('success', 'Photo de profil mise à jour !');
+    }
+
+    /**
+     * Export RGPD — droit à la portabilité (Art. 20 RGPD)
+     */
+    public function exportGdpr(Request $request)
+    {
+        $user = $request->user();
+        $path = app(\App\Services\GdprExportService::class)->exportUserData($user);
+
+        return Storage::disk('local')->download(
+            $path,
+            'mes-donnees-inkpik-' . now()->format('Y-m-d') . '.json'
+        );
     }
 
     /**

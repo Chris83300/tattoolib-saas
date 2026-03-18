@@ -9,6 +9,7 @@ use App\Models\Complaint;
 use Laravel\Cashier\Subscription as CashierSubscription;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
 
@@ -19,6 +20,11 @@ class RevenueStatsWidget extends BaseWidget
 
     protected function getStats(): array
     {
+        return Cache::remember('admin.widget.revenue_stats', 300, fn () => $this->buildStats());
+    }
+
+    private function buildStats(): array
+    {
         // Période actuelle (30 derniers jours)
         $startDate = Carbon::now()->subDays(30);
         $endDate = Carbon::now();
@@ -28,34 +34,35 @@ class RevenueStatsWidget extends BaseWidget
             ->where('status', 'completed')
             ->sum('amount');
 
-        // Calcul des commissions sur les transactions (7% sur plans starter)
+        // Calcul des commissions : pré-charger les abonnements actifs (évite N+1)
         $commissionAmount = 0;
         $payments = Payment::whereBetween('created_at', [$startDate, $endDate])
             ->where('status', 'completed')
             ->with(['bookingRequest.user'])
             ->get();
 
+        // Collecter tous les user_ids concernés puis charger les subscriptions en une requête
+        $userIds = $payments
+            ->filter(fn ($p) => $p->bookingRequest && $p->bookingRequest->user)
+            ->map(fn ($p) => $p->bookingRequest->user->id)
+            ->unique()
+            ->values();
+
+        $starterUserIds = CashierSubscription::whereIn('user_id', $userIds)
+            ->where('stripe_status', 'active')
+            ->where(function ($q) {
+                $q->where('stripe_price', 'like', '%1T7E4D%')
+                  ->orWhere('stripe_price', 'like', '%starter%');
+            })
+            ->pluck('user_id')
+            ->flip(); // user_id => index (pour lookup O(1))
+
         foreach ($payments as $payment) {
-            $isStarterCommission = false;
-
             if ($payment->bookingRequest && $payment->bookingRequest->user) {
-                $user = $payment->bookingRequest->user;
-
-                $activeSubscription = CashierSubscription::where('user_id', $user->id)
-                    ->where('stripe_status', 'active')
-                    ->first();
-
-                if ($activeSubscription) {
-                    $price = $activeSubscription->stripe_price ?? '';
-
-                    if (str_contains($price, '1T7E4D') || str_contains($price, 'starter')) {
-                        $isStarterCommission = true;
-                    }
+                $userId = $payment->bookingRequest->user->id;
+                if (isset($starterUserIds[$userId])) {
+                    $commissionAmount += $payment->amount * 0.07;
                 }
-            }
-
-            if ($isStarterCommission) {
-                $commissionAmount += $payment->amount * 0.07;
             }
         }
 

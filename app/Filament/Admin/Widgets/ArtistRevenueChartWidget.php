@@ -81,38 +81,8 @@ class ArtistRevenueChartWidget extends ChartWidget
             }
         }
 
-        // Debug: Afficher les informations si tout est à 0
-        if (array_sum($revenueByType) == 0) {
-            // Compter les paiements pour debug
-            $paymentCount = Payment::whereBetween('created_at', [$startDate, $endDate])
-                ->where('status', 'completed')
-                ->count();
-
-            // Si on a des paiements mais aucun revenu classé, utiliser une répartition par défaut
-            if ($paymentCount > 0) {
-                $totalRevenue = Payment::whereBetween('created_at', [$startDate, $endDate])
-                    ->where('status', 'completed')
-                    ->sum('amount');
-
-                // Répartition basée sur les types d'utilisateurs actifs
-                $tattooerCount = \App\Models\Tattooer::count();
-                $piercerCount = \App\Models\Piercer::count();
-                $studioCount = \App\Models\Studio::count();
-                $totalArtists = $tattooerCount + $piercerCount + $studioCount;
-
-                if ($totalArtists > 0) {
-                    $revenueByType['Tatoueurs'] = $totalRevenue * ($tattooerCount / $totalArtists);
-                    $revenueByType['Piercers'] = $totalRevenue * ($piercerCount / $totalArtists);
-                    $revenueByType['Studios'] = $totalRevenue * ($studioCount / $totalArtists);
-                    $revenueByType['Autres'] = 0;
-                } else {
-                    $revenueByType['Tatoueurs'] = $totalRevenue * 0.6;
-                    $revenueByType['Piercers'] = $totalRevenue * 0.2;
-                    $revenueByType['Studios'] = $totalRevenue * 0.15;
-                    $revenueByType['Autres'] = $totalRevenue * 0.05;
-                }
-            }
-        }
+        // Arrondir les montants réels à 2 décimales
+        $revenueByType = array_map(fn ($v) => round($v, 2), $revenueByType);
 
         return [
             'datasets' => [

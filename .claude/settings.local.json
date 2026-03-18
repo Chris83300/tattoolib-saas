@@ -48,7 +48,14 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://tattoolib-saas.test/admin/conversations/11 2>&1)",
       "Bash(curl -s -L -c /tmp/cookies.txt -b /tmp/cookies.txt -o /tmp/resp.html -w \"%{http_code}\" http://tattoolib-saas.test/admin/conversations/11)",
       "Read(//tmp/**)",
-      "Bash(sed -i \"s/navigationGroup = 'Moderation'/navigationGroup = 'Modération'/g\" \\\\\n  /c/laragon/www/tattoolib-saas/app/Filament/Admin/Resources/Tattooers/TattooerResource.php \\\\\n  /c/laragon/www/tattoolib-saas/app/Filament/Admin/Resources/Pierceurs/PierceurResource.php \\\\\n  /c/laragon/www/tattoolib-saas/app/Filament/Admin/Resources/Studios/StudioResource.php \\\\\n  /c/laragon/www/tattoolib-saas/app/Filament/Admin/Resources/StudioArtists/StudioArtistResource.php\n\nsed -i \"s/navigationGroup = 'Activite'/navigationGroup = 'Réservations'/g\" \\\\\n  /c/laragon/www/tattoolib-saas/app/Filament/Admin/Resources/Appointments/AppointmentResource.php\n\nsed -i \"s/navigationGroup = 'Qualite'/navigationGroup = 'Qualité'/g\" \\\\\n  /c/laragon/www/tattoolib-saas/app/Filament/Admin/Resources/ComplianceRecords/ComplianceRecordResource.php\n\nsed -i \"s/navigationGroup = 'Gestion'/navigationGroup = 'Finances'/g\" \\\\\n  /c/laragon/www/tattoolib-saas/app/Filament/Admin/Resources/Subscriptions/SubscriptionResource.php\n\necho \"Done\")"
+      "Bash(sed -i \"s/navigationGroup = 'Moderation'/navigationGroup = 'Modération'/g\" \\\\\n  /c/laragon/www/tattoolib-saas/app/Filament/Admin/Resources/Tattooers/TattooerResource.php \\\\\n  /c/laragon/www/tattoolib-saas/app/Filament/Admin/Resources/Pierceurs/PierceurResource.php \\\\\n  /c/laragon/www/tattoolib-saas/app/Filament/Admin/Resources/Studios/StudioResource.php \\\\\n  /c/laragon/www/tattoolib-saas/app/Filament/Admin/Resources/StudioArtists/StudioArtistResource.php\n\nsed -i \"s/navigationGroup = 'Activite'/navigationGroup = 'Réservations'/g\" \\\\\n  /c/laragon/www/tattoolib-saas/app/Filament/Admin/Resources/Appointments/AppointmentResource.php\n\nsed -i \"s/navigationGroup = 'Qualite'/navigationGroup = 'Qualité'/g\" \\\\\n  /c/laragon/www/tattoolib-saas/app/Filament/Admin/Resources/ComplianceRecords/ComplianceRecordResource.php\n\nsed -i \"s/navigationGroup = 'Gestion'/navigationGroup = 'Finances'/g\" \\\\\n  /c/laragon/www/tattoolib-saas/app/Filament/Admin/Resources/Subscriptions/SubscriptionResource.php\n\necho \"Done\")",
+      "Bash(composer audit:*)",
+      "Bash(npm audit:*)",
+      "Bash(for f:*)",
+      "Bash(wc:*)",
+      "Bash(composer dump-autoload:*)",
+      "Bash(/c/laragon/bin/composer/composer.bat dump-autoload:*)",
+      "Bash(head -20 grep -n \"exportGdpr\\\\|settings\\\\|Settings\\\\b\" app/Http/Controllers/ClientController.php)"
     ]
   }
 }

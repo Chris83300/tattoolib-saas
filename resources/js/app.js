@@ -2,7 +2,8 @@ import './bootstrap';
 import './unread-messages';
 import { registerSW } from 'virtual:pwa-register';
 
-const VAPID_KEY = 'BHJrySPatoJLDgi11i6Lcd4JJxtv2ZWFb1Gqd3KqWZcukSzkZNm1S46BoYwWsktrbFQ0Ktw6cRcnSbIqXknY5EY';
+// Clé VAPID publique — lue depuis la meta tag injectée par le layout (config/env)
+const VAPID_KEY = document.querySelector('meta[name="vapid-public-key"]')?.content || '';
 
 // Enregistrement du Service Worker
 if ('serviceWorker' in navigator) {
@@ -40,7 +41,7 @@ async function getFCMToken() {
     const serviceWorkerRegistration = await navigator.serviceWorker.ready;
     const token = await serviceWorkerRegistration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: 'VOTRE_CLE_PUBLIQUE_VAPID'
+        applicationServerKey: VAPID_KEY
     });
 
     // Envoyer le token à votre serveur

@@ -117,6 +117,9 @@ Route::middleware('auth:sanctum')->prefix('tattooers/{tattooer}')->group(functio
 
 // ===== PIERCERS (Protected routes) — TODO Phase 5 : sera réécrit
 
+// ===== ROUTES PROTÉGÉES (auth:sanctum) — booking, appointments, planning, etc. =====
+Route::middleware('auth:sanctum')->group(function () {
+
     // ===== BOOKING REQUESTS =====
     Route::prefix('booking-requests')->group(function () {
         Route::get('/', [BookingRequestController::class, 'index']);
@@ -137,8 +140,8 @@ Route::middleware('auth:sanctum')->prefix('tattooers/{tattooer}')->group(functio
         Route::post('/{bookingRequest}/confirm-appointment', [BookingRequestController::class, 'confirmAppointment']);
         Route::post('/{bookingRequest}/cancel', [BookingRequestController::class, 'cancel']);
 
-        // Webhook Stripe (à protéger différemment en production)
-        Route::post('/{bookingRequest}/mark-deposit-paid', [BookingRequestController::class, 'markDepositPaid']);
+        // ❌ SUPPRIMÉ — mark-deposit-paid ne doit jamais être exposé en route publique
+        // Cette action est déclenchée uniquement par le webhook Stripe (checkout.session.completed)
     });
 
     // ===== COMPATIBILITY ROUTES (Legacy /api/bookings) =====
@@ -260,3 +263,5 @@ Route::middleware('auth:sanctum')->prefix('tattooers/{tattooer}')->group(functio
         // Statistiques
         Route::get('/statistics', [TraceabilityController::class, 'statistics']);
     });
+
+}); // fin Route::middleware('auth:sanctum') — booking, appointments, planning, etc.

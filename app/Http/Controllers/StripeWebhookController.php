@@ -21,6 +21,13 @@ use Stripe\Stripe;
 
 class StripeWebhookController extends Controller
 {
+    protected \Stripe\StripeClient $stripe;
+
+    public function __construct()
+    {
+        $this->stripe = new \Stripe\StripeClient(config('cashier.secret'));
+    }
+
     /**
      * Gérer les webhooks Stripe
      *
@@ -321,7 +328,7 @@ class StripeWebhookController extends Controller
         $subscriptionId = $invoice->subscription ?? null;
         if ($subscriptionId) {
             try {
-                $stripe = new \Stripe\StripeClient(config('cashier.secret'));
+                $stripe = $this->stripe;
                 $subscription = $stripe->subscriptions->retrieve($subscriptionId);
                 $this->syncArtistSubscription($subscription);
             } catch (\Exception $e) {

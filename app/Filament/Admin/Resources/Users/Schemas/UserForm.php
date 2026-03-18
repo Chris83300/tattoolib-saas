@@ -58,7 +58,7 @@ class UserForm
                                 'client' => 'Client',
                             ])
                             ->required()
-                            ->reactive()
+                            ->live()
                             ->afterStateUpdated(function ($state, callable $set) {
                                 if ($state === 'admin') {
                                     $set('is_active', true);

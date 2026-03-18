@@ -61,7 +61,7 @@ class ComplianceRecordForm
                         Toggle::make('verified_by_admin')
                             ->label('Document vérifié')
                             ->helperText('Cocher si le document a été validé par l\'admin')
-                            ->reactive(),
+                            ->live(),
                         
                         DateTimePicker::make('verified_at')
                             ->label('Date de vérification')

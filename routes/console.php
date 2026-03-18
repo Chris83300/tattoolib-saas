@@ -25,3 +25,6 @@ Schedule::command('studios:send-trial-reminders')->dailyAt('09:00');
 
 // Bloquer les artistes dont le trial 14j est expiré (tous les jours à 02:00)
 Schedule::command('inkpik:block-expired-trials')->dailyAt('02:00');
+
+// Purge RGPD : anonymiser comptes inactifs +3 ans, nettoyer tokens FCM, sessions (1x/mois)
+Schedule::command('gdpr:purge-inactive')->monthly();

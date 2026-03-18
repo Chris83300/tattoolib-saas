@@ -18,6 +18,8 @@
 
     <!-- CSRF Token for AJAX -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <!-- VAPID public key (notifications push) -->
+    <meta name="vapid-public-key" content="{{ config('webpush.vapid.public_key', env('VAPID_PUBLIC_KEY', '')) }}">
 </head>
 
 <body class="bg-noir-profond">
@@ -242,7 +244,7 @@ try {
         </div>
     </div>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         (function() {
             var currentRating = 0;
 

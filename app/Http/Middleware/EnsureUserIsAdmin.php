@@ -54,10 +54,10 @@ class EnsureUserIsAdmin
                 return redirect('/')->with('info', 'Configurez votre profil artiste.');
             }
 
-            if ($user->role === 'Piercer') {
-                $Piercer = $user->Piercer;
-                if ($Piercer) {
-                    return redirect()->route('Piercer.dashboard')
+            if ($user->role === 'pierceur') {
+                $piercer = $user->piercer;
+                if ($piercer) {
+                    return redirect()->route('pierceur.dashboard')
                         ->with('success', 'Bienvenue sur votre espace artiste ! 💉');
                 }
                 return redirect('/')->with('info', 'Configurez votre profil artiste.');
@@ -70,6 +70,16 @@ class EnsureUserIsAdmin
 
             // Fallback
             return redirect('/');
+        }
+
+        // 2FA obligatoire pour les admins
+        $adminUser = Auth::user();
+        if ($adminUser->isAdmin() && empty($adminUser->two_factor_confirmed_at)) {
+            if ($request->expectsJson() || $request->is('livewire/*')) {
+                abort(403, 'Authentification à deux facteurs requise pour les administrateurs');
+            }
+            return redirect()->route('profile.show')
+                ->with('warning', 'Vous devez activer l\'authentification à deux facteurs pour accéder au panneau d\'administration.');
         }
 
         return $next($request);
