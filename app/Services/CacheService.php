@@ -126,6 +126,8 @@ class CacheService
             // - 0 = non PRO
             $proTier = $isDirectPaidPro ? 2 : ($studioHasActiveSubscription ? 1 : 0);
 
+            $sortRank = \App\Helpers\ArtistSortHelper::calculateRank($artist);
+
             return [
                 'id' => $artist->id,
                 'type' => $isPiercer ? 'piercer' : 'tattooer',
@@ -138,6 +140,7 @@ class CacheService
                 'pro_tier' => $proTier,
                 'is_starter' => $isStarter,
                 'is_on_trial' => $isOnTrial,
+                'sort_rank' => $sortRank,
                 'styles' => $isPiercer ? ($artist->piercing_types ?? []) : ($artist->styles ?? []),
                 'city' => $artist->city,
                 'avatar_url' => $this->getAvatarUrl($artist),
@@ -219,25 +222,21 @@ class CacheService
                 $results = $results->concat($query->get()->map(fn($p) => $this->getArtistProfile($p)));
             }
 
-            // PRO en premier, puis par note décroissante
-            return $results
-                ->sort(function ($a, $b) {
-                    $rankA = ($a['is_pro'] ?? false) ? 3 : (($a['is_starter'] ?? false) ? 2 : 1);
-                    $rankB = ($b['is_pro'] ?? false) ? 3 : (($b['is_starter'] ?? false) ? 2 : 1);
-                    if ($rankA !== $rankB) {
-                        return $rankB <=> $rankA;
-                    }
+            // PRO en premier avec rotation hebdomadaire par tier
+            $weeklySeed = (int) now()->startOfWeek()->timestamp;
+            $grouped = $results->groupBy('sort_rank');
 
-                    $tierA = (int) ($a['pro_tier'] ?? 0);
-                    $tierB = (int) ($b['pro_tier'] ?? 0);
-                    if ($tierA !== $tierB) {
-                        return $tierB <=> $tierA;
-                    }
+            $sorted = collect();
+            foreach ($grouped->keys()->sort()->reverse() as $rank) {
+                $group = $grouped->get($rank)->values()->all();
+                mt_srand($weeklySeed + count($group));
+                shuffle($group);
+                foreach ($group as $item) {
+                    $sorted->push($item);
+                }
+            }
 
-                    return ($b['average_rating'] ?? 0) <=> ($a['average_rating'] ?? 0);
-                })
-                ->values()
-                ->toArray();
+            return $sorted->values()->toArray();
         });
     }
 
