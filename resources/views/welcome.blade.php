@@ -347,12 +347,19 @@
                         openingHoursElement.textContent = '';
                     }
 
-                    // Badges (PRO, vérifié, top notes)
+                    // Badges (PRO, vérifié, top notes, conforme)
                     const badgesContainer = card.querySelector('.absolute.top-2.left-2');
+                    const badgeClassMap = {
+                        'compliance': 'bg-vert-succes/20 text-vert-succes',
+                        'verified':   'bg-beige-peau/20 text-beige-peau',
+                        'top_rated':  'bg-beige-peau/20 text-beige-peau',
+                        'pro':        'bg-beige-peau text-noir-profond',
+                        'studio':     'bg-beige-peau/70 text-noir-profond',
+                    };
                     artist.badges.forEach(badge => {
                         const badgeElement = document.createElement('div');
-                        badgeElement.className =
-                            `bg-${badge.color}/10 text-${badge.color} px-2 py-1 rounded text-xs font-semibold`;
+                        const colorClass = badgeClassMap[badge.type] || 'bg-titane/20 text-ivoire-text/80';
+                        badgeElement.className = `${colorClass} px-2 py-1 rounded text-xs font-semibold`;
                         badgeElement.textContent = badge.label;
                         badgesContainer.appendChild(badgeElement);
                     });

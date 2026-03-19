@@ -483,7 +483,8 @@
                                 <div class="absolute top-2 left-2 flex flex-col gap-1 z-10">
                                     ${(artist.sort_rank || 0) >= 100 ? '<span class="px-2 py-0.5 text-[10px] font-bold bg-beige-peau text-noir-profond rounded-full">PRO</span>' : ''}
                                     ${(artist.sort_rank || 0) >= 90 && (artist.sort_rank || 0) < 100 ? '<span class="px-2 py-0.5 text-[10px] font-bold bg-beige-peau/70 text-noir-profond rounded-full">Studio</span>' : ''}
-                                    ${artist.is_verified ? '<span class="px-2 py-0.5 text-[10px] font-bold bg-vert-succes/20 text-vert-succes rounded-full">Vérifié</span>' : ''}
+                                    ${artist.has_compliance_badge ? '<span class="px-2 py-0.5 text-[10px] font-bold bg-vert-succes/20 text-vert-succes rounded-full">✓ Conforme</span>' : ''}
+                                    ${artist.is_verified ? '<span class="px-2 py-0.5 text-[10px] font-bold bg-beige-peau/20 text-beige-peau rounded-full">Vérifié</span>' : ''}
                                 </div>
 
                                 <!-- Image de bannière -->

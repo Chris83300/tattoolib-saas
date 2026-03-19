@@ -157,6 +157,7 @@ class CacheService
                 // Garder ce champ pour compat UI existante: "abonné" = PRO/studio
                 'is_subscribed' => $isPro,
                 'siret_verified' => $artist->siret_verified ?? false,
+                'has_compliance_badge' => (bool) ($artist->has_compliance_badge ?? false),
                 'status' => $artist->user?->status ?? 'active',
                 'experience_years' => $artist->years_of_experience ?? 0,
                 'min_price' => $artist->minimum_price ?? 0,
