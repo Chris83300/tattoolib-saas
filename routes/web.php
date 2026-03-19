@@ -592,6 +592,11 @@ Route::middleware(['auth', \App\Http\Middleware\EnsureUserIsAdmin::class])->pref
     })->name('show');
 });
 
+// Routes admin documents de conformité
+Route::middleware(['auth', \App\Http\Middleware\EnsureUserIsAdmin::class])->prefix('admin/compliance')->name('admin.compliance.')->group(function () {
+    Route::get('/documents/{complianceRecord}/view/{field}', [App\Http\Controllers\Tattooer\TattooerComplianceController::class, 'complianceDocumentServe'])->name('documents.serve');
+});
+
 // Routes consentement client
 Route::middleware(['auth'])->prefix('consent')->name('consent.')->group(function () {
     Route::post('/{bookingRequest}', [ClientSocialController::class, 'storeConsent'])->name('store');

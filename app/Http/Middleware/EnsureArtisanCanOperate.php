@@ -78,7 +78,10 @@ class EnsureArtisanCanOperate
 
         // Récupérer l'artisan (tattooer ou pierceur)
         $artisan = null;
-        if ($user->isTattooer()) {
+        if ($user->isAdmin()) {
+            // Les admins n'ont pas d'artisan mais peuvent accéder aux routes
+            return $next($request);
+        } elseif ($user->isTattooer()) {
             $artisan = $user->tattooer;
         } elseif ($user->isPiercer()) {
             $artisan = $user->piercer;

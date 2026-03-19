@@ -38,18 +38,12 @@
     {{-- Badges --}}
     <div class="absolute top-2 left-2 space-y-1 z-10">
         @if ($isMarketplace)
-            @php $sortRank = $artist['sort_rank'] ?? 0; @endphp
-            @if ($sortRank >= 100)
-                <span class="px-2 py-0.5 text-[10px] font-bold bg-beige-peau text-noir-profond rounded-full block">PRO</span>
-            @elseif ($sortRank >= 90)
-                <span class="px-2 py-0.5 text-[10px] font-bold bg-beige-peau/70 text-noir-profond rounded-full block">Studio</span>
-            @endif
             @if (!empty($artist['has_compliance_badge']))
-                <span class="px-2 py-0.5 text-[10px] font-bold bg-vert-succes/20 text-vert-succes rounded-full block">✓ Conforme</span>
+                <span class="px-2 py-0.5 text-sm font-bold bg-vert-succes/20 text-vert-succes rounded-full block">✓ Conforme hygiène</span>
             @endif
         @endif
         @if ($isMarketplace && isset($artist['siret_verified']) && $artist['siret_verified'])
-            <span class="badge-verified">Vérifié</span>
+
         @elseif (!$isMarketplace && $studioArtist->is_active)
             <span class="bg-vert-succes/20 text-vert-succes text-xs px-2 py-1 rounded-full font-semibold">Actif</span>
         @elseif (!$isMarketplace && !$studioArtist->is_active)

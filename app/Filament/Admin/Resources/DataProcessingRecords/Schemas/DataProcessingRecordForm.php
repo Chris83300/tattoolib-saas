@@ -2,7 +2,7 @@
 
 namespace App\Filament\Admin\Resources\DataProcessingRecords\Schemas;
 
-use Filament\Forms\Components\Section;
+use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;

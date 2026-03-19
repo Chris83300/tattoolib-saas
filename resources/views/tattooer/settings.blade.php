@@ -37,38 +37,38 @@
         </div>
 
         <!-- Tabs -->
-        <div class="bg-gris-fonde rounded-xl p-2 -mx-4 px-4 md:mx-0 md:px-2">
+        <div class="bg-gris-fonde text-beige-peau rounded-xl p-2 -mx-4 px-4 md:mx-0 md:px-2">
             <div class="flex gap-2 overflow-x-auto pb-2 md:pb-0 hide-scrollbar snap-x snap-mandatory">
-                <button onclick="switchTab('profile')"
+                <button data-action="switch-tab" data-tab="profile"
                     class="tab-btn min-h-11 px-4 py-2.5 md:py-2 rounded-lg font-semibold whitespace-nowrap snap-start flex-shrink-0 text-sm md:text-base"
                     data-tab="profile">
                     👤 Profil
                 </button>
-                <button onclick="switchTab('schedule')"
+                <button data-action="switch-tab" data-tab="schedule"
                     class="tab-btn min-h-11 px-4 py-2.5 md:py-2 rounded-lg font-semibold whitespace-nowrap snap-start flex-shrink-0 text-sm md:text-base"
                     data-tab="schedule">
                     🕐 Horaires
                 </button>
-                <button onclick="switchTab('stripe')"
+                <button data-action="switch-tab" data-tab="stripe"
                     class="tab-btn min-h-11 px-4 py-2.5 md:py-2 rounded-lg font-semibold whitespace-nowrap snap-start flex-shrink-0 text-sm md:text-base"
                     data-tab="stripe">
                     💳 Stripe
                 </button>
                 @if ($tattooer->isPro())
-                    <button onclick="switchTab('aftercare')"
+                    <button data-action="switch-tab" data-tab="aftercare"
                         class="tab-btn min-h-11 px-4 py-2.5 md:py-2 rounded-lg font-semibold whitespace-nowrap snap-start flex-shrink-0 text-sm md:text-base"
                         data-tab="aftercare">
                         🩹 Soins
                     </button>
                 @endif
                 @if ($tattooer->isPiercer())
-                    <button onclick="switchTab('pricing')"
+                    <button data-action="switch-tab" data-tab="pricing"
                         class="tab-btn min-h-11 px-4 py-2.5 md:py-2 rounded-lg font-semibold whitespace-nowrap snap-start flex-shrink-0 text-sm md:text-base"
                         data-tab="pricing">
                         💰 Tarifs
                     </button>
                 @endif
-                <button onclick="switchTab('password')"
+                <button data-action="switch-tab" data-tab="password"
                     class="tab-btn min-h-11 px-4 py-2.5 md:py-2 rounded-lg font-semibold whitespace-nowrap snap-start flex-shrink-0 text-sm md:text-base"
                     data-tab="password">
                     🔒 Sécurité
@@ -78,7 +78,8 @@
 
         <!-- TAB: Profil -->
         <div id="tab-profile" class="tab-content">
-            <form action="{{ route($tattooer->routePrefix() . '.settings.update') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route($tattooer->routePrefix() . '.settings.update') }}" method="POST"
+                enctype="multipart/form-data">
                 @csrf
 
                 <div class="bg-gris-fonde rounded-xl p-4 md:p-6 space-y-6">
@@ -235,106 +236,106 @@
                     </div>
 
                     @if (!$tattooer->isPiercer())
-                    <!-- Styles pratiqués (tatoueur uniquement) -->
-                    <div>
-                        <label class="block font-semibold text-ivoire-text mb-2">Styles pratiqués</label>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            @php
-                                $allStyles = [
-                                    'Réalisme',
-                                    'Japonais',
-                                    'Traditionnel',
-                                    'Neo-traditionnel',
-                                    'Tribal',
-                                    'Dotwork',
-                                    'Géométrique',
-                                    'Aquarelle',
-                                    'Blackwork',
-                                    'Lettrage',
-                                    'Minimaliste',
-                                    'Ornementale',
-                                ];
-                                $currentStyles = is_array($tattooer->styles)
-                                    ? $tattooer->styles
-                                    : json_decode($tattooer->styles ?? '[]', true) ?? [];
-                                $currentCustomStyles = is_array($tattooer->custom_styles)
-                                    ? $tattooer->custom_styles
-                                    : json_decode($tattooer->custom_styles ?? '[]', true) ?? [];
-                            @endphp
+                        <!-- Styles pratiqués (tatoueur uniquement) -->
+                        <div>
+                            <label class="block font-semibold text-ivoire-text mb-2">Styles pratiqués</label>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                @php
+                                    $allStyles = [
+                                        'Réalisme',
+                                        'Japonais',
+                                        'Traditionnel',
+                                        'Neo-traditionnel',
+                                        'Tribal',
+                                        'Dotwork',
+                                        'Géométrique',
+                                        'Aquarelle',
+                                        'Blackwork',
+                                        'Lettrage',
+                                        'Minimaliste',
+                                        'Ornementale',
+                                    ];
+                                    $currentStyles = is_array($tattooer->styles)
+                                        ? $tattooer->styles
+                                        : json_decode($tattooer->styles ?? '[]', true) ?? [];
+                                    $currentCustomStyles = is_array($tattooer->custom_styles)
+                                        ? $tattooer->custom_styles
+                                        : json_decode($tattooer->custom_styles ?? '[]', true) ?? [];
+                                @endphp
 
-                            @foreach ($allStyles as $style)
-                                <label
-                                    class="flex items-center gap-2 p-3 bg-noir-profond rounded-lg cursor-pointer hover:bg-noir-profond/80 transition-colors active:scale-95">
-                                    <input type="checkbox" name="styles[]" value="{{ $style }}"
-                                        {{ in_array($style, $currentStyles) ? 'checked' : '' }}
-                                        class="w-4 h-4 text-beige-peau focus:ring-beige-peau">
-                                    <span class="text-ivoire-text text-sm">{{ $style }}</span>
-                                </label>
-                            @endforeach
-                        </div>
+                                @foreach ($allStyles as $style)
+                                    <label
+                                        class="flex items-center gap-2 p-3 bg-noir-profond rounded-lg cursor-pointer hover:bg-noir-profond/80 transition-colors active:scale-95">
+                                        <input type="checkbox" name="styles[]" value="{{ $style }}"
+                                            {{ in_array($style, $currentStyles) ? 'checked' : '' }}
+                                            class="w-4 h-4 text-beige-peau focus:ring-beige-peau">
+                                        <span class="text-ivoire-text text-sm">{{ $style }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
 
-                        <!-- Styles personnalisés -->
-                        <div class="mt-4" x-data="{
-                            showCustom: {{ in_array('Autres', $currentStyles) ? 'true' : 'false' }},
-                            customStyles: {{ json_encode(
-                                array_values(
-                                    array_unique(
-                                        array_filter(
-                                            array_merge(
-                                                array_filter($currentStyles, fn($s) => !in_array($s, $allStyles) && $s !== 'Autres'),
-                                                $currentCustomStyles ?? [],
+                            <!-- Styles personnalisés -->
+                            <div class="mt-4" x-data="{
+                                showCustom: {{ in_array('Autres', $currentStyles) ? 'true' : 'false' }},
+                                customStyles: {{ json_encode(
+                                    array_values(
+                                        array_unique(
+                                            array_filter(
+                                                array_merge(
+                                                    array_filter($currentStyles, fn($s) => !in_array($s, $allStyles) && $s !== 'Autres'),
+                                                    $currentCustomStyles ?? [],
+                                                ),
                                             ),
                                         ),
                                     ),
-                                ),
-                            ) }},
-                            addStyle() {
-                                this.customStyles.push('');
-                                this.$nextTick(() => {
-                                    const inputs = this.$refs.list.querySelectorAll('input[type=text]');
-                                    inputs[inputs.length - 1].focus();
-                                });
-                            },
-                            removeStyle(index) {
-                                this.customStyles.splice(index, 1);
-                            }
-                        }">
-                            <div class="flex items-center gap-2 mb-3">
-                                <input type="checkbox" name="has_custom_styles" value="1" x-model="showCustom"
-                                    class="w-4 h-4 text-beige-peau focus:ring-beige-peau">
-                                <span class="text-ivoire-text text-sm font-semibold">Autres styles</span>
-                            </div>
-
-                            <div x-show="showCustom" x-collapse>
-                                <div x-ref="list" class="space-y-2">
-                                    <template x-for="(style, index) in customStyles" :key="index">
-                                        <div class="flex items-center gap-2">
-                                            <input type="text" x-model="customStyles[index]"
-                                                name="custom_style_names[]" placeholder="Ex: Chicano, Géométrique..."
-                                                class="flex-1 px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm">
-                                            <button type="button" @click="removeStyle(index)"
-                                                class="p-2 text-rouge-alerte hover:bg-rouge-alerte/10 rounded-lg transition-colors">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M6 18L18 6M6 6l12 12" />
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </template>
+                                ) }},
+                                addStyle() {
+                                    this.customStyles.push('');
+                                    this.$nextTick(() => {
+                                        const inputs = this.$refs.list.querySelectorAll('input[type=text]');
+                                        inputs[inputs.length - 1].focus();
+                                    });
+                                },
+                                removeStyle(index) {
+                                    this.customStyles.splice(index, 1);
+                                }
+                            }">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <input type="checkbox" name="has_custom_styles" value="1" x-model="showCustom"
+                                        class="w-4 h-4 text-beige-peau focus:ring-beige-peau">
+                                    <span class="text-ivoire-text text-sm font-semibold">Autres styles</span>
                                 </div>
 
-                                <button type="button" @click="addStyle()"
-                                    class="mt-2 inline-flex items-center gap-1.5 px-3 py-2 text-beige-peau border border-beige-peau/30 rounded-lg hover:bg-beige-peau/10 transition-colors text-sm font-medium">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 4v16m8-8H4" />
-                                    </svg>
-                                    Ajouter un style
-                                </button>
+                                <div x-show="showCustom" x-collapse>
+                                    <div x-ref="list" class="space-y-2">
+                                        <template x-for="(style, index) in customStyles" :key="index">
+                                            <div class="flex items-center gap-2">
+                                                <input type="text" x-model="customStyles[index]"
+                                                    name="custom_style_names[]" placeholder="Ex: Chicano, Géométrique..."
+                                                    class="flex-1 px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm">
+                                                <button type="button" @click="removeStyle(index)"
+                                                    class="p-2 text-rouge-alerte hover:bg-rouge-alerte/10 rounded-lg transition-colors">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </template>
+                                    </div>
+
+                                    <button type="button" @click="addStyle()"
+                                        class="mt-2 inline-flex items-center gap-1.5 px-3 py-2 text-beige-peau border border-beige-peau/30 rounded-lg hover:bg-beige-peau/10 transition-colors text-sm font-medium">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 4v16m8-8H4" />
+                                        </svg>
+                                        Ajouter un style
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
                     @endif
                 </div>
 
@@ -530,13 +531,14 @@
             <h3 class="text-xl font-bold text-ivoire-text mb-4">Configuration Stripe Connect</h3>
 
             @if (auth()->user()->is_beta_tester)
-            <div class="flex items-center gap-2 px-3 py-2 bg-beige-peau/10 border border-beige-peau/30 rounded-lg mb-4">
-                <span class="text-beige-peau text-lg">🏆</span>
-                <div>
-                    <p class="text-sm font-semibold text-beige-peau">Bêta-testeur</p>
-                    <p class="text-xs text-titane">-30% à vie sur votre abonnement, merci pour votre confiance !</p>
+                <div
+                    class="flex items-center gap-2 px-3 py-2 bg-beige-peau/10 border border-beige-peau/30 rounded-lg mb-4">
+                    <span class="text-beige-peau text-lg">🏆</span>
+                    <div>
+                        <p class="text-sm font-semibold text-beige-peau">Bêta-testeur</p>
+                        <p class="text-xs text-titane">-30% à vie sur votre abonnement, merci pour votre confiance !</p>
+                    </div>
                 </div>
-            </div>
             @endif
 
             @if ($tattooer->isStudioArtist() && !$tattooer->needsOwnStripeConnect())
@@ -646,7 +648,8 @@
         <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
             <h3 class="text-xl font-bold text-ivoire-text mb-4">Changer mon mot de passe</h3>
 
-            <form action="{{ route($tattooer->routePrefix() . '.settings.update-password') }}" method="POST" class="max-w-md">
+            <form action="{{ route($tattooer->routePrefix() . '.settings.update-password') }}" method="POST"
+                class="max-w-md">
                 @csrf
 
                 <div class="space-y-4">
@@ -697,7 +700,8 @@
                     @endif
                 </h3>
 
-                <form action="{{ route($tattooer->routePrefix() . '.settings.aftercare') }}" method="POST" class="space-y-6">
+                <form action="{{ route($tattooer->routePrefix() . '.settings.aftercare') }}" method="POST"
+                    class="space-y-6">
                     @csrf
 
                     <!-- Fiche de soins -->
@@ -707,8 +711,7 @@
                         </label>
                         <textarea name="aftercare_sheet" rows="8"
                             class="w-full px-4 py-3 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text focus:border-beige-peau focus:ring-1 focus:ring-beige-peau text-sm sm:text-base"
-                            @if ($tattooer->isPiercer())
-                            placeholder="- Nettoyer 2x/jour avec du sérum physiologique
+                            @if ($tattooer->isPiercer()) placeholder="- Nettoyer 2x/jour avec du sérum physiologique
                                 - Éviter la piscine et les bains pendant 4 semaines
                                 - Ne pas appliquer d'alcool ou d'eau oxygénée
                                 - Contacter votre pierceur en cas de rougeur ou gonflement anormal"
@@ -717,9 +720,7 @@
                                 - Appliquer la crème cicatrisante 2x/jour pendant 15 jours
                                 - Éviter le soleil direct pendant 1 mois
                                 - Ne pas tremper (piscine, bain) pendant 2 semaines
-                                - Contacter votre tattooer en cas de rougeur anormale"
-                            @endif
-                            >{{ $tattooer->aftercare_sheet ?? '' }}</textarea>
+                                - Contacter votre tattooer en cas de rougeur anormale" @endif>{{ $tattooer->aftercare_sheet ?? '' }}</textarea>
                         <p class="text-xs text-ivoire-text/60 mt-1">
                             Ces instructions seront envoyées automatiquement à vos clients (2h, 7j, 14j après le RDV)
                         </p>
@@ -771,8 +772,8 @@
                     Définissez vos tarifs par type de piercing. Ces tarifs seront affichés sur votre profil public.
                 </p>
 
-                <form action="{{ route($tattooer->routePrefix() . '.settings.pricing') }}" method="POST" class="space-y-4"
-                      x-data="{
+                <form action="{{ route($tattooer->routePrefix() . '.settings.pricing') }}" method="POST"
+                    class="space-y-4" x-data="{
                         grid: {{ json_encode($tattooer->getPricingGrid() ?: []) }},
                         newType: '',
                         newPrice: '',
@@ -784,7 +785,7 @@
                             }
                         },
                         removeEntry(index) { this.grid.splice(index, 1); }
-                      }">
+                    }">
                     @csrf
 
                     <template x-for="(entry, i) in grid" :key="i">
@@ -797,9 +798,11 @@
                                     class="w-28 px-3 py-2 bg-gris-fonde border border-titane/30 rounded-lg text-ivoire-text text-sm focus:border-beige-peau">
                                 <span class="text-titane text-sm">€</span>
                             </div>
-                            <button type="button" @click="removeEntry(i)" class="p-2 text-rouge-alerte hover:bg-rouge-alerte/10 rounded-lg transition-colors">
+                            <button type="button" @click="removeEntry(i)"
+                                class="p-2 text-rouge-alerte hover:bg-rouge-alerte/10 rounded-lg transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
                         </div>
@@ -846,7 +849,7 @@
             personnelles stockées sur Ink&amp;Pik. Maximum 3 exports par heure.
         </p>
         <a href="{{ route($tattooer->routePrefix() . '.gdpr.export') }}"
-           class="inline-flex items-center gap-2 px-4 py-2 bg-gris-fonde border border-titane/30 text-ivoire-text text-sm rounded-lg hover:border-beige-peau/50 transition">
+            class="inline-flex items-center gap-2 px-4 py-2 bg-gris-fonde border border-titane/30 text-ivoire-text text-sm rounded-lg hover:border-beige-peau/50 transition">
             Télécharger mes données (JSON)
         </a>
     </div>
@@ -855,9 +858,7 @@
     <div id="tab-delete-account" class="tab-content hidden">
         <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
             <h3 class="text-xl font-bold text-ivoire-text mb-4">⚠️ Supprimer mon compte</h3>
-            <x-delete-account-section
-                :deleteRoute="$tattooer->routePrefix() . '.delete-account'"
-                :isArtist="true" />
+            <x-delete-account-section :deleteRoute="$tattooer->routePrefix() . '.delete-account'" :isArtist="true" />
         </div>
     </div>
 
@@ -873,7 +874,18 @@
             }
         </style>
 
-        <script>
+        <script nonce="{{ csp_nonce() }}">
+            document.addEventListener('DOMContentLoaded', function() {
+                // Attacher les écouteurs pour les tabs
+                const tabButtons = document.querySelectorAll('[data-action="switch-tab"]');
+                tabButtons.forEach(function(button) {
+                    button.addEventListener('click', function() {
+                        const tabName = this.getAttribute('data-tab');
+                        switchTab(tabName);
+                    });
+                });
+            });
+
             function switchTab(tabName) {
                 try {
                     localStorage.setItem('tattooer_settings_active_tab', tabName);
