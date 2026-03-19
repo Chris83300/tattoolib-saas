@@ -122,7 +122,34 @@ class ComplianceRecordsTable
 
             ])
             ->actions([
-                // Actions à implémenter plus tard (problème Filament v4)
+                Tables\Actions\Action::make('validate')
+                    ->label('Valider ✓')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->action(function ($record): void {
+                        $record->verified_by_admin = true;
+                        $record->save();
+                        $record->syncComplianceBadge();
+                    })
+                    ->requiresConfirmation()
+                    ->modalHeading('Valider ce document ?')
+                    ->modalDescription('Le badge "Conforme" sera attribué à l\'artiste si hygiène ET ARS sont tous deux validés.')
+                    ->visible(fn ($record) => is_null($record->verified_at)),
+
+                Tables\Actions\Action::make('invalidate')
+                    ->label('Invalider ✗')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->action(function ($record): void {
+                        $record->verified_by_admin = false;
+                        $record->save();
+                        $record->syncComplianceBadge();
+                    })
+                    ->requiresConfirmation()
+                    ->modalHeading('Invalider ce document ?')
+                    ->visible(fn ($record) => !is_null($record->verified_at)),
+
+                Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
                 // Bulk actions à implémenter plus tard (problème Filament v4)

@@ -20,4 +20,9 @@ class EditComplianceRecord extends EditRecord
             RestoreAction::make(),
         ];
     }
+
+    protected function afterSave(): void
+    {
+        $this->record->syncComplianceBadge();
+    }
 }

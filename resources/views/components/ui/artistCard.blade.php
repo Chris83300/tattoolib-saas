@@ -44,6 +44,9 @@
             @elseif ($sortRank >= 90)
                 <span class="px-2 py-0.5 text-[10px] font-bold bg-beige-peau/70 text-noir-profond rounded-full block">Studio</span>
             @endif
+            @if (!empty($artist['has_compliance_badge']))
+                <span class="px-2 py-0.5 text-[10px] font-bold bg-vert-succes/20 text-vert-succes rounded-full block">✓ Conforme</span>
+            @endif
         @endif
         @if ($isMarketplace && isset($artist['siret_verified']) && $artist['siret_verified'])
             <span class="badge-verified">Vérifié</span>

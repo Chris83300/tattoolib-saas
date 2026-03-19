@@ -57,6 +57,8 @@ class ComplianceRecord extends Model
         'admin_notes',
     ];
 
+    protected $appends = ['verified_by_admin'];
+
     protected $casts = [
         'obtained_at' => 'date',
         'expires_at' => 'date',
@@ -66,6 +68,61 @@ class ComplianceRecord extends Model
         'notification_30d_sent_at' => 'datetime',
         'notification_expired_sent_at' => 'datetime',
     ];
+
+    // =====================================
+    // ACCESSOR / MUTATOR — verified_by_admin
+    // =====================================
+
+    /**
+     * Virtual attribute : le toggle Filament lit/écrit ici.
+     * true  = verified_at est renseigné.
+     */
+    public function getVerifiedByAdminAttribute(): bool
+    {
+        return !is_null($this->verified_at);
+    }
+
+    public function setVerifiedByAdminAttribute(bool $value): void
+    {
+        if ($value && is_null($this->verified_at)) {
+            $this->verified_at = now();
+            $this->verified_by = auth()->id();
+            $this->status = self::STATUS_VALID;
+        } elseif (!$value && !is_null($this->verified_at)) {
+            $this->verified_at = null;
+            $this->verified_by = null;
+            $this->status = self::STATUS_PENDING;
+        }
+    }
+
+    // =====================================
+    // BADGE CONFORMITÉ SUR L'ARTISAN
+    // =====================================
+
+    /**
+     * Recalcule has_compliance_badge sur l'artisan propriétaire.
+     * Badge = hygiene_salubrite ET declaration_ars tous deux vérifiés.
+     * Invalide aussi le cache marketplace.
+     */
+    public function syncComplianceBadge(): void
+    {
+        $artisan = $this->compliant;
+        if (!$artisan) return;
+
+        $hasHygiene = $artisan->complianceRecords()
+            ->where('certification_type', self::TYPE_HYGIENE)
+            ->whereNotNull('verified_at')
+            ->exists();
+
+        $hasArs = $artisan->complianceRecords()
+            ->where('certification_type', self::TYPE_ARS)
+            ->whereNotNull('verified_at')
+            ->exists();
+
+        $artisan->update(['has_compliance_badge' => $hasHygiene && $hasArs]);
+
+        app(\App\Services\CacheService::class)->invalidateAllArtistCache($artisan);
+    }
 
     // =====================================
     // RELATIONS
