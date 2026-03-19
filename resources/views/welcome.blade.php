@@ -184,7 +184,7 @@
 @endsection
 
 @push('scripts')
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         // Welcome Page JavaScript - Inspiré de la marketplace
         document.addEventListener('DOMContentLoaded', function() {
             const welcomePage = {

@@ -1,4 +1,4 @@
-# 🔧 CONTROLLERS 2/2 — StudioController + ClientController + Form Requests
+ # 🔧 CONTROLLERS 2/2 — StudioController + ClientController + Form Requests
 ## Effort estimé : ~12h
 
 ---

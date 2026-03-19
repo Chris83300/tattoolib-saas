@@ -55,7 +55,13 @@
       "Bash(wc:*)",
       "Bash(composer dump-autoload:*)",
       "Bash(/c/laragon/bin/composer/composer.bat dump-autoload:*)",
-      "Bash(head -20 grep -n \"exportGdpr\\\\|settings\\\\|Settings\\\\b\" app/Http/Controllers/ClientController.php)"
+      "Bash(head -20 grep -n \"exportGdpr\\\\|settings\\\\|Settings\\\\b\" app/Http/Controllers/ClientController.php)",
+      "Bash(grep -rn \"$request->validate\\(\" app/Http/Controllers/ --include=\"*.php\")",
+      "Bash(grep -rn \"$request->validate\\(\" /c/laragon/www/tattoolib-saas/app/Http/Controllers/)",
+      "Bash(grep -rn \"$request->validate\\(\" /c/laragon/www/tattoolib-saas/app/Http/Controllers/StudioController.php)",
+      "Bash(grep -rn \"$request->validate\\(\" /c/laragon/www/tattoolib-saas/app/Http/Controllers/Studio/)",
+      "Bash(npm run:*)",
+      "Bash(node -e \":*)"
     ]
   }
 }

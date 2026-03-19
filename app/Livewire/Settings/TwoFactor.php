@@ -159,24 +159,24 @@ class TwoFactor extends Component
     {
         if ($this->twoFactorEnabled) {
             return [
-                'title' => __('Two-Factor Authentication Enabled'),
-                'description' => __('Two-factor authentication is now enabled. Scan the QR code or enter the setup key in your authenticator app.'),
-                'buttonText' => __('Close'),
+                'title' => 'Authentification à deux facteurs activée',
+                'description' => 'L\'authentification à deux facteurs est maintenant activée. Scannez le code QR ou entrez la clé de configuration dans votre application d\'authentification.',
+                'buttonText' => 'Fermer',
             ];
         }
 
         if ($this->showVerificationStep) {
             return [
-                'title' => __('Verify Authentication Code'),
-                'description' => __('Enter the 6-digit code from your authenticator app.'),
-                'buttonText' => __('Continue'),
+                'title' => 'Vérifier le code d\'authentification',
+                'description' => 'Entrez le code à 6 chiffres depuis votre application d\'authentification.',
+                'buttonText' => 'Continuer',
             ];
         }
 
         return [
-            'title' => __('Enable Two-Factor Authentication'),
-            'description' => __('To finish enabling two-factor authentication, scan the QR code or enter the setup key in your authenticator app.'),
-            'buttonText' => __('Continue'),
+            'title' => 'Activer l\'authentification à deux facteurs',
+            'description' => 'Pour terminer l\'activation de l\'authentification à deux facteurs, scannez le code QR ou entrez la clé de configuration dans votre application d\'authentification.',
+            'buttonText' => 'Continuer',
         ];
     }
 }

@@ -73,7 +73,7 @@ return [
     |
     */
 
-    'home' => '/dashboard',
+    'home' => '/admin',
 
     /*
     |--------------------------------------------------------------------------
@@ -148,8 +148,8 @@ return [
         Features::resetPasswords(),
         Features::emailVerification(),
         Features::twoFactorAuthentication([
-            'confirm' => true,
-            'confirmPassword' => true,
+            'confirm'         => true,
+            'confirmPassword' => false, // désactivé : évite la redirection vers /user/confirm-password
             // 'window' => 0,
         ]),
     ],

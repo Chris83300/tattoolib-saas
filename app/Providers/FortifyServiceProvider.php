@@ -48,10 +48,14 @@ class FortifyServiceProvider extends ServiceProvider
             }
 
             return match($user->role) {
+                'admin' => '/admin',
                 'client' => route('client.profile'),
-                'tattooer', 'piercer' => $user->status === 'pending_verification'
+                'tattooer' => $user->status === 'pending_verification'
                     ? route('tattooer.pending-verification')
                     : route('tattooer.dashboard'),
+                'pierceur' => $user->status === 'pending_verification'
+                    ? route('pierceur.pending-verification')
+                    : route('pierceur.dashboard'),
                 'studio_artist' => route('tattooer.dashboard'),
                 'studio' => '/admin/studio',
                 default => '/',
@@ -67,10 +71,14 @@ class FortifyServiceProvider extends ServiceProvider
             }
 
             return match($user->role) {
+                'admin' => '/admin',
                 'client' => route('client.profile'),
-                'tattooer', 'piercer' => $user->status === 'pending_verification'
+                'tattooer' => $user->status === 'pending_verification'
                     ? route('tattooer.pending-verification')
                     : route('tattooer.dashboard'),
+                'pierceur' => $user->status === 'pending_verification'
+                    ? route('pierceur.pending-verification')
+                    : route('pierceur.dashboard'),
                 'studio_artist' => route('tattooer.dashboard'),
                 'studio' => '/admin/studio',
                 default => '/',

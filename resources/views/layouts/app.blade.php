@@ -180,7 +180,7 @@
     @include('partials.pwa-install-prompt')
 
     <!-- Alpine.js Store -->
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         document.addEventListener('alpine:init', () => {
             Alpine.store('app', {
                 isInstalled: false,

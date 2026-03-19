@@ -3,6 +3,7 @@
 
 <head>
     @include('partials.head')
+    @fluxStyles
 </head>
 
 <body class="min-h-screen bg-noir-profond">
@@ -37,7 +38,7 @@
         <!-- Navigation -->
         <nav class="p-4 space-y-2">
             <a href="{{ getDashboardRoute() }}"
-                class="flex items-center space-x-3 px-4 py-3 rounded-lg text-ivoire-text hover:bg-beige-peau/10 transition-colors {{ request()->routeIs('*.dashboard') ? 'bg-beige-peau/20 text-beige-peau' : '' }}">
+                class="flex items-center space-x-3 px-4 py-3 rounded-lg text-ivoire-text hover:bg-beige-peau/10 transition-colors {{ request()->routeIs('*.dashboard') || request()->is('admin*') ? 'bg-beige-peau/20 text-beige-peau' : '' }}">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
@@ -46,7 +47,16 @@
                 <span>Dashboard</span>
             </a>
 
-            @if (auth()->user()->role === 'tattooer')
+            @if (auth()->user()->isAdmin())
+                <a href="/admin"
+                    class="flex items-center space-x-3 px-4 py-3 rounded-lg text-ivoire-text hover:bg-beige-peau/10 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                    <span>Panel Admin</span>
+                </a>
+            @elseif (auth()->user()->role === 'tattooer')
                 <!-- Profil -->
                 <a href="{{ route('tattooer.profile') }}"
                     class="flex items-center space-x-3 px-4 py-3 rounded-lg text-ivoire-text hover:bg-beige-peau/10 transition-colors {{ request()->routeIs('tattooer.profile*') ? 'bg-beige-peau/20 text-beige-peau' : '' }}">
@@ -206,6 +216,8 @@
         </div>
     </main>
 
+    @fluxScripts
+
     <!-- JavaScript -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -256,20 +268,17 @@
     function getDashboardRoute()
     {
         $user = auth()->user();
-        switch ($user->role) {
-            case 'tattooer':
-                return route('tattooer.dashboard');
-            case 'pierceur':
-                return route('pierceur.dashboard');
-            case 'studio':
-                return route('studio.dashboard');
-            case 'studio_artist':
-                return route('studio-artist.dashboard');
-            case 'client':
-                return route('client.profile');
-            default:
-                return route('home');
+        if ($user->isAdmin()) {
+            return '/admin';
         }
+        return match($user->role) {
+            'tattooer'      => route('tattooer.dashboard'),
+            'pierceur'      => route('pierceur.dashboard'),
+            'studio'        => route('studio.dashboard'),
+            'studio_artist' => route('studio-artist.dashboard'),
+            'client'        => route('client.profile'),
+            default         => route('home'),
+        };
     }
 
     function getProfileEditRoute()

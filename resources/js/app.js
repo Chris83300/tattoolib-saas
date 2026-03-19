@@ -2,6 +2,66 @@ import './bootstrap';
 import './unread-messages';
 import { registerSW } from 'virtual:pwa-register';
 
+// Composant Alpine global — bannière consentement cookies (CNIL)
+document.addEventListener('alpine:init', () => {
+    Alpine.data('cookieConsent', () => ({
+        showBanner: false,
+        showDetails: false,
+        analytics: false,
+        thirdParty: false,
+
+        init() {
+            try {
+                const consent = this.getCookie('cookie_consent');
+                if (!consent) {
+                    this.showBanner = true;
+                }
+            } catch (e) {
+                console.warn('Cookie consent init error:', e);
+            }
+        },
+
+        acceptAll() {
+            this.setConsent({ necessary: true, analytics: true, thirdParty: true });
+        },
+
+        acceptNecessaryOnly() {
+            this.setConsent({ necessary: true, analytics: false, thirdParty: false });
+        },
+
+        rejectAll() {
+            this.setConsent({ necessary: true, analytics: false, thirdParty: false });
+        },
+
+        setConsent(preferences) {
+            try {
+                const value = JSON.stringify({
+                    ...preferences,
+                    timestamp: new Date().toISOString(),
+                    version: '1.0',
+                });
+                // Cookie valide 13 mois (conformité CNIL)
+                const expires = new Date(Date.now() + 395 * 24 * 60 * 60 * 1000).toUTCString();
+                document.cookie = `cookie_consent=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+                this.showBanner = false;
+                window.dispatchEvent(new CustomEvent('cookie-consent-updated', { detail: preferences }));
+            } catch (e) {
+                console.warn('Cookie consent setConsent error:', e);
+            }
+        },
+
+        getCookie(name) {
+            try {
+                const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+                return match ? decodeURIComponent(match[2]) : null;
+            } catch (e) {
+                console.warn('Cookie consent getCookie error:', e);
+                return null;
+            }
+        },
+    }));
+});
+
 // Clé VAPID publique — lue depuis la meta tag injectée par le layout (config/env)
 const VAPID_KEY = document.querySelector('meta[name="vapid-public-key"]')?.content || '';
 

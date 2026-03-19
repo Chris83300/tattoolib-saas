@@ -1,21 +1,21 @@
 <section class="w-full">
     @include('partials.settings-heading')
 
-    <flux:heading class="sr-only">{{ __('Two-Factor Authentication Settings') }}</flux:heading>
+    <flux:heading class="sr-only">{{ __('Paramètres d\'authentification à deux facteurs') }}</flux:heading>
 
     <x-settings.layout
-        :heading="__('Two Factor Authentication')"
-        :subheading="__('Manage your two-factor authentication settings')"
+        :heading="__('Double authentification (2FA)')"
+        :subheading="__('Gérez votre authentification à deux facteurs')"
     >
         <div class="flex flex-col w-full mx-auto space-y-6 text-sm" wire:cloak>
             @if ($twoFactorEnabled)
                 <div class="space-y-4">
                     <div class="flex items-center gap-3">
-                        <flux:badge color="green">{{ __('Enabled') }}</flux:badge>
+                        <flux:badge color="green">{{ __('Activée') }}</flux:badge>
                     </div>
 
                     <flux:text>
-                        {{ __('With two-factor authentication enabled, you will be prompted for a secure, random pin during login, which you can retrieve from the TOTP-supported application on your phone.') }}
+                        {{ __('La double authentification est activée. À chaque connexion, vous devrez saisir un code généré par votre application d\'authentification (Google Authenticator, Authy…).') }}
                     </flux:text>
 
                     <livewire:settings.two-factor.recovery-codes :$requiresConfirmation/>
@@ -27,18 +27,18 @@
                             icon:variant="outline"
                             wire:click="disable"
                         >
-                            {{ __('Disable 2FA') }}
+                            {{ __('Désactiver le 2FA') }}
                         </flux:button>
                     </div>
                 </div>
             @else
                 <div class="space-y-4">
                     <div class="flex items-center gap-3">
-                        <flux:badge color="red">{{ __('Disabled') }}</flux:badge>
+                        <flux:badge color="red">{{ __('Désactivée') }}</flux:badge>
                     </div>
 
                     <flux:text variant="subtle">
-                        {{ __('When you enable two-factor authentication, you will be prompted for a secure pin during login. This pin can be retrieved from a TOTP-supported application on your phone.') }}
+                        {{ __('En activant la double authentification, vous ajoutez une couche de sécurité supplémentaire à votre compte. Un code unique sera demandé à chaque connexion.') }}
                     </flux:text>
 
                     <flux:button
@@ -47,7 +47,7 @@
                         icon:variant="outline"
                         wire:click="enable"
                     >
-                        {{ __('Enable 2FA') }}
+                        {{ __('Activer le 2FA') }}
                     </flux:button>
                 </div>
             @endif
@@ -69,13 +69,11 @@
                                 <div></div>
                             @endfor
                         </div>
-
                         <div class="flex flex-col items-stretch absolute w-full h-full divide-y [&>div]:flex-1 inset-0 divide-stone-200 dark:divide-stone-300 justify-around opacity-50">
                             @for ($i = 1; $i <= 5; $i++)
                                 <div></div>
                             @endfor
                         </div>
-
                         <flux:icon.qr-code class="relative z-20 dark:text-accent-foreground"/>
                     </div>
                 </div>
@@ -93,28 +91,27 @@
                             name="code"
                             wire:model="code"
                             length="6"
-                            label="OTP Code"
+                            label="Code OTP"
                             label:sr-only
                             class="mx-auto"
                         />
                     </div>
 
-                    <div class="flex items-center space-x-3">
-                        <flux:button
-                            variant="outline"
-                            class="flex-1"
-                            wire:click="resetVerification"
-                        >
-                            {{ __('Back') }}
-                        </flux:button>
+                    @error('code')
+                        <flux:text color="red" class="text-sm text-center">{{ $message }}</flux:text>
+                    @enderror
 
+                    <div class="flex items-center space-x-3">
+                        <flux:button variant="outline" class="flex-1" wire:click="resetVerification">
+                            {{ __('Retour') }}
+                        </flux:button>
                         <flux:button
                             variant="primary"
                             class="flex-1"
                             wire:click="confirmTwoFactor"
                             x-bind:disabled="$wire.code.length < 6"
                         >
-                            {{ __('Confirm') }}
+                            {{ __('Confirmer') }}
                         </flux:button>
                     </div>
                 </div>
@@ -130,11 +127,11 @@
                                 <flux:icon.loading/>
                             </div>
                         @else
-                        <div x-data class="flex items-center justify-center h-full p-4">
-                            <div
-                                class="bg-white p-3 rounded"
-                                :style="($flux.appearance === 'dark' || ($flux.appearance === 'system' && $flux.dark)) ? 'filter: invert(1) brightness(1.5)' : ''"
-                            >
+                            <div x-data class="flex items-center justify-center h-full p-4">
+                                <div
+                                    class="bg-white p-3 rounded"
+                                    :class="document.documentElement.classList.contains('dark') ? 'invert brightness-150' : ''"
+                                >
                                     {!! $qrCodeSvg !!}
                                 </div>
                             </div>
@@ -157,7 +154,7 @@
                     <div class="relative flex items-center justify-center w-full">
                         <div class="absolute inset-0 w-full h-px top-1/2 bg-stone-200 dark:bg-stone-600"></div>
                         <span class="relative px-2 text-sm bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-400">
-                            {{ __('or, enter the code manually') }}
+                            {{ __('ou saisir la clé manuellement') }}
                         </span>
                     </div>
 
@@ -188,17 +185,13 @@
                                     value="{{ $manualSetupKey }}"
                                     class="w-full p-3 bg-transparent outline-none text-stone-900 dark:text-stone-100"
                                 />
-
                                 <button
                                     @click="copy()"
                                     class="px-3 transition-colors border-l cursor-pointer border-stone-200 dark:border-stone-600"
+                                    aria-label="Copier la clé dans le presse-papiers"
                                 >
-                                    <flux:icon.document-duplicate x-show="!copied" variant="outline"></flux:icon>
-                                    <flux:icon.check
-                                        x-show="copied"
-                                        variant="solid"
-                                        class="text-green-500"
-                                    ></flux:icon>
+                                    <flux:icon.document-duplicate x-show="!copied" variant="outline"/>
+                                    <flux:icon.check x-show="copied" variant="solid" class="text-green-500"/>
                                 </button>
                             @endempty
                         </div>

@@ -317,7 +317,7 @@
                     @endif
                 </a>
 
-                <button type="button" onclick="openMobileMoreMenu()"
+                <button type="button" data-action="open-mobile-menu"
                     class="flex flex-col items-center gap-1 p-2 rounded-lg {{ request()->routeIs($routePrefix . '.settings') || request()->routeIs($routePrefix . '.clients*') || request()->routeIs($routePrefix . '.portfolio') || request()->routeIs($routePrefix . '.payments') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text' }}">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -332,11 +332,11 @@
         </nav>
 
         <div id="mobile-more-menu" class="hidden lg:hidden fixed inset-0 bg-black/80 z-[60]">
-            <div class="absolute inset-0" onclick="closeMobileMoreMenu()"></div>
+            <div class="absolute inset-0" data-action="close-mobile-menu"></div>
             <div class="absolute bottom-0 left-0 right-0 bg-gris-fonde border-t border-titane/20 rounded-t-2xl p-4">
                 <div class="flex items-center justify-between mb-3">
                     <div class="text-ivoire-text font-bold">Menu</div>
-                    <button type="button" class="text-ivoire-text/70" onclick="closeMobileMoreMenu()">×</button>
+                    <button type="button" class="text-ivoire-text/70" data-action="close-mobile-menu">×</button>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
@@ -369,15 +369,29 @@
     </div>
 
     <script nonce="{{ csp_nonce() }}">
-        function openMobileMoreMenu() {
-            const el = document.getElementById('mobile-more-menu');
-            if (el) el.classList.remove('hidden');
-        }
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gestionnaires pour le menu mobile
+            function openMobileMoreMenu() {
+                const el = document.getElementById('mobile-more-menu');
+                if (el) el.classList.remove('hidden');
+            }
 
-        function closeMobileMoreMenu() {
-            const el = document.getElementById('mobile-more-menu');
-            if (el) el.classList.add('hidden');
-        }
+            function closeMobileMoreMenu() {
+                const el = document.getElementById('mobile-more-menu');
+                if (el) el.classList.add('hidden');
+            }
+
+            // Attacher les écouteurs d'événements
+            const openBtn = document.querySelector('[data-action="open-mobile-menu"]');
+            if (openBtn) {
+                openBtn.addEventListener('click', openMobileMoreMenu);
+            }
+
+            const closeElements = document.querySelectorAll('[data-action="close-mobile-menu"]');
+            closeElements.forEach(function(el) {
+                el.addEventListener('click', closeMobileMoreMenu);
+            });
+        });
     </script>
 
     @stack('scripts')

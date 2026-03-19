@@ -1,6 +1,5 @@
 <div x-data="cookieConsent()" x-show="showBanner" x-transition.opacity x-cloak
-    class="fixed bottom-0 inset-x-0 z-[100] p-4 sm:p-6"
-    role="dialog" aria-label="Gestion des cookies">
+    class="fixed bottom-0 inset-x-0 z-[100] p-4 sm:p-6" role="dialog" aria-label="Gestion des cookies">
 
     <div class="max-w-3xl mx-auto bg-gris-fonde border border-titane/20 rounded-2xl shadow-2xl overflow-hidden">
         {{-- Contenu principal --}}
@@ -10,7 +9,8 @@
                 <div class="flex-1">
                     <h3 class="text-base font-semibold text-ivoire-text mb-2">Nous respectons votre vie privée</h3>
                     <p class="text-sm text-titane leading-relaxed">
-                        Ink&Pik utilise des cookies pour assurer le bon fonctionnement du site et améliorer votre expérience.
+                        Ink&Pik utilise des cookies pour assurer le bon fonctionnement du site et améliorer votre
+                        expérience.
                         Certains cookies sont strictement nécessaires et ne peuvent pas être désactivés.
                         <a href="{{ route('legal.politique-cookies') }}" class="text-beige-peau hover:underline">
                             En savoir plus
@@ -25,22 +25,27 @@
                 <div class="flex items-center justify-between p-3 bg-noir-profond/40 rounded-lg">
                     <div>
                         <p class="text-sm font-medium text-ivoire-text">Cookies strictement nécessaires</p>
-                        <p class="text-xs text-titane mt-0.5">Authentification, sécurité CSRF, session. Indispensables au fonctionnement.</p>
+                        <p class="text-xs text-titane mt-0.5">Authentification, sécurité CSRF, session. Indispensables
+                            au fonctionnement.</p>
                     </div>
-                    <span class="text-xs text-green-400 font-medium px-2 py-0.5 bg-green-500/10 rounded">Toujours actifs</span>
+                    <span class="text-xs text-green-400 font-medium px-2 py-0.5 bg-green-500/10 rounded">Toujours
+                        actifs</span>
                 </div>
 
                 {{-- Cookies analytics --}}
                 <div class="flex items-center justify-between p-3 bg-noir-profond/40 rounded-lg">
                     <div>
                         <p class="text-sm font-medium text-ivoire-text">Cookies de mesure d'audience</p>
-                        <p class="text-xs text-titane mt-0.5">Nous aident à comprendre comment vous utilisez le site (anonymisé).</p>
+                        <p class="text-xs text-titane mt-0.5">Nous aident à comprendre comment vous utilisez le site
+                            (anonymisé).</p>
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" x-model="analytics" class="sr-only peer">
-                        <div class="w-9 h-5 bg-titane/30 peer-checked:bg-beige-peau rounded-full transition-colors
+                        <div
+                            class="w-9 h-5 bg-titane/30 peer-checked:bg-beige-peau rounded-full transition-colors
                             after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white
-                            after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                            after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full">
+                        </div>
                     </label>
                 </div>
 
@@ -52,9 +57,11 @@
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" x-model="thirdParty" class="sr-only peer">
-                        <div class="w-9 h-5 bg-titane/30 peer-checked:bg-beige-peau rounded-full transition-colors
+                        <div
+                            class="w-9 h-5 bg-titane/30 peer-checked:bg-beige-peau rounded-full transition-colors
                             after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white
-                            after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                            after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full">
+                        </div>
                     </label>
                 </div>
             </div>
@@ -75,8 +82,7 @@
                     class="flex-1 px-4 py-2.5 text-sm font-medium bg-gris-fonde text-titane border border-titane/30 rounded-lg hover:border-rouge-alerte/50 hover:text-rouge-alerte transition-colors">
                     Tout refuser
                 </button>
-                <button @click="showDetails = !showDetails"
-                    class="px-4 py-2.5 text-sm text-beige-peau hover:underline">
+                <button @click="showDetails = !showDetails" class="px-4 py-2.5 text-sm text-beige-peau hover:underline">
                     <span x-text="showDetails ? 'Masquer' : 'Personnaliser'"></span>
                 </button>
             </div>
@@ -84,50 +90,4 @@
     </div>
 </div>
 
-<script>
-function cookieConsent() {
-    return {
-        showBanner: false,
-        showDetails: false,
-        analytics: false,
-        thirdParty: false,
-
-        init() {
-            const consent = this.getCookie('cookie_consent');
-            if (!consent) {
-                this.showBanner = true;
-            }
-        },
-
-        acceptAll() {
-            this.setConsent({ necessary: true, analytics: true, thirdParty: true });
-        },
-
-        acceptNecessaryOnly() {
-            this.setConsent({ necessary: true, analytics: false, thirdParty: false });
-        },
-
-        rejectAll() {
-            this.setConsent({ necessary: true, analytics: false, thirdParty: false });
-        },
-
-        setConsent(preferences) {
-            const value = JSON.stringify({
-                ...preferences,
-                timestamp: new Date().toISOString(),
-                version: '1.0',
-            });
-            // Cookie valide 13 mois (conformité CNIL)
-            const expires = new Date(Date.now() + 395 * 24 * 60 * 60 * 1000).toUTCString();
-            document.cookie = `cookie_consent=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
-            this.showBanner = false;
-            window.dispatchEvent(new CustomEvent('cookie-consent-updated', { detail: preferences }));
-        },
-
-        getCookie(name) {
-            const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-            return match ? decodeURIComponent(match[2]) : null;
-        },
-    };
-}
-</script>
+{{-- cookieConsent Alpine component registered globally in resources/js/app.js --}}

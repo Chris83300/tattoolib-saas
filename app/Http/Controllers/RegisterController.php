@@ -110,7 +110,7 @@ class RegisterController extends Controller
             }
 
             return back()->withErrors([
-                'error' => 'Une erreur est survenue lors de la création de votre compte. Veuillez réessayer. Erreur: ' . $e->getMessage()
+                'error' => 'Une erreur est survenue lors de la création de votre compte. Veuillez réessayer.',
             ])->withInput();
         }
     }
@@ -221,7 +221,7 @@ class RegisterController extends Controller
             }
 
             return back()->withErrors([
-                'error' => 'Une erreur est survenue lors de la création de votre compte. Veuillez réessayer. Erreur: ' . $e->getMessage()
+                'error' => 'Une erreur est survenue lors de la création de votre compte. Veuillez réessayer.',
             ])->withInput();
         }
     }
@@ -330,7 +330,7 @@ class RegisterController extends Controller
             }
 
             return back()->withErrors([
-                'error' => 'Une erreur est survenue lors de la création de votre compte. Veuillez réessayer. Erreur: ' . $e->getMessage()
+                'error' => 'Une erreur est survenue lors de la création de votre compte. Veuillez réessayer.',
             ])->withInput();
         }
     }
@@ -432,7 +432,7 @@ class RegisterController extends Controller
             }
 
             return back()->withErrors([
-                'error' => 'Une erreur est survenue lors de la création de votre studio. Veuillez réessayer. Erreur: ' . $e->getMessage()
+                'error' => 'Une erreur est survenue lors de la création de votre studio. Veuillez réessayer.',
             ])->withInput();
         }
     }

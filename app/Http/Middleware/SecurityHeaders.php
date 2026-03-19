@@ -68,9 +68,9 @@ class SecurityHeaders
             return implode('; ', [
                 "default-src 'self'",
                 "script-src 'self' 'nonce-{$nonce}' 'unsafe-inline' 'unsafe-eval' http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* wss://localhost:* wss://127.0.0.1:* https://js.stripe.com https://cdn.jsdelivr.net",
-                "style-src 'self' 'unsafe-inline' http://localhost:* http://127.0.0.1:* https://fonts.googleapis.com https://cdn.jsdelivr.net",
+                "style-src 'self' 'unsafe-inline' http://localhost:* http://127.0.0.1:* https://fonts.googleapis.com https://fonts.bunny.net https://cdn.jsdelivr.net",
                 "img-src 'self' data: https: http://localhost:* http://127.0.0.1:*",
-                "font-src 'self' data: https://fonts.gstatic.com",
+                "font-src 'self' data: https://fonts.gstatic.com https://fonts.bunny.net",
                 "connect-src 'self' ws://localhost:* ws://127.0.0.1:* wss://localhost:* wss://127.0.0.1:* http://localhost:* http://127.0.0.1:* https://api.stripe.com",
                 "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
                 "media-src 'self'",
@@ -86,9 +86,9 @@ class SecurityHeaders
         return implode('; ', [
             "default-src 'self'",
             "script-src 'self' 'nonce-{$nonce}' https://js.stripe.com https://www.googletagmanager.com https://cdn.jsdelivr.net",
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.bunny.net https://cdn.jsdelivr.net",
             "img-src 'self' data: https:",
-            "font-src 'self' data: https://fonts.gstatic.com",
+            "font-src 'self' data: https://fonts.gstatic.com https://fonts.bunny.net",
             "connect-src 'self' https://api.stripe.com https://www.google-analytics.com wss://" . $request->getHost(),
             "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
             "media-src 'self'",

@@ -24,20 +24,19 @@ class RedirectIfAuthenticated
             if (Auth::guard($guard)->check()) {
                 $user = Auth::user();
 
-                // Redirection selon le rôle au lieu de /dashboard
-                switch ($user->role) {
-                    case 'client':
-                        return redirect()->route('client.profile');
-                    case 'tattooer':
-                        return redirect()->route('tattooer.dashboard');
-                    case 'Piercer':
-                    case 'pierceur':
-                        return redirect()->route('pierceur.dashboard');
-                    case 'studio':
-                        return redirect()->route('studio.dashboard');
-                    default:
-                        return redirect()->route('home');
+                // Redirection selon le rôle
+                if ($user->isAdmin()) {
+                    return redirect('/admin');
                 }
+
+                return match($user->role) {
+                    'client'        => redirect()->route('client.profile'),
+                    'tattooer'      => redirect()->route('tattooer.dashboard'),
+                    'pierceur'      => redirect()->route('pierceur.dashboard'),
+                    'studio'        => redirect()->route('studio.dashboard'),
+                    'studio_artist' => redirect()->route('tattooer.dashboard'),
+                    default         => redirect()->route('home'),
+                };
             }
         }
 

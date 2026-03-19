@@ -2,17 +2,37 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DepositController;
 use App\Http\Controllers\MarketplaceController;
-use App\Http\Controllers\TattooerController;
 use App\Http\Controllers\TattooerProfileController;
+use App\Http\Controllers\Tattooer\TattooerDashboardController;
+use App\Http\Controllers\Tattooer\TattooerBookingController;
+use App\Http\Controllers\Tattooer\TattooerCalendarController;
+use App\Http\Controllers\Tattooer\TattooerMessageController;
+use App\Http\Controllers\Tattooer\TattooerClientController;
+use App\Http\Controllers\Tattooer\TattooerConsentController;
+use App\Http\Controllers\Tattooer\TattooerTraceabilityController;
+use App\Http\Controllers\Tattooer\TattooerMediaController;
+use App\Http\Controllers\Tattooer\TattooerPortfolioController;
+use App\Http\Controllers\Tattooer\TattooerSettingsController;
+use App\Http\Controllers\Tattooer\TattooerPaymentController;
+use App\Http\Controllers\Tattooer\TattooerAppointmentController;
+use App\Http\Controllers\Tattooer\TattooerComplianceController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\RegisterController;
 use App\Models\BookingRequest;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\LogoutController;
 use App\Services\CacheService;
+use App\Http\Controllers\Client\ClientDashboardController;
+use App\Http\Controllers\Client\ClientBookingController;
+use App\Http\Controllers\Client\ClientMessageController;
+use App\Http\Controllers\Client\ClientSocialController;
+use App\Http\Controllers\Studio\StudioDashboardController;
+use App\Http\Controllers\Studio\StudioBookingController;
+use App\Http\Controllers\Studio\StudioArtistController;
+use App\Http\Controllers\Studio\StudioSettingsController;
+use App\Http\Controllers\Studio\StudioBillingController;
 
 Route::get('/', function () {
     $cacheService = app(CacheService::class);
@@ -36,56 +56,56 @@ Route::get('/marketplace', [MarketplaceController::class, 'index'])->name('marke
 
 // Routes Tattooer (protégées) - AVANT les routes publiques avec slug
 Route::middleware(['auth', 'artisan.can.operate'])->prefix('tattooer')->name('tattooer.')->group(function () {
-    Route::get('/profil', [TattooerController::class, 'profile'])->name('profile');
-    Route::get('/dashboard', [TattooerController::class, 'dashboard'])->name('dashboard');
-    Route::get('/requests', [TattooerController::class, 'requests'])->name('requests');
-    Route::get('/requests/{bookingRequest}', [TattooerController::class, 'requestShow'])->name('request.show');
-    Route::get('/pricing', [TattooerController::class, 'pricing'])->name('pricing');
+    Route::get('/profil', [TattooerDashboardController::class, 'profile'])->name('profile');
+    Route::get('/dashboard', [TattooerDashboardController::class, 'dashboard'])->name('dashboard');
+    Route::get('/requests', [TattooerBookingController::class, 'requests'])->name('requests');
+    Route::get('/requests/{bookingRequest}', [TattooerBookingController::class, 'requestShow'])->name('request.show');
+    Route::get('/pricing', [TattooerDashboardController::class, 'pricing'])->name('pricing');
     Route::get('/requests/{bookingRequest}/accept', function (BookingRequest $bookingRequest) {
         return redirect()->route('tattooer.request.show', $bookingRequest)
             ->with('info', 'Veuillez utiliser la modale d\'acceptation sur cette page.');
     })->name('request.accept.get');
-    Route::post('/requests/{bookingRequest}/accept', [TattooerController::class, 'acceptRequest'])->name('request.accept');
-    Route::post('/requests/{bookingRequest}/reject', [TattooerController::class, 'requestReject'])->name('request-reject');
-    Route::delete('/requests/{bookingRequest}', [TattooerController::class, 'destroyRequest'])->name('requests.destroy');
-    Route::patch('/requests/{bookingRequest}/cancel', [TattooerController::class, 'cancelRequest'])->name('requests.cancel');
-    Route::post('/booking-requests/{bookingRequest}/repropose-dates', [TattooerController::class, 'reproposeDates'])->name('booking-requests.repropose-dates');
-    Route::get('/calendar', [TattooerController::class, 'calendar'])->name('calendar');
-    Route::get('/calendar/events', [TattooerController::class, 'calendarEvents'])->name('calendar.events');
-    Route::post('/calendar', [TattooerController::class, 'calendarStore'])->name('calendar.store');
-    Route::patch('/calendar/{event}', [TattooerController::class, 'calendarUpdate'])->name('calendar.update');
-    Route::delete('/calendar/{event}', [TattooerController::class, 'calendarDestroy'])->name('calendar.destroy');
-    Route::get('/messages', [TattooerController::class, 'messages'])->name('messages');
-    Route::get('/messages/{bookingRequest}', [TattooerController::class, 'messageShow'])->name('message.show');
-    Route::post('/message/{bookingRequest}/send', [TattooerController::class, 'messageSend'])->name('message.send');
-    Route::post('/booking-requests/{bookingRequest}/complete', [TattooerController::class, 'completeBooking'])->name('booking-requests.complete');
-    Route::post('/booking-requests/{bookingRequest}/no-show', [TattooerController::class, 'markNoShow'])->name('booking-requests.no-show');
-    Route::get('/clients', [TattooerController::class, 'clients'])->name('clients');
-    Route::get('/clients/create', [TattooerController::class, 'createClient'])->name('clients.create')->middleware('pro');
-    Route::post('/clients', [TattooerController::class, 'storeClient'])->name('clients.store')->middleware('pro');
-    Route::get('/clients/{client}', [TattooerController::class, 'clientShow'])->name('client.show');
-    Route::put('/clients/{client}', [TattooerController::class, 'updateClient'])->name('clients.update')->middleware('pro');
-    Route::post('/clients/{client}/consent/upload', [TattooerController::class, 'uploadConsent'])->name('clients.consent.upload')->middleware('pro');
-    Route::post('/clients/{client}/consent/store-digital', [TattooerController::class, 'storeDigitalConsent'])->name('clients.consent.store-digital')->middleware('pro');
-    Route::delete('/clients/{client}/consent/{media}', [TattooerController::class, 'deleteConsent'])->name('clients.consent.delete')->middleware('pro');
-    Route::post('/clients/{client}/traceability', [TattooerController::class, 'storeClientTraceability'])->name('clients.traceability.store')->middleware('pro');
-    Route::post('/clients/{client}/photos/upload', [TattooerController::class, 'uploadClientPhotos'])->name('clients.photos.upload')->middleware('pro');
-    Route::delete('/clients/{client}/photos/{media}', [TattooerController::class, 'deleteClientPhoto'])->name('clients.photos.delete')->middleware('pro');
-    Route::post('/clients/{client}/notes', [TattooerController::class, 'updateClientNotes'])->name('client.update-notes');
+    Route::post('/requests/{bookingRequest}/accept', [TattooerBookingController::class, 'acceptRequest'])->name('request.accept');
+    Route::post('/requests/{bookingRequest}/reject', [TattooerBookingController::class, 'requestReject'])->name('request-reject');
+    Route::delete('/requests/{bookingRequest}', [TattooerBookingController::class, 'destroyRequest'])->name('requests.destroy');
+    Route::patch('/requests/{bookingRequest}/cancel', [TattooerBookingController::class, 'cancelRequest'])->name('requests.cancel');
+    Route::post('/booking-requests/{bookingRequest}/repropose-dates', [TattooerBookingController::class, 'reproposeDates'])->name('booking-requests.repropose-dates');
+    Route::get('/calendar', [TattooerCalendarController::class, 'calendar'])->name('calendar');
+    Route::get('/calendar/events', [TattooerCalendarController::class, 'calendarEvents'])->name('calendar.events');
+    Route::post('/calendar', [TattooerCalendarController::class, 'calendarStore'])->name('calendar.store');
+    Route::patch('/calendar/{event}', [TattooerCalendarController::class, 'calendarUpdate'])->name('calendar.update');
+    Route::delete('/calendar/{event}', [TattooerCalendarController::class, 'calendarDestroy'])->name('calendar.destroy');
+    Route::get('/messages', [TattooerMessageController::class, 'messages'])->name('messages');
+    Route::get('/messages/{bookingRequest}', [TattooerMessageController::class, 'messageShow'])->name('message.show');
+    Route::post('/message/{bookingRequest}/send', [TattooerMessageController::class, 'messageSend'])->name('message.send');
+    Route::post('/booking-requests/{bookingRequest}/complete', [TattooerBookingController::class, 'completeBooking'])->name('booking-requests.complete');
+    Route::post('/booking-requests/{bookingRequest}/no-show', [TattooerBookingController::class, 'markNoShow'])->name('booking-requests.no-show');
+    Route::get('/clients', [TattooerClientController::class, 'clients'])->name('clients');
+    Route::get('/clients/create', [TattooerClientController::class, 'createClient'])->name('clients.create')->middleware('pro');
+    Route::post('/clients', [TattooerClientController::class, 'storeClient'])->name('clients.store')->middleware('pro');
+    Route::get('/clients/{client}', [TattooerClientController::class, 'clientShow'])->name('client.show');
+    Route::put('/clients/{client}', [TattooerClientController::class, 'updateClient'])->name('clients.update')->middleware('pro');
+    Route::post('/clients/{client}/consent/upload', [TattooerConsentController::class, 'uploadConsent'])->name('clients.consent.upload')->middleware('pro');
+    Route::post('/clients/{client}/consent/store-digital', [TattooerConsentController::class, 'storeDigitalConsent'])->name('clients.consent.store-digital')->middleware('pro');
+    Route::delete('/clients/{client}/consent/{media}', [TattooerConsentController::class, 'deleteConsent'])->name('clients.consent.delete')->middleware('pro');
+    Route::post('/clients/{client}/traceability', [TattooerTraceabilityController::class, 'storeClientTraceability'])->name('clients.traceability.store')->middleware('pro');
+    Route::post('/clients/{client}/photos/upload', [TattooerMediaController::class, 'uploadClientPhotos'])->name('clients.photos.upload')->middleware('pro');
+    Route::delete('/clients/{client}/photos/{media}', [TattooerMediaController::class, 'deleteClientPhoto'])->name('clients.photos.delete')->middleware('pro');
+    Route::post('/clients/{client}/notes', [TattooerClientController::class, 'updateClientNotes'])->name('client.update-notes');
 
     // Consentement tattooer
-    Route::post('/consent/{bookingRequest}', [TattooerController::class, 'storeConsent'])
+    Route::post('/consent/{bookingRequest}', [TattooerConsentController::class, 'storeConsent'])
         ->name('consent.store');
 
     // Traçabilité
-    Route::post('/traceability/{appointment}', [TattooerController::class, 'storeTraceability'])
+    Route::post('/traceability/{appointment}', [TattooerTraceabilityController::class, 'storeTraceability'])
         ->name('traceability.store');
 
     // Clôture RDV
-    Route::post('/appointments/{appointment}/complete', [TattooerController::class, 'completeAppointment'])
+    Route::post('/appointments/{appointment}/complete', [TattooerAppointmentController::class, 'completeAppointment'])
         ->name('appointments.complete');
 
-    Route::post('/appointments/{appointment}/no-show', [TattooerController::class, 'reportNoShow'])
+    Route::post('/appointments/{appointment}/no-show', [TattooerAppointmentController::class, 'reportNoShow'])
         ->name('appointments.no-show');
 
     // Paiement du solde hors plateforme
@@ -93,29 +113,29 @@ Route::middleware(['auth', 'artisan.can.operate'])->prefix('tattooer')->name('ta
         ->name('balance-payment.confirm-offline');
 
     // Médias client
-    Route::post('/client/{client}/photos/{bookingRequest}', [TattooerController::class, 'uploadClientTattooPhotos'])
+    Route::post('/client/{client}/photos/{bookingRequest}', [TattooerMediaController::class, 'uploadClientTattooPhotos'])
         ->name('client.photos.upload');
-    Route::delete('/client/{client}/media/{media}', [TattooerController::class, 'deleteClientMedia'])
+    Route::delete('/client/{client}/media/{media}', [TattooerMediaController::class, 'deleteClientMedia'])
         ->name('client.media.delete');
 
-    Route::get('/clients/{clientId}/requests', [TattooerController::class, 'clientRequests'])->name('client-requests');
-    Route::get('/portfolio', [TattooerController::class, 'portfolio'])->name('portfolio');
-    Route::post('/portfolio/upload', [TattooerController::class, 'portfolioUpload'])->name('portfolio.upload');
-    Route::post('/portfolio/before-after/store', [TattooerController::class, 'portfolioBeforeAfterStore'])->name('portfolio.before-after.store');
-    Route::delete('/portfolio/{media}', [TattooerController::class, 'portfolioDestroy'])->name('portfolio.destroy');
-    Route::delete('/portfolio/before-after/{beforeId}/{afterId}', [TattooerController::class, 'portfolioBeforeAfterDestroy'])->name('portfolio.before-after.destroy');
-    Route::get('/settings', [TattooerController::class, 'settings'])->name('settings');
-    Route::post('/settings', [TattooerController::class, 'settingsUpdate'])->name('settings.update');
-    Route::post('/settings/aftercare', [TattooerController::class, 'settingsAftercareUpdate'])->name('settings.aftercare');
-    Route::post('/settings/pricing', [TattooerController::class, 'settingsPricingUpdate'])->name('settings.pricing');
-    Route::delete('/settings/avatar', [TattooerController::class, 'deleteAvatar'])->name('settings.delete-avatar');
-    Route::delete('/settings/banner', [TattooerController::class, 'deleteBanner'])->name('settings.delete-banner');
-    Route::post('/settings/schedule', [TattooerController::class, 'settingsUpdateSchedule'])->name('settings.update-schedule');
-    Route::post('/settings/password', [TattooerController::class, 'settingsUpdatePassword'])->name('settings.update-password');
-    Route::post('/settings/hours', [TattooerController::class, 'updateHours'])->name('settings.hours.update');
-    Route::get('/settings/export-gdpr', [TattooerController::class, 'exportGdpr'])->name('gdpr.export')->middleware('throttle:3,60');
-    Route::get('/payments', [TattooerController::class, 'payments'])->name('payments');
-    Route::post('/stripe/connect', [TattooerController::class, 'connectStripe'])->name('stripe.connect');
+    Route::get('/clients/{clientId}/requests', [TattooerClientController::class, 'clientRequests'])->name('client-requests');
+    Route::get('/portfolio', [TattooerPortfolioController::class, 'portfolio'])->name('portfolio');
+    Route::post('/portfolio/upload', [TattooerPortfolioController::class, 'portfolioUpload'])->name('portfolio.upload');
+    Route::post('/portfolio/before-after/store', [TattooerPortfolioController::class, 'portfolioBeforeAfterStore'])->name('portfolio.before-after.store');
+    Route::delete('/portfolio/{media}', [TattooerPortfolioController::class, 'portfolioDestroy'])->name('portfolio.destroy');
+    Route::delete('/portfolio/before-after/{beforeId}/{afterId}', [TattooerPortfolioController::class, 'portfolioBeforeAfterDestroy'])->name('portfolio.before-after.destroy');
+    Route::get('/settings', [TattooerSettingsController::class, 'settings'])->name('settings');
+    Route::post('/settings', [TattooerSettingsController::class, 'settingsUpdate'])->name('settings.update');
+    Route::post('/settings/aftercare', [TattooerSettingsController::class, 'settingsAftercareUpdate'])->name('settings.aftercare');
+    Route::post('/settings/pricing', [TattooerSettingsController::class, 'settingsPricingUpdate'])->name('settings.pricing');
+    Route::delete('/settings/avatar', [TattooerMediaController::class, 'deleteAvatar'])->name('settings.delete-avatar');
+    Route::delete('/settings/banner', [TattooerMediaController::class, 'deleteBanner'])->name('settings.delete-banner');
+    Route::post('/settings/schedule', [TattooerSettingsController::class, 'settingsUpdateSchedule'])->name('settings.update-schedule');
+    Route::post('/settings/password', [TattooerSettingsController::class, 'settingsUpdatePassword'])->name('settings.update-password');
+    Route::post('/settings/hours', [TattooerSettingsController::class, 'updateHours'])->name('settings.hours.update');
+    Route::get('/settings/export-gdpr', [TattooerSettingsController::class, 'exportGdpr'])->name('gdpr.export')->middleware('throttle:3,60');
+    Route::get('/payments', [TattooerPaymentController::class, 'payments'])->name('payments');
+    Route::post('/stripe/connect', [TattooerPaymentController::class, 'connectStripe'])->name('stripe.connect');
 
     // ═══ Subscription ═══
     Route::get('/subscription-plans', [SubscriptionController::class, 'plans'])
@@ -131,11 +151,11 @@ Route::middleware(['auth', 'artisan.can.operate'])->prefix('tattooer')->name('ta
     Route::get('/subscription/manage', [SubscriptionController::class, 'manage'])
         ->name('subscription.manage');
 
-    Route::get('/compliance', [TattooerController::class, 'compliance'])->name('compliance');
-    Route::get('/compliance/documents', [TattooerController::class, 'complianceDocuments'])->name('compliance.documents');
-    Route::post('/compliance/documents', [TattooerController::class, 'complianceDocumentsUpload'])->name('compliance.documents.upload');
-    Route::get('/compliance/documents/{complianceRecord}/view/{field}', [TattooerController::class, 'complianceDocumentServe'])->name('compliance.documents.serve');
-    Route::delete('/compliance/documents/{complianceRecord}', [TattooerController::class, 'complianceDocumentDelete'])->name('compliance.documents.delete');
+    Route::get('/compliance', [TattooerComplianceController::class, 'compliance'])->name('compliance');
+    Route::get('/compliance/documents', [TattooerComplianceController::class, 'complianceDocuments'])->name('compliance.documents');
+    Route::post('/compliance/documents', [TattooerComplianceController::class, 'complianceDocumentsUpload'])->name('compliance.documents.upload');
+    Route::get('/compliance/documents/{complianceRecord}/view/{field}', [TattooerComplianceController::class, 'complianceDocumentServe'])->name('compliance.documents.serve');
+    Route::delete('/compliance/documents/{complianceRecord}', [TattooerComplianceController::class, 'complianceDocumentDelete'])->name('compliance.documents.delete');
 
     // Anciennes routes Livewire (gardées pour compatibilité)
     Route::get('/profil/edit', App\Livewire\Tattooer\Profile::class)->name('profile.edit');
@@ -268,22 +288,22 @@ Route::middleware(['throttle:10,5'])->group(function () {
 
 // Routes Client (protégées)
 Route::middleware(['auth'])->prefix('client')->name('client.')->group(function () {
-    Route::get('/', [App\Http\Controllers\ClientController::class, 'index'])->name('index');
-    Route::get('/dashboard', [App\Http\Controllers\ClientController::class, 'dashboard'])->name('dashboard');
-    Route::get('/booking-requests', [App\Http\Controllers\ClientController::class, 'bookingRequests'])->name('booking-requests');
-    Route::get('/booking-requests/{bookingRequest}', [App\Http\Controllers\ClientController::class, 'bookingRequestShow'])->name('booking-request.show');
-    Route::post('/booking-requests/{bookingRequest}/select-date', [App\Http\Controllers\ClientController::class, 'selectProposedDate'])->name('booking-request.select-date');
-    Route::post('/booking-requests/{bookingRequest}/request-alternatives', [App\Http\Controllers\ClientController::class, 'requestAlternativeDates'])->name('booking-request.request-alternatives');
-    Route::get('/chat/{conversation}', [App\Http\Controllers\ClientController::class, 'chat'])->name('chat');
-    Route::post('/message/{conversation}/send', [App\Http\Controllers\ClientController::class, 'sendMessage'])->name('message.send');
-    Route::get('/reviews', [App\Http\Controllers\ClientController::class, 'reviews'])->name('reviews');
-    Route::get('/complaints', [App\Http\Controllers\ClientController::class, 'complaints'])->name('complaints');
-    Route::post('/complaints', [App\Http\Controllers\ClientController::class, 'storeComplaint'])->name('complaints.store');
-    Route::post('/reviews/{bookingRequest}', [App\Http\Controllers\ClientController::class, 'createReview'])->name('reviews.create');
-    Route::post('/complaints/{bookingRequest}', [App\Http\Controllers\ClientController::class, 'createComplaint'])->name('complaints.create');
-    Route::post('/booking-requests/{bookingRequest}/cancel', [App\Http\Controllers\ClientController::class, 'bookingRequestCancel'])->name('booking-request.cancel');
-    Route::patch('/requests/{bookingRequest}/cancel', [App\Http\Controllers\ClientController::class, 'cancelRequest'])->name('requests.cancel');
-    Route::delete('/booking-request/{bookingRequest}/delete', [App\Http\Controllers\ClientController::class, 'bookingRequestDelete'])->name('booking-request.delete');
+    Route::get('/', [ClientDashboardController::class, 'dashboard'])->name('index');
+    Route::get('/dashboard', [ClientDashboardController::class, 'dashboard'])->name('dashboard');
+    Route::get('/booking-requests', [ClientBookingController::class, 'bookingRequests'])->name('booking-requests');
+    Route::get('/booking-requests/{bookingRequest}', [ClientBookingController::class, 'bookingRequestShow'])->name('booking-request.show');
+    Route::post('/booking-requests/{bookingRequest}/select-date', [ClientBookingController::class, 'selectProposedDate'])->name('booking-request.select-date');
+    Route::post('/booking-requests/{bookingRequest}/request-alternatives', [ClientBookingController::class, 'requestAlternativeDates'])->name('booking-request.request-alternatives');
+    Route::get('/chat/{conversation}', [ClientMessageController::class, 'chat'])->name('chat');
+    Route::post('/message/{conversation}/send', [ClientMessageController::class, 'sendMessage'])->name('message.send');
+    Route::get('/reviews', [ClientSocialController::class, 'reviews'])->name('reviews');
+    Route::get('/complaints', [ClientSocialController::class, 'complaints'])->name('complaints');
+    Route::post('/complaints', [ClientSocialController::class, 'storeComplaint'])->name('complaints.store');
+    Route::post('/reviews/{bookingRequest}', [ClientSocialController::class, 'createReview'])->name('reviews.create');
+    Route::post('/complaints/{bookingRequest}', [ClientSocialController::class, 'createComplaint'])->name('complaints.create');
+    Route::post('/booking-requests/{bookingRequest}/cancel', [ClientBookingController::class, 'bookingRequestCancel'])->name('booking-request.cancel');
+    Route::patch('/requests/{bookingRequest}/cancel', [ClientBookingController::class, 'cancelRequest'])->name('requests.cancel');
+    Route::delete('/booking-request/{bookingRequest}/delete', [ClientBookingController::class, 'bookingRequestDelete'])->name('booking-request.delete');
     Route::get('/bookings/{bookingRequest}/balance', [App\Http\Controllers\BalancePaymentController::class, 'show'])
         ->name('balance.show');
     Route::post('/bookings/{bookingRequest}/balance/checkout', [App\Http\Controllers\BalancePaymentController::class, 'checkout'])
@@ -292,39 +312,39 @@ Route::middleware(['auth'])->prefix('client')->name('client.')->group(function (
         ->name('balance-payment.success');
 });
 
-// Routes Pierceur — miroir exact des routes Tattooer, même TattooerController
+// Routes Pierceur — miroir exact des routes Tattooer, nouveaux controllers
 Route::middleware(['auth', 'role:pierceur,Piercer', 'artisan.can.operate'])->prefix('pierceur')->name('pierceur.')->group(function () {
-    Route::get('/profil', [TattooerController::class, 'profile'])->name('profile');
-    Route::get('/dashboard', [TattooerController::class, 'dashboard'])->name('dashboard');
-    Route::get('/requests', [TattooerController::class, 'requests'])->name('requests');
-    Route::get('/requests/{bookingRequest}', [TattooerController::class, 'requestShow'])->name('request.show');
+    Route::get('/profil', [TattooerDashboardController::class, 'profile'])->name('profile');
+    Route::get('/dashboard', [TattooerDashboardController::class, 'dashboard'])->name('dashboard');
+    Route::get('/requests', [TattooerBookingController::class, 'requests'])->name('requests');
+    Route::get('/requests/{bookingRequest}', [TattooerBookingController::class, 'requestShow'])->name('request.show');
     Route::get('/requests/{bookingRequest}/accept', function (\App\Models\BookingRequest $bookingRequest) {
         return redirect()->route('pierceur.request.show', $bookingRequest)
             ->with('info', 'Veuillez utiliser la modale d\'acceptation sur cette page.');
     })->name('request.accept.get');
-    Route::post('/requests/{bookingRequest}/accept', [TattooerController::class, 'acceptRequest'])->name('request.accept');
-    Route::post('/requests/{bookingRequest}/reject', [TattooerController::class, 'requestReject'])->name('request-reject');
-    Route::delete('/requests/{bookingRequest}', [TattooerController::class, 'destroyRequest'])->name('requests.destroy');
-    Route::patch('/requests/{bookingRequest}/cancel', [TattooerController::class, 'cancelRequest'])->name('requests.cancel');
-    Route::post('/booking-requests/{bookingRequest}/repropose-dates', [TattooerController::class, 'reproposeDates'])->name('booking-requests.repropose-dates');
-    Route::get('/calendar', [TattooerController::class, 'calendar'])->name('calendar');
-    Route::get('/calendar/events', [TattooerController::class, 'calendarEvents'])->name('calendar.events');
-    Route::post('/calendar', [TattooerController::class, 'calendarStore'])->name('calendar.store');
-    Route::patch('/calendar/{event}', [TattooerController::class, 'calendarUpdate'])->name('calendar.update');
-    Route::delete('/calendar/{event}', [TattooerController::class, 'calendarDestroy'])->name('calendar.destroy');
-    Route::get('/messages', [TattooerController::class, 'messages'])->name('messages');
-    Route::get('/messages/{bookingRequest}', [TattooerController::class, 'messageShow'])->name('message.show');
-    Route::post('/message/{bookingRequest}/send', [TattooerController::class, 'messageSend'])->name('message.send');
-    Route::post('/booking-requests/{bookingRequest}/complete', [TattooerController::class, 'completeBooking'])->name('booking-requests.complete');
-    Route::post('/booking-requests/{bookingRequest}/no-show', [TattooerController::class, 'markNoShow'])->name('booking-requests.no-show');
-    Route::get('/clients', [TattooerController::class, 'clients'])->name('clients');
-    Route::get('/clients/create', [TattooerController::class, 'createClient'])->name('clients.create')->middleware('pro');
-    Route::post('/clients', [TattooerController::class, 'storeClient'])->name('clients.store')->middleware('pro');
-    Route::get('/clients/{client}', [TattooerController::class, 'clientShow'])->name('client.show');
-    Route::put('/clients/{client}', [TattooerController::class, 'updateClient'])->name('clients.update')->middleware('pro');
-    Route::post('/clients/{client}/consent/upload', [TattooerController::class, 'uploadConsent'])->name('clients.consent.upload')->middleware('pro');
-    Route::post('/clients/{client}/consent/store-digital', [TattooerController::class, 'storeDigitalConsent'])->name('clients.consent.store-digital')->middleware('pro');
-    Route::delete('/clients/{client}/consent/{media}', [TattooerController::class, 'deleteConsent'])->name('clients.consent.delete')->middleware('pro');
+    Route::post('/requests/{bookingRequest}/accept', [TattooerBookingController::class, 'acceptRequest'])->name('request.accept');
+    Route::post('/requests/{bookingRequest}/reject', [TattooerBookingController::class, 'requestReject'])->name('request-reject');
+    Route::delete('/requests/{bookingRequest}', [TattooerBookingController::class, 'destroyRequest'])->name('requests.destroy');
+    Route::patch('/requests/{bookingRequest}/cancel', [TattooerBookingController::class, 'cancelRequest'])->name('requests.cancel');
+    Route::post('/booking-requests/{bookingRequest}/repropose-dates', [TattooerBookingController::class, 'reproposeDates'])->name('booking-requests.repropose-dates');
+    Route::get('/calendar', [TattooerCalendarController::class, 'calendar'])->name('calendar');
+    Route::get('/calendar/events', [TattooerCalendarController::class, 'calendarEvents'])->name('calendar.events');
+    Route::post('/calendar', [TattooerCalendarController::class, 'calendarStore'])->name('calendar.store');
+    Route::patch('/calendar/{event}', [TattooerCalendarController::class, 'calendarUpdate'])->name('calendar.update');
+    Route::delete('/calendar/{event}', [TattooerCalendarController::class, 'calendarDestroy'])->name('calendar.destroy');
+    Route::get('/messages', [TattooerMessageController::class, 'messages'])->name('messages');
+    Route::get('/messages/{bookingRequest}', [TattooerMessageController::class, 'messageShow'])->name('message.show');
+    Route::post('/message/{bookingRequest}/send', [TattooerMessageController::class, 'messageSend'])->name('message.send');
+    Route::post('/booking-requests/{bookingRequest}/complete', [TattooerBookingController::class, 'completeBooking'])->name('booking-requests.complete');
+    Route::post('/booking-requests/{bookingRequest}/no-show', [TattooerBookingController::class, 'markNoShow'])->name('booking-requests.no-show');
+    Route::get('/clients', [TattooerClientController::class, 'clients'])->name('clients');
+    Route::get('/clients/create', [TattooerClientController::class, 'createClient'])->name('clients.create')->middleware('pro');
+    Route::post('/clients', [TattooerClientController::class, 'storeClient'])->name('clients.store')->middleware('pro');
+    Route::get('/clients/{client}', [TattooerClientController::class, 'clientShow'])->name('client.show');
+    Route::put('/clients/{client}', [TattooerClientController::class, 'updateClient'])->name('clients.update')->middleware('pro');
+    Route::post('/clients/{client}/consent/upload', [TattooerConsentController::class, 'uploadConsent'])->name('clients.consent.upload')->middleware('pro');
+    Route::post('/clients/{client}/consent/store-digital', [TattooerConsentController::class, 'storeDigitalConsent'])->name('clients.consent.store-digital')->middleware('pro');
+    Route::delete('/clients/{client}/consent/{media}', [TattooerConsentController::class, 'deleteConsent'])->name('clients.consent.delete')->middleware('pro');
 
     // Routes subscription pour piercers
     Route::get('/subscription-plans', [SubscriptionController::class, 'plans'])->name('subscription.plans');
@@ -334,34 +354,34 @@ Route::middleware(['auth', 'role:pierceur,Piercer', 'artisan.can.operate'])->pre
     Route::post('/subscription/resume', [SubscriptionController::class, 'resume'])->name('subscription.resume');
     Route::get('/subscription/manage', [SubscriptionController::class, 'manage'])->name('subscription.manage');
     Route::get('/subscribe-from-trial', [SubscriptionController::class, 'subscribeFromTrial'])->name('subscription.subscribeFromTrial');
-    Route::post('/clients/{client}/traceability', [TattooerController::class, 'storeClientTraceability'])->name('clients.traceability.store')->middleware('pro');
-    Route::post('/clients/{client}/photos/upload', [TattooerController::class, 'uploadClientPhotos'])->name('clients.photos.upload')->middleware('pro');
-    Route::delete('/clients/{client}/photos/{media}', [TattooerController::class, 'deleteClientPhoto'])->name('clients.photos.delete')->middleware('pro');
-    Route::post('/clients/{client}/notes', [TattooerController::class, 'updateClientNotes'])->name('client.update-notes');
-    Route::get('/clients/{clientId}/requests', [TattooerController::class, 'clientRequests'])->name('client-requests');
-    Route::post('/consent/{bookingRequest}', [TattooerController::class, 'storeConsent'])->name('consent.store');
-    Route::post('/traceability/{appointment}', [TattooerController::class, 'storeTraceability'])->name('traceability.store');
-    Route::post('/appointments/{appointment}/complete', [TattooerController::class, 'completeAppointment'])->name('appointments.complete');
-    Route::post('/appointments/{appointment}/no-show', [TattooerController::class, 'reportNoShow'])->name('appointments.no-show');
+    Route::post('/clients/{client}/traceability', [TattooerTraceabilityController::class, 'storeClientTraceability'])->name('clients.traceability.store')->middleware('pro');
+    Route::post('/clients/{client}/photos/upload', [TattooerMediaController::class, 'uploadClientPhotos'])->name('clients.photos.upload')->middleware('pro');
+    Route::delete('/clients/{client}/photos/{media}', [TattooerMediaController::class, 'deleteClientPhoto'])->name('clients.photos.delete')->middleware('pro');
+    Route::post('/clients/{client}/notes', [TattooerClientController::class, 'updateClientNotes'])->name('client.update-notes');
+    Route::get('/clients/{clientId}/requests', [TattooerClientController::class, 'clientRequests'])->name('client-requests');
+    Route::post('/consent/{bookingRequest}', [TattooerConsentController::class, 'storeConsent'])->name('consent.store');
+    Route::post('/traceability/{appointment}', [TattooerTraceabilityController::class, 'storeTraceability'])->name('traceability.store');
+    Route::post('/appointments/{appointment}/complete', [TattooerAppointmentController::class, 'completeAppointment'])->name('appointments.complete');
+    Route::post('/appointments/{appointment}/no-show', [TattooerAppointmentController::class, 'reportNoShow'])->name('appointments.no-show');
     Route::post('/bookings/{bookingRequest}/balance/confirm-offline', [App\Http\Controllers\BalancePaymentController::class, 'confirmOffline'])->name('balance-payment.confirm-offline');
-    Route::post('/client/{client}/photos/{bookingRequest}', [TattooerController::class, 'uploadClientTattooPhotos'])->name('client.photos.upload');
-    Route::delete('/client/{client}/media/{media}', [TattooerController::class, 'deleteClientMedia'])->name('client.media.delete');
-    Route::get('/portfolio', [TattooerController::class, 'portfolio'])->name('portfolio');
-    Route::post('/portfolio/upload', [TattooerController::class, 'portfolioUpload'])->name('portfolio.upload');
-    Route::delete('/portfolio/{media}', [TattooerController::class, 'portfolioDestroy'])->name('portfolio.destroy');
-    Route::get('/settings', [TattooerController::class, 'settings'])->name('settings');
-    Route::post('/settings', [TattooerController::class, 'settingsUpdate'])->name('settings.update');
-    Route::post('/settings/aftercare', [TattooerController::class, 'settingsAftercareUpdate'])->name('settings.aftercare');
-    Route::post('/settings/pricing', [TattooerController::class, 'settingsPricingUpdate'])->name('settings.pricing');
-    Route::delete('/settings/avatar', [TattooerController::class, 'deleteAvatar'])->name('settings.delete-avatar');
-    Route::delete('/settings/banner', [TattooerController::class, 'deleteBanner'])->name('settings.delete-banner');
-    Route::post('/settings/schedule', [TattooerController::class, 'settingsUpdateSchedule'])->name('settings.update-schedule');
-    Route::post('/settings/password', [TattooerController::class, 'settingsUpdatePassword'])->name('settings.update-password');
-    Route::post('/settings/hours', [TattooerController::class, 'updateHours'])->name('settings.hours.update');
-    Route::get('/settings/export-gdpr', [TattooerController::class, 'exportGdpr'])->name('gdpr.export')->middleware('throttle:3,60');
-    Route::get('/payments', [TattooerController::class, 'payments'])->name('payments');
-    Route::post('/stripe/connect', [TattooerController::class, 'connectStripe'])->name('stripe.connect');
-    Route::get('/compliance', [TattooerController::class, 'compliance'])->name('compliance');
+    Route::post('/client/{client}/photos/{bookingRequest}', [TattooerMediaController::class, 'uploadClientTattooPhotos'])->name('client.photos.upload');
+    Route::delete('/client/{client}/media/{media}', [TattooerMediaController::class, 'deleteClientMedia'])->name('client.media.delete');
+    Route::get('/portfolio', [TattooerPortfolioController::class, 'portfolio'])->name('portfolio');
+    Route::post('/portfolio/upload', [TattooerPortfolioController::class, 'portfolioUpload'])->name('portfolio.upload');
+    Route::delete('/portfolio/{media}', [TattooerPortfolioController::class, 'portfolioDestroy'])->name('portfolio.destroy');
+    Route::get('/settings', [TattooerSettingsController::class, 'settings'])->name('settings');
+    Route::post('/settings', [TattooerSettingsController::class, 'settingsUpdate'])->name('settings.update');
+    Route::post('/settings/aftercare', [TattooerSettingsController::class, 'settingsAftercareUpdate'])->name('settings.aftercare');
+    Route::post('/settings/pricing', [TattooerSettingsController::class, 'settingsPricingUpdate'])->name('settings.pricing');
+    Route::delete('/settings/avatar', [TattooerMediaController::class, 'deleteAvatar'])->name('settings.delete-avatar');
+    Route::delete('/settings/banner', [TattooerMediaController::class, 'deleteBanner'])->name('settings.delete-banner');
+    Route::post('/settings/schedule', [TattooerSettingsController::class, 'settingsUpdateSchedule'])->name('settings.update-schedule');
+    Route::post('/settings/password', [TattooerSettingsController::class, 'settingsUpdatePassword'])->name('settings.update-password');
+    Route::post('/settings/hours', [TattooerSettingsController::class, 'updateHours'])->name('settings.hours.update');
+    Route::get('/settings/export-gdpr', [TattooerSettingsController::class, 'exportGdpr'])->name('gdpr.export')->middleware('throttle:3,60');
+    Route::get('/payments', [TattooerPaymentController::class, 'payments'])->name('payments');
+    Route::post('/stripe/connect', [TattooerPaymentController::class, 'connectStripe'])->name('stripe.connect');
+    Route::get('/compliance', [TattooerComplianceController::class, 'compliance'])->name('compliance');
     // Anciennes routes Livewire (miroir du groupe tattooer)
     Route::get('/profil/edit', App\Livewire\Tattooer\Profile::class)->name('profile.edit');
     Route::get('/disponibilites', App\Livewire\Tattooer\Availability::class)->name('availability');
@@ -373,12 +393,12 @@ Route::middleware(['auth', 'role:pierceur,Piercer', 'artisan.can.operate'])->pre
 
 // Routes Studio (protégées)
 // Profil public Studio (accessible sans auth)
-Route::get('/studios/{slug}', [App\Http\Controllers\StudioController::class, 'publicProfile'])->name('studio.public');
-Route::get('/salon/{slug}', [App\Http\Controllers\StudioController::class, 'publicProfile'])->name('studio.public.show');
+Route::get('/studios/{slug}', [StudioDashboardController::class, 'publicProfile'])->name('studio.public');
+Route::get('/salon/{slug}', [StudioDashboardController::class, 'publicProfile'])->name('studio.public.show');
 
 // Invitation artiste (publique, avec token)
-Route::get('/studio/invitation/{token}', [App\Http\Controllers\StudioController::class, 'acceptInvitation'])->name('studio.invitation.accept');
-Route::post('/studio/invitation/{token}', [App\Http\Controllers\StudioController::class, 'processInvitation'])->name('studio.invitation.process');
+Route::get('/studio/invitation/{token}', [StudioArtistController::class, 'acceptInvitation'])->name('studio.invitation.accept');
+Route::post('/studio/invitation/{token}', [StudioArtistController::class, 'processInvitation'])->name('studio.invitation.process');
 
 // Routes Studio (protégées — fusionnées Controller + Livewire)
 Route::middleware(['auth', 'role:studio', \App\Http\Middleware\EnsureStudioCanOperate::class])->prefix('studio')->name('studio.')->group(function () {
@@ -387,38 +407,38 @@ Route::middleware(['auth', 'role:studio', \App\Http\Middleware\EnsureStudioCanOp
     Route::get('/profil/edit', App\Livewire\Studio\Profile::class)->name('profile.edit');
     Route::get('/messages', App\Livewire\Studio\Messages::class)->name('messages');
     Route::get('/parametres', App\Livewire\Studio\Settings::class)->name('settings');
-    Route::put('/parametres', [App\Http\Controllers\StudioController::class, 'updateSettings'])->name('settings.update');
+    Route::put('/parametres', [StudioSettingsController::class, 'updateSettings'])->name('settings.update');
     Route::get('/calendar', App\Livewire\Studio\Calendar::class)->name('calendar');
     // Artistes
-    Route::get('/artists', [App\Http\Controllers\StudioController::class, 'artists'])->name('artists');
-    Route::get('/artists/create', [App\Http\Controllers\StudioController::class, 'createArtist'])->name('artists.create');
-    Route::post('/artists', [App\Http\Controllers\StudioController::class, 'storeArtist'])->name('artists.store');
-    Route::post('/artists/invite', [App\Http\Controllers\StudioController::class, 'inviteArtist'])->name('artists.invite');
-    Route::get('/artists/{studioArtist}', [App\Http\Controllers\StudioController::class, 'artistShow'])->name('artists.show');
-    Route::delete('/artists/{studioArtist}', [App\Http\Controllers\StudioController::class, 'removeArtist'])->name('artists.remove');
-    Route::put('/artists/{studioArtist}/toggle', [App\Http\Controllers\StudioController::class, 'toggleArtist'])->name('artists.toggle');
+    Route::get('/artists', [StudioArtistController::class, 'artists'])->name('artists');
+    Route::get('/artists/create', [StudioArtistController::class, 'createArtist'])->name('artists.create');
+    Route::post('/artists', [StudioArtistController::class, 'storeArtist'])->name('artists.store');
+    Route::post('/artists/invite', [StudioArtistController::class, 'inviteArtist'])->name('artists.invite');
+    Route::get('/artists/{studioArtist}', [StudioArtistController::class, 'artistShow'])->name('artists.show');
+    Route::delete('/artists/{studioArtist}', [StudioArtistController::class, 'removeArtist'])->name('artists.remove');
+    Route::put('/artists/{studioArtist}/toggle', [StudioArtistController::class, 'toggleArtist'])->name('artists.toggle');
     // Planning
-    Route::get('/planning', [App\Http\Controllers\StudioController::class, 'planning'])->name('planning');
-    Route::get('/planning/events', [App\Http\Controllers\StudioController::class, 'planningEvents'])->name('planning.events');
+    Route::get('/planning', [StudioDashboardController::class, 'planning'])->name('planning');
+    Route::get('/planning/events', [StudioDashboardController::class, 'planningEvents'])->name('planning.events');
     // Demandes
-    Route::get('/demandes', [App\Http\Controllers\StudioController::class, 'requests'])->name('requests');
-    Route::get('/demandes/{bookingRequest}', [App\Http\Controllers\StudioController::class, 'demandeShow'])->name('demandes.show');
+    Route::get('/demandes', [StudioBookingController::class, 'requests'])->name('requests');
+    Route::get('/demandes/{bookingRequest}', [StudioBookingController::class, 'demandeShow'])->name('demandes.show');
     // Fiches clients
-    Route::get('/clients', [App\Http\Controllers\StudioController::class, 'clients'])->name('clients.index');
-    Route::get('/clients/{client}', [App\Http\Controllers\StudioController::class, 'clientShow'])->name('clients.show');
-    Route::put('/clients/{client}', [App\Http\Controllers\StudioController::class, 'clientUpdate'])->name('clients.update');
+    Route::get('/clients', [StudioArtistController::class, 'clients'])->name('clients.index');
+    Route::get('/clients/{client}', [StudioArtistController::class, 'clientShow'])->name('clients.show');
+    Route::put('/clients/{client}', [StudioArtistController::class, 'clientUpdate'])->name('clients.update');
     // Billing & Abonnement
-    Route::get('/billing', [App\Http\Controllers\StudioController::class, 'billing'])->name('billing');
-    Route::get('/subscribe', [App\Http\Controllers\StudioController::class, 'billing'])->name('subscribe');
-    Route::post('/subscribe', [App\Http\Controllers\StudioController::class, 'subscribe'])->name('subscribe.post');
-    Route::post('/subscription/cancel', [App\Http\Controllers\StudioController::class, 'cancelSubscription'])->name('subscription.cancel');
-    Route::post('/subscription/resume', [App\Http\Controllers\StudioController::class, 'resumeSubscription'])->name('subscription.resume');
-    Route::post('/subscription/sync', [App\Http\Controllers\StudioController::class, 'syncSubscription'])->name('subscription.sync');
+    Route::get('/billing', [StudioBillingController::class, 'billing'])->name('billing');
+    Route::get('/subscribe', [StudioBillingController::class, 'billing'])->name('subscribe');
+    Route::post('/subscribe', [StudioBillingController::class, 'subscribe'])->name('subscribe.post');
+    Route::post('/subscription/cancel', [StudioBillingController::class, 'cancelSubscription'])->name('subscription.cancel');
+    Route::post('/subscription/resume', [StudioBillingController::class, 'resumeSubscription'])->name('subscription.resume');
+    Route::post('/subscription/sync', [StudioBillingController::class, 'syncSubscription'])->name('subscription.sync');
     // Compatibilité ancienne URL /souscrire
-    Route::get('/souscrire', [App\Http\Controllers\StudioController::class, 'showSubscribe'])->name('subscribe.legacy');
-    Route::post('/souscrire', [App\Http\Controllers\StudioController::class, 'processSubscribe'])->name('subscribe.legacy.process');
-    Route::get('/stats', [App\Http\Controllers\StudioController::class, 'stats'])->name('stats');
-    Route::post('/stripe/connect', [App\Http\Controllers\StudioController::class, 'connectStripe'])->name('stripe.connect');
+    Route::get('/souscrire', [StudioBillingController::class, 'showSubscribe'])->name('subscribe.legacy');
+    Route::post('/souscrire', [StudioBillingController::class, 'processSubscribe'])->name('subscribe.legacy.process');
+    Route::get('/stats', [StudioDashboardController::class, 'stats'])->name('stats');
+    Route::post('/stripe/connect', [StudioBillingController::class, 'connectStripe'])->name('stripe.connect');
     Route::get('/upgrade', function () {
         return view('professionnels.index');
     })->name('upgrade');
@@ -492,9 +512,9 @@ Route::delete('/tattooer/delete-account', [App\Http\Controllers\Tattooer\Account
     ->middleware(['auth'])->name('tattooer.delete-account');
 Route::delete('/pierceur/delete-account', [App\Http\Controllers\Tattooer\AccountController::class, 'destroyAccount'])
     ->middleware(['auth'])->name('pierceur.delete-account');
-Route::delete('/studio/delete-account', [App\Http\Controllers\StudioController::class, 'destroyAccount'])
+Route::delete('/studio/delete-account', [StudioBillingController::class, 'destroyAccount'])
     ->middleware(['auth'])->name('studio.delete-account');
-Route::delete('/client/delete-account', [App\Http\Controllers\ClientController::class, 'destroyAccount'])
+Route::delete('/client/delete-account', [App\Http\Controllers\Client\ClientAccountController::class, 'destroyAccount'])
     ->middleware(['auth'])->name('client.delete-account');
 
 // Routes webhook Stripe (sans CSRF)
@@ -562,7 +582,7 @@ Route::prefix('booking-request')->name('booking-request.')->group(function () {
 
 // Routes chat conversation
 Route::middleware(['auth'])->prefix('conversation/{conversation}/chat')->name('conversation.chat.')->group(function () {
-    Route::get('/', [App\Http\Controllers\ClientController::class, 'chat'])->name('show');
+    Route::get('/', [ClientMessageController::class, 'chat'])->name('show');
 });
 
 // Routes admin conversations — redirige vers Filament ConversationResource
@@ -574,7 +594,7 @@ Route::middleware(['auth', \App\Http\Middleware\EnsureUserIsAdmin::class])->pref
 
 // Routes consentement client
 Route::middleware(['auth'])->prefix('consent')->name('consent.')->group(function () {
-    Route::post('/{bookingRequest}', [App\Http\Controllers\ClientController::class, 'storeConsent'])->name('store');
+    Route::post('/{bookingRequest}', [ClientSocialController::class, 'storeConsent'])->name('store');
 });
 
 // Routes auth

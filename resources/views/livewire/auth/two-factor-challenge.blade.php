@@ -25,15 +25,15 @@
         >
             <div x-show="!showRecoveryInput">
                 <x-auth-header
-                    :title="__('Authentication Code')"
-                    :description="__('Enter the authentication code provided by your authenticator application.')"
+                    :title="__('Double authentification')"
+                    :description="__('Entrez le code à 6 chiffres généré par votre application d\'authentification (Google Authenticator, Authy…).')"
                 />
             </div>
 
             <div x-show="showRecoveryInput">
                 <x-auth-header
-                    :title="__('Recovery Code')"
-                    :description="__('Please confirm access to your account by entering one of your emergency recovery codes.')"
+                    :title="__('Code de récupération')"
+                    :description="__('Saisissez l\'un de vos codes de récupération d\'urgence pour accéder à votre compte.')"
                 />
             </div>
 
@@ -47,11 +47,17 @@
                                 x-model="code"
                                 length="6"
                                 name="code"
-                                label="OTP Code"
+                                label="Code OTP"
                                 label:sr-only
                                 class="mx-auto"
                              />
                         </div>
+
+                        @error('code')
+                            <flux:text color="red" class="text-sm">
+                                {{ __('Code invalide. Veuillez réessayer.') }}
+                            </flux:text>
+                        @enderror
                     </div>
 
                     <div x-show="showRecoveryInput">
@@ -63,12 +69,13 @@
                                 x-bind:required="showRecoveryInput"
                                 autocomplete="one-time-code"
                                 x-model="recovery_code"
+                                placeholder="xxxx-xxxx-xxxx"
                             />
                         </div>
 
                         @error('recovery_code')
-                            <flux:text color="red">
-                                {{ $message }}
+                            <flux:text color="red" class="text-sm">
+                                {{ __('Code de récupération invalide. Veuillez réessayer.') }}
                             </flux:text>
                         @enderror
                     </div>
@@ -78,15 +85,15 @@
                         type="submit"
                         class="w-full"
                     >
-                        {{ __('Continue') }}
+                        {{ __('Confirmer') }}
                     </flux:button>
                 </div>
 
                 <div class="mt-5 space-x-0.5 text-sm leading-5 text-center">
-                    <span class="opacity-50">{{ __('or you can') }}</span>
+                    <span class="opacity-50">{{ __('ou bien') }}</span>
                     <div class="inline font-medium underline cursor-pointer opacity-80">
-                        <span x-show="!showRecoveryInput" @click="toggleInput()">{{ __('login using a recovery code') }}</span>
-                        <span x-show="showRecoveryInput" @click="toggleInput()">{{ __('login using an authentication code') }}</span>
+                        <span x-show="!showRecoveryInput" @click="toggleInput()">{{ __('utiliser un code de récupération') }}</span>
+                        <span x-show="showRecoveryInput" @click="toggleInput()">{{ __('utiliser un code d\'authentification') }}</span>
                     </div>
                 </div>
             </form>
