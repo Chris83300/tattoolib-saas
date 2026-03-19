@@ -166,11 +166,13 @@ class TattooerComplianceController extends ArtisanBaseController
         $tattooer = $this->artisan();
         $user = auth()->user();
 
-        // Seul le propriétaire ou un admin peut consulter le document
-        if (!$user->hasRole('admin')) {
-            if ($complianceRecord->compliant_type !== get_class($tattooer) || $complianceRecord->compliant_id !== $tattooer->id) {
-                abort(403);
-            }
+        // Les admins peuvent consulter tous les documents
+        if ($user->isAdmin()) {
+            // Pas de vérification supplémentaire pour les admins
+        } elseif (is_null($tattooer)) {
+            abort(403, 'Accès non autorisé');
+        } elseif ($complianceRecord->compliant_type !== get_class($tattooer) || $complianceRecord->compliant_id !== $tattooer->id) {
+            abort(403);
         }
 
         if (!in_array($field, ['certificate_file_path', 'ars_proof_file_path'])) {
