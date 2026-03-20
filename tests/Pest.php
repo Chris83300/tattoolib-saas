@@ -58,6 +58,10 @@ pest()->extend(Tests\TestCase::class)
     ->use(Illuminate\Foundation\Testing\Concerns\InteractsWithAuthentication::class)
     ->in('Feature');
 
+pest()->extend(Tests\TestCase::class)
+    ->use(Illuminate\Foundation\Testing\Concerns\InteractsWithAuthentication::class)
+    ->in('Browser');
+
 // Config browser testing — timeout 15s
 pest()
     ->browser()

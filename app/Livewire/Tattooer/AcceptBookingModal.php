@@ -121,7 +121,7 @@ class AcceptBookingModal extends Component
         $this->resetValidation();
     }
 
-    public function submitAcceptance(): void
+    public function submitAcceptance(): mixed
     {
         try {
             $this->validate();
@@ -140,7 +140,7 @@ class AcceptBookingModal extends Component
             if ($this->tattooer && !($this->tattooer instanceof \App\Models\Piercer)) {
                 if ($this->totalDepositAmount > $this->priceEstimateMax * 0.5) {
                     $this->addError('totalDepositAmount', 'L\'acompte ne peut pas dépasser 50% du prix maximum.');
-                    return;
+                    return null;
                 }
             }
 
