@@ -1,5 +1,5 @@
 # CLAUDE.md — Contexte Ink&Pik pour Claude Code
-## Dernière mise à jour : 2026-03-19
+## Dernière mise à jour : 2026-03-20
 ## Mettre à jour ce fichier après chaque modification architecturale majeure
 
 ---
@@ -137,6 +137,8 @@ fiches clients, traçabilité, compliance SIRET, aftercare.
 | Spatie MediaLibrary | ^11.17 | Gestion médias |
 | DomPDF | ^3.1 | Export PDF |
 | Firebase (kreait) | ^6.2 | Notifications push FCM |
+| Livewire Flux | v2.10.2 | UI components auth/settings (19 vues) |
+| Pest | v4.3.1 | Tests — browser testing via Playwright |
 
 ---
 
@@ -192,6 +194,13 @@ L'ancien `TattooerController` (~3000 lignes) a été découpé en 14 fichiers :
 - `TattooerComplianceController` — compliance documents
 
 Tous étendent `ArtisanBaseController` et fonctionnent pour tattooers ET pierceurs (polymorphisme).
+
+### Marketplace (implémenté)
+- `MarketplaceSearchService` — recherche tattooer + piercer + studio
+- `ArtistSortHelper` — tri unifié : PRO > Studio > STARTER > Trial, rotation hebdomadaire
+- Composant Livewire `MarketplaceSearch` — filtres (styles, types piercing, prix, ville, PRO only, certifié)
+- Badges PRO/Studio/Conforme visibles sur les cards artistes
+- API : `/api/marketplace/search`, `/api/marketplace/featured`
 
 ### Traits partagés
 - `HasSubscription` → `isPro()`, `isStarter()`, `isOnTrial()`, `canAccessProFeature()`
@@ -298,21 +307,23 @@ app/Filament/Admin/             (112 fichiers PHP)
 
 ## SECURITE — ETAT ACTUEL
 
-**Score** : ~8/10 (post-fixes orange pré-bêta)
+**Score** : ~8.5/10 (post-audit + fixes 2026-03-20)
 
 ### En place
 - Webhook Stripe avec vérification signature `constructEvent()`
 - Montants toujours depuis la DB (jamais du POST client)
-- 13 Policies Eloquent enregistrées
+- 13 Policies Eloquent enregistrées (toutes les 13 policies mappées dans AuthServiceProvider)
 - Routes API sous `auth:sanctum`
 - CSP enforced (pas Report-Only)
 - CSP nonces sur script-src en production (sans unsafe-inline/eval) — `csp_nonce()` helper disponible
-- `SESSION_ENCRYPT=true`
+- `SESSION_ENCRYPT=true`, `SESSION_SECURE_COOKIE` configuré via env (défaut false, prod doit forcer true)
 - Rate limiting : inscriptions (10/5min), webhook (60/1min), reset password (5/10min)
 - Données médicales chiffrées (cast encrypted)
 - 2FA obligatoire pour les admins (vérifié dans SecurityHeaders middleware)
 - 2FA obligatoire pour artistes avec Stripe Connect actif (`artist.2fa` middleware)
 - Documents compliance sur disk `local` (privé), servis via route authentifiée
+- SRI (sha384) sur tous les CDN : FullCalendar 6.1.11 + img-comparison-slider
+- filament/tables v4.9.1 (CVE-2026-33080 corrigé)
 
 ### RGPD — Conformité Art. 9
 - `DataProcessingRecord` : registre des traitements (5 entrées seedées)
@@ -326,7 +337,7 @@ app/Filament/Admin/             (112 fichiers PHP)
 - Pentest externe avant lancement public
 - Audit RGPD formel avec DPO désigné (données de santé = catégorie spéciale Art. 9)
 - Ajouter `APP_CGU_VERSION` et `APP_PRIVACY_VERSION` dans `.env` pour versionner les CGU
-- Logo optimization (1.57 MB → à compresser)
+- Logo optimisé 512x512 (139 KB) — original 1024x1024 conservé dans `logo-original-1024.png`
 
 ### Variables sensibles
 - Ne JAMAIS logguer `$request->all()` → utiliser `$request->except(['password', ...])`
@@ -361,13 +372,15 @@ Notifications admin : `AdminMessageReceived`, `UserMessageToAdmin`,
 
 | Composant | Nombre |
 |-----------|--------|
-| Routes | ~488 lignes (route:list) |
-| Modèles (`app/Models`) | 39 fichiers |
-| Controllers | 51 fichiers (dont 14 dans `Tattooer/`) |
-| Livewire components | 54 fichiers |
-| Filament PHP | 112 fichiers |
-| Vues Blade | 232 fichiers |
-| Migrations exécutées | 34 |
+| Routes | ~502 lignes (route:list) |
+| Modèles (`app/Models`) | 40 fichiers |
+| Controllers | 60 fichiers (dont 14 dans `Tattooer/`) |
+| Livewire components | 55 fichiers |
+| Filament PHP | 118 fichiers |
+| Vues Blade | 238 fichiers |
+| Migrations exécutées | 36 |
+| Commits (branche frontend) | 229 |
+| Prompts Claude appliqués | 22 |
 
 ---
 
@@ -397,6 +410,46 @@ Notifications admin : `AdminMessageReceived`, `UserMessageToAdmin`,
 
 9. **Routes artisan** → toujours `route($tattooer->routePrefix() . '.xxx')` jamais `route('tattooer.xxx')`
 
+10. **Flux UI** → installé (v2.10.2), utilisé UNIQUEMENT dans les vues auth/settings (19 fichiers).
+    Les vues métier (tattooer, pierceur, client, marketplace) utilisent Tailwind + Alpine natif.
+    → ne PAS mélanger Flux dans les vues métier
+
+11. **Pest v4 Browser Testing** → basé sur Playwright (pas Dusk). Utiliser `visit()` + `->screenshot()`.
+    → `composer require pestphp/pest-plugin-browser --dev` + `npx playwright install`
+
+12. **VitePWA** → gère le Service Worker et le manifest. NE PAS enregistrer manuellement de SW dans app.js.
+    → `resources/js/sw.js` supprimé (vestige) — le SW est généré automatiquement par vite-plugin-pwa
+
+13. **CDN FullCalendar** → utilisé dans 3 vues (calendar.blade.php, planning.blade.php, tattooer-calendar.blade.php).
+    Version unifiée : 6.1.11. SRI sha384 en place.
+    → À migrer vers npm post-bêta pour éliminer la dépendance CDN
+
+---
+
+## PROMPTS CLAUDE APPLIQUÉS
+
+| # | Prompt | Contenu |
+|---|--------|---------|
+| 1 | prompt-CONTROLLERS-1-TATTOOER-REFACTOR | Découpage TattooerController → 14 fichiers |
+| 2 | prompt-CONTROLLERS-2-STUDIO-CLIENT-FORMREQUESTS | Controllers Studio/Client + FormRequests |
+| 3 | prompt-SECURITE-AVANCEE-1-CSP-2FA-HSTS | CSP nonces, HSTS, 2FA admin |
+| 4 | prompt-SECURITE-AVANCEE-2-RGPD | RGPD Art.9, chiffrement médical, registre |
+| 5 | prompt-FIX-CRITIQUE-securite | Fixes sécurité critiques |
+| 6 | prompt-FIX-ORANGE-avant-beta | Fixes orange pré-bêta |
+| 7 | prompt-FIX-JAUNE-dette-technique | Dette technique |
+| 8 | prompt-FIX-2FA-settings-flux-error | Fix 2FA settings |
+| 9 | prompt-FIX-URGENT-admin-2fa-flux | Fix admin 2FA + Flux UI |
+| 10 | prompt-K-marketplace-tri-pro | Tri PRO marketplace + ArtistSortHelper |
+| 11 | prompt-MARKETPLACE-recherche-filtres-studio | Marketplace search + filtres + studios |
+| 12 | prompt-UPDATE-CLAUDE-MD-REGLES | Règles de travail CLAUDE.md |
+| 13 | prompt-GENERER-CLAUDE-MD | Génération CLAUDE.md initial |
+| 14 | prompt-AUDIT-1-SECURITE | Audit sécurité → AUDIT_SECURITE.md (score 7.5/10) |
+| 15 | prompt-AUDIT-2-CONTROLLERS | Audit controllers → AUDIT_CONTROLLERS.md (score 7.5/10) |
+| 16 | prompt-AUDIT-3-FRONTEND | Audit frontend → AUDIT_FRONTEND.md (score 6.5/10) |
+| 17 | prompt-AUDIT-4-ADMIN-GLOBAL | Audit admin + synthèse → AUDIT_ADMIN.md + AUDIT_GLOBAL.md (score 7.1/10) |
+| 18 | prompt-FIXES-AUDIT-securite-perf | 12 fixes audit : filament v4.9.1, SRI, cache widgets, policies, N+1, logo |
+| 19 | prompt-UPDATE-CLAUDE-MD | Mise à jour CLAUDE.md (ce prompt) |
+
 ---
 
 ## COMMANDES UTILES
@@ -424,9 +477,14 @@ php artisan config:cache && php artisan route:cache && php artisan view:cache
 
 | Item | Priorité | Effort |
 |------|---------|--------|
-| StudioController : ~1200 lignes | Post-bêta | L |
-| Pentest externe | Avant lancement public | - |
-| Logo optimization (1.57 MB) | Post-bêta | S |
+| SESSION_SECURE_COOKIE=true en prod | 🔴 Immédiat | 5 min |
+| StripeWebhookController : 700L / 1 méthode | 🟡 Post-bêta | 1 jour |
+| StudioArtistController : 591L | 🟡 Post-bêta | 4h |
+| StudioController : ~1200 lignes | 🔵 Long terme | L |
+| JS inline : ~2300L dans 19 vues | 🟡 Post-bêta | 2 jours |
+| 0 tests Pest écrits | 🟡 Post-bêta | 2 jours |
+| Pentest externe | 🔵 Avant lancement public | Externe |
+| FullCalendar via CDN → migrer vers npm | 🔵 Post-bêta | M |
 
 ---
 
