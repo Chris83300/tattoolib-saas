@@ -2,6 +2,18 @@ import './bootstrap';
 import './unread-messages';
 import { registerSW } from 'virtual:pwa-register';
 
+// Enregistrement PWA Service Worker (vite-plugin-pwa)
+const updateSW = registerSW({
+    onNeedRefresh() {
+        if (confirm('Nouvelle version disponible. Mettre à jour ?')) {
+            updateSW(true);
+        }
+    },
+    onOfflineReady() {
+        console.log('Ink&Pik est prête pour le mode hors ligne');
+    },
+});
+
 // Composant Alpine global — bannière consentement cookies (CNIL)
 document.addEventListener('alpine:init', () => {
     Alpine.data('cookieConsent', () => ({
@@ -65,18 +77,7 @@ document.addEventListener('alpine:init', () => {
 // Clé VAPID publique — lue depuis la meta tag injectée par le layout (config/env)
 const VAPID_KEY = document.querySelector('meta[name="vapid-public-key"]')?.content || '';
 
-// Enregistrement du Service Worker
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-                console.log('ServiceWorker enregistré avec succès');
-            })
-            .catch(error => {
-                console.log('Échec de l\'enregistrement du ServiceWorker :', error);
-            });
-    });
-}
+// ⚠️ Enregistrement SW géré par vite-plugin-pwa (registerSW ci-dessus)
 
 // Demande de permission pour les notifications
 export function requestNotificationPermission() {

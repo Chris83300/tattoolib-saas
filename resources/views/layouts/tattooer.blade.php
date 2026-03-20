@@ -7,10 +7,7 @@
     <title>@yield('title', 'Dashboard') - Ink&Pik</title>
     @livewireStyles
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-
-    <!-- FullCalendar -->
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/locales/fr.global.min.js'></script>
+    @stack('styles')
 
     <!-- Alpine.js -->
     {{-- <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script> --}}
@@ -19,6 +16,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- VAPID public key (notifications push) -->
     <meta name="vapid-public-key" content="{{ config('webpush.vapid.public_key', env('VAPID_PUBLIC_KEY', '')) }}">
+
+    @include('partials.pwa-meta')
 </head>
 
 @php
@@ -398,6 +397,7 @@
     @livewireScripts
     @livewire('admin-chat')
 
+    @include('partials.pwa-install-prompt')
 </body>
 
 </html>

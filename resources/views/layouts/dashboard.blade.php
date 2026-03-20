@@ -20,7 +20,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <!-- PWA Manifest -->
-    <link rel="manifest" href="{{ asset('manifest.json') }}">
+    <link rel="manifest" href="/build/manifest.webmanifest" crossorigin="use-credentials">
     <link rel="apple-touch-icon" href="{{ asset('images/icon-192x192.png') }}">
 
     @stack('styles')
@@ -122,5 +122,7 @@
     </script>
 
     @stack('scripts')
+
+    @include('partials.pwa-install-prompt')
 </body>
 </html>

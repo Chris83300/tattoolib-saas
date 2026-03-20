@@ -20,6 +20,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- VAPID public key (notifications push) -->
     <meta name="vapid-public-key" content="{{ config('webpush.vapid.public_key', env('VAPID_PUBLIC_KEY', '')) }}">
+
+    @include('partials.pwa-meta')
 </head>
 
 <body class="bg-noir-profond">
@@ -384,6 +386,8 @@ try {
     @auth
         @livewire('admin-chat')
     @endauth
+
+    @include('partials.pwa-install-prompt')
 </body>
 
 </html>

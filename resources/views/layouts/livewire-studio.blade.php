@@ -10,6 +10,8 @@
 
     <!-- CSRF Token for AJAX -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    @include('partials.pwa-meta')
 </head>
 
 @php
@@ -331,6 +333,8 @@
             if (el) el.classList.add('hidden');
         }
     </script>
+
+    @include('partials.pwa-install-prompt')
 </body>
 
 </html>

@@ -12,6 +12,7 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/js/app.js',
                 'resources/js/stripe-deposit.js',
+                'resources/js/tattooer-calendar.js',
             ],
             refresh: true,
         }),
@@ -22,12 +23,14 @@ export default defineConfig({
             manifest: {
                 name: 'Ink&Pik - Marketplace Arts Corporels',
                 short_name: 'Ink&Pik',
-                description: 'Marketplace et logiciel pour tatoueurs, pierceurs et studios',
+                description: 'Marketplace et logiciel pour tatoueurs, pierceurs et studios en France',
                 start_url: '/',
                 display: 'standalone',
                 background_color: '#0A0A0A',
                 theme_color: '#D4B59E',
                 orientation: 'portrait-primary',
+                lang: 'fr-FR',
+                categories: ['business', 'lifestyle', 'health'],
                 icons: [
                     {
                         src: '/images/icon-192x192.png',
@@ -40,8 +43,63 @@ export default defineConfig({
                         type: 'image/png',
                         purpose: 'any maskable'
                     }
+                ],
+                shortcuts: [
+                    {
+                        name: 'Marketplace',
+                        short_name: 'Explorer',
+                        url: '/marketplace',
+                        icons: [{ src: '/images/icon-192x192.png', sizes: '192x192' }]
+                    }
                 ]
-            }
+            },
+            workbox: {
+                globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+                navigateFallbackDenylist: [
+                    /^\/admin/,
+                    /^\/stripe/,
+                    /^\/webhooks/,
+                    /^\/livewire/,
+                ],
+                runtimeCaching: [
+                    {
+                        urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+                        handler: 'CacheFirst',
+                        options: {
+                            cacheName: 'google-fonts-cache',
+                            expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
+                            cacheableResponse: { statuses: [0, 200] },
+                        },
+                    },
+                    {
+                        urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+                        handler: 'CacheFirst',
+                        options: {
+                            cacheName: 'gstatic-fonts-cache',
+                            expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
+                            cacheableResponse: { statuses: [0, 200] },
+                        },
+                    },
+                    {
+                        urlPattern: /\/api\/.*/i,
+                        handler: 'NetworkFirst',
+                        options: {
+                            cacheName: 'api-cache',
+                            expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 },
+                            cacheableResponse: { statuses: [0, 200] },
+                        },
+                    },
+                    {
+                        urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/i,
+                        handler: 'CacheFirst',
+                        options: {
+                            cacheName: 'images-cache',
+                            expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 30 },
+                            cacheableResponse: { statuses: [0, 200] },
+                        },
+                    },
+                ],
+            },
         })
     ],
     server: {

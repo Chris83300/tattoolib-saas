@@ -206,12 +206,11 @@
                         const response = await fetch('/api/marketplace/stats');
                         const stats = await response.json();
 
-                        document.getElementById('total-artists').textContent = stats.total_artists || '-';
-                        document.getElementById('verified-artists').textContent = stats.verified_artists ||
-                            '-';
-                        document.getElementById('pro-artists').textContent = stats.pro_artists || '-';
-                        document.getElementById('total-appointments').textContent = stats
-                            .total_appointments || '-';
+                        const el = (id) => document.getElementById(id);
+                        if (el('total-artists')) el('total-artists').textContent = stats.total_artists || '-';
+                        if (el('verified-artists')) el('verified-artists').textContent = stats.verified_artists || '-';
+                        if (el('pro-artists')) el('pro-artists').textContent = stats.pro_artists || '-';
+                        if (el('total-appointments')) el('total-appointments').textContent = stats.total_appointments || '-';
                     } catch (error) {
                         console.error('Erreur chargement stats:', error);
                     }

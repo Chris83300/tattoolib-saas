@@ -33,8 +33,8 @@
     </style>
 
     <!-- PWA Manifest -->
-    <link rel="manifest" href="{{ asset('manifest.json') }}">
-    <link rel="apple-touch-icon" href="{{ asset('images/logo.png') }}">
+    <link rel="manifest" href="/build/manifest.webmanifest" crossorigin="use-credentials">
+    <link rel="apple-touch-icon" href="{{ asset('images/icon-192x192.png') }}">
 
     @stack('styles')
 
