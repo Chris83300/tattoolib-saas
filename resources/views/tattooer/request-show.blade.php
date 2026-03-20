@@ -318,6 +318,7 @@
                                 @elseif($bookingRequest->status->value === 'accepted') bg-vert-succes/20 text-vert-succes
                                 @elseif($bookingRequest->status->value === 'in_progress') bg-beige-peau/20 text-beige-peau
                                 @elseif($bookingRequest->status->value === 'completed') bg-vert-succes/20 text-vert-succes
+                                @elseif($bookingRequest->status->value === 'date_confirmed') bg-vert-succes/20 text-vert-succes
                                 @elseif($bookingRequest->status->value === 'cancelled') bg-rouge-alerte/20 text-rouge-alerte @endif">
                             {{ ucfirst($bookingRequest->status->value) }}
                         </span>
@@ -445,7 +446,7 @@
                                 </form>
 
                                 @if ($bookingRequest->status->value === 'date_confirmed')
-                                    <form action="{{ route('booking-requests.complete', $bookingRequest) }}"
+                                    <form action="{{ route('tattooer.booking-requests.complete', $bookingRequest) }}"
                                         method="POST">
                                         @csrf
                                         <button type="submit"
@@ -454,7 +455,7 @@
                                         </button>
                                     </form>
 
-                                    <form action="{{ route('booking-requests.no-show', $bookingRequest) }}"
+                                    <form action="{{ route('tattooer.booking-requests.no-show', $bookingRequest) }}"
                                         method="POST"
                                         onsubmit="return confirm('Êtes-vous sûr de vouloir déclarer ce client comme absent ? Cette action est irréversible et incrémentera son compteur de no-show.')">
                                         @csrf
@@ -850,12 +851,6 @@
             if (typeof Livewire !== 'undefined') {
                 Livewire.on('redirect', (event) => {
                     window.location.href = event.url;
-                });
-
-                // Écouter l'événement booking-accepted pour rafraîchir la page
-                Livewire.on('booking-accepted', () => {
-                    // Rafraîchir la page pour afficher les nouvelles informations
-                    window.location.reload();
                 });
             }
         </script>

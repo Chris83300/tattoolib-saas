@@ -218,8 +218,12 @@ class AcceptBookingModal extends Component
             // Message de succès
             session()->flash('success', '✅ Demande acceptée ! La conversation a été créée.');
 
-            // Rafraîchir la page parente (capté par le JS de request-show via Livewire.on)
-            $this->dispatch('booking-accepted');
+            // Rediriger vers la page de la demande pour forcer le rechargement
+            $artisan = auth()->user()->artisan();
+            return $this->redirect(
+                route($artisan->routePrefix() . '.request.show', $this->bookingRequest),
+                navigate: false
+            );
 
         } catch (\Exception $e) {
             \Log::error('AcceptBookingModal: submitAcceptance error', [
@@ -227,7 +231,7 @@ class AcceptBookingModal extends Component
                 'trace' => $e->getTraceAsString()
             ]);
 
-            $this->addError('general', 'Une erreur est survenue : ' . $e->getMessage());
+            $this->addError('general', 'Une erreur est survenue. Veuillez réessayer.');
         }
     }
 
