@@ -58,6 +58,12 @@ pest()->extend(Tests\TestCase::class)
     ->use(Illuminate\Foundation\Testing\Concerns\InteractsWithAuthentication::class)
     ->in('Feature');
 
+// Config browser testing — locale FR, timeout 15s
+pest()
+    ->browser()
+    ->withLocale('fr-FR')
+    ->timeout(15000);
+
 /*
 |--------------------------------------------------------------------------
 | Expectations
