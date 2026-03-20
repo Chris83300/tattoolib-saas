@@ -7,6 +7,7 @@ use Laravel\Cashier\Subscription as CashierSubscription;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 class MonthlyRevenueChartWidget extends ChartWidget
 {
@@ -15,6 +16,13 @@ class MonthlyRevenueChartWidget extends ChartWidget
     protected static ?int $sort = 1;
 
     protected function getData(): array
+    {
+        return Cache::remember('admin.widget.monthly_revenue.data', 300, function () {
+            return $this->buildChartData();
+        });
+    }
+
+    private function buildChartData(): array
     {
         // Données des 12 derniers mois
         $months = collect(range(11, 0))->map(function($monthsAgo) {
@@ -127,7 +135,7 @@ class MonthlyRevenueChartWidget extends ChartWidget
                 return Carbon::parse($month)->format('M Y');
             })->toArray(),
         ];
-    }
+    } // end buildChartData
 
     protected function getType(): string
     {
@@ -136,44 +144,45 @@ class MonthlyRevenueChartWidget extends ChartWidget
 
     protected function getFooter(): ?string
     {
-        $totalGrossRevenue = Payment::whereDate('created_at', '>=', Carbon::now()->subMonths(12))
-            ->where('status', 'completed')
-            ->sum('amount');
+        return Cache::remember('admin.widget.monthly_revenue.footer', 300, function () {
+            $totalGrossRevenue = Payment::whereDate('created_at', '>=', Carbon::now()->subMonths(12))
+                ->where('status', 'completed')
+                ->sum('amount');
 
-        // Calcul des commissions totales sur 12 mois
-        $totalCommission = 0;
-        $payments = Payment::whereDate('created_at', '>=', Carbon::now()->subMonths(12))
-            ->where('status', 'completed')
-            ->with(['bookingRequest.user'])
-            ->get();
+            $totalCommission = 0;
+            $payments = Payment::whereDate('created_at', '>=', Carbon::now()->subMonths(12))
+                ->where('status', 'completed')
+                ->with(['bookingRequest.user'])
+                ->get();
 
-        foreach ($payments as $payment) {
-            $isStarterCommission = false;
+            foreach ($payments as $payment) {
+                $isStarterCommission = false;
 
-            if ($payment->bookingRequest && $payment->bookingRequest->user) {
-                $user = $payment->bookingRequest->user;
+                if ($payment->bookingRequest && $payment->bookingRequest->user) {
+                    $user = $payment->bookingRequest->user;
 
-                $activeSubscription = CashierSubscription::where('user_id', $user->id)
-                    ->where('stripe_status', 'active')
-                    ->first();
+                    $activeSubscription = CashierSubscription::where('user_id', $user->id)
+                        ->where('stripe_status', 'active')
+                        ->first();
 
-                if ($activeSubscription) {
-                    $price = $activeSubscription->stripe_price ?? '';
+                    if ($activeSubscription) {
+                        $price = $activeSubscription->stripe_price ?? '';
 
-                    if (str_contains($price, '1T7E4D') || str_contains($price, 'starter')) {
-                        $isStarterCommission = true;
+                        if (str_contains($price, '1T7E4D') || str_contains($price, 'starter')) {
+                            $isStarterCommission = true;
+                        }
                     }
+                }
+
+                if ($isStarterCommission) {
+                    $totalCommission += $payment->amount * 0.07;
                 }
             }
 
-            if ($isStarterCommission) {
-                $totalCommission += $payment->amount * 0.07;
-            }
-        }
+            $totalNetRevenue = $totalGrossRevenue - $totalCommission;
+            $averageMonthly = $totalNetRevenue / 12;
 
-        $totalNetRevenue = $totalGrossRevenue - $totalCommission;
-        $averageMonthly = $totalNetRevenue / 12;
-
-        return "Brut 12mo: " . number_format($totalGrossRevenue, 2) . "€ | Commission: " . number_format($totalCommission, 2) . "€ | Net mensuel moyen: " . number_format($averageMonthly, 2) . "€";
+            return "Brut 12mo: " . number_format($totalGrossRevenue, 2) . "€ | Commission: " . number_format($totalCommission, 2) . "€ | Net mensuel moyen: " . number_format($averageMonthly, 2) . "€";
+        });
     }
 }

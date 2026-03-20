@@ -40,6 +40,11 @@ class BookingRequestResource extends Resource
         return BookingRequestsTable::configure($table);
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['client.user', 'bookable']);
+    }
+
     public static function getRelations(): array
     {
         return [

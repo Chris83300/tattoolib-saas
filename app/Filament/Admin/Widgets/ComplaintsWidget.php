@@ -6,6 +6,7 @@ use App\Models\Complaint;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 class ComplaintsWidget extends BaseWidget
 {
@@ -14,10 +15,11 @@ class ComplaintsWidget extends BaseWidget
 
     protected function getStats(): array
     {
+        return Cache::remember('admin.widget.complaints', 300, function () {
         $pendingComplaints = Complaint::where('status', 'pending')->count();
         $resolvedComplaints = Complaint::where('status', 'resolved')->count();
         $totalComplaints = Complaint::count();
-        
+
         $complaintsThisMonth = Complaint::whereMonth('created_at', Carbon::now()->month)->count();
         $complaintsLastMonth = Complaint::whereMonth('created_at', Carbon::now()->subMonth()->month)->count();
         $complaintGrowth = $complaintsLastMonth > 0 ? (($complaintsThisMonth - $complaintsLastMonth) / $complaintsLastMonth) * 100 : 0;
@@ -39,5 +41,6 @@ class ComplaintsWidget extends BaseWidget
                 ->descriptionIcon($complaintGrowth >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
                 ->color($complaintGrowth >= 0 ? 'warning' : 'success'),
         ];
+        }); // end Cache::remember
     }
 }

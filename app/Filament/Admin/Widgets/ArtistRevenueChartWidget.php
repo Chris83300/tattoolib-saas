@@ -10,6 +10,7 @@ use App\Models\Studio;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 class ArtistRevenueChartWidget extends ChartWidget
 {
@@ -18,6 +19,11 @@ class ArtistRevenueChartWidget extends ChartWidget
     protected static ?int $sort = 2;
 
     protected function getData(): array
+    {
+        return Cache::remember('admin.widget.artist_revenue.data', 300, fn () => $this->buildChartData());
+    }
+
+    private function buildChartData(): array
     {
         // Revenus des 30 derniers jours par type d'artiste
         $startDate = Carbon::now()->subDays(30);
@@ -115,6 +121,7 @@ class ArtistRevenueChartWidget extends ChartWidget
 
     protected function getFooter(): ?string
     {
+        return Cache::remember('admin.widget.artist_revenue.footer', 300, function () {
         $totalRevenue = Payment::whereDate('created_at', '>=', Carbon::now()->subDays(30))
             ->where('status', 'completed')
             ->sum('amount');
@@ -123,6 +130,7 @@ class ArtistRevenueChartWidget extends ChartWidget
             ->where('status', 'completed')
             ->count();
 
-        return "Total 30 jours: " . number_format($totalRevenue, 2) . "€ | Transactions: " . $totalTransactions;
+            return "Total 30 jours: " . number_format($totalRevenue, 2) . "€ | Transactions: " . $totalTransactions;
+        });
     }
 }
