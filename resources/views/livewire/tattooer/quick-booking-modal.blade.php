@@ -92,8 +92,11 @@
                         Annuler
                     </button>
                     <button type="submit"
-                        class="flex-1 px-4 py-2 bg-beige-peau text-noir-profond font-bold rounded-lg hover:bg-beige-peau/90 transition-colors">
-                        ✅ Confirmer le RDV
+                        wire:loading.attr="disabled"
+                        wire:target="createAppointment"
+                        class="flex-1 px-4 py-2 bg-beige-peau text-noir-profond font-bold rounded-lg hover:bg-beige-peau/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span wire:loading.remove wire:target="createAppointment">✅ Confirmer le RDV</span>
+                        <span wire:loading wire:target="createAppointment">Création...</span>
                     </button>
                 </div>
             </form>

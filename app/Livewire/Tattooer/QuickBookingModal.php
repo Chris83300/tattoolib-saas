@@ -25,6 +25,7 @@ class QuickBookingModal extends Component
     public string $appointmentDateDisplay = '';
     public string $startTime = '';
     public string $endTime = '';
+    public bool $isSubmitting = false;
 
     protected $rules = [
         'startTime' => 'required|date_format:H:i',
@@ -41,7 +42,7 @@ class QuickBookingModal extends Component
     #[On('open-booking-from-chat')]
     public function openBookingModal(string $date, string $period, int $bookingRequestId): void
     {
-        $this->bookingRequestId = $bookingRequestId;
+        $this->currentBookingRequestId = $bookingRequestId;
         $this->showQuickBookingModal = true;
 
         // Debug logs
@@ -118,6 +119,10 @@ class QuickBookingModal extends Component
 
     public function createAppointment(): void
     {
+        if ($this->isSubmitting) return;
+        $this->isSubmitting = true;
+
+        try {
         $this->validate();
 
         $artisan = auth()->user()->tattooer ?? auth()->user()->piercer;
@@ -198,6 +203,9 @@ class QuickBookingModal extends Component
 
         // Rafraîchir le calendrier FullCalendar
         $this->dispatch('refresh-quick-booking');
+        } finally {
+            $this->isSubmitting = false;
+        }
     }
 
     public function resetForm(): void
