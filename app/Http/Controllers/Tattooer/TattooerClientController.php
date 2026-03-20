@@ -264,9 +264,8 @@ class TattooerClientController extends ArtisanBaseController
     public function storeClient(Request $request)
     {
         try {
-            // Debug
             Log::info('storeClient called', [
-                'request_data' => $request->all(),
+                'fields' => array_keys($request->except(['password', 'password_confirmation', '_token', '_method'])),
                 'tattooer_id' => $this->artisan()?->id,
                 'is_pro' => $this->artisan()?->isPro()
             ]);
