@@ -229,7 +229,7 @@ class TattooerSettingsController extends ArtisanBaseController
 
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la mise à jour des horaires: ' . $e->getMessage()
+                'message' => 'Une erreur est survenue lors de la mise à jour des horaires. Veuillez réessayer.'
             ], 500);
         }
     }

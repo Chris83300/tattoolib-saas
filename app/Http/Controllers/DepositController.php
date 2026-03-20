@@ -193,12 +193,14 @@ class DepositController extends Controller
                 }
             }
 
-            Log::info('Stripe Connect — dépôt', [
-                'artist_id'             => $artist?->id,
-                'destination_account'   => $destinationAccountId ?? 'AUCUN — onboarding incomplet ou absent',
-                'amount_cents'          => $amountCents,
-                'application_fee_cents' => $feeAmount,
-            ]);
+            if (app()->environment('local', 'testing')) {
+                Log::info('Stripe Connect — dépôt', [
+                    'artist_id'             => $artist?->id,
+                    'destination_account'   => $destinationAccountId ?? 'AUCUN — onboarding incomplet ou absent',
+                    'amount_cents'          => $amountCents,
+                    'application_fee_cents' => $feeAmount,
+                ]);
+            }
 
             $session = Session::create([
                 'payment_method_types' => ['card'],

@@ -382,10 +382,12 @@ class StripeWebhookController extends Controller
                     $transaction->addMetadata(['receipt_url' => $receiptUrl]);
                     $transaction->update(['receipt_url' => $receiptUrl]);
 
-                    Log::info('Webhook: URL du reçu stockée', [
-                        'transaction_id' => $transaction->id,
-                        'receipt_url' => $receiptUrl,
-                    ]);
+                    if (app()->environment('local', 'testing')) {
+                        Log::info('Webhook: URL du reçu stockée', [
+                            'transaction_id' => $transaction->id,
+                            'receipt_url' => $receiptUrl,
+                        ]);
+                    }
                 }
             }
         } catch (\Exception $e) {

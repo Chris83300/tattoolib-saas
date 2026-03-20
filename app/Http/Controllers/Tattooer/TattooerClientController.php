@@ -326,7 +326,7 @@ class TattooerClientController extends ArtisanBaseController
                 'trace' => $e->getTraceAsString()
             ]);
             return redirect()->back()
-                ->with('error', '❌ Erreur lors de la création du client: ' . $e->getMessage())
+                ->with('error', 'Une erreur est survenue lors de la création du client. Veuillez réessayer.')
                 ->withInput();
         }
     }

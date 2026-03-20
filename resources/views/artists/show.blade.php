@@ -365,8 +365,10 @@
 
 @push('scripts')
     <!-- img-comparison-slider Web Component -->
-    <script type="module" src="https://unpkg.com/img-comparison-slider@7/dist/index.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/img-comparison-slider@7/dist/styles.css">
+    <script type="module" src="https://unpkg.com/img-comparison-slider@7/dist/index.js"
+            integrity="sha384-ATCXXDP/8PpAur9hrdNEJYm/iaX8HttzgFnXnDAuoyln7ijihDs/ByLLo3DLQ6Ci" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://unpkg.com/img-comparison-slider@7/dist/styles.css"
+          integrity="sha384-1vq+jpTIPYebT2PkQ4Fei+uukMe/GdKbE/9YnyEZGkihkI5g5Q6DNBwJf+DNHOZj" crossorigin="anonymous">
 
     <style>
         /* Custom styling pour img-comparison-slider */
