@@ -438,6 +438,9 @@ Route::middleware(['auth', 'role:studio', \App\Http\Middleware\EnsureStudioCanOp
     Route::get('/souscrire', [StudioBillingController::class, 'showSubscribe'])->name('subscribe.legacy');
     Route::post('/souscrire', [StudioBillingController::class, 'processSubscribe'])->name('subscribe.legacy.process');
     Route::get('/stats', [StudioDashboardController::class, 'stats'])->name('stats');
+    Route::get('/comptabilite', [StudioDashboardController::class, 'comptabilite'])->name('comptabilite');
+    Route::get('/conversations', [StudioDashboardController::class, 'conversations'])->name('conversations');
+    Route::get('/conversations/{conversation}', [StudioDashboardController::class, 'conversationShow'])->name('conversations.show');
     Route::post('/stripe/connect', [StudioBillingController::class, 'connectStripe'])->name('stripe.connect');
     Route::get('/upgrade', function () {
         return view('professionnels.index');
@@ -628,6 +631,18 @@ Route::prefix('legal')->name('legal.')->group(function () {
     Route::get('/cgv-clients', [App\Http\Controllers\LegalController::class, 'cgvClients'])->name('cgv-clients');
     Route::get('/politique-de-confidentialite', [App\Http\Controllers\LegalController::class, 'politiqueConfidentialite'])->name('politique-confidentialite');
     Route::get('/politique-de-cookies', [App\Http\Controllers\LegalController::class, 'politiqueCookies'])->name('politique-cookies');
+});
+
+// ─── Export Comptabilité ─────────────────────────────────────────────────────
+Route::middleware(['auth'])->prefix('export')->name('export.')->group(function () {
+    Route::get('/transactions',        [App\Http\Controllers\ExportController::class, 'artistTransactions'])->name('artist.transactions');
+    Route::get('/comptabilite',        [App\Http\Controllers\ExportController::class, 'artistFull'])->name('artist.full');
+    Route::get('/recap-mensuel',       [App\Http\Controllers\ExportController::class, 'artistMonthlyRecap'])->name('artist.monthly');
+    Route::get('/studio/transactions', [App\Http\Controllers\ExportController::class, 'studioTransactions'])->name('studio.transactions');
+});
+
+Route::middleware(['auth', \App\Http\Middleware\EnsureUserIsAdmin::class])->prefix('export/admin')->name('export.admin.')->group(function () {
+    Route::get('/reservations', [App\Http\Controllers\ExportController::class, 'adminBookings'])->name('bookings');
 });
 
 // Export PDF — réservé aux professionnels authentifiés

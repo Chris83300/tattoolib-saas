@@ -101,6 +101,24 @@
                     <span class="font-semibold">Messages</span>
                 </a>
 
+                <a href="{{ route('studio.conversations') }}"
+                    class="flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs('studio.conversations*') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text hover:bg-noir-profond' }} transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"/>
+                    </svg>
+                    <span class="font-semibold">Conversations</span>
+                </a>
+
+                <a href="{{ route('studio.comptabilite') }}"
+                    class="flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs('studio.comptabilite') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text hover:bg-noir-profond' }} transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                    </svg>
+                    <span class="font-semibold">Comptabilité</span>
+                </a>
+
                 <div class="pt-4 mt-4 border-t border-titane/20 space-y-1">
                     <a href="{{ route('studio.settings') }}"
                         class="flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs('studio.settings') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text hover:bg-noir-profond' }} transition-colors">
@@ -316,6 +334,8 @@
         <x-ui.bottom-nav />
 
     </div>
+
+    @livewire('admin-chat')
 
     @stack('scripts')
     @livewireScripts
