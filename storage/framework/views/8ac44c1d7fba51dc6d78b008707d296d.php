@@ -20,7 +20,7 @@
     <?php echo app('Illuminate\Foundation\Vite')(['resources/css/app.css', 'resources/js/app.js']); ?>
     
     <!-- PWA Manifest -->
-    <link rel="manifest" href="<?php echo e(asset('manifest.json')); ?>">
+    <link rel="manifest" href="/build/manifest.webmanifest" crossorigin="use-credentials">
     <link rel="apple-touch-icon" href="<?php echo e(asset('images/icon-192x192.png')); ?>">
     
     <?php echo $__env->yieldPushContent('styles'); ?>

@@ -153,4 +153,66 @@
     .dark .inkpik-badge-danger {
         background-color: rgba(127, 29, 29, 0.3); color: rgb(248 113 113);
     }
+
+    /* ── SUPPORT CHAT ─────────────────────────────── */
+    /* Rows de conversation */
+    .chat-row-active  { background-color: rgba(99,102,241,0.07); border-left: 4px solid #6366f1; }
+    .chat-row-unread  { background-color: rgba(255,237,213,0.9); border-left: 4px solid #fb923c; }
+    .chat-row-default { border-left: 4px solid transparent; }
+    .chat-row-default:hover { background-color: rgba(249,250,251,1); }
+    .dark .chat-row-active  { background-color: rgba(99,102,241,0.15); }
+    .dark .chat-row-unread  { background-color: rgba(154,52,18,0.12); }
+    .dark .chat-row-default:hover { background-color: rgba(31,41,55,0.6); }
+
+    /* Avatars de conversation */
+    .chat-avatar-unread   { background-color: #ef4444 !important; }
+    .chat-avatar-awaiting { background-color: #eab308 !important; }
+    .chat-avatar-default  { background-color: #9ca3af !important; }
+    .dark .chat-avatar-default { background-color: #4b5563 !important; }
+
+    /* Animation pulse custom (animate-pulse ne se compile pas dans Filament) */
+    @keyframes inkpik-pulse {
+        0%, 100% { opacity: 1; }
+        50%       { opacity: 0.4; }
+    }
+    .chat-pulse { animation: inkpik-pulse 2s cubic-bezier(0.4,0,0.6,1) infinite; }
+
+    /* Badges état (non lu / en attente / répondu) */
+    .chat-badge-unread {
+        display: inline-block; padding: 2px 6px; border-radius: 9999px;
+        background-color: #ef4444; color: #fff; font-size: 10px; font-weight: 700;
+    }
+    .chat-badge-awaiting {
+        display: inline-block; padding: 2px 6px; border-radius: 9999px;
+        background-color: rgba(234,179,8,0.2); color: #ca8a04; font-size: 10px; font-weight: 500;
+    }
+    .dark .chat-badge-awaiting { color: #facc15; }
+    .chat-badge-replied {
+        display: inline-block; padding: 2px 6px; border-radius: 9999px;
+        background-color: rgba(34,197,94,0.2); color: #16a34a; font-size: 10px; font-weight: 500;
+    }
+    .dark .chat-badge-replied { color: #4ade80; }
+
+    /* Bulles de messages */
+    .chat-bubble-admin {
+        background-color: #4f46e5; color: #fff;
+        border-radius: 1rem 0.25rem 1rem 1rem;
+    }
+    .chat-bubble-user {
+        background-color: #fff; color: #1f2937;
+        border: 1px solid #e5e7eb; border-radius: 0.25rem 1rem 1rem 1rem;
+    }
+    .dark .chat-bubble-user { background-color: #374151; color: #f3f4f6; border-color: #4b5563; }
+
+    /* Badges type conversation */
+    .chat-type-support {
+        display: inline-block; padding: 2px 6px; border-radius: 0.25rem; font-size: 0.75rem;
+        background-color: rgba(168,85,247,0.1); color: #9333ea;
+    }
+    .dark .chat-type-support { background-color: rgba(168,85,247,0.3); color: #c084fc; }
+    .chat-type-private {
+        display: inline-block; padding: 2px 6px; border-radius: 0.25rem; font-size: 0.75rem;
+        background-color: rgba(59,130,246,0.1); color: #2563eb;
+    }
+    .dark .chat-type-private { background-color: rgba(59,130,246,0.3); color: #60a5fa; }
 </style>

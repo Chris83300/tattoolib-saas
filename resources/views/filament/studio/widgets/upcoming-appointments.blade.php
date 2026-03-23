@@ -3,12 +3,14 @@
         <div class="space-y-2">
             @forelse ($this->getAppointments() as $booking)
                 @php
-                    $date = $booking->confirmed_date
-                        ?? ($booking->appointment_datetime ? \Carbon\Carbon::parse($booking->appointment_datetime) : null);
+                    $date =
+                        $booking->confirmed_date ??
+                        ($booking->appointment_datetime ? \Carbon\Carbon::parse($booking->appointment_datetime) : null);
                 @endphp
                 <div class="flex items-center justify-between p-2.5 rounded-lg bg-gray-50 dark:bg-gray-800/50">
                     <div class="flex items-center gap-3 min-w-0">
-                        <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-primary-500/10 flex flex-col items-center justify-center">
+                        <div
+                            class="flex-shrink-0 w-10 h-10 rounded-lg bg-primary-500/10 flex flex-col items-center justify-center">
                             <span class="text-[10px] font-bold text-primary-600 dark:text-primary-400 leading-none">
                                 {{ $date?->format('d') ?? '?' }}
                             </span>
@@ -22,7 +24,7 @@
                             </p>
                             <p class="text-xs text-gray-500 truncate">
                                 {{ $booking->bookable?->user?->name ?? 'Artiste' }}
-                                · {{ ucfirst($booking->status) }}
+                                · {{ ucfirst($booking->status->value) }}
                             </p>
                         </div>
                     </div>

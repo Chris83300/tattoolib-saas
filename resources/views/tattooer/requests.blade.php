@@ -263,7 +263,7 @@
 
                                 @if ($request->status->value === 'pending')
                                     <button type="button"
-                                        onclick="Livewire.dispatch('open-accept-modal', { bookingRequestId: {{ $request->id }} })"
+                                        x-data @click="$dispatch('open-accept-modal', { bookingRequestId: {{ $request->id }} })"
                                         class="px-4 py-2 bg-vert-succes text-noir-profond rounded-lg font-semibold hover:bg-vert-succes/90 transition-colors">
                                         ✓ Accepter
                                     </button>
@@ -281,8 +281,7 @@
 
                                 @if (in_array($request->status->value, ['expired', 'rejected', 'cancelled']))
                                     <form action="{{ route($tattooer->routePrefix() . '.requests.destroy', $request) }}"
-                                        method="POST" class="inline"
-                                        x-data
+                                        method="POST" class="inline" x-data
                                         @submit.prevent="if (confirm('Supprimer définitivement cette demande ?')) { $el.submit(); }">
                                         @csrf
                                         @method('DELETE')
@@ -337,6 +336,46 @@
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') closeLightbox();
         });
+
+        // Fonction pour mettre à jour les compteurs
+        function updateCounters() {
+            const cards = document.querySelectorAll('[data-status]');
+            const statusCounts = {
+                pending: 0,
+                accepted: 0,
+                completed: 0,
+                expired: 0,
+                cancelled: 0,
+                rejected: 0
+            };
+
+            cards.forEach(card => {
+                const cardStatus = card.dataset.status;
+                if (cardStatus === 'pending') statusCounts.pending++;
+                else if (cardStatus === 'accepted' || cardStatus === 'deposit_requested' || cardStatus ===
+                    'deposit_paid') statusCounts.accepted++;
+                else if (cardStatus === 'date_confirmed') statusCounts.date_confirmed++;
+                else if (cardStatus === 'completed') statusCounts.completed++;
+                else if (cardStatus === 'cancelled') statusCounts.cancelled++;
+                else if (cardStatus === 'rejected') statusCounts.rejected++;
+            });
+
+            // Mettre à jour les compteurs dans le DOM
+            const countElements = {
+                pending: document.getElementById('count-pending'),
+                accepted: document.getElementById('count-accepted'),
+                date_confirmed: document.getElementById('count-date_confirmed'),
+                completed: document.getElementById('count-completed'),
+                cancelled: document.getElementById('count-cancelled'),
+                rejected: document.getElementById('count-rejected')
+            };
+
+            Object.keys(countElements).forEach(key => {
+                if (countElements[key]) {
+                    countElements[key].textContent = statusCounts[key];
+                }
+            });
+        }
 
         // Rafraîchir la liste après acceptation d'une demande
         document.addEventListener('livewire:initialized', () => {

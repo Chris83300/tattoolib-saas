@@ -108,18 +108,24 @@ class SubscriptionController extends Controller
         // Créer une session Stripe Checkout via Cashier
         $betaParams = app(BetaService::class)->getStripeCheckoutParams($user);
 
-        $checkoutParams = array_merge([
+        // Note : 'discounts' et 'allow_promotion_codes' sont mutuellement exclusifs dans Stripe Checkout
+        $baseParams = [
             'success_url' => route($routePrefix . '.subscription.success') . '?session_id={CHECKOUT_SESSION_ID}&plan=' . $plan,
             'cancel_url'  => route($routePrefix . '.subscription.plans'),
-            'mode'        => 'subscription', // Mode subscription pour les prix récurrents
+            'mode'        => 'subscription',
             'metadata'    => [
                 'artist_id'   => $artist->id,
                 'artist_type' => get_class($artist),
                 'plan'        => $plan,
             ],
-            // Permettre à l'utilisateur d'entrer un code manuellement (temporairement, en attendant le coupon)
-            'allow_promotion_codes' => true,
-        ], $betaParams);
+        ];
+
+        // Si pas de coupon bêta, permettre les codes promo manuels
+        if (empty($betaParams['discounts'])) {
+            $baseParams['allow_promotion_codes'] = true;
+        }
+
+        $checkoutParams = array_merge($baseParams, $betaParams);
 
         // Utiliser checkout() directement pour créer l'abonnement
         $checkout = $user->checkout($priceId, $checkoutParams);

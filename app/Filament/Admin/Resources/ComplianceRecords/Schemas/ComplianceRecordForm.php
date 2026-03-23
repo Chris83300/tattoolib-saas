@@ -3,7 +3,7 @@
 namespace App\Filament\Admin\Resources\ComplianceRecords\Schemas;
 
 use Filament\Forms;
-use Filament\Forms\Components\Section;
+use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
@@ -19,16 +19,25 @@ class ComplianceRecordForm
     {
         return $schema
             ->schema([
-                
+
                 Section::make('Informations Document')
                     ->schema([
-                        
-                        Select::make('tattooer_id')
-                            ->label('Artiste')
-                            ->relationship('tattooer', 'name')
-                            ->searchable()
-                            ->required(),
-                        
+
+                        Select::make('compliant_type')
+                            ->label('Type d\'artiste')
+                            ->options([
+                                'App\\Models\\Tattooer' => 'Tatoueur',
+                                'App\\Models\\Piercer' => 'Pierceur',
+                                'App\\Models\\Studio' => 'Studio',
+                            ])
+                            ->required()
+                            ->disabled(fn ($record) => $record->exists),
+
+                        TextInput::make('compliant_id')
+                            ->label('ID Artiste')
+                            ->disabled()
+                            ->default(fn ($record) => $record->compliant_id),
+
                         Select::make('type')
                             ->label('Type de document')
                             ->options([
@@ -38,56 +47,56 @@ class ComplianceRecordForm
                             ])
                             ->required()
                             ->native(false),
-                        
+
                         TextInput::make('document_number')
                             ->label('Numéro du document')
                             ->helperText('Ex: Numéro ARS, numéro d\'attestation')
                             ->maxLength(255),
-                        
+
                         DatePicker::make('issued_date')
                             ->label('Date d\'émission')
                             ->required(),
-                        
+
                         DatePicker::make('expiry_date')
                             ->label('Date d\'expiration')
                             ->helperText('Laisser vide si pas de date d\'expiration'),
-                        
+
                     ])
                     ->columns(2),
 
                 Section::make('Validation Admin')
                     ->schema([
-                        
+
                         Toggle::make('verified_by_admin')
                             ->label('Document vérifié')
                             ->helperText('Cocher si le document a été validé par l\'admin')
                             ->live(),
-                        
+
                         DateTimePicker::make('verified_at')
                             ->label('Date de vérification')
                             ->disabled()
                             ->visible(fn ($get) => $get('verified_by_admin')),
-                        
+
                         Textarea::make('admin_notes')
                             ->label('Notes admin')
                             ->rows(3)
                             ->helperText('Notes privées visibles uniquement par l\'administration')
                             ->columnSpanFull(),
-                        
+
                     ]),
 
                 Section::make('Document Scanné')
                     ->schema([
-                        
+
                         FileUpload::make('document')
                             ->label('PDF du document')
                             ->acceptedFileTypes(['application/pdf'])
                             ->maxSize(10240)
                             ->helperText('Format PDF uniquement, max 10MB')
                             ->columnSpanFull(),
-                        
+
                     ]),
-                
+
             ]);
     }
 }

@@ -2,9 +2,12 @@
 
 @section('content')
 <div class="space-y-6">
-    <div>
-        <h1 class="text-2xl font-bold text-ivoire-text">Tableau de bord</h1>
-        <p class="text-sm text-titane mt-1">Bienvenue, {{ auth()->user()->name }}</p>
+    <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-ivoire-text">Tableau de bord</h1>
+            <p class="text-sm text-titane mt-1">Bienvenue, {{ auth()->user()->name }}</p>
+        </div>
+        @include('partials.export-buttons', ['type' => 'studio', 'year' => now()->year])
     </div>
 
     {{-- Checklist onboarding (visible pendant le trial, si non complète) --}}

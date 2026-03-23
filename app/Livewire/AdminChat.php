@@ -4,6 +4,7 @@ namespace App\Livewire;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Component;
 
 class AdminChat extends Component
@@ -92,6 +93,9 @@ class AdminChat extends Component
 
         $this->newMessage = '';
         $this->conversation->touch();
+
+        // Invalider le cache du badge sidebar admin
+        Cache::forget('admin.support.unread');
     }
 
     public function markAsRead(): void

@@ -277,16 +277,20 @@ class AccountingController extends Controller
             return response()->json(['message' => 'Accès non autorisé'], 403);
         }
 
-        $validated = $request->validate([
+        $request->validate([
             'start_date' => 'required|date',
-            'end_date' => 'required|date|after:start_date',
-            'format' => 'required|in:csv,xlsx',
+            'end_date'   => 'required|date|after:start_date',
+            'format'     => 'required|in:csv,xlsx',
         ]);
 
-        // TODO: Implémenter l'export CSV/Excel
+        // Déléguer à l'ExportController web via redirect
+        $format = $request->get('format', 'xlsx');
+        $from   = $request->get('start_date');
+        $to     = $request->get('end_date');
+
         return response()->json([
-            'message' => 'Export à implémenter',
-            'params' => $validated,
+            'export_url' => route('export.artist.transactions', compact('format', 'from', 'to')),
+            'message'    => 'Utiliser export_url pour télécharger le fichier.',
         ]);
     }
 }

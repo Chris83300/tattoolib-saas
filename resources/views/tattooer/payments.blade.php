@@ -4,13 +4,16 @@
     <div class="space-y-6">
 
         <!-- Header -->
-        <div>
-            <h1 class="text-2xl md:text-3xl font-bold text-ivoire-text mb-2">
-                Paiements
-            </h1>
-            <p class="text-ivoire-text/70">
-                Gérez vos transactions et votre compte Stripe Connect
-            </p>
+        <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold text-ivoire-text mb-2">
+                    Paiements
+                </h1>
+                <p class="text-ivoire-text/70">
+                    Gérez vos transactions et votre compte Stripe Connect
+                </p>
+            </div>
+            @include('partials.export-buttons', ['type' => 'artist', 'year' => now()->year])
         </div>
 
         <!-- Stats KPI -->

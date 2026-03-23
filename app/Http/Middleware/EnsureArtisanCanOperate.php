@@ -91,6 +91,25 @@ class EnsureArtisanCanOperate
             return $next($request);
         }
 
+        // Bêta-testeur avec mois gratuit actif → accès autorisé
+        if ($user->isActiveBetaTester()) {
+            return $next($request);
+        }
+
+        // Bêta-testeur expiré sans souscription → rediriger vers les plans avec coupon
+        if ($user->isBetaExpired()) {
+            $prefix = $artisan->routePrefix();
+            $plansRoute = $prefix . '.subscription.plans';
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message'     => 'Votre mois gratuit bêta est terminé. Souscrivez avec -30% à vie pour continuer.',
+                    'upgrade_url' => route($plansRoute, ['coupon' => 'BETA-LAUNCH-30']),
+                ], 403);
+            }
+            return redirect()->route($plansRoute, ['coupon' => 'BETA-LAUNCH-30'])
+                ->with('warning', 'Votre mois gratuit est terminé. Souscrivez avec -30% à vie pour continuer.');
+        }
+
         // Vérifier si l'artisan est bloqué (trial expiré sans abonnement)
         $trialService = app(\App\Services\TrialService::class);
 

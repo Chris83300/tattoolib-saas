@@ -35,8 +35,8 @@
     </style>
 
     <!-- PWA Manifest -->
-    <link rel="manifest" href="<?php echo e(asset('manifest.json')); ?>">
-    <link rel="apple-touch-icon" href="<?php echo e(asset('images/logo.png')); ?>">
+    <link rel="manifest" href="/build/manifest.webmanifest" crossorigin="use-credentials">
+    <link rel="apple-touch-icon" href="<?php echo e(asset('images/icon-192x192.png')); ?>">
 
     <?php echo $__env->yieldPushContent('styles'); ?>
 
@@ -82,7 +82,7 @@
                         <a href="<?php echo e(route('client.bookings')); ?>" class="hover:text-beige-peau transition-colors">Mes RDV</a>
                         <a href="<?php echo e(route('client.messages')); ?>" class="hover:text-beige-peau transition-colors relative">
                             Messages
-                            <?php if(auth()->user()->unread_messages_count > 0): ?>
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->unread_messages_count > 0): ?>
                                 <span
                                     class="absolute -top-1 -right-1 bg-rouge-alerte text-noir-profond text-xs font-bold px-1.5 rounded-full">
                                     <?php echo e(auth()->user()->unread_messages_count); ?>
@@ -98,7 +98,7 @@
                         <a href="/tattooer/demandes" class="hover:text-beige-peau transition-colors">Demandes</a>
                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                    <?php if(auth()->user()->role === 'studio'): ?>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->role === 'studio'): ?>
                         <a href="/admin/studio" target="_blank" class="hover:text-beige-peau transition-colors">Dashboard
                             Studio</a>
                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
@@ -150,13 +150,13 @@
                             class="block py-2 text-ivoire-text hover:text-beige-peau transition-colors">Demandes</a>
                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-                    <?php if(auth()->user()->role === 'studio'): ?>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->role === 'studio'): ?>
                         <a href="/admin/studio" target="_blank"
                             class="block py-2 text-ivoire-text hover:text-beige-peau transition-colors">Dashboard Studio</a>
                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                     <!-- Lien profil direct + Déconnexion -->
-                    <?php if(auth()->user()->role != 'client'): ?>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->role != 'client'): ?>
                         <a href="<?php echo e(auth()->user()->getProfileRoute()); ?>"
                             class="block py-2 text-ivoire-text hover:text-beige-peau transition-colors">Mon profil</a>
                     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
@@ -202,15 +202,16 @@ $__split = function ($name, $params = []) {
 };
 [$__name, $__params] = $__split('tattooer.booking-quick-create');
 
-$key = null;
+$__key = null;
 
-$key ??= \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::generateKey('lw-3637868502-0', null);
+$__key ??= \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::generateKey('lw-3637868502-0', $__key);
 
-$__html = app('livewire')->mount($__name, $__params, $key);
+$__html = app('livewire')->mount($__name, $__params, $__key);
 
 echo $__html;
 
 unset($__html);
+unset($__key);
 unset($__name);
 unset($__params);
 unset($__split);
@@ -222,15 +223,16 @@ $__split = function ($name, $params = []) {
 };
 [$__name, $__params] = $__split('tattooer.appointment-detail-modal');
 
-$key = null;
+$__key = null;
 
-$key ??= \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::generateKey('lw-3637868502-1', null);
+$__key ??= \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::generateKey('lw-3637868502-1', $__key);
 
-$__html = app('livewire')->mount($__name, $__params, $key);
+$__html = app('livewire')->mount($__name, $__params, $__key);
 
 echo $__html;
 
 unset($__html);
+unset($__key);
 unset($__name);
 unset($__params);
 unset($__split);

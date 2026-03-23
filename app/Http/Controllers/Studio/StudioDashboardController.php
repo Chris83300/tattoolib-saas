@@ -116,6 +116,23 @@ class StudioDashboardController extends Controller
         return view('studio.comptabilite', compact('studio', 'stats', 'artistStats', 'transactions', 'year'));
     }
 
+    public function exportTransactions(string $format)
+    {
+        $studio = $this->studio();
+        if (!$studio) {
+            abort(403, 'Accès non autorisé');
+        }
+
+        $exportService = app(AccountingExportService::class);
+        $transactions = $exportService->getStudioTransactions($studio);
+
+        return match($format) {
+            'xlsx' => $exportService->exportToExcel($transactions, "transactions-studio-{$studio->id}"),
+            'csv' => $exportService->exportToCsv($transactions, "transactions-studio-{$studio->id}"),
+            default => abort(404, 'Format non supporté'),
+        };
+    }
+
     public function conversations()
     {
         $studio        = $this->studio();

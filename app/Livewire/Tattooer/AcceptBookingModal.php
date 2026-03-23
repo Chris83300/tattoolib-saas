@@ -101,6 +101,12 @@ class AcceptBookingModal extends Component
         $this->proposedDates = [];
     }
 
+    // Méthode pour appel direct depuis wire:click
+    public function openAcceptModal(int $bookingRequestId): void
+    {
+        $this->openModal($bookingRequestId);
+    }
+
     /**
      * Écouter les dates sélectionnées depuis AvailabilityCalendar
      */
@@ -121,26 +127,16 @@ class AcceptBookingModal extends Component
         $this->resetValidation();
     }
 
-    public function submitAcceptance(): mixed
+    public function submitAcceptance()
     {
         try {
             $this->validate();
-
-            // Debug
-            \Log::info('AcceptBookingModal: submitAcceptance called', [
-                'booking_request_id' => $this->bookingRequest->id,
-                'validated_data' => [
-                    'priceEstimateMin' => $this->priceEstimateMin,
-                    'priceEstimateMax' => $this->priceEstimateMax,
-                    'totalDepositAmount' => $this->totalDepositAmount,
-                ]
-            ]);
 
             // Vérifier cohérence prix (seulement pour les tattooers)
             if ($this->tattooer && !($this->tattooer instanceof \App\Models\Piercer)) {
                 if ($this->totalDepositAmount > $this->priceEstimateMax * 0.5) {
                     $this->addError('totalDepositAmount', 'L\'acompte ne peut pas dépasser 50% du prix maximum.');
-                    return null;
+                    return;
                 }
             }
 
@@ -232,11 +228,6 @@ class AcceptBookingModal extends Component
             );
 
         } catch (\Exception $e) {
-            \Log::error('AcceptBookingModal: submitAcceptance error', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
             $this->addError('general', 'Une erreur est survenue. Veuillez réessayer.');
         }
     }

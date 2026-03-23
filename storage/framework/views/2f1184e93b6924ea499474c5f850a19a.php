@@ -29,19 +29,25 @@ foreach ($attributes->all() as $__key => $__value) {
 unset($__defined_vars, $__key, $__value); ?>
 
 <?php
-    // Déterminer si on utilise les données du marketplace ou du studio
-    $isMarketplace = isset($artist);
-    $data = $isMarketplace ? $artist : $studioArtist;
+    // Déterminer si on utilise les données du marketplace (tableau) ou du studio (objet)
+    $isMarketplace = isset($artist) && is_array($artist);
+    $data = $isMarketplace ? (object) $artist : $studioArtist;
 
     // Normaliser les données pour compatibilité
-    $name = $isMarketplace ? $artist['name'] : ($studioArtist->artist_name ?: $studioArtist->user?->name ?? 'Artiste');
-    $type = $isMarketplace ? $artist['type'] ?? 'tattooer' : $studioArtist->artisan_type;
-    $avatar = $isMarketplace ? $artist['avatar_url'] ?? null : $studioArtist->user?->getFirstMediaUrl('avatar');
-
-    // Banner : priorité au modèle Tattooer/Piercer (qui porte la collection 'banner')
     if ($isMarketplace) {
+        $name = $artist['name'] ?? 'Artiste';
+        $type = $artist['type'] ?? 'tattooer';
+        $avatar = $artist['avatar_url'] ?? null;
         $banner = $artist['banner_url'] ?? null;
+        $city = $artist['city'] ?? null;
+        $studioName = $artist['studio_name'] ?? null;
+        $bio = $artist['bio'] ?? null;
     } else {
+        $name = $studioArtist->artist_name ?: $studioArtist->user?->name ?? 'Artiste';
+        $type = $studioArtist->artisan_type;
+        $avatar = $studioArtist->user?->getFirstMediaUrl('avatar');
+
+        // Banner : priorité au modèle Tattooer/Piercer
         $artisanModel = null;
         if ($studioArtist->user) {
             $artisanModel =
@@ -50,11 +56,11 @@ unset($__defined_vars, $__key, $__value); ?>
                     : \App\Models\Tattooer::where('user_id', $studioArtist->user_id)->first();
         }
         $banner = $artisanModel?->getFirstMediaUrl('banner') ?: null;
-    }
 
-    $city = $isMarketplace ? $artist['city'] ?? null : $studioArtist->studio?->city;
-    $studioName = $isMarketplace ? $artist['studio_name'] ?? null : $studioArtist->studio?->name;
-    $bio = $isMarketplace ? $artist['bio'] ?? null : $artisanModel?->bio ?? ($studioArtist->user?->bio ?? null);
+        $city = $studioArtist->studio?->city;
+        $studioName = $studioArtist->studio?->name;
+        $bio = $artisanModel?->bio ?? ($studioArtist->user?->bio ?? null);
+    }
 ?>
 
 <div
@@ -67,11 +73,11 @@ unset($__defined_vars, $__key, $__value); ?>
     <div class="absolute top-2 left-2 space-y-1 z-10">
         <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($isMarketplace): ?>
             <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!empty($artist['has_compliance_badge'])): ?>
-                <span class="px-2 py-0.5 text-sm font-bold bg-vert-succes/20 text-vert-succes rounded-full block">✓ Conforme hygiène</span>
+                <span class="px-2 py-0.5 text-sm font-bold bg-vert-succes/20 text-vert-succes rounded-full block">✓
+                    Conforme hygiène</span>
             <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
         <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
         <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($isMarketplace && isset($artist['siret_verified']) && $artist['siret_verified']): ?>
-
         <?php elseif(!$isMarketplace && $studioArtist->is_active): ?>
             <span class="bg-vert-succes/20 text-vert-succes text-xs px-2 py-1 rounded-full font-semibold">Actif</span>
         <?php elseif(!$isMarketplace && !$studioArtist->is_active): ?>

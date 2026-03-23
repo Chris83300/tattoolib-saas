@@ -439,6 +439,7 @@ Route::middleware(['auth', 'role:studio', \App\Http\Middleware\EnsureStudioCanOp
     Route::post('/souscrire', [StudioBillingController::class, 'processSubscribe'])->name('subscribe.legacy.process');
     Route::get('/stats', [StudioDashboardController::class, 'stats'])->name('stats');
     Route::get('/comptabilite', [StudioDashboardController::class, 'comptabilite'])->name('comptabilite');
+    Route::get('/transactions/{format}', [StudioDashboardController::class, 'exportTransactions'])->name('transactions');
     Route::get('/conversations', [StudioDashboardController::class, 'conversations'])->name('conversations');
     Route::get('/conversations/{conversation}', [StudioDashboardController::class, 'conversationShow'])->name('conversations.show');
     Route::post('/stripe/connect', [StudioBillingController::class, 'connectStripe'])->name('stripe.connect');

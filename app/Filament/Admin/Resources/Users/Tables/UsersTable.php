@@ -150,6 +150,20 @@ class UsersTable
                     ->color(fn ($record) => $record->last_login_at ? 'success' : 'warning')
                     ->toggleable(isToggledHiddenByDefault: true),
 
+                // COLONNE : Bêta-testeur
+                Tables\Columns\IconColumn::make('is_beta_tester')
+                    ->label('Bêta')
+                    ->boolean()
+                    ->sortable(),
+
+                // COLONNE : Expiration bêta
+                Tables\Columns\TextColumn::make('beta_expires_at')
+                    ->label('Bêta expire le')
+                    ->date('d/m/Y')
+                    ->sortable()
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
             ])
 
             ->filters([
@@ -192,6 +206,10 @@ class UsersTable
                     ->label('Admins uniquement')
                     ->query(fn ($query) => $query->where('is_admin', true))
                     ->toggle(),
+
+                // FILTRE 6 : Bêta-testeurs
+                Tables\Filters\TernaryFilter::make('is_beta_tester')
+                    ->label('Bêta-testeurs'),
 
             ])
             ->recordActions([

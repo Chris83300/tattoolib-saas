@@ -36,7 +36,7 @@ class UnreadMessagesComposer
             $query->where('bookable_type', 'App\\Models\\Tattooer')
                   ->where('bookable_id', $tattooer->id);
         })
-        ->with(['participants.pivot', 'messages' => function ($query) use ($user) {
+        ->with(['participants', 'messages' => function ($query) use ($user) {
             $query->where('sender_id', '!=', $user->id);
         }])
         ->get();

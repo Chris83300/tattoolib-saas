@@ -13,7 +13,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <h2 class="font-semibold text-gray-800 dark:text-gray-100 text-sm flex items-center gap-2">
-                        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                        <span class="w-2 h-2 rounded-full chat-pulse" style="background-color:#22c55e"></span>
                         Conversations support
                     </h2>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -38,6 +38,8 @@
                 $lastMsg   = $conv->messages->first();
                 $isActive  = $this->activeConversationId === $conv->id;
                 $hasUnread = ($conv->unread_count ?? 0) > 0;
+                $isAwaiting = !$hasUnread && $lastMsg && $lastMsg->sender_type !== 'admin';
+                $convType  = $conv->type === 'support' ? 'Support' : 'Privé';
                 $initial   = strtoupper(substr($convUser?->name ?? $convUser?->pseudo ?? '?', 0, 1));
                 $userRole  = match(true) {
                     $convUser?->role === 'tattooer'      => 'Tatoueur',
@@ -52,35 +54,39 @@
             <button
                 wire:click="selectConversation({{ $conv->id }})"
                 class="w-full text-left px-4 py-3 transition-colors
-                       {{ $isActive
-                           ? 'bg-primary-50 dark:bg-primary-900/20 border-l-4 border-l-primary-500'
-                           : 'hover:bg-gray-50 dark:hover:bg-gray-800/60 border-l-4 border-l-transparent' }}
-                       {{ $hasUnread && !$isActive ? 'bg-blue-50 dark:bg-blue-900/10' : '' }}">
+                       {{ $isActive ? 'chat-row-active' : ($hasUnread ? 'chat-row-unread' : 'chat-row-default') }}">
 
                 <div class="flex items-start gap-3">
 
-                    {{-- Avatar initiale --}}
-                    <div class="w-10 h-10 inkpik-btn rounded-full flex-shrink-0 flex items-center
-                                justify-center text-white font-bold text-sm
-                                {{ $hasUnread ? 'bg-primary-500' : 'bg-gray-400 dark:bg-gray-600' }}">
-                        {{ $initial }}
+                    {{-- Avatar initiale avec point non lu --}}
+                    <div class="relative flex-shrink-0">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm
+                                    {{ $hasUnread ? 'chat-avatar-unread' : ($isAwaiting ? 'chat-avatar-awaiting' : 'chat-avatar-default') }}">
+                            {{ $initial }}
+                        </div>
+                        @if ($hasUnread)
+                        <span class="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-gray-900 chat-pulse" style="background-color:#ef4444"></span>
+                        @elseif ($isAwaiting)
+                        <span class="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-gray-900" style="background-color:#eab308"></span>
+                        @endif
                     </div>
 
                     {{-- Contenu --}}
                     <div class="inkpik-card flex-1 min-w-0">
                         <div class="flex items-center justify-between gap-1">
                             <span class="font-medium text-sm truncate
-                                         {{ $hasUnread ? 'text-gray-900 dark:text-white font-semibold' : 'text-gray-700 dark:text-gray-200' }}">
+                                         {{ $hasUnread ? 'text-gray-900 dark:text-white font-bold' : 'text-gray-700 dark:text-gray-200' }}">
                                 {{ $convUser?->name ?? $convUser?->pseudo ?? 'Utilisateur inconnu' }}
                             </span>
-                            <div class="flex items-center gap-1.5 flex-shrink-0">
+                            <div class="flex flex-col items-end gap-1 flex-shrink-0">
                                 @if ($hasUnread)
-                                <span class="w-5 h-5 bg-red-500 text-white text-xs rounded-full
-                                             flex items-center justify-center font-bold">
-                                    {{ $conv->unread_count }}
-                                </span>
+                                <span class="chat-badge-unread">{{ $conv->unread_count }}</span>
+                                @elseif ($isAwaiting)
+                                <span class="chat-badge-awaiting">En attente</span>
+                                @else
+                                <span class="chat-badge-replied">Répondu</span>
                                 @endif
-                                <span class="text-xs text-gray-400 dark:text-gray-500">
+                                <span class="text-[10px] text-gray-400 dark:text-gray-500">
                                     {{ $conv->updated_at->format('H:i') }}
                                 </span>
                             </div>
@@ -91,11 +97,14 @@
                             {{ \Str::limit($lastMsg?->content ?? '…', 38) }}
                         </p>
 
-                        <span class="inline-block mt-1 text-xs px-1.5 py-0.5 rounded
-                                     bg-gray-100 dark:bg-gray-700
-                                     text-gray-500 dark:text-gray-400">
-                            {{ $userRole }}
-                        </span>
+                        <div class="flex items-center gap-1 mt-1">
+                            <span class="text-xs px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
+                                {{ $userRole }}
+                            </span>
+                            <span class="{{ $conv->type === 'support' ? 'chat-type-support' : 'chat-type-private' }}">
+                                {{ $convType }}
+                            </span>
+                        </div>
                     </div>
                 </div>
             </button>
@@ -146,7 +155,7 @@
                 </div>
             </div>
             <div class="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
-                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                <span class="w-2 h-2 rounded-full chat-pulse" style="background-color:#22c55e"></span>
                 Support actif
             </div>
         </div>
@@ -184,10 +193,7 @@
                     </p>
                     @endif
 
-                    <div class="inkpik-btn px-4 py-2.5 rounded-2xl text-sm shadow-sm
-                        {{ $isAdminMsg
-                            ? 'bg-indigo-600 text-white rounded-tr-none'
-                            : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-tl-none border border-gray-200 dark:border-gray-600' }}">
+                    <div class="px-4 py-2.5 text-sm shadow-sm {{ $isAdminMsg ? 'chat-bubble-admin' : 'chat-bubble-user' }}">
                         {{ $msgContent }}
                     </div>
 
@@ -264,7 +270,7 @@
                     Ctrl+Entrée pour envoyer · L'utilisateur sera notifié
                 </p>
                 <div class="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
-                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    <span class="w-2 h-2 rounded-full chat-pulse" style="background-color:#22c55e"></span>
                     Support actif
                 </div>
             </div>
@@ -285,7 +291,7 @@
                     Cliquez sur une conversation dans la liste pour commencer à discuter
                 </p>
                 <div class="mt-6 flex items-center justify-center gap-2 text-xs">
-                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    <span class="w-2 h-2 rounded-full chat-pulse" style="background-color:#22c55e"></span>
                     Support disponible 24/7
                 </div>
             </div>

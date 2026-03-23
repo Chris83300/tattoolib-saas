@@ -19,6 +19,7 @@ export default defineConfig({
         tailwindcss(),
         VitePWA({
             registerType: 'autoUpdate',
+            buildBase: '/build/',
             includeAssets: ['favicon.ico', 'images/*.png'],
             manifest: {
                 name: 'Ink&Pik - Marketplace Arts Corporels',

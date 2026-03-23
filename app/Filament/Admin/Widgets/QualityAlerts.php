@@ -21,7 +21,7 @@ class QualityAlerts extends BaseWidget
         return $table
             ->query(
                 ComplianceRecord::query()
-                    ->whereNull('verified_at')
+                    ->where('verified_by_admin', false)
                     ->where('expires_at', '>=', now())
                     ->with(['complianceable'])
                     ->latest()

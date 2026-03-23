@@ -199,6 +199,56 @@ class Conversation extends Model
     }
 
     // ===========================================
+    // SUPPORT CHAT ADMIN
+    // ===========================================
+
+    /**
+     * Scope : conversations support + admin_private, non lus en premier.
+     */
+    public function scopeForAdminSupport($query)
+    {
+        return $query->whereIn('type', [self::TYPE_SUPPORT, self::TYPE_ADMIN_PRIVATE])
+            ->withCount(['messages as unread_count' => fn ($q) =>
+                $q->whereNull('read_at')->where('sender_type', '!=', 'admin')
+            ])
+            ->orderByDesc('unread_count')
+            ->orderByDesc('updated_at');
+    }
+
+    /**
+     * Le dernier message a-t-il été envoyé par un utilisateur (pas l'admin) ?
+     * = conversation en attente de réponse admin.
+     */
+    public function isAwaitingAdminReply(): bool
+    {
+        $lastMessage = $this->messages()->latest()->first();
+        if (!$lastMessage) return false;
+        return $lastMessage->sender_type !== 'admin';
+    }
+
+    /**
+     * Nombre de messages non lus par l'admin (envoyés par users, sans read_at).
+     */
+    public function unreadCountForAdmin(): int
+    {
+        return $this->messages()
+            ->whereNull('read_at')
+            ->where('sender_type', '!=', 'admin')
+            ->count();
+    }
+
+    /**
+     * Marquer tous les messages utilisateur de cette conversation comme lus par l'admin.
+     */
+    public function markAllReadByAdmin(): void
+    {
+        $this->messages()
+            ->whereNull('read_at')
+            ->where('sender_type', '!=', 'admin')
+            ->update(['read_at' => now()]);
+    }
+
+    // ===========================================
     // SCOPES
     // ===========================================
 

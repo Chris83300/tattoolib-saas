@@ -71,6 +71,10 @@ class User extends Authenticatable implements HasMedia
         'privacy_accepted_at',       // Acceptation politique de confidentialité
         'privacy_version_accepted',  // Version politique acceptée
         'consent_ip',                // IP lors de l'acceptation
+        'is_beta_tester',
+        'beta_registered_at',
+        'beta_expires_at',
+        'beta_coupon_used',
     ];
 
     protected $hidden = [
@@ -89,6 +93,9 @@ class User extends Authenticatable implements HasMedia
             'is_active' => 'boolean',
             'is_studio_owner' => 'boolean',
             'is_studio_artist' => 'boolean',
+            'is_beta_tester' => 'boolean',
+            'beta_registered_at' => 'datetime',
+            'beta_expires_at' => 'datetime',
         ];
     }
 
@@ -346,6 +353,31 @@ class User extends Authenticatable implements HasMedia
     public function isAdmin(): bool
     {
         return $this->role === 'admin' || $this->is_admin === true;
+    }
+
+    // ===== BETA-TESTEUR =====
+
+    public function isActiveBetaTester(): bool
+    {
+        return $this->is_beta_tester
+            && $this->beta_expires_at
+            && $this->beta_expires_at->isFuture();
+    }
+
+    public function isBetaExpired(): bool
+    {
+        return $this->is_beta_tester
+            && $this->beta_expires_at
+            && $this->beta_expires_at->isPast()
+            && !$this->subscribed('default');
+    }
+
+    public function betaDaysRemaining(): int
+    {
+        if (!$this->beta_expires_at || $this->beta_expires_at->isPast()) {
+            return 0;
+        }
+        return (int) now()->diffInDays($this->beta_expires_at, false);
     }
 
     // ===== SCOPES =====

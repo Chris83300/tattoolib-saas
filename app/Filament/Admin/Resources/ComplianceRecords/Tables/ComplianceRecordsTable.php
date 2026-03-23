@@ -2,6 +2,7 @@
 
 namespace App\Filament\Admin\Resources\ComplianceRecords\Tables;
 
+use Filament\Actions;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Storage;
@@ -122,7 +123,7 @@ class ComplianceRecordsTable
 
             ])
             ->actions([
-                Tables\Actions\Action::make('validate')
+                Actions\Action::make('validate')
                     ->label('Valider ✓')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
@@ -136,7 +137,7 @@ class ComplianceRecordsTable
                     ->modalDescription('Le badge "Conforme" sera attribué à l\'artiste si hygiène ET ARS sont tous deux validés.')
                     ->visible(fn ($record) => is_null($record->verified_at)),
 
-                Tables\Actions\Action::make('invalidate')
+                Actions\Action::make('invalidate')
                     ->label('Invalider ✗')
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
@@ -149,7 +150,7 @@ class ComplianceRecordsTable
                     ->modalHeading('Invalider ce document ?')
                     ->visible(fn ($record) => !is_null($record->verified_at)),
 
-                Tables\Actions\EditAction::make(),
+                Actions\EditAction::make(),
             ])
             ->bulkActions([
                 // Bulk actions à implémenter plus tard (problème Filament v4)

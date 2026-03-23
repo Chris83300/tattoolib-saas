@@ -7,6 +7,7 @@ use App\Models\Client;
 use App\Models\Tattooer;
 use App\Models\Piercer;
 use App\Models\Studio;
+use App\Services\BetaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -169,6 +170,8 @@ class RegisterController extends Controller
                 'status' => 'pending_verification',
             ]);
 
+            $isBeta = $request->has('beta');
+
             // Créer profil tattooer
             $tattooer = Tattooer::create([
                 'user_id' => $user->id,
@@ -182,12 +185,27 @@ class RegisterController extends Controller
                 'phone' => $validated['phone'] ?? null,
                 'email' => $validated['email'],
                 'current_plan' => $validated['plan'], // Utiliser le plan sélectionné
-                'is_subscribed' => false, // Toujours false à la création (trial d'abord)
+                'is_subscribed' => false,
                 'has_compliance_badge' => false,
-                'trial_ends_at' => $validated['plan'] === 'starter'
-                    ? now()->addDays(\App\Enums\SubscriptionPlan::STARTER->trialDays())
-                    : now()->addDays(\App\Enums\SubscriptionPlan::PRO->trialDays()),
+                // Bêta-testeur : pas de trial standard (mois gratuit via beta_expires_at)
+                'trial_ends_at' => $isBeta ? null : (
+                    $validated['plan'] === 'starter'
+                        ? now()->addDays(\App\Enums\SubscriptionPlan::STARTER->trialDays())
+                        : now()->addDays(\App\Enums\SubscriptionPlan::PRO->trialDays())
+                ),
             ]);
+
+            // Flow bêta : marquer l'utilisateur + notification de bienvenue
+            if ($isBeta) {
+                $user->update([
+                    'is_beta_tester'     => true,
+                    'beta_registered_at' => now(),
+                    'beta_expires_at'    => now()->addMonth(),
+                    'beta_coupon_used'   => BetaService::COUPON_FREE_MONTH,
+                ]);
+                $user->notify(new \App\Notifications\WelcomeBetaTesterNotification());
+                Log::info('[Beta] Tattooer bêta-testeur inscrit', ['user_id' => $user->id, 'beta_expires_at' => now()->addMonth()->toDateString()]);
+            }
 
             Log::info('Tattooer créé: ' . json_encode($tattooer));
             Log::info('Données insérées - first_name: ' . ($tattooer->first_name ?? 'NULL') . ', last_name: ' . ($tattooer->last_name ?? 'NULL') . ', pseudo: ' . ($tattooer->pseudo ?? 'NULL'));
@@ -279,6 +297,8 @@ class RegisterController extends Controller
                 'status' => 'pending_verification',
             ]);
 
+            $isBeta = $request->has('beta');
+
             // Créer profil Piercer
             $piercer = Piercer::create([
                 'user_id' => $user->id,
@@ -293,13 +313,26 @@ class RegisterController extends Controller
                 'postal_code' => $validated['postal_code'],
                 'phone' => $validated['phone'] ?? null,
                 'email' => $validated['email'],
-                'current_plan' => $validated['plan'], // Utiliser le plan sélectionné
-                'is_subscribed' => false, // Toujours false à la création (trial d'abord)
+                'current_plan' => $validated['plan'],
+                'is_subscribed' => false,
                 'has_compliance_badge' => false,
-                'trial_ends_at' => now()->addDays(14), // 14 jours d'essai pour tous
+                // Bêta-testeur : pas de trial standard (mois gratuit via beta_expires_at)
+                'trial_ends_at' => $isBeta ? null : now()->addDays(14),
             ]);
 
             Log::info('Piercer créé: ' . json_encode($piercer));
+
+            // Flow bêta : marquer l'utilisateur + notification de bienvenue
+            if ($isBeta) {
+                $user->update([
+                    'is_beta_tester'     => true,
+                    'beta_registered_at' => now(),
+                    'beta_expires_at'    => now()->addMonth(),
+                    'beta_coupon_used'   => BetaService::COUPON_FREE_MONTH,
+                ]);
+                $user->notify(new \App\Notifications\WelcomeBetaTesterNotification());
+                Log::info('[Beta] Pierceur bêta-testeur inscrit', ['user_id' => $user->id, 'beta_expires_at' => now()->addMonth()->toDateString()]);
+            }
 
             // Traçage du consentement RGPD
             $user->update([

@@ -177,6 +177,7 @@
                     </div>
                 </form>
             </div>
+            
         </div>
 
         {{-- Quick Booking Modal (Livewire) --}}

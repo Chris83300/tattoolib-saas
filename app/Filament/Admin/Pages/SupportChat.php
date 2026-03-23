@@ -6,6 +6,7 @@ use App\Models\Message;
 use App\Models\User;
 use BackedEnum;
 use Filament\Pages\Page;
+use Illuminate\Support\Facades\Cache;
 use UnitEnum;
 
 class SupportChat extends Page
@@ -16,15 +17,17 @@ class SupportChat extends Page
     protected static ?int $navigationSort = 1;
     protected string $view = 'filament.admin.pages.support-chat';
 
-    // Badge : messages non lus des utilisateurs
+    // Badge : messages non lus (support + admin_private), avec cache 30s
     public static function getNavigationBadge(): ?string
     {
-        $count = Message::whereHas('conversation', fn ($q) =>
-            $q->where('type', 'admin_private')
-        )
-        ->whereNotIn('sender_type', ['admin'])
-        ->whereNull('read_at')
-        ->count();
+        $count = Cache::remember('admin.support.unread', 30, function () {
+            return Message::whereHas('conversation', fn ($q) =>
+                    $q->whereIn('type', ['support', 'admin_private'])
+                )
+                ->where('sender_type', '!=', 'admin')
+                ->whereNull('read_at')
+                ->count();
+        });
 
         return $count > 0 ? (string) $count : null;
     }
@@ -34,17 +37,23 @@ class SupportChat extends Page
         return 'danger';
     }
 
-    // Indicateur de statut pour le menu
     public static function getNavigationBadgeTooltip(): ?string
     {
-        $count = Message::whereHas('conversation', fn ($q) =>
-            $q->where('type', 'admin_private')
-        )
-        ->whereNotIn('sender_type', ['admin'])
-        ->whereNull('read_at')
-        ->count();
+        return 'Messages non lus (support + chat admin)';
+    }
 
-        return $count > 0 ? $count . ' message(s) non lu(s)' : null;
+    public function getSubheading(): ?string
+    {
+        $awaiting = $this->conversations->filter(function ($c) {
+            $last = $c->messages->first(); // eager-loaded (limit 1)
+            return ($c->unread_count ?? 0) === 0 && $last && $last->sender_type !== 'admin';
+        })->count();
+
+        if ($awaiting > 0) {
+            return "{$awaiting} conversation(s) en attente de réponse";
+        }
+
+        return null;
     }
 
     public ?int $activeConversationId = null;
@@ -53,14 +62,18 @@ class SupportChat extends Page
     public function mount(): void
     {
         // Ouvrir la première conversation avec un message non lu par défaut
-        $first = Conversation::where('type', 'admin_private')
+        $first = Conversation::whereIn('type', ['support', 'admin_private'])
             ->whereHas('messages', fn ($q) =>
-                $q->whereNotIn('sender_type', ['admin'])->whereNull('read_at')
+                $q->where('sender_type', '!=', 'admin')->whereNull('read_at')
             )
             ->latest('updated_at')
             ->first();
 
         $this->activeConversationId = $first?->id;
+
+        if ($this->activeConversationId) {
+            $this->markConversationAsRead($this->activeConversationId);
+        }
     }
 
     public function selectConversation(int $conversationId): void
@@ -72,9 +85,11 @@ class SupportChat extends Page
     private function markConversationAsRead(int $conversationId): void
     {
         Message::where('conversation_id', $conversationId)
-            ->whereNotIn('sender_type', ['admin'])
+            ->where('sender_type', '!=', 'admin')
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
+
+        Cache::forget('admin.support.unread');
     }
 
     public function sendReply(): void
@@ -107,20 +122,22 @@ class SupportChat extends Page
 
         $conversation->touch();
         $this->newMessage = '';
+
+        Cache::forget('admin.support.unread');
     }
 
     public function getConversationsProperty()
     {
-        return Conversation::where('type', 'admin_private')
+        return Conversation::whereIn('type', [Conversation::TYPE_SUPPORT, Conversation::TYPE_ADMIN_PRIVATE])
+            ->withCount(['messages as unread_count' => fn ($q) =>
+                $q->whereNull('read_at')->where('sender_type', '!=', 'admin')
+            ])
             ->with([
                 'participants',
                 'messages' => fn ($q) => $q->latest()->limit(1),
             ])
-            ->withCount([
-                'messages as unread_count' => fn ($q) =>
-                    $q->whereNotIn('sender_type', ['admin'])->whereNull('read_at'),
-            ])
-            ->latest('updated_at')
+            ->orderByDesc('unread_count')
+            ->orderByDesc('updated_at')
             ->get();
     }
 
@@ -134,6 +151,15 @@ class SupportChat extends Page
             ->with('sender')
             ->oldest()
             ->get();
+    }
+
+    public function getActiveConversationProperty(): ?Conversation
+    {
+        if (!$this->activeConversationId) {
+            return null;
+        }
+
+        return Conversation::find($this->activeConversationId);
     }
 
     public function getActiveUserProperty(): ?User

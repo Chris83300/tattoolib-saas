@@ -62,12 +62,12 @@ class SecurityHeaders
      */
     private function buildCspHeader(Request $request, string $nonce): string
     {
-        // ENVIRONNEMENT LOCAL/TESTING : CSP permissif pour Vite HMR
-        // unsafe-inline/eval conservés car Vite dev mode les requiert
+        // ENVIRONNEMENT LOCAL/TESTING : CSP permissif pour Vite HMR et Livewire
+        // unsafe-inline/eval nécessaires pour le développement local
         if (app()->environment(['local', 'testing'])) {
             return implode('; ', [
                 "default-src 'self'",
-                "script-src 'self' 'nonce-{$nonce}' 'unsafe-inline' 'unsafe-eval' http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* wss://localhost:* wss://127.0.0.1:* https://js.stripe.com https://cdn.jsdelivr.net",
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* wss://localhost:* wss://127.0.0.1:* https://js.stripe.com https://cdn.jsdelivr.net",
                 "style-src 'self' 'unsafe-inline' http://localhost:* http://127.0.0.1:* https://fonts.googleapis.com https://fonts.bunny.net https://cdn.jsdelivr.net",
                 "img-src 'self' data: https: http://localhost:* http://127.0.0.1:*",
                 "font-src 'self' data: https://fonts.gstatic.com https://fonts.bunny.net",
@@ -79,13 +79,14 @@ class SecurityHeaders
                 "form-action 'self'",
                 "frame-ancestors 'none'",
                 "manifest-src 'self'",
+                "worker-src blob: 'self'",
             ]);
         }
 
         // ENVIRONNEMENT PRODUCTION : CSP strict avec nonce — sans unsafe-inline/eval sur script-src
         return implode('; ', [
             "default-src 'self'",
-            "script-src 'self' 'nonce-{$nonce}' https://js.stripe.com https://www.googletagmanager.com https://cdn.jsdelivr.net",
+            "script-src 'self' 'nonce-{$nonce}' 'unsafe-eval' https://js.stripe.com https://www.googletagmanager.com https://cdn.jsdelivr.net",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.bunny.net https://cdn.jsdelivr.net",
             "img-src 'self' data: https:",
             "font-src 'self' data: https://fonts.gstatic.com https://fonts.bunny.net",

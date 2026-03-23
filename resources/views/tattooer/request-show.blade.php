@@ -236,7 +236,7 @@
                     <div class="space-y-3 flex justify-between">
                         @if ($bookingRequest->status->value === 'pending')
                             <button type="button"
-                                onclick="Livewire.dispatch('open-accept-modal', { bookingRequestId: {{ $bookingRequest->id }} })"
+                                x-data @click="$dispatch('open-accept-modal', { bookingRequestId: {{ $bookingRequest->id }} })"
                                 class="px-4 py-2 bg-vert-succes text-noir-profond rounded-lg font-semibold hover:bg-vert-succes/90 transition-colors">
                                 ✓ Accepter
                             </button>
@@ -336,7 +336,7 @@
                         @if ($bookingRequest->status->value === 'pending')
                             <div class="space-y-3">
                                 <button type="button"
-                                    onclick="Livewire.dispatch('open-accept-modal', { bookingRequestId: {{ $bookingRequest->id }} })"
+                                    x-data @click="$dispatch('open-accept-modal', { bookingRequestId: {{ $bookingRequest->id }} })"
                                     class="px-4 py-3 bg-vert-succes text-noir-profond rounded-lg font-semibold hover:bg-vert-succes/90 transition-colors">
                                     ✓ Accepter
                                 </button>

@@ -7,7 +7,9 @@
     <title>@yield('title', 'Dashboard') - Ink&Pik</title>
     @livewireStyles
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @stack('styles')
+
+    <!-- FullCalendar -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
 
     <!-- Alpine.js -->
     {{-- <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script> --}}
@@ -16,8 +18,6 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- VAPID public key (notifications push) -->
     <meta name="vapid-public-key" content="{{ config('webpush.vapid.public_key', env('VAPID_PUBLIC_KEY', '')) }}">
-
-    @include('partials.pwa-meta')
 </head>
 
 @php
@@ -368,36 +368,21 @@
     </div>
 
     <script nonce="{{ csp_nonce() }}">
-        document.addEventListener('DOMContentLoaded', function() {
-            // Gestionnaires pour le menu mobile
-            function openMobileMoreMenu() {
-                const el = document.getElementById('mobile-more-menu');
-                if (el) el.classList.remove('hidden');
-            }
+        function openMobileMoreMenu() {
+            const el = document.getElementById('mobile-more-menu');
+            if (el) el.classList.remove('hidden');
+        }
 
-            function closeMobileMoreMenu() {
-                const el = document.getElementById('mobile-more-menu');
-                if (el) el.classList.add('hidden');
-            }
-
-            // Attacher les écouteurs d'événements
-            const openBtn = document.querySelector('[data-action="open-mobile-menu"]');
-            if (openBtn) {
-                openBtn.addEventListener('click', openMobileMoreMenu);
-            }
-
-            const closeElements = document.querySelectorAll('[data-action="close-mobile-menu"]');
-            closeElements.forEach(function(el) {
-                el.addEventListener('click', closeMobileMoreMenu);
-            });
-        });
+        function closeMobileMoreMenu() {
+            const el = document.getElementById('mobile-more-menu');
+            if (el) el.classList.add('hidden');
+        }
     </script>
 
     @stack('scripts')
     @livewireScripts
     @livewire('admin-chat')
 
-    @include('partials.pwa-install-prompt')
 </body>
 
 </html>

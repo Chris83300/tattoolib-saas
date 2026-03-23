@@ -3,6 +3,24 @@
 @section('content')
 <div class="max-w-4xl mx-auto space-y-8">
     
+    <!-- Bannière bêta-testeur -->
+    @if (auth()->user()->is_beta_tester)
+    <div class="p-4 bg-green-900/20 border border-green-700/40 rounded-xl">
+        <div class="flex items-center gap-3">
+            <span class="text-2xl">🎁</span>
+            <div>
+                <p class="font-semibold text-green-300">Offre bêta-testeur exclusive</p>
+                <p class="text-sm text-green-400/80">
+                    -30% à vie sur tous les plans — réservé aux bêta-testeurs.
+                    @if (auth()->user()->isActiveBetaTester())
+                        Il vous reste <strong>{{ auth()->user()->betaDaysRemaining() }} jours</strong> sur votre mois gratuit.
+                    @endif
+                </p>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Hero -->
     <div class="text-center">
         <div class="inline-block px-4 py-2 bg-beige-peau/20 text-beige-peau rounded-full font-semibold mb-4">
