@@ -174,9 +174,15 @@ class AcceptBookingModal extends Component
 
                 $conversation = \App\Models\Conversation::create([
                     'booking_request_id' => $this->bookingRequest->id,
-                    'client_id' => $this->bookingRequest->client_id,
-                    'tattooer_id' => $artisan->id,
-                    'status' => 'active',
+                    'type'               => \App\Models\Conversation::TYPE_BOOKING,
+                    'subject'            => "Projet : {$this->bookingRequest->tattoo_size} sur {$this->bookingRequest->body_zone}",
+                    'status'             => 'active',
+                ]);
+
+                // Attacher les participants via la table pivot conversation_user
+                $conversation->participants()->attach([
+                    $this->bookingRequest->client->user_id => ['role' => 'client'],
+                    $artisan->user_id                      => ['role' => 'tattooer'],
                 ]);
 
                 // Envoyer le message d'acceptation
