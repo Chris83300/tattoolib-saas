@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Studio;
 
 use App\Http\Controllers\Controller;
+use App\Models\Conversation;
 use App\Models\Studio;
+use App\Services\AccountingExportService;
+use App\Services\StudioStatsService;
 
 class StudioDashboardController extends Controller
 {
@@ -52,6 +55,11 @@ class StudioDashboardController extends Controller
             ->whereYear('deposit_paid_at', now()->year)
             ->sum('total_deposit_amount');
 
+        // CA total (acomptes encaissés sur toute la durée)
+        $totalRevenue = (clone $bookingBase)
+            ->whereNotNull('deposit_paid_at')
+            ->sum('total_deposit_amount');
+
         // 5 dernières demandes en attente
         $latestRequests = (clone $bookingBase)
             ->with(['bookable.user', 'client'])
@@ -67,8 +75,7 @@ class StudioDashboardController extends Controller
             'monthlyPrice'   => $studio->monthlyPrice(),
             'totalArtists'   => $artists->count(),
             'activeArtists'  => $artists->count(),
-            'totalRevenue'   => 0,
-            // Nouveaux compteurs
+            'totalRevenue'   => round((float) $totalRevenue, 2),
             'pendingCount'   => $pendingCount,
             'confirmedCount' => $confirmedCount,
             'completedCount' => $completedCount,
@@ -93,6 +100,42 @@ class StudioDashboardController extends Controller
             'studio'  => $studio,
             'artists' => $artists,
         ]);
+    }
+
+    public function comptabilite()
+    {
+        $studio       = $this->studio();
+        $statsService = new StudioStatsService($studio);
+        $exportService = app(AccountingExportService::class);
+
+        $stats       = $statsService->getDashboardStats();
+        $artistStats = $statsService->getArtistStats();
+        $transactions = $exportService->getStudioTransactions($studio, null, null)->take(30);
+        $year         = (int) request('year', now()->year);
+
+        return view('studio.comptabilite', compact('studio', 'stats', 'artistStats', 'transactions', 'year'));
+    }
+
+    public function conversations()
+    {
+        $studio        = $this->studio();
+        $statsService  = new StudioStatsService($studio);
+        $conversations = $statsService->getArtistConversations();
+
+        return view('studio.conversations', compact('studio', 'conversations'));
+    }
+
+    public function conversationShow(Conversation $conversation)
+    {
+        $studio        = $this->studio();
+        $artistUserIds = $studio->artists()->pluck('user_id')->filter()->toArray();
+
+        $belongsToStudio = $conversation->participants()->whereIn('users.id', $artistUserIds)->exists();
+        abort_unless($belongsToStudio, 403, 'Cette conversation ne concerne pas un artiste de votre studio.');
+
+        $conversation->load(['messages.sender', 'participants']);
+
+        return view('studio.conversation-show', compact('studio', 'conversation'));
     }
 
     public function stats()
