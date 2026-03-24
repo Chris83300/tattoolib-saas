@@ -179,6 +179,7 @@ class BookingRequest extends Model implements HasMedia
         'balance_paid_at',
         'balance_payment_method',
         'balance_stripe_session_id',
+        'balance_requested_at',
     ];
 
     protected $casts = [
@@ -229,6 +230,7 @@ class BookingRequest extends Model implements HasMedia
         'balance_amount' => 'decimal:2',
         'balance_paid_at' => 'datetime',
         'balance_payment_method' => 'string',
+        'balance_requested_at' => 'datetime',
 
         // === 🎯 AUTRES CHAMPS ===
         'price_range_min' => 'decimal:2',
@@ -1239,15 +1241,32 @@ class BookingRequest extends Model implements HasMedia
     }
 
     /**
-     * Calculer le solde restant à payer
+     * Calculer le solde restant à payer (utilise confirmed_final_price si disponible).
      */
     public function getBalanceRemainingAttribute(): float
     {
-        if (!$this->total_price || !$this->total_deposit_amount) {
+        $basePrice = $this->confirmed_final_price ?? $this->total_price ?? 0;
+        if (!$basePrice || !$this->total_deposit_amount) {
             return 0;
         }
         $paid = $this->balance_amount ?? 0;
-        return max(0, $this->total_price - $this->total_deposit_amount - $paid);
+        return max(0, (float) $basePrice - (float) $this->total_deposit_amount - (float) $paid);
+    }
+
+    /**
+     * Le solde a-t-il été demandé (et pas encore payé) ?
+     */
+    public function isBalanceRequested(): bool
+    {
+        return $this->balance_requested_at !== null && $this->balance_paid_at === null;
+    }
+
+    /**
+     * Le solde est-il payé ?
+     */
+    public function isBalancePaid(): bool
+    {
+        return $this->balance_paid_at !== null;
     }
 
     /**
