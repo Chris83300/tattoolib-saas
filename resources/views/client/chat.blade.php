@@ -121,6 +121,39 @@ $paymentText = $isTotalPayment
                     </div>
                 @endif
 
+                {{-- Bannière paiement du solde --}}
+                @if ($bookingRequest->isBalanceRequested()
+                    && $bookingRequest->status === \App\Enums\BookingRequestStatus::COMPLETED)
+                    <div class="mb-4 p-4 bg-beige-peau/10 border border-beige-peau/20 rounded-xl">
+                        <div class="flex items-center justify-between gap-4">
+                            <div>
+                                <p class="text-sm font-semibold text-beige-peau mb-1">Paiement du solde demandé</p>
+                                <div class="flex items-baseline gap-2 text-sm text-ivoire-text/60">
+                                    <span>Reste à payer :</span>
+                                    <span class="text-xl font-bold text-beige-peau">
+                                        {{ number_format($bookingRequest->balance_remaining, 2, ',', ' ') }} €
+                                    </span>
+                                </div>
+                            </div>
+                            <a href="{{ route('client.balance.show', $bookingRequest) }}"
+                               class="shrink-0 inline-flex items-center gap-2 px-4 py-2.5
+                                      bg-beige-peau text-noir-profond rounded-xl text-sm font-semibold
+                                      hover:bg-beige-peau/90 transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                </svg>
+                                Payer le solde
+                            </a>
+                        </div>
+                    </div>
+                @elseif ($bookingRequest->isBalancePaid())
+                    <div class="mb-4 p-3 bg-vert-succes/10 border border-vert-succes/20 rounded-xl text-center">
+                        <p class="text-sm font-medium text-vert-succes">
+                            ✅ Solde payé le {{ $bookingRequest->balance_paid_at->format('d/m/Y') }}
+                        </p>
+                    </div>
+                @endif
+
                 <div class="flex items-center justify-between">
                     <div>
                         <h1 class="text-3xl font-bold text-ivoire-text">Chat avec
@@ -131,9 +164,26 @@ $paymentText = $isTotalPayment
                 </div>
 
                 <!-- Bouton laisser un avis pour les demandes terminées -->
-                @if (
-                    $bookingRequest->isCompleted() &&
-                        !\App\Models\Review::where('reviewable_type', 'App\Models\BookingRequest')->where('reviewable_id', $bookingRequest->id)->where('client_id', auth()->id())->exists())
+                @php
+                    $hasBookingRequestReview = $bookingRequest
+                        ->reviews()
+                        ->where('client_id', auth()->user()->client->id)
+                        ->exists();
+
+                    $hasTattooerReview = false;
+                    if ($bookingRequest->bookable) {
+                        $hasTattooerReview = \App\Models\Review::where(
+                            'reviewable_type',
+                            get_class($bookingRequest->bookable),
+                        )
+                            ->where('reviewable_id', $bookingRequest->bookable->id)
+                            ->where('client_id', auth()->user()->client->id)
+                            ->exists();
+                    }
+
+                    $reviewed = $hasBookingRequestReview || $hasTattooerReview;
+                @endphp
+                @if ($bookingRequest->isCompleted() && !$reviewed)
                     <div class="bg-beige-peau/10 border border-beige-peau/30 rounded-xl p-4 mb-4">
                         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                             <div>
@@ -146,9 +196,7 @@ $paymentText = $isTotalPayment
                             </button>
                         </div>
                     </div>
-                @elseif (
-                    $bookingRequest->isCompleted() &&
-                        \App\Models\Review::where('reviewable_type', 'App\Models\BookingRequest')->where('reviewable_id', $bookingRequest->id)->where('client_id', auth()->id())->exists())
+                @elseif ($bookingRequest->isCompleted() && $reviewed)
                     <div class="bg-vert-succes/10 border border-vert-succes/30 rounded-xl p-4 mb-4 text-center">
                         <p class="text-sm text-vert-succes">✅ Merci pour votre avis !</p>
                     </div>

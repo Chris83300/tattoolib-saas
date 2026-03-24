@@ -229,6 +229,45 @@
                                     <span class="text-vert-succes font-semibold">✓ Acompte payé</span>
                                 </div>
 
+                                <!-- BOUTON PAYER LE SOLDE -->
+                                @if ($bookingRequest->isBalanceRequested()
+                                    && $bookingRequest->status === \App\Enums\BookingRequestStatus::COMPLETED)
+                                    <div class="p-4 bg-beige-peau/10 border border-beige-peau/20 rounded-xl">
+                                        <h4 class="text-sm font-semibold text-beige-peau mb-3">Paiement du solde demandé</h4>
+                                        <div class="space-y-1.5 text-sm mb-4">
+                                            <div class="flex justify-between text-ivoire-text/60">
+                                                <span>Prix définitif</span>
+                                                <span class="text-titane font-medium">
+                                                    {{ number_format($bookingRequest->confirmed_final_price ?? $bookingRequest->total_price ?? 0, 2, ',', ' ') }} €
+                                                </span>
+                                            </div>
+                                            <div class="flex justify-between text-ivoire-text/60">
+                                                <span>Acompte versé</span>
+                                                <span class="text-vert-succes">- {{ number_format($bookingRequest->total_deposit_amount ?? 0, 2, ',', ' ') }} €</span>
+                                            </div>
+                                            <div class="flex justify-between border-t border-titane/10 pt-1.5">
+                                                <span class="font-semibold text-ivoire-text">Reste à payer</span>
+                                                <span class="text-xl font-bold text-beige-peau">{{ number_format($bookingRequest->balance_remaining, 2, ',', ' ') }} €</span>
+                                            </div>
+                                        </div>
+                                        <a href="{{ route('client.balance.show', $bookingRequest) }}"
+                                           class="w-full inline-flex items-center justify-center gap-2 px-4 py-3
+                                                  bg-beige-peau text-noir-profond rounded-xl font-semibold
+                                                  hover:bg-beige-peau/90 transition">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                            </svg>
+                                            Payer le solde ({{ number_format($bookingRequest->balance_remaining, 2, ',', ' ') }} €)
+                                        </a>
+                                    </div>
+                                @elseif ($bookingRequest->isBalancePaid())
+                                    <div class="bg-vert-succes/10 border border-vert-succes/20 rounded-xl px-4 py-3 text-center">
+                                        <p class="text-sm font-medium text-vert-succes">
+                                            ✅ Solde payé le {{ $bookingRequest->balance_paid_at->format('d/m/Y') }}
+                                        </p>
+                                    </div>
+                                @endif
+
                                 <!-- Chat avec l'artiste -->
                                 @if ($bookingRequest->conversation)
                                     <a href="{{ route('client.chat', $bookingRequest->conversation) }}"

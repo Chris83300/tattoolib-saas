@@ -159,11 +159,13 @@ class BalancePaymentController extends Controller
      */
     public function confirmOffline(Request $request, BookingRequest $bookingRequest)
     {
-        // Vérifier que le tattooer est le propriétaire
+        // Vérifier que l'artisan est le propriétaire
         $user = auth()->user();
+        $artisan = $user->artisan();
         abort_unless(
-            $bookingRequest->bookable_type === get_class($user->tattooer) &&
-            $bookingRequest->bookable_id === $user->tattooer?->id,
+            $artisan &&
+            $bookingRequest->bookable_type === get_class($artisan) &&
+            $bookingRequest->bookable_id === $artisan->id,
             403
         );
 
@@ -193,9 +195,9 @@ class BalancePaymentController extends Controller
 
             $conversation->messages()->create([
                 'sender_id' => null,
-                'body' => "💰 Solde de {$validated['amount']}€ confirmé (paiement par {$method}). Prestation complète !",
-                'is_system' => true,
-                'metadata' => json_encode(['type' => 'balance_paid_offline']),
+                'sender_type' => 'system',
+                'booking_request_id' => $bookingRequest->id,
+                'content' => "Solde de {$validated['amount']} € confirmé (paiement par {$method}). Prestation complète !",
             ]);
         }
 
