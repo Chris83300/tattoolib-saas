@@ -58,6 +58,12 @@ class RequestBalancePayment extends Component
 
     protected function calculateRemaining(): void
     {
+        // Recompute deposit from model on every call (fixes Livewire hydration issue)
+        if ($this->bookingRequest) {
+            $this->depositAmount = (float) ($this->bookingRequest->deposit_paid_at
+                ? ($this->bookingRequest->total_deposit_amount ?? 0)
+                : 0);
+        }
         $price = (float) ($this->finalPrice ?? 0);
         $this->remainingBalance = max(0, round($price - $this->depositAmount, 2));
     }
@@ -87,13 +93,13 @@ class RequestBalancePayment extends Component
         // 2. Envoyer un message dans le chat
         $conversation = $this->bookingRequest->conversation;
         if ($conversation) {
-            $paymentUrl = route('client.balance.show', ['bookingRequest' => $this->bookingRequest->id]);
+            $brId = $this->bookingRequest->id;
 
             $messageContent = "Demande de paiement du solde\n\n"
                 . "Prix définitif : {$finalPrice} €\n"
                 . "Acompte versé : {$this->depositAmount} €\n"
-                . "Reste à payer : {$remaining} €\n\n"
-                . "Lien de paiement : {$paymentUrl}";
+                . "Reste à payer : {$remaining} €"
+                . "[BALANCE_PAYMENT:{$brId}]";
 
             Message::create([
                 'conversation_id' => $conversation->id,

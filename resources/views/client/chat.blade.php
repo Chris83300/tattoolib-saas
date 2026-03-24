@@ -311,6 +311,12 @@ $paymentText = $isTotalPayment
                                 @endif
                             @else
                                 {{-- ═══ MESSAGE NORMAL (client / tattooer) ═══ --}}
+                                @php
+                                    $balanceMatch = [];
+                                    $isBalanceMsg = preg_match('/\[BALANCE_PAYMENT:(\d+)\]/', $message->content ?? '', $balanceMatch);
+                                    $balanceBrId = $isBalanceMsg ? (int) $balanceMatch[1] : null;
+                                    $cleanContent = preg_replace('/\[BALANCE_PAYMENT:\d+\]/i', '', $message->content ?? '');
+                                @endphp
                                 <div
                                     class="flex {{ $message->sender_type === 'tattooer' ? 'justify-start' : 'justify-end' }} mb-4">
                                     <div class="max-w-xs lg:max-w-md">
@@ -318,7 +324,22 @@ $paymentText = $isTotalPayment
                                             class="{{ $message->sender_type === 'tattooer'
                                                 ? 'bg-noir-profond text-ivoire-text'
                                                 : 'bg-beige-peau text-noir-profond' }} rounded-lg px-4 py-2">
-                                            <p class="text-sm whitespace-pre-wrap">{{ $message->content }}</p>
+                                            <p class="text-sm whitespace-pre-wrap">{{ $cleanContent }}</p>
+                                            @if ($isBalanceMsg)
+                                                @if (!$bookingRequest->balance_paid_at)
+                                                    <a href="{{ route('client.balance.show', ['bookingRequest' => $balanceBrId]) }}"
+                                                       class="mt-3 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5
+                                                              bg-beige-peau text-noir-profond rounded-xl text-sm font-semibold
+                                                              hover:bg-beige-peau/90 transition">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                                        </svg>
+                                                        Payer le solde ({{ number_format($bookingRequest->balance_remaining, 2, ',', ' ') }} €)
+                                                    </a>
+                                                @else
+                                                    <p class="mt-2 text-xs text-vert-succes font-medium">✅ Solde payé</p>
+                                                @endif
+                                            @endif
 
                                             @if ($message->getMedia('attachments')->isNotEmpty())
                                                 <div class="mt-2 space-y-1">

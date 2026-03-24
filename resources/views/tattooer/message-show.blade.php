@@ -517,7 +517,7 @@
                                             class="{{ $message->sender_type === 'client' ? 'bg-noir-profond text-ivoire-text' : 'bg-beige-peau text-noir-profond' }} rounded-lg px-3 py-2 sm:px-4">
                                             <p class="text-sm whitespace-pre-wrap break-words">
                                                 @if (!empty(trim($message->content)))
-                                                    {{ preg_replace('/\[CONSENT_FORM:\d+\]/i', '', $message->content) }}
+                                                    {{ preg_replace('/\[(CONSENT_FORM|BALANCE_PAYMENT):\d+\]/i', '', $message->content) }}
                                                 @elseif ($message->getMedia('attachments')->isNotEmpty())
                                                     <span class="text-ivoire-text/60 italic">Dessin envoyé</span>
                                                 @else
