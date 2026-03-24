@@ -25,7 +25,7 @@ class BalancePaymentController extends Controller
         $client = auth()->user()->client;
         abort_unless($client && $bookingRequest->client_id === $client->id, 403);
 
-        // Vérifier que le RDV est terminé
+        // Vérifier que l'acompte est versé
         abort_unless(
             $bookingRequest->status === BookingRequestStatus::COMPLETED,
             403,
@@ -110,7 +110,7 @@ class BalancePaymentController extends Controller
                 ],
             ],
             'success_url' => route('client.balance-payment.success', $bookingRequest) . '?session_id={CHECKOUT_SESSION_ID}',
-            'cancel_url' => route('client.balance-payment.show', $bookingRequest),
+            'cancel_url' => route('client.balance.show', $bookingRequest),
             'customer_email' => auth()->user()->email,
             'metadata' => [
                 'booking_request_id' => $bookingRequest->id,
@@ -146,11 +146,36 @@ class BalancePaymentController extends Controller
         $client = auth()->user()->client;
         abort_unless($client && $bookingRequest->client_id === $client->id, 403);
 
-        // Le webhook Stripe gère la vraie confirmation
-        // Ici on affiche juste une page de confirmation optimiste
+        // Filet de sécurité : si le webhook n'a pas encore traité le paiement,
+        // vérifier directement la session Stripe et mettre à jour la DB
+        if (!$bookingRequest->balance_paid_at && $request->filled('session_id')) {
+            try {
+                \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
+                $session = \Stripe\Checkout\Session::retrieve($request->query('session_id'));
+
+                if ($session->payment_status === 'paid'
+                    && ($session->metadata['booking_request_id'] ?? null) == $bookingRequest->id
+                    && ($session->metadata['payment_type'] ?? null) === 'balance'
+                ) {
+                    $bookingRequest->update([
+                        'balance_amount'         => $session->amount_total / 100,
+                        'balance_paid_at'        => now(),
+                        'balance_payment_method' => 'stripe',
+                        'status'                 => \App\Enums\BookingRequestStatus::FULLY_COMPLETED,
+                    ]);
+
+                    Log::info('[Balance] success() fallback — balance_paid_at mis à jour', [
+                        'booking_request_id' => $bookingRequest->id,
+                        'session_id'         => $session->id,
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::warning('[Balance] success() fallback Stripe error', ['error' => $e->getMessage()]);
+            }
+        }
 
         return view('client.balance-payment-success', [
-            'bookingRequest' => $bookingRequest,
+            'bookingRequest' => $bookingRequest->fresh(),
         ]);
     }
 

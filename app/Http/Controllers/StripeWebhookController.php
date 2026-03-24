@@ -179,9 +179,9 @@ class StripeWebhookController extends Controller
             $amount = number_format($session->amount_total / 100, 2, ',', ' ');
             $conversation->messages()->create([
                 'sender_id' => null,
-                'body' => "💰 Solde de {$amount}€ payé en ligne. Prestation complète !",
-                'is_system' => true,
-                'metadata' => json_encode(['type' => 'balance_paid_online']),
+                'sender_type' => 'system',
+                'booking_request_id' => $bookingRequest->id,
+                'content' => "Solde de {$amount} € payé en ligne via Stripe. Prestation complète !",
             ]);
         }
 
