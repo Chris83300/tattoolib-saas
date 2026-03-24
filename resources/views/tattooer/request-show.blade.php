@@ -700,11 +700,28 @@
                             <p class="text-2xl font-bold text-orange-terre-cuite">
                                 {{ number_format($bookingRequest->balance_remaining, 2, ',', ' ') }} €</p>
                         </div>
-                        <span class="text-xs text-noir-profond/50 bg-noir-profond/5 px-2 py-1 rounded">En
-                            attente</span>
+                        @if ($bookingRequest->isBalanceRequested())
+                            <span class="text-xs text-orange-terre-cuite bg-orange-terre-cuite/10 px-2 py-1 rounded">
+                                Demandé le {{ $bookingRequest->balance_requested_at->format('d/m/Y') }}
+                            </span>
+                        @else
+                            <span class="text-xs text-noir-profond/50 bg-noir-profond/5 px-2 py-1 rounded">En attente</span>
+                        @endif
                     </div>
                     <p class="text-xs text-noir-profond/60 mb-3">Le client peut payer en ligne, ou vous pouvez
                         confirmer un paiement direct.</p>
+
+                    {{-- Bouton demander le solde en ligne --}}
+                    <button x-data
+                            @click="$dispatch('open-balance-modal', { bookingRequestId: {{ $bookingRequest->id }} })"
+                            class="inline-flex items-center gap-2 px-4 py-2 bg-beige-peau text-noir-profond
+                                   rounded-lg text-sm font-semibold hover:bg-beige-peau/90 transition-colors mb-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        {{ $bookingRequest->isBalanceRequested() ? 'Renvoyer la demande de solde' : 'Demander le solde' }}
+                    </button>
 
                     <button x-data @click="$dispatch('open-modal', 'offline-payment-modal')"
                         class="inline-flex items-center gap-2 px-4 py-2 bg-orange-terre-cuite text-white rounded-lg text-sm font-medium hover:bg-orange-terre-cuite/90 transition-colors">
@@ -857,5 +874,8 @@
 
         <!-- Modal d'acceptation Livewire -->
         <livewire:tattooer.accept-booking-modal />
+
+        <!-- Modal demande de solde Livewire -->
+        <livewire:tattooer.request-balance-payment />
 
     @endsection
