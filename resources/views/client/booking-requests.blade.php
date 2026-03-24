@@ -144,6 +144,17 @@
                                                     </span>
                                                 @endif
 
+                                                {{-- Badge paiement solde --}}
+                                                @if ($bookingRequest->balance_paid_at)
+                                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-vert-succes/20 text-vert-succes rounded-full text-xs font-semibold">
+                                                        ✅ Solde payé
+                                                    </span>
+                                                @elseif ($bookingRequest->balance_requested_at)
+                                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-orange-terre-cuite/20 text-orange-terre-cuite rounded-full text-xs font-semibold">
+                                                        💰 Solde à payer
+                                                    </span>
+                                                @endif
+
                                                 @if ($bookingRequest->unread_messages > 0)
                                                     <span
                                                         class="inline-flex items-center justify-center px-2 py-1 bg-rouge-alerte text-ivoire-text rounded-full text-xs font-bold">
@@ -328,6 +339,16 @@
                                                     d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                                             </svg>
                                             Payer l'acompte
+                                        </a>
+                                    @endif
+
+                                    {{-- Bouton payer le solde --}}
+                                    @if ($bookingRequest->balance_requested_at
+                                        && !$bookingRequest->balance_paid_at
+                                        && $bookingRequest->status === \App\Enums\BookingRequestStatus::COMPLETED)
+                                        <a href="{{ route('client.balance.show', $bookingRequest) }}"
+                                            class="flex items-center justify-center px-4 py-2 bg-orange-terre-cuite text-white rounded-lg font-semibold hover:bg-orange-terre-cuite/90 transition-colors">
+                                            💳 Payer le solde
                                         </a>
                                     @endif
 

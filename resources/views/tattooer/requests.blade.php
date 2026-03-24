@@ -221,7 +221,11 @@
                             <div class="flex flex-wrap gap-4 text-sm text-ivoire-text/60 mb-4">
                                 <span>📍 {{ $request->body_zone }}</span>
                                 @if (auth()->user()->isTattooer())
-                                    @if ($request->total_deposit_amount)
+                                    @if ($request->balance_paid_at)
+                                        <span class="text-vert-succes font-semibold">✅ Solde payé</span>
+                                    @elseif ($request->balance_requested_at)
+                                        <span class="text-orange-terre-cuite font-semibold">💰 Solde demandé</span>
+                                    @elseif ($request->total_deposit_amount)
                                         <span>💰 Acompte :
                                             {{ number_format($request->total_deposit_amount, 2, ',', ' ') }}€</span>
                                     @endif

@@ -689,10 +689,22 @@
             {{-- === BLOC PAIEMENT SOLDE (tattooer) === --}}
             @php
                 $allowsBalance = $bookingRequest->status === \App\Enums\BookingRequestStatus::COMPLETED;
-                $hasBalance = ($bookingRequest->balance_remaining ?? 0) > 0;
+                $hasBalance = ($bookingRequest->balance_remaining ?? 0) > 0 && !$bookingRequest->balance_paid_at;
             @endphp
 
-            @if ($allowsBalance && $hasBalance)
+            {{-- Solde déjà payé --}}
+            @if ($bookingRequest->balance_paid_at)
+                <div class="mt-4 p-4 rounded-xl bg-vert-succes/10 border border-vert-succes/20">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-vert-succes flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <p class="text-sm font-medium text-vert-succes">
+                            Solde payé par le client le {{ $bookingRequest->balance_paid_at->format('d/m/Y') }}
+                        </p>
+                    </div>
+                </div>
+            @elseif ($allowsBalance && $hasBalance)
                 <div class="mt-4 p-4 rounded-xl bg-orange-terre-cuite/5 border border-orange-terre-cuite/20">
                     <div class="flex items-center justify-between mb-3">
                         <div>

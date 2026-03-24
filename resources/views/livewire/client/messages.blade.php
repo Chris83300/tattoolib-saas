@@ -76,14 +76,20 @@
 
                                 @if ($br)
                                     <div class="flex flex-col gap-1">
-                                        @if ($br->deposit_paid_at)
-                                            <span
-                                                class="px-2.5 py-0.5 bg-vert-succes/20 text-vert-succes rounded-full text-xs font-bold">
+                                        @if ($br->balance_paid_at)
+                                            <span class="px-2.5 py-0.5 bg-vert-succes/20 text-vert-succes rounded-full text-xs font-bold">
+                                                ✅ Solde payé
+                                            </span>
+                                        @elseif ($br->balance_requested_at)
+                                            <span class="px-2.5 py-0.5 bg-orange-terre-cuite/20 text-orange-terre-cuite rounded-full text-xs font-bold">
+                                                💰 Solde à payer
+                                            </span>
+                                        @elseif ($br->deposit_paid_at)
+                                            <span class="px-2.5 py-0.5 bg-vert-succes/20 text-vert-succes rounded-full text-xs font-bold">
                                                 💰 Acompte payé
                                             </span>
                                         @elseif (in_array($br->status->value, ['accepted', 'awaiting_deposit']) && $br->deposit_amount)
-                                            <span
-                                                class="px-2.5 py-0.5 bg-jaune-alerte/20 text-jaune-alerte rounded-full text-xs font-bold">
+                                            <span class="px-2.5 py-0.5 bg-jaune-alerte/20 text-jaune-alerte rounded-full text-xs font-bold">
                                                 ⏳ Acompte en attente
                                             </span>
                                         @endif
@@ -181,9 +187,26 @@
                                         </span>
 
                                         <!-- Bouton laisser un avis pour les demandes terminées -->
-                                        @if (
-                                            $br->isCompleted() &&
-                                                !\App\Models\Review::where('booking_request_id', $br->id)->where('client_user_id', auth()->id())->exists())
+                                        @php
+                                            $hasBookingRequestReview = $br
+                                                ->reviews()
+                                                ->where('client_id', auth()->user()->client->id)
+                                                ->exists();
+
+                                            $hasTattooerReview = false;
+                                            if ($br->bookable) {
+                                                $hasTattooerReview = \App\Models\Review::where(
+                                                    'reviewable_type',
+                                                    get_class($br->bookable),
+                                                )
+                                                    ->where('reviewable_id', $br->bookable->id)
+                                                    ->where('client_id', auth()->user()->client->id)
+                                                    ->exists();
+                                            }
+
+                                            $reviewed = $hasBookingRequestReview || $hasTattooerReview;
+                                        @endphp
+                                        @if ($br->isCompleted() && !$reviewed)
                                             <button onclick="openReviewModal({{ $br->id }})"
                                                 class="px-2.5 py-0.5 bg-beige-peau/20 text-beige-peau rounded-full text-xs font-bold hover:bg-beige-peau/30 transition-colors">
                                                 ⭐ Laisser un avis
@@ -305,77 +328,77 @@
             </div>
         </div>
             `;
-                document.body.appendChild(modal);
-            }
+            document.body.appendChild(modal);
+        }
 
-            function closeReviewModal() {
-                const modal = document.querySelector('[onclick*="closeReviewModal"]');
-                if (modal) {
-                    modal.remove();
+        function closeReviewModal() {
+            const modal = document.querySelector('[onclick*="closeReviewModal"]');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        function setRating(rating) {
+            const buttons = document.querySelectorAll('[onclick^="setRating("]');
+            buttons.forEach((btn, index) => {
+                btn.classList.remove('border-beige-peau', 'bg-beige-peau');
+                btn.classList.add('border-titane/30');
+                if (index < rating) {
+                    btn.classList.add('border-beige-peau', 'bg-beige-peau');
                 }
+            });
+        }
+
+        function submitReview(event, bookingRequestId) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const rating = document.querySelectorAll('[onclick^="setRating("].border-beige-peau').length;
+
+            if (rating === 0) {
+                alert('Veuillez sélectionner une note (1-5 étoiles)');
+                return;
             }
 
-            function setRating(rating) {
-                const buttons = document.querySelectorAll('[onclick^="setRating("]');
-                buttons.forEach((btn, index) => {
-                    btn.classList.remove('border-beige-peau', 'bg-beige-peau');
-                    btn.classList.add('border-titane/30');
-                    if (index < rating) {
-                        btn.classList.add('border-beige-peau', 'bg-beige-peau');
+            fetch(`/client/reviews/${bookingRequestId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        rating: rating,
+                        comment: formData.get('comment')
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('Avis envoyé avec succès !', 'success');
+                        closeReviewModal();
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        showNotification(data.message || 'Erreur lors de l\'envoi de l\'avis', 'error');
                     }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Erreur lors de l\'envoi de l\'avis', 'error');
                 });
-            }
+        }
 
-            function submitReview(event, bookingRequestId) {
-                event.preventDefault();
-                const formData = new FormData(event.target);
-                const rating = document.querySelectorAll('[onclick^="setRating("].border-beige-peau').length;
-
-                if (rating === 0) {
-                    alert('Veuillez sélectionner une note (1-5 étoiles)');
-                    return;
-                }
-
-                fetch(`/client/reviews/${bookingRequestId}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-                        },
-                        body: JSON.stringify({
-                            rating: rating,
-                            comment: formData.get('comment')
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            showNotification('Avis envoyé avec succès !', 'success');
-                            closeReviewModal();
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 1500);
-                        } else {
-                            showNotification(data.message || 'Erreur lors de l\'envoi de l\'avis', 'error');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        showNotification('Erreur lors de l\'envoi de l\'avis', 'error');
-                    });
-            }
-
-            function showNotification(message, type = 'info') {
-                const notification = document.createElement('div');
-                notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white font-semibold z-50 ${
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white font-semibold z-50 ${
                 type === 'success' ? 'bg-green-500' :
                 type === 'error' ? 'bg-red-500' : 'bg-blue-500'
             }`;
-                notification.textContent = message;
-                document.body.appendChild(notification);
-                setTimeout(() => {
-                    notification.remove();
-                }, 3000);
-            }
-        </script>
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+    </script>
 @endpush
