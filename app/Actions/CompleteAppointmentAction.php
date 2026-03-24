@@ -34,16 +34,11 @@ class CompleteAppointmentAction
             $conversation = $bookingRequest?->conversation;
             if ($conversation) {
                 $conversation->messages()->create([
-                    'sender_id' => null, // message système
+                    'sender_id' => null,
+                    'sender_type' => 'system',
                     'content' => $completedBy === 'system'
                         ? "✅ Ce rendez-vous a été automatiquement marqué comme terminé."
                         : "✅ Le rendez-vous a été marqué comme terminé par l'artiste. Comment ça s'est passé ? Laissez un avis !",
-                    'is_system' => true,
-                    'metadata' => json_encode([
-                        'type' => 'appointment_completed',
-                        'appointment_id' => $appointment->id,
-                        'show_review_cta' => true,
-                    ]),
                 ]);
             }
 

@@ -16,8 +16,8 @@ class CheckCompletedAppointments extends Command
     {
         $action = new CompleteAppointmentAction();
 
-        // RDV terminés depuis plus de 24h, toujours en status "confirmed" (pas encore validés)
-        $appointments = Appointment::where('status', AppointmentStatus::CONFIRMED)
+        // RDV terminés depuis plus de 24h, toujours en status "confirmed" ou "scheduled" (pas encore validés)
+        $appointments = Appointment::whereIn('status', [AppointmentStatus::CONFIRMED, AppointmentStatus::SCHEDULED])
             ->where('end_datetime', '<', now()->subHours(24))
             ->with(['bookingRequest.conversation', 'bookingRequest.client'])
             ->get();
