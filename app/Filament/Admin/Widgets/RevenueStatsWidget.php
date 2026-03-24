@@ -2,141 +2,20 @@
 
 namespace App\Filament\Admin\Widgets;
 
-use App\Models\BookingTransaction;
-use App\Models\User;
-use App\Models\Complaint;
-use Laravel\Cashier\Subscription as CashierSubscription;
-use Filament\Widgets\StatsOverviewWidget as BaseWidget;
-use Filament\Widgets\StatsOverviewWidget\Stat;
+use App\Services\PlatformRevenueService;
+use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Carbon;
 
-class RevenueStatsWidget extends BaseWidget
+class RevenueStatsWidget extends Widget
 {
-    protected static ?int $sort = 0;
+    protected static ?int $sort = 2;
     protected int | string | array $columnSpan = 'full';
+    protected static string $view = 'filament.admin.widgets.revenue-detail';
 
-    protected function getStats(): array
+    public function getData(): array
     {
-        return Cache::remember('admin.widget.revenue_stats', 300, fn () => $this->buildStats());
-    }
-
-    private function buildStats(): array
-    {
-        // Période actuelle (30 derniers jours)
-        $startDate = Carbon::now()->subDays(30);
-        $endDate = Carbon::now();
-
-        // Revenus des paiements (brut)
-        $currentRevenue = BookingTransaction::whereBetween('created_at', [$startDate, $endDate])
-            ->where('status', 'completed')
-            ->sum('amount');
-
-        // Calcul des commissions : pré-charger les abonnements actifs (évite N+1)
-        $commissionAmount = 0;
-        $transactions = BookingTransaction::whereBetween('created_at', [$startDate, $endDate])
-            ->where('status', 'completed')
-            ->with(['bookingRequest.client'])
-            ->get();
-
-        // Collecter tous les user_ids concernés puis charger les subscriptions en une requête
-        $userIds = $transactions
-            ->filter(fn ($t) => $t->bookingRequest && $t->bookingRequest->client)
-            ->map(fn ($t) => $t->bookingRequest->client->user_id)
-            ->unique()
-            ->values();
-
-        $starterUserIds = CashierSubscription::whereIn('user_id', $userIds)
-            ->where('stripe_status', 'active')
-            ->where(function ($q) {
-                $q->where('stripe_price', 'like', '%1T7E4D%')
-                  ->orWhere('stripe_price', 'like', '%starter%');
-            })
-            ->pluck('user_id')
-            ->flip(); // user_id => index (pour lookup O(1))
-
-        foreach ($transactions as $transaction) {
-            if ($transaction->bookingRequest && $transaction->bookingRequest->client) {
-                $userId = $transaction->bookingRequest->client->user_id;
-                if (isset($starterUserIds[$userId])) {
-                    $commissionAmount += $transaction->amount * 0.07;
-                }
-            }
-        }
-
-        // Revenus des abonnements
-        $subscriptionRevenue = CashierSubscription::where('stripe_status', 'active')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->get()
-            ->sum(function($subscription) {
-                $priceStarter = env('STRIPE_PRICE_STARTER', 9.99);
-                $pricePro = env('STRIPE_PRICE_PRO', 29.99);
-                $priceStudio = env('STRIPE_PRICE_STUDIO', 59.99);
-                $priceStudioExtra = env('STRIPE_PRICE_STUDIO_EXTRA', 24.99);
-
-                $price = $subscription->stripe_price ?? '';
-
-                if (str_contains($price, '1T7E4D') || str_contains($price, 'starter')) {
-                    return $priceStarter;
-                } elseif (str_contains($price, '1T8zRR') || str_contains($price, 'pro')) {
-                    return $pricePro;
-                } elseif (str_contains($price, '1T8zPp') || str_contains($price, 'studio')) {
-                    $user = $subscription->user;
-                    if ($user && $user->role === 'studio' && $user->studio_id) {
-                        $artistCount = DB::table('tattooers')
-                            ->where('studio_id', $user->studio_id)
-                            ->count();
-                        return $priceStudio + ($artistCount * $priceStudioExtra);
-                    }
-                    return $priceStudio;
-                }
-
-                return 0;
-            });
-
-        $totalGrossRevenue = $currentRevenue + $subscriptionRevenue;
-        $totalNetRevenue = $totalGrossRevenue - $commissionAmount;
-
-        // Période précédente pour comparaison
-        $previousStartDate = Carbon::now()->subDays(60);
-        $previousEndDate = Carbon::now()->subDays(30);
-
-        $previousRevenue = BookingTransaction::whereBetween('created_at', [$previousStartDate, $previousEndDate])
-            ->where('status', 'completed')
-            ->sum('amount');
-
-        // Calcul de la croissance (basé sur le net)
-        $revenueGrowth = $previousRevenue > 0 ? (($totalNetRevenue - $previousRevenue) / $previousRevenue) * 100 : 0;
-
-        // Autres statistiques
-        $activeSubscriptions = CashierSubscription::where('stripe_status', 'active')->count();
-        $successfulTransactions = BookingTransaction::whereBetween('created_at', [$startDate, $endDate])
-            ->where('status', 'completed')
-            ->count();
-
-        $averageTransaction = $successfulTransactions > 0 ? $totalGrossRevenue / $successfulTransactions : 0;
-
-        return [
-            Stat::make('💰 CA Total (Brut)', number_format($totalGrossRevenue, 2) . '€')
-                ->description('Revenus avant commission')
-                ->descriptionIcon('heroicon-m-currency-euro')
-                ->color('primary'),
-
-            Stat::make('� Commission (7%)', number_format($commissionAmount, 2) . '€')
-                ->description('Prélevée sur Starter')
-                ->descriptionIcon('heroicon-m-receipt-percent')
-                ->color('warning'),
-
-            Stat::make('� CA Net', number_format($totalNetRevenue, 2) . '€')
-                ->description($revenueGrowth >= 0 ? "+{$revenueGrowth}%" : "{$revenueGrowth}%")
-                ->descriptionIcon($revenueGrowth >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
-                ->color($revenueGrowth >= 0 ? 'success' : 'danger'),
-
-            Stat::make('� Abonnements Actifs', $activeSubscriptions)
-                ->description('Revenus récurrents')
-                ->descriptionIcon('heroicon-m-credit-card')
-                ->color('info'),
-        ];
+        return Cache::remember('admin.platform.revenue.detail', 300, function () {
+            return app(PlatformRevenueService::class)->getPlatformRevenue();
+        });
     }
 }
