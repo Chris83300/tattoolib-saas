@@ -25,6 +25,7 @@ export default defineConfig({
                 name: 'Ink&Pik - Marketplace Arts Corporels',
                 short_name: 'Ink&Pik',
                 description: 'Marketplace et logiciel pour tatoueurs, pierceurs et studios en France',
+                scope: '/',
                 start_url: '/',
                 display: 'standalone',
                 background_color: '#0A0A0A',

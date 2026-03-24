@@ -81,7 +81,7 @@
                                                 ✅ Solde payé
                                             </span>
                                         @elseif ($br->balance_requested_at)
-                                            <span class="px-2.5 py-0.5 bg-orange-terre-cuite/20 text-orange-terre-cuite rounded-full text-xs font-bold">
+                                            <span class="px-2.5 py-0.5 bg-ambre-warning/20 text-ivoire-text rounded-full text-xs font-bold">
                                                 💰 Solde à payer
                                             </span>
                                         @elseif ($br->deposit_paid_at)

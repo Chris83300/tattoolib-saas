@@ -18,12 +18,15 @@ class TattooerPaymentController extends ArtisanBaseController
         // Charger les relations nécessaires
         $tattooer->load(['media', 'user']);
 
-        // Récupérer les paiements : demandes avec acompte payé ou solde payé
+        // Récupérer les paiements : demandes avec acompte payé OU solde payé
         $payments = BookingRequest::where('bookable_id', $tattooer->id)
             ->where('bookable_type', get_class($tattooer))
-            ->whereNotNull('deposit_paid_at')
+            ->where(function($query) {
+                $query->whereNotNull('deposit_paid_at')
+                      ->orWhereNotNull('balance_paid_at');
+            })
             ->with(['client', 'bookingTransactions'])
-            ->orderBy('deposit_paid_at', 'desc')
+            ->orderByRaw('COALESCE(balance_paid_at, deposit_paid_at) DESC')
             ->paginate(10);
 
         // Statistiques depuis les vraies transactions comptables
@@ -32,12 +35,16 @@ class TattooerPaymentController extends ArtisanBaseController
               ->where('bookable_type', get_class($tattooer));
         })->where('status', 'completed');
 
+        $totalEarned = (clone $transactionsQuery)->sum('amount');
+        $thisMonthEarned = (clone $transactionsQuery)
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->sum('amount');
+
         $paymentStats = [
-            'total_earned'    => (clone $transactionsQuery)->sum('amount'),
-            'this_month'      => (clone $transactionsQuery)
-                ->whereMonth('created_at', now()->month)
-                ->whereYear('created_at', now()->year)
-                ->sum('amount'),
+            'total_earned'     => $totalEarned,
+            'this_month'       => $thisMonthEarned,
+            'total_commissions'=> $totalEarned * 0.07, // 7% de commission
             'pending_deposits' => BookingRequest::where('bookable_id', $tattooer->id)
                 ->where('bookable_type', get_class($tattooer))
                 ->whereIn('status', ['accepted', 'deposit_requested', 'awaiting_deposit'])

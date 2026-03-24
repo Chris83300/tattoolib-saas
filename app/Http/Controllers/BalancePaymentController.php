@@ -157,16 +157,32 @@ class BalancePaymentController extends Controller
                     && ($session->metadata['booking_request_id'] ?? null) == $bookingRequest->id
                     && ($session->metadata['payment_type'] ?? null) === 'balance'
                 ) {
+                    $balanceAmount = $session->amount_total / 100;
+
                     $bookingRequest->update([
-                        'balance_amount'         => $session->amount_total / 100,
+                        'balance_amount'         => $balanceAmount,
                         'balance_paid_at'        => now(),
                         'balance_payment_method' => 'stripe',
                         'status'                 => \App\Enums\BookingRequestStatus::FULLY_COMPLETED,
                     ]);
 
+                    // Créer la transaction de solde
+                    \App\Models\BookingTransaction::create([
+                        'booking_request_id' => $bookingRequest->id,
+                        'user_id'           => $bookingRequest->client->user_id,
+                        'type'              => 'final_payment',
+                        'amount'            => $balanceAmount,
+                        'currency'          => 'eur',
+                        'status'            => 'completed',
+                        'payment_method'    => 'stripe',
+                        'stripe_session_id' => $session->id,
+                        'processed_at'      => now(),
+                    ]);
+
                     Log::info('[Balance] success() fallback — balance_paid_at mis à jour', [
                         'booking_request_id' => $bookingRequest->id,
                         'session_id'         => $session->id,
+                        'balance_amount'     => $balanceAmount,
                     ]);
                 }
             } catch (\Exception $e) {

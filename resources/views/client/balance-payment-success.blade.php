@@ -27,7 +27,7 @@
         </div>
 
         <div class="space-y-3">
-            <a href="{{ route('client.dashboard') }}"
+            <a href="{{ route('client.profile') }}"
                 class="block w-full py-3 bg-noir-profond text-white rounded-xl font-semibold text-center hover:bg-noir-profond/90 transition">
                 Retour au tableau de bord
             </a>
@@ -37,4 +37,4 @@
             </a>
         </div>
     </div>
-    </x-app-layout>
+@endsection

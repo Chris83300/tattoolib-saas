@@ -16,10 +16,12 @@
             </div>
         @endif
 
-        <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <div class="bg-ivoire-text border-2 border-beige-peau rounded-xl shadow-md shadow-beige-peau/20 p-6 mb-6">
             <div class="flex justify-between items-center mb-4">
                 <span class="text-noir-profond/70">Prix total</span>
-                <span class="font-semibold">{{ number_format($bookingRequest->confirmed_final_price ?? $bookingRequest->total_price ?? 0, 2, ',', ' ') }} €</span>
+                <span
+                    class="font-semibold">{{ number_format($bookingRequest->confirmed_final_price ?? ($bookingRequest->total_price ?? 0), 2, ',', ' ') }}
+                    €</span>
             </div>
             <div class="flex justify-between items-center mb-4">
                 <span class="text-noir-profond/70">Acompte versé</span>
@@ -34,15 +36,15 @@
             </div>
         </div>
 
-        <form action="{{ route('client.balance-payment.checkout', $bookingRequest) }}" method="POST">
+        <form action="{{ route('client.balance-payment.checkout', $bookingRequest) }}" method="POST" class="flex items-center justify-center">
             @csrf
             <button type="submit"
-                class="w-full py-3 bg-noir-profond text-white rounded-xl font-semibold hover:bg-noir-profond/90 transition">
+                class="inline-flex items-center justify-center font-semibold btn-shadow rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-noir-profond bg-beige-peau text-noir-profond hover:bg-beige-peau/80 shadow-md shadow-beige-peau/20 focus:ring-beige-peau px-4 py-2 text-base cursor-pointer no-underline">
                 💳 Payer {{ number_format($balanceRemaining, 2, ',', ' ') }} € en ligne
             </button>
         </form>
 
-        <p class="text-center text-sm text-noir-profond/50 mt-4">
+        <p class="text-center text-sm text-ivoire-text/50 mt-4">
             Paiement sécurisé par Stripe. Vous pouvez aussi régler directement auprès de votre artiste.
         </p>
     </div>

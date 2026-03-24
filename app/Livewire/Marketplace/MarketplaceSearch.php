@@ -106,7 +106,7 @@ class MarketplaceSearch extends Component
         if (in_array($this->type, ['all', 'tattooer'])) {
             $styles   = $this->styles;
             $tattooers = Tattooer::marketplaceVisible()
-                ->with(['user'])
+                ->with(['user', 'reviews'])
                 ->when($this->search, function ($q) {
                     $q->where(function ($sq) {
                         $sq->where('pseudo', 'like', "%{$this->search}%")
@@ -151,7 +151,7 @@ class MarketplaceSearch extends Component
         if (in_array($this->type, ['all', 'piercer'])) {
             $piercings = $this->piercings;
             $piercers  = Piercer::marketplaceVisible()
-                ->with(['user'])
+                ->with(['user', 'reviews'])
                 ->when($this->search, function ($q) {
                     $q->where(function ($sq) {
                         $sq->where('pseudo', 'like', "%{$this->search}%")

@@ -76,7 +76,7 @@ class SecurityHeaders
                 "media-src 'self'",
                 "object-src 'none'",
                 "base-uri 'self'",
-                "form-action 'self'",
+                "form-action 'self' https://checkout.stripe.com",
                 "frame-ancestors 'none'",
                 "manifest-src 'self'",
                 "worker-src blob: 'self'",

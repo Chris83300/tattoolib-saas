@@ -21,9 +21,9 @@ class QualityAlerts extends BaseWidget
         return $table
             ->query(
                 ComplianceRecord::query()
-                    ->where('verified_by_admin', false)
+                    ->whereNull('verified_at')
                     ->where('expires_at', '>=', now())
-                    ->with(['complianceable'])
+                    ->with(['compliant'])
                     ->latest()
                     ->limit(10)
             )
@@ -33,16 +33,16 @@ class QualityAlerts extends BaseWidget
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('complianceable.name')
+                Tables\Columns\TextColumn::make('compliant.name')
                     ->label('Artiste')
                     ->getStateUsing(function ($record) {
-                        if ($record->complianceable instanceof Tattooer) {
-                            return $record->complianceable->name ?? 'Tatoueur #' . $record->complianceable_id;
+                        if ($record->compliant instanceof Tattooer) {
+                            return $record->compliant->name ?? 'Tatoueur #' . $record->compliant_id;
                         }
-                        if ($record->complianceable instanceof Piercer) {
-                            return $record->complianceable->name ?? 'Pierceur #' . $record->complianceable_id;
+                        if ($record->compliant instanceof Piercer) {
+                            return $record->compliant->name ?? 'Pierceur #' . $record->compliant_id;
                         }
-                        return 'Artiste #' . $record->complianceable_id;
+                        return 'Artiste #' . $record->compliant_id;
                     }),
 
                 Tables\Columns\TextColumn::make('certification_type')

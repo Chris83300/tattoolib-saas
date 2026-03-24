@@ -129,28 +129,20 @@
                                                 @else
                                                     <!-- Autres statuts - design existant -->
                                                     <span
-                                                        class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-                                                        @if ($bookingRequest->status->value === 'pending') bg-jaune-alerte/20 text-jaune-alerte border border-jaune-alerte/30
-                                                        @elseif($bookingRequest->status->value === 'accepted') bg-beige-peau/20 text-beige-peau border border-beige-peau/30
-                                                        @elseif($bookingRequest->status->value === 'deposit_requested') bg-ambre-warning/20 text-ambre-warning border border-ambre-warning/30
-                                                        @elseif($bookingRequest->status->value === 'deposit_paid') bg-vert-succes/20 text-vert-succes border border-vert-succes/30
-                                                        @elseif($bookingRequest->status->value === 'date_confirmed') bg-beige-peau/20 text-beige-peau border border-beige-peau/30
-                                                        @elseif($bookingRequest->status->value === 'completed') bg-vert-succes/20 text-vert-succes border border-vert-succes/30
-                                                        @elseif($bookingRequest->status->value === 'rejected') bg-rouge-alerte/20 text-rouge-alerte border border-rouge-alerte/30
-                                                        @elseif($bookingRequest->status->value === 'cancelled') bg-rouge-alerte/20 text-rouge-alerte border border-rouge-alerte/30
-                                                        @elseif($bookingRequest->status->value === 'expired') bg-rouge-alerte/20 text-rouge-alerte border border-rouge-alerte/30
-                                                        @elseif($bookingRequest->status->value === 'no_show') bg-rouge-alerte/20 text-rouge-alerte border border-rouge-alerte/30 @endif">
+                                                        class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium @if ($bookingRequest->status->value === 'pending') bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 @elseif($bookingRequest->status->value === 'accepted') bg-beige-peau/20 text-beige-peau border border-beige-peau/30 @elseif($bookingRequest->status->value === 'deposit_requested') bg-amber-500/20 text-amber-400 border border-amber-500/30 @elseif($bookingRequest->status->value === 'deposit_paid') bg-green-500/20 text-green-400 border border-green-500/30 @elseif($bookingRequest->status->value === 'date_confirmed') bg-beige-peau/20 text-beige-peau border border-beige-peau/30 @elseif($bookingRequest->status->value === 'completed') bg-green-500/30 text-green-400 border border-green-500/40 shadow-lg shadow-green-500/20 @elseif($bookingRequest->status->value === 'rejected') bg-red-500/20 text-red-400 border border-red-500/30 @elseif($bookingRequest->status->value === 'cancelled') bg-red-500/20 text-red-400 border border-red-500/30 @elseif($bookingRequest->status->value === 'expired') bg-red-500/20 text-red-400 border border-red-500/30 @elseif($bookingRequest->status->value === 'no_show') bg-red-500/20 text-red-400 border border-red-500/30 @endif">
                                                         {{ $bookingRequest->status->label() }}
                                                     </span>
                                                 @endif
 
                                                 {{-- Badge paiement solde --}}
                                                 @if ($bookingRequest->balance_paid_at)
-                                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-vert-succes/20 text-vert-succes rounded-full text-xs font-semibold">
+                                                    <span
+                                                        class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-vert-succes/20 text-vert-succes rounded-full text-xs font-semibold">
                                                         ✅ Solde payé
                                                     </span>
                                                 @elseif ($bookingRequest->balance_requested_at)
-                                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-orange-terre-cuite/20 text-orange-terre-cuite rounded-full text-xs font-semibold">
+                                                    <span
+                                                        class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-orange-terre-cuite/20 text-orange-terre-cuite rounded-full text-xs font-semibold">
                                                         💰 Solde à payer
                                                     </span>
                                                 @endif
@@ -343,9 +335,10 @@
                                     @endif
 
                                     {{-- Bouton payer le solde --}}
-                                    @if ($bookingRequest->balance_requested_at
-                                        && !$bookingRequest->balance_paid_at
-                                        && $bookingRequest->status === \App\Enums\BookingRequestStatus::COMPLETED)
+                                    @if (
+                                        $bookingRequest->balance_requested_at &&
+                                            !$bookingRequest->balance_paid_at &&
+                                            $bookingRequest->status === \App\Enums\BookingRequestStatus::COMPLETED)
                                         <a href="{{ route('client.balance.show', $bookingRequest) }}"
                                             class="flex items-center justify-center px-4 py-2 bg-orange-terre-cuite text-white rounded-lg font-semibold hover:bg-orange-terre-cuite/90 transition-colors">
                                             💳 Payer le solde

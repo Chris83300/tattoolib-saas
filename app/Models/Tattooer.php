@@ -333,6 +333,22 @@ class Tattooer extends Model implements HasMedia, ArtisanInterface
         return $this->morphMany(Review::class, 'reviewable');
     }
 
+    /**
+     * Obtenir la note moyenne des avis
+     */
+    public function getRatingAttribute(): float
+    {
+        return $this->reviews()->where('is_visible', true)->avg('rating') ?? 0;
+    }
+
+    /**
+     * Obtenir le nombre d'avis
+     */
+    public function getReviewsCountAttribute(): int
+    {
+        return $this->reviews()->where('is_visible', true)->count();
+    }
+
     // ===== MÉTHODES MÉTIER =====
 
     public function hasCompletedStripeOnboarding(): bool

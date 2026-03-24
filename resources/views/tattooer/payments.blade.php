@@ -58,6 +58,25 @@
 
             <div class="bg-noir-profond rounded-xl p-6 border border-titane/30">
                 <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                            </path>
+                        </svg>
+                    </div>
+                    <span class="text-sm text-ivoire-text/60">Commissions</span>
+                </div>
+                <div class="text-2xl font-bold text-purple-400">
+                    {{ number_format($paymentStats['total_commissions'], 2, ',', ' ') }} €
+                </div>
+                <p class="text-sm text-ivoire-text/50 mt-2">
+                    7% des transactions
+                </p>
+            </div>
+
+            <div class="bg-noir-profond rounded-xl p-6 border border-titane/30">
+                <div class="flex items-center justify-between mb-4">
                     <div class="w-12 h-12 bg-ambre-warning/20 rounded-full flex items-center justify-center">
                         <svg class="w-6 h-6 text-ambre-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -235,32 +254,60 @@
                                         ->where('type', 'final_payment')
                                         ->where('status', 'completed')
                                         ->first();
-                                    $paidAmount = ($depositTx?->amount ?? 0) + ($balanceTx?->amount ?? 0);
+                                    $depositAmount = $depositTx?->amount ?? 0;
+                                    $balanceAmount = $balanceTx?->amount ?? 0;
+                                    $paidAmount = $depositAmount + $balanceAmount;
                                     $paymentMethod =
-                                        $depositTx?->payment_method ?? ($balanceTx?->payment_method ?? 'stripe');
+                                        $balanceTx?->payment_method ?? ($depositTx?->payment_method ?? 'stripe');
+                                    $lastPaymentDate = $payment->balance_paid_at ?? $payment->deposit_paid_at;
                                 @endphp
                                 <tr class="border-b border-titane/20 hover:bg-noir-profond/50 transition-colors">
                                     <td class="py-3 px-4 text-ivoire-text">
-                                        {{ $payment->deposit_paid_at?->format('d/m/Y') ?? 'N/A' }}
+                                        {{ $lastPaymentDate?->format('d/m/Y') ?? 'N/A' }}
                                     </td>
                                     <td class="py-3 px-4 text-ivoire-text">
                                         {{ $payment->client->first_name }} {{ $payment->client->last_name }}
                                     </td>
                                     <td class="py-3 px-4 text-ivoire-text">
-                                        {{ $payment->description }}
-                                        @if ($payment->body_zone)
-                                            <span class="text-xs text-ivoire-text/60 ml-2">
-                                                ({{ $payment->body_zone }})
-                                            </span>
-                                        @endif
+                                        <div class="flex flex-col gap-1">
+                                            <span>{{ $payment->description }}</span>
+                                            @if ($payment->body_zone)
+                                                <span class="text-xs text-ivoire-text/60">
+                                                    ({{ $payment->body_zone }})
+                                                </span>
+                                            @endif
+                                            <div class="flex gap-2 mt-1">
+                                                @if ($depositAmount > 0)
+                                                    <span
+                                                        class="px-2 py-1 bg-beige-peau/20 text-beige-peau rounded-full text-xs font-medium">
+                                                        Acompte: {{ number_format($depositAmount, 2, ',', ' ') }} €
+                                                    </span>
+                                                @endif
+                                                @if ($balanceAmount > 0)
+                                                    <span
+                                                        class="px-2 py-1 bg-vert-succes/20 text-vert-succes rounded-full text-xs font-medium">
+                                                        Solde: {{ number_format($balanceAmount, 2, ',', ' ') }} €
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </div>
                                     </td>
                                     <td class="py-3 px-4">
                                         <span class="px-2 py-1 bg-titane/20 text-titane rounded-full text-xs font-medium">
                                             {{ $paymentMethod }}
                                         </span>
                                     </td>
-                                    <td class="py-3 px-4 text-right font-semibold text-vert-succes">
-                                        {{ number_format($paidAmount, 2, ',', ' ') }} €
+                                    <td class="py-3 px-4 text-right">
+                                        <div class="flex flex-col items-end gap-1">
+                                            <span class="font-semibold text-vert-succes">
+                                                {{ number_format($paidAmount, 2, ',', ' ') }} €
+                                            </span>
+                                            @if ($payment->balance_paid_at)
+                                                <span class="text-xs text-vert-succes/80">✅ Complété</span>
+                                            @else
+                                                <span class="text-xs text-ambre-warning/80">⏳ En attente solde</span>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach

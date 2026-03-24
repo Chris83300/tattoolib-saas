@@ -102,12 +102,12 @@ class ComplianceRecordsTable
 
                 Tables\Filters\Filter::make('verified')
                     ->label('Documents validés')
-                    ->query(fn ($query) => $query->where('verified_by_admin', true))
+                    ->query(fn ($query) => $query->whereNotNull('verified_at'))
                     ->toggle(),
 
                 Tables\Filters\Filter::make('not_verified')
                     ->label('Documents non validés')
-                    ->query(fn ($query) => $query->where('verified_by_admin', false))
+                    ->query(fn ($query) => $query->whereNull('verified_at'))
                     ->toggle(),
 
                 Tables\Filters\Filter::make('expired')

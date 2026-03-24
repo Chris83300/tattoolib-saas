@@ -2,8 +2,7 @@
 
 namespace App\Filament\Admin\Widgets;
 
-use App\Models\Payment;
-use App\Models\BookingRequest;
+use App\Models\BookingTransaction;
 use App\Models\User;
 use App\Models\Complaint;
 use Laravel\Cashier\Subscription as CashierSubscription;
@@ -30,21 +29,21 @@ class RevenueStatsWidget extends BaseWidget
         $endDate = Carbon::now();
 
         // Revenus des paiements (brut)
-        $currentRevenue = Payment::whereBetween('created_at', [$startDate, $endDate])
+        $currentRevenue = BookingTransaction::whereBetween('created_at', [$startDate, $endDate])
             ->where('status', 'completed')
             ->sum('amount');
 
         // Calcul des commissions : pré-charger les abonnements actifs (évite N+1)
         $commissionAmount = 0;
-        $payments = Payment::whereBetween('created_at', [$startDate, $endDate])
+        $transactions = BookingTransaction::whereBetween('created_at', [$startDate, $endDate])
             ->where('status', 'completed')
-            ->with(['bookingRequest.user'])
+            ->with(['bookingRequest.client'])
             ->get();
 
         // Collecter tous les user_ids concernés puis charger les subscriptions en une requête
-        $userIds = $payments
-            ->filter(fn ($p) => $p->bookingRequest && $p->bookingRequest->user)
-            ->map(fn ($p) => $p->bookingRequest->user->id)
+        $userIds = $transactions
+            ->filter(fn ($t) => $t->bookingRequest && $t->bookingRequest->client)
+            ->map(fn ($t) => $t->bookingRequest->client->user_id)
             ->unique()
             ->values();
 
@@ -57,11 +56,11 @@ class RevenueStatsWidget extends BaseWidget
             ->pluck('user_id')
             ->flip(); // user_id => index (pour lookup O(1))
 
-        foreach ($payments as $payment) {
-            if ($payment->bookingRequest && $payment->bookingRequest->user) {
-                $userId = $payment->bookingRequest->user->id;
+        foreach ($transactions as $transaction) {
+            if ($transaction->bookingRequest && $transaction->bookingRequest->client) {
+                $userId = $transaction->bookingRequest->client->user_id;
                 if (isset($starterUserIds[$userId])) {
-                    $commissionAmount += $payment->amount * 0.07;
+                    $commissionAmount += $transaction->amount * 0.07;
                 }
             }
         }
@@ -103,7 +102,7 @@ class RevenueStatsWidget extends BaseWidget
         $previousStartDate = Carbon::now()->subDays(60);
         $previousEndDate = Carbon::now()->subDays(30);
 
-        $previousRevenue = Payment::whereBetween('created_at', [$previousStartDate, $previousEndDate])
+        $previousRevenue = BookingTransaction::whereBetween('created_at', [$previousStartDate, $previousEndDate])
             ->where('status', 'completed')
             ->sum('amount');
 
@@ -112,11 +111,11 @@ class RevenueStatsWidget extends BaseWidget
 
         // Autres statistiques
         $activeSubscriptions = CashierSubscription::where('stripe_status', 'active')->count();
-        $successfulPayments = Payment::whereBetween('created_at', [$startDate, $endDate])
+        $successfulTransactions = BookingTransaction::whereBetween('created_at', [$startDate, $endDate])
             ->where('status', 'completed')
             ->count();
 
-        $averageTransaction = $successfulPayments > 0 ? $totalGrossRevenue / $successfulPayments : 0;
+        $averageTransaction = $successfulTransactions > 0 ? $totalGrossRevenue / $successfulTransactions : 0;
 
         return [
             Stat::make('💰 CA Total (Brut)', number_format($totalGrossRevenue, 2) . '€')
