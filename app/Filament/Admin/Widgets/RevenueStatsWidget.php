@@ -10,7 +10,8 @@ class RevenueStatsWidget extends Widget
 {
     protected static ?int $sort = 2;
     protected int | string | array $columnSpan = 'full';
-    protected static string $view = 'filament.admin.widgets.revenue-detail';
+
+    protected string $view = 'filament.admin.widgets.revenue-detail';
 
     public function getData(): array
     {

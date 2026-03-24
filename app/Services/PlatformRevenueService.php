@@ -121,15 +121,28 @@ class PlatformRevenueService
         $studioExtraCount = 0;
 
         foreach ($activeSubs as $sub) {
-            foreach ($sub->items as $item) {
-                if ($item->stripe_price === $prices['starter']) {
-                    $starterCount += $item->quantity;
-                } elseif ($item->stripe_price === $prices['pro']) {
-                    $proCount += $item->quantity;
-                } elseif ($item->stripe_price === $prices['studio']) {
-                    $studioCount += $item->quantity;
-                } elseif ($item->stripe_price === $prices['studio_extra']) {
-                    $studioExtraCount += $item->quantity;
+            // Vérifier d'abord les items (pour les abonnements multiples comme Studio)
+            if ($sub->items->count() > 0) {
+                foreach ($sub->items as $item) {
+                    if ($item->stripe_price === $prices['starter']) {
+                        $starterCount += $item->quantity;
+                    } elseif ($item->stripe_price === $prices['pro']) {
+                        $proCount += $item->quantity;
+                    } elseif ($item->stripe_price === $prices['studio']) {
+                        $studioCount += $item->quantity;
+                    } elseif ($item->stripe_price === $prices['studio_extra']) {
+                        $studioExtraCount += $item->quantity;
+                    }
+                }
+            } else {
+                // Pour les abonnements simples (STARTER, PRO), utiliser stripe_price principal
+                $price = $sub->stripe_price ?? '';
+                if ($price === $prices['starter']) {
+                    $starterCount += 1;
+                } elseif ($price === $prices['pro']) {
+                    $proCount += 1;
+                } elseif ($price === $prices['studio']) {
+                    $studioCount += 1;
                 }
             }
         }
