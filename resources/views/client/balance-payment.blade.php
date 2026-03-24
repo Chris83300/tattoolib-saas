@@ -19,7 +19,7 @@
         <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
             <div class="flex justify-between items-center mb-4">
                 <span class="text-noir-profond/70">Prix total</span>
-                <span class="font-semibold">{{ number_format($bookingRequest->total_price, 2, ',', ' ') }} €</span>
+                <span class="font-semibold">{{ number_format($bookingRequest->confirmed_final_price ?? $bookingRequest->total_price ?? 0, 2, ',', ' ') }} €</span>
             </div>
             <div class="flex justify-between items-center mb-4">
                 <span class="text-noir-profond/70">Acompte versé</span>
@@ -46,4 +46,4 @@
             Paiement sécurisé par Stripe. Vous pouvez aussi régler directement auprès de votre artiste.
         </p>
     </div>
-    </x-app-layout>
+@endsection
