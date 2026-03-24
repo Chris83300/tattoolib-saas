@@ -14,6 +14,7 @@ use App\Enums\BookingRequestStatus;
 use App\Enums\ConversationStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Stripe\Webhook;
 use Stripe\Exception\SignatureVerificationException;
@@ -252,6 +253,10 @@ class StripeWebhookController extends Controller
             'amount' => $paymentIntent->amount,
         ]);
 
+        // Invalider les cache widgets financiers
+        Cache::forget('admin.platform.revenue');
+        Cache::forget('admin.platform.revenue.detail');
+
         // Le traitement principal est fait dans handleCheckoutCompleted
         // Mais on peut ajouter de la logique supplémentaire ici si nécessaire
     }
@@ -285,6 +290,10 @@ class StripeWebhookController extends Controller
             'amount' => $charge->amount,
             'refunded' => $charge->refunded,
         ]);
+
+        // Invalider les cache widgets financiers
+        Cache::forget('admin.platform.revenue');
+        Cache::forget('admin.platform.revenue.detail');
 
         DB::transaction(function () use ($charge) {
             // Récupérer la transaction originale
@@ -323,6 +332,10 @@ class StripeWebhookController extends Controller
             'invoice_id' => $invoice->id,
             'amount' => $invoice->amount_paid,
         ]);
+
+        // Invalider les cache widgets financiers
+        Cache::forget('admin.platform.revenue');
+        Cache::forget('admin.platform.revenue.detail');
 
         // Si c'est un renouvellement d'abonnement, synchroniser les modèles métier
         $subscriptionId = $invoice->subscription ?? null;
@@ -366,98 +379,77 @@ class StripeWebhookController extends Controller
     }
 
     /**
-     * Stocker l'URL du reçu Stripe
+     * Gérer la création d'un abonnement
      */
-    private function storeReceiptUrl(AccountingTransaction $transaction, string $paymentIntentId): void
+    private function handleSubscriptionCreated($subscription)
     {
-        try {
-            $stripe = new \Stripe\StripeClient(config('cashier.secret'));
-            $paymentIntent = $stripe->paymentIntents->retrieve($paymentIntentId);
+        Log::info('Webhook: Abonnement créé', [
+            'subscription_id' => $subscription->id,
+            'customer' => $subscription->customer,
+            'status' => $subscription->status,
+        ]);
 
-            if ($paymentIntent->latest_charge) {
-                $charge = $stripe->charges->retrieve($paymentIntent->latest_charge);
-                $receiptUrl = $charge->receipt_url;
+        // Invalider les cache widgets financiers
+        Cache::forget('admin.platform.revenue');
+        Cache::forget('admin.platform.revenue.detail');
 
-                if ($receiptUrl) {
-                    $transaction->addMetadata(['receipt_url' => $receiptUrl]);
-                    $transaction->update(['receipt_url' => $receiptUrl]);
+        $this->syncArtistSubscription($subscription);
+    }
 
-                    if (app()->environment('local', 'testing')) {
-                        Log::info('Webhook: URL du reçu stockée', [
-                            'transaction_id' => $transaction->id,
-                            'receipt_url' => $receiptUrl,
-                        ]);
-                    }
-                }
-            }
-        } catch (\Exception $e) {
-            Log::warning('Webhook: Impossible de récupérer l\'URL du reçu', [
-                'error' => $e->getMessage(),
-                'payment_intent_id' => $paymentIntentId,
+    /**
+     * Gérer la mise à jour d'un abonnement
+     */
+    private function handleSubscriptionUpdated($subscription)
+    {
+        Log::info('Webhook: Abonnement mis à jour', [
+            'subscription_id' => $subscription->id,
+            'status' => $subscription->status,
+        ]);
+
+        // Invalider les cache widgets financiers
+        Cache::forget('admin.platform.revenue');
+        Cache::forget('admin.platform.revenue.detail');
+
+        $this->syncArtistSubscription($subscription);
+    }
+
+    /**
+     * Gérer la suppression d'un abonnement
+     */
+    private function handleSubscriptionDeleted($subscription)
+    {
+        Log::info('Webhook: Abonnement supprimé', [
+            'subscription_id' => $subscription->id,
+            'customer' => $subscription->customer,
+        ]);
+
+        // Invalider les cache widgets financiers
+        Cache::forget('admin.platform.revenue');
+        Cache::forget('admin.platform.revenue.detail');
+
+        $stripeCustomerId = $subscription->customer ?? $subscription['customer'] ?? null;
+        if (!$stripeCustomerId) return;
+
+        $user = User::where('stripe_id', $stripeCustomerId)->first();
+        if (!$user) {
+            Log::warning('Webhook: user non trouvé pour suppression abonnement', [
+                'customer_id' => $stripeCustomerId,
             ]);
-        }
-    }
-
-    /**
-     * Mettre à jour la conversation après paiement
-     */
-    private function updateConversationAfterPayment(BookingRequest $bookingRequest): void
-    {
-        $conversation = $bookingRequest->conversation;
-
-        if (!$conversation) {
             return;
         }
 
-        // Passer en FULL_ACCESS après paiement de l'acompte
-        $conversation->update([
-            'status' => ConversationStatus::FULL_ACCESS,
-            'deposit_deadline_at' => null, // Plus besoin de deadline
-            'expires_at' => $bookingRequest->appointment_datetime
-                ? $bookingRequest->appointment_datetime->addDays(30) // J+30 post-RDV
-                : now()->addMonths(6), // 6 mois si pas de RDV
-        ]);
-
-        // Envoyer un message système
-        $conversation->messages()->create([
-            'sender_id' => null,
-            'sender_type' => 'system',
-            'content' => "✅ Acompte reçu !\n\nMerci pour votre paiement de {$bookingRequest->total_deposit_amount}€.\n\nVous pouvez maintenant échanger des images avec le tatoueur et discuter des détails de votre tatouage.",
-        ]);
-    }
-
-    /**
-     * Créer un appointment depuis la booking request
-     */
-    private function createAppointmentFromBookingRequest(BookingRequest $bookingRequest): void
-    {
-        // Vérifier si un appointment existe déjà
-        if ($bookingRequest->appointment) {
-            return;
+        if ($user->tattooer) {
+            $user->tattooer->update(['is_subscribed' => false]);
+        }
+        if ($user->piercer) {
+            $user->piercer->update(['is_subscribed' => false]);
+        }
+        if ($user->studio) {
+            $user->studio->update(['is_subscribed' => false]);
         }
 
-        // Créer l'appointment
-        $appointment = $bookingRequest->appointment()->create([
-            'client_id' => $bookingRequest->client_id,
-            'bookable_type' => $bookingRequest->bookable_type,
-            'bookable_id' => $bookingRequest->bookable_id,
-            'start_datetime' => $bookingRequest->appointment_datetime,
-            'end_datetime' => $bookingRequest->appointment_datetime->addMinutes($bookingRequest->appointment_duration_minutes ?? 120),
-            'duration_minutes' => $bookingRequest->appointment_duration_minutes ?? 120,
-            'total_price' => $bookingRequest->estimated_total_price,
-            'deposit_amount' => $bookingRequest->total_deposit_amount,
-            'status' => 'confirmed',
-        ]);
-
-        // Mettre à jour la booking request
-        $bookingRequest->update([
-            'appointment_id' => $appointment->id,
-        ]);
-
-        Log::info('Webhook: Appointment créé automatiquement', [
-            'booking_request_id' => $bookingRequest->id,
-            'appointment_id' => $appointment->id,
-            'appointment_datetime' => $appointment->start_datetime,
+        Log::info('Webhook: Abonnement supprimé — modèles métier mis à jour', [
+            'user_id' => $user->id,
         ]);
     }
 
@@ -557,34 +549,6 @@ class StripeWebhookController extends Controller
     // ═══ GESTION DES ABONNEMENTS ═══
 
     /**
-     * Gérer la création d'un abonnement
-     */
-    private function handleSubscriptionCreated($subscription): void
-    {
-        Log::info('Webhook: Abonnement créé', [
-            'subscription_id' => $subscription->id,
-            'customer_id'     => $subscription->customer,
-            'status'          => $subscription->status,
-        ]);
-
-        $this->syncArtistSubscription($subscription);
-    }
-
-    /**
-     * Gérer la mise à jour d'un abonnement
-     */
-    private function handleSubscriptionUpdated($subscription): void
-    {
-        Log::info('Webhook: Abonnement mis à jour', [
-            'subscription_id' => $subscription->id,
-            'status'          => $subscription->status,
-        ]);
-
-        $this->syncArtistSubscription($subscription);
-    }
-
-    /**
-     * Gérer la suppression d'un abonnement
      */
     private function handleSubscriptionDeleted($subscription): void
     {

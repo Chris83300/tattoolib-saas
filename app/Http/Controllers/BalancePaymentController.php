@@ -179,6 +179,10 @@ class BalancePaymentController extends Controller
                         'processed_at'      => now(),
                     ]);
 
+                    // Invalider les cache widgets financiers
+                    \Illuminate\Support\Facades\Cache::forget('admin.platform.revenue');
+                    \Illuminate\Support\Facades\Cache::forget('admin.platform.revenue.detail');
+
                     Log::info('[Balance] success() fallback — balance_paid_at mis à jour', [
                         'booking_request_id' => $bookingRequest->id,
                         'session_id'         => $session->id,
