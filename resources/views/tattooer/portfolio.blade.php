@@ -70,19 +70,19 @@
         <!-- Tabs -->
         <div class="bg-gris-fonde rounded-xl p-2">
             <div class="flex gap-2">
-                <button onclick="switchTab('tattoos')"
+                <button type="button" data-action="switch-tab" data-tab-target="tattoos"
                     class="tab-btn flex-1 px-4 py-2 rounded-lg font-semibold transition-colors" data-tab="tattoos">
                     {{ $tattooer->isPiercer() ? ' Piercings' : 'Tattoos' }} ({{ $tattoos->count() }})
                 </button>
-                <button onclick="switchTab('drawings')"
+                <button type="button" data-action="switch-tab" data-tab-target="drawings"
                     class="tab-btn flex-1 px-4 py-2 rounded-lg font-semibold transition-colors" data-tab="drawings">
                     Flash dispos ({{ $drawings->count() }})
                 </button>
                 @if (!$tattooer->isPiercer())
-                <button onclick="switchTab('before-after')"
-                    class="tab-btn flex-1 px-4 py-2 rounded-lg font-semibold transition-colors" data-tab="before-after">
-                    Avant/Après ({{ $beforeAfter->count() }})
-                </button>
+                    <button type="button" data-action="switch-tab" data-tab-target="before-after"
+                        class="tab-btn flex-1 px-4 py-2 rounded-lg font-semibold transition-colors" data-tab="before-after">
+                        Avant/Après ({{ $beforeAfter->count() }})
+                    </button>
                 @endif
             </div>
         </div>
@@ -91,7 +91,8 @@
         <div id="tab-tattoos" class="tab-content">
             <div class="bg-gris-fonde rounded-xl p-6">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-bold text-ivoire-text">{{ $tattooer->isPiercer() ? 'Photos de piercings' : 'Photos de tattoos' }}</h2>
+                    <h2 class="text-xl font-bold text-ivoire-text">
+                        {{ $tattooer->isPiercer() ? 'Photos de piercings' : 'Photos de tattoos' }}</h2>
                     @if (
                         $tattooer->isFree() &&
                             $tattooer->getMedia('portfolio')->count() +
@@ -106,8 +107,8 @@
                         <label
                             class="px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold cursor-pointer hover:bg-beige-peau/90">
                             + Ajouter photos
-                            <input type="file" accept="image/*" multiple class="hidden"
-                                onchange="uploadImages(this, 'portfolio')">
+                            <input type="file" accept="image/*" multiple class="hidden" data-action="upload-images"
+                                data-collection="portfolio">
                         </label>
                     @endif
                 </div>
@@ -116,12 +117,13 @@
                     @foreach ($tattoos as $media)
                         <div class="relative group aspect-square rounded-lg overflow-hidden bg-noir-profond"
                             draggable="true" data-media-id="{{ $media->id }}">
-                            <img src="{{ $media->getUrl() }}" alt="{{ $tattooer->isPiercer() ? 'Piercing' : 'Tattoo' }}" class="w-full h-full object-contain">
+                            <img src="{{ $media->getUrl() }}" alt="{{ $tattooer->isPiercer() ? 'Piercing' : 'Tattoo' }}"
+                                class="w-full h-full object-contain">
 
                             <!-- Overlay actions -->
                             <div
                                 class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                <button onclick="viewImage('{{ $media->getUrl() }}')"
+                                <button type="button" data-action="view-image" data-image-url="{{ $media->getUrl() }}"
                                     class="p-2 bg-beige-peau text-noir-profond rounded-lg">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -131,7 +133,7 @@
                                         </path>
                                     </svg>
                                 </button>
-                                <button onclick="deleteImage({{ $media->id }})"
+                                <button type="button" data-action="delete-image" data-media-id="{{ $media->id }}"
                                     class="p-2 bg-rouge-alerte text-noir-profond rounded-lg">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -160,8 +162,8 @@
                     <label
                         class="px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold cursor-pointer hover:bg-beige-peau/90">
                         + Ajouter dessins
-                        <input type="file" accept="image/*" multiple class="hidden"
-                            onchange="uploadImages(this, 'drawings')">
+                        <input type="file" accept="image/*" multiple class="hidden" data-action="upload-images"
+                            data-collection="drawings">
                     </label>
                 </div>
 
@@ -172,14 +174,14 @@
 
                             <div
                                 class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                <button onclick="viewImage('{{ $media->getUrl() }}')"
+                                <button type="button" data-action="view-image" data-image-url="{{ $media->getUrl() }}"
                                     class="p-2 bg-beige-peau text-noir-profond rounded-lg">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                     </svg>
                                 </button>
-                                <button onclick="deleteImage({{ $media->id }})"
+                                <button type="button" data-action="delete-image" data-media-id="{{ $media->id }}"
                                     class="p-2 bg-rouge-alerte text-noir-profond rounded-lg">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -201,157 +203,165 @@
         </div>
 
         @if (!$tattooer->isPiercer())
-        <!-- Tab Content: Before/After (tatoueur uniquement) -->
-        <div id="tab-before-after" class="tab-content hidden">
-            <div class="bg-gris-fonde rounded-xl p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <div>
-                        <h2 class="text-xl font-bold text-ivoire-text mb-1">Photos Avant/Après</h2>
-                        <p class="text-ivoire-text/60 text-sm">Uploadez vos photos par paires (avant puis après)</p>
+            <!-- Tab Content: Before/After (tatoueur uniquement) -->
+            <div id="tab-before-after" class="tab-content hidden">
+                <div class="bg-gris-fonde rounded-xl p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 class="text-xl font-bold text-ivoire-text mb-1">Photos Avant/Après</h2>
+                            <p class="text-ivoire-text/60 text-sm">Uploadez vos photos par paires (avant puis après)</p>
+                        </div>
+                        <button type="button" data-action="open-before-after-modal"
+                            class="px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90">
+                            + Ajouter paire
+                        </button>
                     </div>
-                    <button onclick="openBeforeAfterModal()"
-                        class="px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold hover:bg-beige-peau/90">
-                        + Ajouter paire
-                    </button>
-                </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                    @php
-                        $pairs = collect();
+                        @php
+                            $pairs = collect();
 
-                        // Paires robustes (nouveau format): groupé par pair_id + type
-                        $withPairId = $beforeAfter
-                            ->filter(fn($m) => (string) $m->getCustomProperty('pair_id'))
-                            ->groupBy(fn($m) => (string) $m->getCustomProperty('pair_id'));
+                            // Paires robustes (nouveau format): groupé par pair_id + type
+                            $withPairId = $beforeAfter
+                                ->filter(fn($m) => (string) $m->getCustomProperty('pair_id'))
+                                ->groupBy(fn($m) => (string) $m->getCustomProperty('pair_id'));
 
-                        foreach ($withPairId as $pairId => $items) {
-                            $before = $items->first(fn($m) => $m->getCustomProperty('type') === 'before');
-                            $after = $items->first(fn($m) => $m->getCustomProperty('type') === 'after');
-                            if ($before && $after) {
-                                $pairs->push([$before, $after]);
+                            foreach ($withPairId as $pairId => $items) {
+                                $before = $items->first(fn($m) => $m->getCustomProperty('type') === 'before');
+                                $after = $items->first(fn($m) => $m->getCustomProperty('type') === 'after');
+                                if ($before && $after) {
+                                    $pairs->push([$before, $after]);
+                                }
                             }
-                        }
 
-                        // Fallback legacy: paires par ordre d'upload (2 par 2)
+                            // Fallback legacy: paires par ordre d'upload (2 par 2)
 $legacy = $beforeAfter
     ->filter(fn($m) => !(string) $m->getCustomProperty('pair_id'))
     ->sortBy('id')
-                            ->values()
-                            ->chunk(2)
-                            ->map(fn($chunk) => $chunk->values());
+                                ->values()
+                                ->chunk(2)
+                                ->map(fn($chunk) => $chunk->values());
 
-                        foreach ($legacy as $pair) {
-                            if ($pair->count() === 2) {
-                                $pairs->push([$pair[0], $pair[1]]);
+                            foreach ($legacy as $pair) {
+                                if ($pair->count() === 2) {
+                                    $pairs->push([$pair[0], $pair[1]]);
+                                }
                             }
-                        }
-                    @endphp
+                        @endphp
 
-                    @foreach ($pairs as $pair)
-                        @if (is_array($pair) && count($pair) === 2)
-                            <div class="bg-noir-profond rounded-xl p-4">
-                                <!-- Before/After Slider -->
-                                <div class="relative aspect-video rounded-lg overflow-hidden mb-4 before-after-slider">
-                                    <img src="{{ $pair[0]->getUrl() }}"
-                                        class="absolute inset-0 w-full h-full object-contain before-image" alt="Avant">
-                                    <img src="{{ $pair[1]->getUrl() }}"
-                                        class="absolute inset-0 w-full h-full object-contain after-image" alt="Après"
-                                        style="clip-path: inset(0 50% 0 0);">
+                        @foreach ($pairs as $pair)
+                            @if (is_array($pair) && count($pair) === 2)
+                                <div class="bg-noir-profond rounded-xl p-4">
+                                    <!-- Before/After Slider -->
+                                    <div class="relative aspect-video rounded-lg overflow-hidden mb-4 before-after-slider">
+                                        <img src="{{ $pair[0]->getUrl() }}"
+                                            class="absolute inset-0 w-full h-full object-contain before-image"
+                                            alt="Avant">
+                                        <img src="{{ $pair[1]->getUrl() }}"
+                                            class="absolute inset-0 w-full h-full object-contain after-image"
+                                            alt="Après" style="clip-path: inset(0 50% 0 0);">
 
-                                    <!-- Slider -->
-                                    <div class="absolute inset-y-0 left-1/2 w-1 bg-white z-10 slider-line"></div>
-                                    <div
-                                        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-full flex items-center justify-center cursor-ew-resize slider-handle z-20">
-                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path>
-                                        </svg>
+                                        <!-- Slider -->
+                                        <div class="absolute inset-y-0 left-1/2 w-1 bg-white z-10 slider-line"></div>
+                                        <div
+                                            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white rounded-full flex items-center justify-center cursor-ew-resize slider-handle z-20">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M8 9l4-4 4 4m0 6l-4 4-4-4"></path>
+                                            </svg>
+                                        </div>
+
+                                        <!-- Labels -->
+                                        <div
+                                            class="absolute top-2 left-2 px-2 py-1 bg-black/60 text-white text-xs rounded">
+                                            AVANT</div>
+                                        <div
+                                            class="absolute top-2 right-2 px-2 py-1 bg-black/60 text-white text-xs rounded">
+                                            APRÈS</div>
                                     </div>
 
-                                    <!-- Labels -->
-                                    <div class="absolute top-2 left-2 px-2 py-1 bg-black/60 text-white text-xs rounded">
-                                        AVANT</div>
-                                    <div class="absolute top-2 right-2 px-2 py-1 bg-black/60 text-white text-xs rounded">
-                                        APRÈS</div>
+                                    <div class="flex justify-end gap-2">
+                                        <button type="button" data-action="delete-before-after-pair"
+                                            data-before-id="{{ $pair[0]->id }}" data-after-id="{{ $pair[1]->id }}"
+                                            class="px-3 py-1 bg-rouge-alerte/20 text-rouge-alerte rounded text-sm">
+                                            Supprimer
+                                        </button>
+                                    </div>
                                 </div>
+                            @endif
+                        @endforeach
 
-                                <div class="flex justify-end gap-2">
-                                    <button onclick="deleteBeforeAfterPair({{ $pair[0]->id }}, {{ $pair[1]->id }})"
-                                        class="px-3 py-1 bg-rouge-alerte/20 text-rouge-alerte rounded text-sm">
-                                        Supprimer
-                                    </button>
-                                </div>
+                        @if ($pairs->isEmpty())
+                            <div class="col-span-full text-center py-12 text-ivoire-text/60">
+                                Aucune photo avant/après. Montrez l'évolution de vos réalisations !
                             </div>
                         @endif
-                    @endforeach
-
-                    @if ($pairs->isEmpty())
-                        <div class="col-span-full text-center py-12 text-ivoire-text/60">
-                            Aucune photo avant/après. Montrez l'évolution de vos réalisations !
-                        </div>
-                    @endif
+                    </div>
                 </div>
             </div>
-        </div>
 
     </div>
-        @endif {{-- !isPiercer (before/after tab) --}}
+    @endif {{-- !isPiercer (before/after tab) --}}
 
     <!-- Modal Upload Before/After (tatoueur uniquement) -->
     @if (!$tattooer->isPiercer())
-    <div id="before-after-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-        <div class="bg-gris-fonde rounded-xl p-6 max-w-2xl w-full">
-            <h3 class="text-xl font-bold text-ivoire-text mb-4">Ajouter photo Avant/Après</h3>
-            <div id="before-after-feedback" class="hidden px-4 py-3 rounded-lg mb-4"></div>
-            <form id="before-after-form" action="{{ route($tattooer->routePrefix() . '.portfolio.before-after.store') }}" method="POST"
-                enctype="multipart/form-data">
-                @csrf
-                <div class="grid grid-cols-2 gap-4 mb-6">
+        <div id="before-after-modal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+            <div class="bg-gris-fonde rounded-xl p-6 max-w-2xl w-full">
+                <h3 class="text-xl font-bold text-ivoire-text mb-4">Ajouter photo Avant/Après</h3>
+                <div id="before-after-feedback" class="hidden px-4 py-3 rounded-lg mb-4"></div>
+                <form id="before-after-form"
+                    action="{{ route($tattooer->routePrefix() . '.portfolio.before-after.store') }}" method="POST"
+                    enctype="multipart/form-data">
+                    @csrf
+                    <div class="grid grid-cols-2 gap-4 mb-6">
 
-                    <div>
-                        <label class="block text-ivoire-text font-semibold mb-2">Photo Avant</label>
-                        <label
-                            class="block aspect-square border-2 border-dashed border-titane/30 rounded-lg cursor-pointer hover:border-beige-peau transition-colors">
-                            <input type="file" name="after" accept="image/*" class="hidden"
-                                onchange="previewImage(this, 'after-preview')">
-                            <div id="after-preview"
-                                class="w-full h-full flex items-center justify-center text-ivoire-text/60">
-                                <span>+ Choisir photo</span>
-                            </div>
-                        </label>
+                        <div>
+                            <label class="block text-ivoire-text font-semibold mb-2">Photo Avant</label>
+                            <label
+                                class="block aspect-square border-2 border-dashed border-titane/30 rounded-lg cursor-pointer hover:border-beige-peau transition-colors">
+                                <input type="file" name="after" accept="image/*" class="hidden"
+                                    data-action="preview-image" data-preview-id="after-preview">
+                                <div id="after-preview"
+                                    class="w-full h-full flex items-center justify-center text-ivoire-text/60">
+                                    <span>+ Choisir photo</span>
+                                </div>
+                            </label>
+                        </div>
+                        <div>
+                            <label class="block text-ivoire-text font-semibold mb-2">Photo Après</label>
+                            <label
+                                class="block aspect-square border-2 border-dashed border-titane/30 rounded-lg cursor-pointer hover:border-beige-peau transition-colors">
+                                <input type="file" name="before" accept="image/*" class="hidden"
+                                    data-action="preview-image" data-preview-id="before-preview">
+                                <div id="before-preview"
+                                    class="w-full h-full flex items-center justify-center text-ivoire-text/60">
+                                    <span>+ Choisir photo</span>
+                                </div>
+                            </label>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-ivoire-text font-semibold mb-2">Photo Après</label>
-                        <label
-                            class="block aspect-square border-2 border-dashed border-titane/30 rounded-lg cursor-pointer hover:border-beige-peau transition-colors">
-                            <input type="file" name="before" accept="image/*" class="hidden"
-                                onchange="previewImage(this, 'before-preview')">
-                            <div id="before-preview"
-                                class="w-full h-full flex items-center justify-center text-ivoire-text/60">
-                                <span>+ Choisir photo</span>
-                            </div>
-                        </label>
-                    </div>
-                </div>
 
-                <div class="flex gap-3">
-                    <button type="submit"
-                        class="flex-1 px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold">
-                        Ajouter
-                    </button>
-                    <button type="button" onclick="closeBeforeAfterModal()"
-                        class="flex-1 px-4 py-2 bg-noir-profond text-ivoire-text border border-titane/30 rounded-lg font-semibold">
-                        Annuler
-                    </button>
-                </div>
-            </form>
+                    <div class="flex gap-3">
+                        <button type="submit"
+                            class="flex-1 px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold">
+                            Ajouter
+                        </button>
+                        <button type="button" data-action="close-before-after-modal"
+                            class="flex-1 px-4 py-2 bg-noir-profond text-ivoire-text border border-titane/30 rounded-lg font-semibold">
+                            Annuler
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
     @endif {{-- !isPiercer (before/after modal) --}}
 
     @push('scripts')
-        <script>
+        <script nonce="{{ csp_nonce() }}">
+            const portfolioRoutePrefix = @json($tattooer->routePrefix());
+
             // Tabs
             function switchTab(tabName) {
                 try {
@@ -641,7 +651,7 @@ $legacy = $beforeAfter
 
                 const feedback = document.getElementById('upload-feedback');
 
-                fetch(`/tattooer/portfolio/${mediaId}`, {
+                fetch(`/${portfolioRoutePrefix}/portfolio/${mediaId}`, {
                     method: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -689,7 +699,7 @@ $legacy = $beforeAfter
 
                 const feedback = document.getElementById('upload-feedback');
 
-                fetch(`/tattooer/portfolio/before-after/${beforeId}/${afterId}`, {
+                fetch(`/${portfolioRoutePrefix}/portfolio/before-after/${beforeId}/${afterId}`, {
                     method: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -731,7 +741,7 @@ $legacy = $beforeAfter
                     const reader = new FileReader();
                     reader.onload = (e) => {
                         preview.innerHTML =
-                        `<img src="${e.target.result}" class="w-full h-full object-contain rounded-lg">`;
+                            `<img src="${e.target.result}" class="w-full h-full object-contain rounded-lg">`;
                     };
                     reader.readAsDataURL(file);
                 }
@@ -743,10 +753,69 @@ $legacy = $beforeAfter
                 lightbox.className = 'fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4';
                 lightbox.innerHTML = `
         <img src="${imageUrl}" class="max-w-full max-h-full rounded-lg">
-        <button onclick="this.parentElement.remove()" class="absolute top-4 right-4 text-white text-2xl">×</button>
+        <button type="button" data-action="close-lightbox" class="absolute top-4 right-4 text-white text-2xl">×</button>
     `;
                 document.body.appendChild(lightbox);
             }
+
+            // CSP-safe event wiring (no inline handlers)
+            document.addEventListener('click', (e) => {
+                const el = e.target.closest('[data-action]');
+                if (!el) return;
+
+                const action = el.dataset.action;
+
+                if (action === 'switch-tab') {
+                    const tab = el.dataset.tabTarget;
+                    if (tab) switchTab(tab);
+                }
+
+                if (action === 'open-before-after-modal') {
+                    openBeforeAfterModal();
+                }
+
+                if (action === 'close-before-after-modal') {
+                    closeBeforeAfterModal();
+                }
+
+                if (action === 'delete-image') {
+                    const id = Number(el.dataset.mediaId);
+                    if (Number.isFinite(id) && id > 0) deleteImage(id);
+                }
+
+                if (action === 'delete-before-after-pair') {
+                    const beforeId = Number(el.dataset.beforeId);
+                    const afterId = Number(el.dataset.afterId);
+                    if (Number.isFinite(beforeId) && Number.isFinite(afterId) && beforeId > 0 && afterId > 0) {
+                        deleteBeforeAfterPair(beforeId, afterId);
+                    }
+                }
+
+                if (action === 'view-image') {
+                    const url = el.dataset.imageUrl;
+                    if (url) viewImage(url);
+                }
+
+                if (action === 'close-lightbox') {
+                    const lb = el.closest('.fixed.inset-0');
+                    if (lb) lb.remove();
+                }
+            });
+
+            document.addEventListener('change', (e) => {
+                const el = e.target;
+                if (!(el instanceof HTMLInputElement)) return;
+
+                if (el.dataset.action === 'upload-images') {
+                    const collection = el.dataset.collection || 'portfolio';
+                    uploadImages(el, collection);
+                }
+
+                if (el.dataset.action === 'preview-image') {
+                    const previewId = el.dataset.previewId;
+                    if (previewId) previewImage(el, previewId);
+                }
+            });
         </script>
     @endpush
 @endsection

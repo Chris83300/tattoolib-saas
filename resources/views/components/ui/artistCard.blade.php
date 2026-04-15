@@ -35,26 +35,34 @@
     }
 @endphp
 
-<div
-    class="bg-noir-profond rounded-[2rem] border border-titane/40
+<div class="bg-noir-profond rounded-[2rem] border border-titane/40
            shadow-lg shadow-electric-blue/30 overflow-hidden
            hover:ring-2 hover:ring-beige-peau hover:shadow-cuivre/50
-           transition-all relative m-2 mb-4">
+           transition-all relative m-2 mb-4"
+    role="article" aria-labelledby="artist-name-{{ $data->id ?? uniqid() }}">
 
     {{-- Badges --}}
     <div class="absolute top-2 left-2 space-y-1 z-10">
+        <span class="sr-only">Statuts de l'artiste :</span>
         @if ($isMarketplace)
             @if (!empty($artist['has_compliance_badge']))
-                <span class="px-2 py-0.5 text-sm font-bold bg-vert-succes/20 text-vert-succes rounded-full block">✓
-                    Conforme hygiène</span>
+                <span class="px-2 py-0.5 text-sm font-bold bg-vert-succes/20 text-vert-succes rounded-full block"
+                    role="status" aria-label="Artiste conforme aux normes d'hygiène">
+                    <span aria-hidden="true"> </span>Conforme hygiène
+                </span>
             @endif
         @endif
         @if ($isMarketplace && isset($artist['siret_verified']) && $artist['siret_verified'])
         @elseif (!$isMarketplace && $studioArtist->is_active)
-            <span class="bg-vert-succes/20 text-vert-succes text-xs px-2 py-1 rounded-full font-semibold">Actif</span>
+            <span class="bg-vert-succes/20 text-vert-succes text-xs px-2 py-1 rounded-full font-semibold" role="status"
+                aria-label="Artiste actuellement actif">
+                Actif
+            </span>
         @elseif (!$isMarketplace && !$studioArtist->is_active)
-            <span
-                class="bg-rouge-alerte/20 text-rouge-alerte text-xs px-2 py-1 rounded-full font-semibold">Inactif</span>
+            <span class="bg-rouge-alerte/20 text-rouge-alerte text-xs px-2 py-1 rounded-full font-semibold"
+                role="status" aria-label="Artiste actuellement inactif">
+                Inactif
+            </span>
         @endif
     </div>
 
@@ -62,7 +70,8 @@
     <div class="h-64 md:h-80 bg-gradient-to-br from-titane/40 to-noir-profond relative overflow-hidden">
         @if (!empty($banner))
             <img src="{{ $banner }}" alt="Bannière de {{ $name }}" class="w-full h-full object-cover">
-            <div class="absolute inset-0 bg-gradient-to-t from-noir-profond/80 via-noir-profond/40 to-transparent"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-noir-profond/80 via-noir-profond/40 to-transparent">
+            </div>
         @elseif ($isMarketplace && !empty($artist['banner_url']))
             <img src="{{ $artist['banner_url'] }}" alt="Bannière de {{ $name }}"
                 class="w-full h-full object-cover">
@@ -170,15 +179,16 @@
         {{-- Header --}}
         <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
             <div class="text-center sm:text-left">
-                <h3 class="text-beige-peau font-semibold text-lg mb-1">
+                <h2 class="text-beige-peau font-semibold text-lg mb-1" id="artist-name-{{ $data->id ?? uniqid() }}">
                     {{ $name }}
-                </h3>
-                <p class="text-ivoire-text text-sm mb-1">
+                </h2>
+                <p class="text-ivoire-text text-sm mb-1" role="img"
+                    aria-label="{{ $type === 'piercer' ? 'Pierceur' : 'Tatoueur' }}">
                     {{ $type === 'piercer' ? 'Pierceur' : 'Tatoueur' }}
                 </p>
                 @if (!empty($studioName))
                     <p class="text-beige-peau text-sm mb-1">
-                        {{ $studioName }}
+                        Studio : {{ $studioName }}
                     </p>
                 @endif
                 @if (!empty($city))
@@ -243,17 +253,18 @@
         @endif
 
         {{-- CTA --}}
-        <div class="flex flex-col sm:flex-row gap-2">
+        <div class="flex flex-col sm:flex-row gap-2" role="group" aria-label="Actions pour cet artiste">
             @if ($isMarketplace)
                 <!-- Actions marketplace -->
                 <x-ui.button variant="secondary" size="sm"
-                    href="{{ route('marketplace.show.artist', $artist['slug']) }}" class="flex-1">
+                    href="{{ route('marketplace.show.artist', $artist['slug']) }}" class="flex-1"
+                    aria-label="Voir le profil complet de {{ $name }}">
                     Voir le profil
                 </x-ui.button>
 
                 <x-ui.button variant="primary" size="sm"
                     href="{{ route('booking-request.form', ['bookableId' => $artist['id'], 'bookableType' => $artist['type']]) }}"
-                    class="flex-1">
+                    class="flex-1" aria-label="Contacter {{ $name }} pour une demande de rendez-vous">
                     Contacter
                 </x-ui.button>
             @else

@@ -34,6 +34,53 @@ use App\Http\Controllers\Studio\StudioArtistController;
 use App\Http\Controllers\Studio\StudioSettingsController;
 use App\Http\Controllers\Studio\StudioBillingController;
 
+// ─── PWA assets — servis depuis public/build/ ────────────────────────────────
+// Ces 3 routes exposent les fichiers générés par vite-plugin-pwa à la racine /
+// afin que le SW scopé "/" puisse les résoudre (le build Vite les place dans /build/)
+
+Route::get('/sw.js', function () {
+    $path = public_path('build/sw.js');
+    abort_unless(file_exists($path), 404);
+    return response()->file($path, [
+        'Content-Type'           => 'application/javascript',
+        'Service-Worker-Allowed' => '/',
+        'Cache-Control'          => 'no-store, no-cache, must-revalidate',
+    ]);
+})->name('pwa.sw');
+
+Route::get('/workbox-{hash}.js', function (string $hash) {
+    // Le nom du fichier workbox contient un hash qui change à chaque build
+    $path = public_path("build/workbox-{$hash}.js");
+    abort_unless(file_exists($path), 404);
+    return response()->file($path, [
+        'Content-Type'  => 'application/javascript',
+        'Cache-Control' => 'public, max-age=31536000, immutable',
+    ]);
+})->where('hash', '[a-zA-Z0-9]+')->name('pwa.workbox');
+
+Route::get('/manifest.webmanifest', function () {
+    $path = public_path('build/manifest.webmanifest');
+    abort_unless(file_exists($path), 404);
+    return response()->file($path, [
+        'Content-Type'  => 'application/manifest+json',
+        'Cache-Control' => 'public, max-age=3600',
+    ]);
+})->name('pwa.manifest');
+
+Route::get('/images/{filename}', function (string $filename) {
+    $path = public_path("images/{$filename}");
+    if (!file_exists($path)) {
+        abort(404);
+    }
+    $mime = mime_content_type($path);
+    return response()->file($path, [
+        'Access-Control-Allow-Origin' => '*',
+        'Cache-Control' => 'public, max-age=86400',
+        'Content-Type' => $mime,
+    ]);
+})->where('filename', '[a-zA-Z0-9._-]+')->name('images');
+// ─────────────────────────────────────────────────────────────────────────────
+
 Route::get('/', function () {
     $cacheService = app(CacheService::class);
     $artists = $cacheService->getMarketplaceListings([]);

@@ -318,7 +318,7 @@
                 </div>
             </div>
 
-            <script>
+            <script nonce="{{ csp_nonce() }}">
                 function openStudioMoreMenu() {
                     const el = document.getElementById('studio-more-menu');
                     if (el) el.classList.remove('hidden');

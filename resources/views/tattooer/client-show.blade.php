@@ -1,6 +1,30 @@
 @extends('layouts.tattooer')
 
 @section('content')
+    @if ($errors->any())
+        <div class="fixed top-0 left-0 right-0 z-[9999] bg-red-600 text-white px-4 py-3 font-mono text-sm">
+            <strong>Erreurs validation :</strong>
+            <ul class="mt-1 ml-4 list-disc">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    @if (session('success'))
+        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 4000)"
+            class="fixed top-4 right-4 z-[9999] bg-vert-succes text-white px-5 py-3 rounded-xl shadow-lg text-sm font-semibold">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    @if (session('error'))
+        <div class="fixed top-4 right-4 z-[9999] bg-rouge-alerte text-white px-5 py-3 rounded-xl shadow-lg text-sm font-semibold">
+            {{ session('error') }}
+        </div>
+    @endif
+
     <div x-data="{ activeTab: '{{ request()->get('tab', 'info') }}', editMode: false }" class="space-y-4 pb-20">
         {{-- ═══════════════════════════════════════════════════════════════
              HEADER CLIENT (toujours visible)
@@ -390,10 +414,16 @@
              TAB: CONSENTEMENT
              ═══════════════════════════════════════════════════════════════ --}}
         <div x-show="activeTab === 'consent'" x-cloak class="space-y-4">
+            @php $standaloneConsents ??= collect(); @endphp
             <x-pro-gate feature="la gestion des consentements SNAT">
 
                 {{-- ═══ BOUTONS : Upload scan OU Formulaire numérique ═══ --}}
-                <div class="bg-gris-fonde rounded-xl p-4 md:p-6" x-data="{ consentMode: 'none' }">
+                <div class="bg-gris-fonde rounded-xl p-4 md:p-6" x-data="{ consentMode: 'none' }"
+                    x-init="$watch('consentMode', value => {
+                        if (value === 'digital') {
+                            $nextTick(() => requestAnimationFrame(() => window.initSignaturePad && window.initSignaturePad()));
+                        }
+                    })">
                     <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider mb-3">📤 Ajouter un
                         consentement</h3>
 
@@ -679,10 +709,10 @@
                                     @endphp
                                     @foreach ($confirmFields as $field => $label)
                                         <label class="flex items-start gap-2 cursor-pointer">
+                                            <input type="hidden" name="{{ $field }}" value="0">
                                             <input type="checkbox" name="{{ $field }}" value="1" required
                                                 class="w-4 h-4 rounded border-titane/30 bg-noir-profond text-beige-peau focus:ring-beige-peau mt-0.5">
-                                            <span
-                                                class="text-sm text-ivoire-text leading-tight">{{ $label }}</span>
+                                            <span class="text-sm text-ivoire-text leading-tight">{{ $label }}</span>
                                         </label>
                                     @endforeach
                                 </div>
@@ -701,22 +731,28 @@
                                 <div class="mb-2">
                                     <label class="text-xs text-titane block mb-1">Signature (dessiner ci-dessous) *</label>
                                     <div class="relative">
-                                        <canvas id="consent-signature-pad" width="600" height="200"
+                                        <canvas id="consent-signature-pad"
                                             class="w-full h-32 sm:h-40 bg-white rounded-lg border-2 border-titane/30 cursor-crosshair touch-none"></canvas>
-                                        <button type="button" onclick="clearSignaturePad()"
+                                        <button type="button" id="clear-signature-btn"
                                             class="absolute top-2 right-2 px-2 py-1 bg-noir-profond/70 text-white text-xs rounded hover:bg-noir-profond">Effacer</button>
                                     </div>
                                     <input type="hidden" name="signature_data" id="consent-signature-data" required>
                                 </div>
                             </div>
 
-                            <button type="submit" onclick="return submitConsentForm()"
+                            <button type="submit"
                                 class="w-full px-4 py-3 bg-beige-peau text-noir-profond font-bold rounded-lg hover:bg-beige-peau/90 transition-colors">
-                                ✅ Enregistrer le consentement SNAT
+                                Enregistrer le consentement
                             </button>
                         </form>
                     </div>
                 </div>
+
+                {{-- BOUTON HORS FORMULAIRE (ancienne version - à supprimer après validation) --}}
+                {{-- <button type="button" @click="if(submitConsentForm()) $el.closest('form').submit()"
+                    class="w-full px-4 py-3 bg-beige-peau text-noir-profond font-bold rounded-lg hover:bg-beige-peau/90 transition-colors">
+                    Enregistrer le consentement
+                </button> --}}
 
                 {{-- Consentements scannés --}}
                 @if ($consentDocuments->count() > 0)
@@ -753,7 +789,8 @@
                                         </a>
                                         <form
                                             action="{{ route($tattooer->routePrefix() . '.clients.consent.delete', [$client, $document->id]) }}"
-                                            method="POST" onsubmit="return confirm('Supprimer ce consentement ?')">
+                                            method="POST"
+                                            @submit.prevent="if(confirm('Supprimer ce consentement ?')) $el.submit()">
                                             @csrf @method('DELETE')
                                             <button type="submit"
                                                 class="p-2 bg-rouge-alerte/20 text-rouge-alerte rounded-lg hover:bg-rouge-alerte/30 transition-colors">
@@ -946,13 +983,44 @@
                         </div>
                     </div>
                 @empty
-                    @if ($consentDocuments->count() === 0)
+                    @if ($consentDocuments->count() === 0 && $standaloneConsents->count() === 0)
                         <div class="bg-gris-fonde rounded-xl p-8 text-center">
                             <span class="text-3xl mb-2 block">📝</span>
                             <p class="text-titane">Aucun consentement</p>
                         </div>
                     @endif
                 @endforelse
+
+                {{-- Consentements numériques standalone (sans booking) --}}
+                @if ($standaloneConsents->count() > 0)
+                    <div class="bg-gris-fonde rounded-xl p-4 md:p-6">
+                        <h3 class="text-sm font-bold text-ivoire-text/60 uppercase tracking-wider mb-3">✍️ Consentements
+                            numériques</h3>
+                        <div class="space-y-3">
+                            @foreach ($standaloneConsents as $sc)
+                                <div class="flex items-center justify-between p-3 bg-noir-profond/50 rounded-lg gap-3">
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-sm font-semibold text-ivoire-text">
+                                            ✅ {{ $sc->client_full_name }}</p>
+                                        <p class="text-xs text-titane">
+                                            Signé le {{ $sc->signed_at?->format('d/m/Y à H:i') }}
+                                            @if ($sc->handwritten_mention)
+                                                · « {{ $sc->handwritten_mention }} »
+                                            @endif
+                                        </p>
+                                    </div>
+                                    <div class="flex items-center gap-2 flex-shrink-0">
+                                        @include('partials.pdf-download-button', [
+                                            'url' => route('pdf.consent-form', $sc),
+                                            'label' => 'PDF',
+                                            'size' => 'xs',
+                                        ])
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
 
             </x-pro-gate>
         </div>{{-- Fin TAB CONSENTEMENT --}}
@@ -1201,7 +1269,7 @@
                             <div>
                                 <label class="text-xs text-titane block mb-1">📸 Photos numéros de lot (optionnel)</label>
                                 <input type="file" name="lot_photos[]" multiple accept="image/*"
-                                    onchange="previewFiles(this)"
+                                    @change="previewFiles($el)"
                                     class="w-full text-sm text-ivoire-text file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-beige-peau/20 file:text-beige-peau file:font-semibold file:text-xs">
                                 <div class="upload-preview flex gap-2 mt-2 flex-wrap"></div>
                             </div>
@@ -1416,7 +1484,7 @@
                                     <label class="text-xs text-titane block mb-1">📸 Photos numéros de
                                         lot</label>
                                     <input type="file" name="lot_photos[]" multiple accept="image/*"
-                                        onchange="previewFiles(this)"
+                                        @change="previewFiles($el)"
                                         class="w-full text-sm text-ivoire-text file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-beige-peau/20 file:text-beige-peau file:font-semibold file:text-xs">
                                     <div class="upload-preview flex gap-2 mt-2 flex-wrap"></div>
                                     @if ($trace)
@@ -1426,7 +1494,7 @@
                                                 @foreach ($lotPhotos as $photo)
                                                     <div class="w-16 h-16 rounded-lg overflow-hidden bg-noir-profond cursor-pointer border border-titane/20 hover:border-beige-peau transition-colors"
                                                         data-lb="{{ $photo->getUrl() }}"
-                                                        onclick="window.openLightbox('{{ $photo->getUrl() }}')">
+                                                        @click="window.openLightbox('{{ $photo->getUrl() }}')">
                                                         <img src="{{ $photo->getUrl() }}"
                                                             alt="{{ $photo->file_name }}"
                                                             class="w-full h-full object-cover"
@@ -1478,7 +1546,7 @@
                         method="POST" enctype="multipart/form-data">
                         @csrf
                         <input type="file" name="photos[]" multiple accept=".jpg,.jpeg,.png,.webp"
-                            onchange="previewFiles(this)"
+                            @change="previewFiles($el)"
                             class="w-full px-3 py-2 bg-noir-profond border border-titane/30 rounded-lg text-ivoire-text text-sm file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-beige-peau file:text-noir-profond mb-1">
                         <p class="text-xs text-titane mb-2">JPG, PNG, WEBP | Max 5MB | Max 10 photos</p>
                         <div class="upload-preview flex gap-2 mt-1 mb-3 flex-wrap"></div>
@@ -1498,14 +1566,15 @@
                                     <img src="{{ $photo->getUrl() }}" alt=""
                                         class="w-full h-full object-cover cursor-pointer" loading="lazy"
                                         data-lb="{{ $photo->getUrl() }}"
-                                        onclick="window.openLightbox('{{ $photo->getUrl() }}')"
+                                        @click="window.openLightbox('{{ $photo->getUrl() }}')"
                                         onerror="this.style.display='none'">
                                     <form
                                         action="{{ route($tattooer->routePrefix() . '.clients.photos.delete', [$client, $photo->id]) }}"
                                         method="POST"
                                         class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                         @csrf @method('DELETE')
-                                        <button type="submit" onclick="return confirm('Supprimer ?')"
+                                        <button type="submit"
+                                            @click.prevent="confirm('Supprimer ?') && $el.closest('form').submit()"
                                             class="w-6 h-6 bg-rouge-alerte rounded-full flex items-center justify-center shadow-lg hover:bg-rouge-alerte/80">
                                             <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
@@ -1530,14 +1599,15 @@
                                     <img src="{{ $media->getUrl() }}" alt=""
                                         class="w-full h-full object-cover cursor-pointer" loading="lazy"
                                         data-lb="{{ $media->getUrl() }}"
-                                        onclick="window.openLightbox('{{ $media->getUrl() }}')"
+                                        @click="window.openLightbox('{{ $media->getUrl() }}')"
                                         onerror="this.style.display='none'">
                                     <form
                                         action="{{ route($tattooer->routePrefix() . '.client.media.delete', [$client, $media->id]) }}"
                                         method="POST"
                                         class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                         @csrf @method('DELETE')
-                                        <button type="submit" onclick="return confirm('Supprimer ?')"
+                                        <button type="submit"
+                                            @click.prevent="confirm('Supprimer ?') && $el.closest('form').submit()"
                                             class="w-6 h-6 bg-rouge-alerte rounded-full flex items-center justify-center shadow-lg hover:bg-rouge-alerte/80">
                                             <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
@@ -1568,13 +1638,14 @@
                                         <img src="{{ $photo->getUrl() }}" alt=""
                                             class="w-full h-full object-cover cursor-pointer"
                                             data-lb="{{ $photo->getUrl() }}"
-                                            onclick="window.openLightbox('{{ $photo->getUrl() }}')">
+                                            @click="window.openLightbox('{{ $photo->getUrl() }}')">
                                         <form
                                             action="{{ route($tattooer->routePrefix() . '.client.media.delete', [$client, $photo->id]) }}"
                                             method="POST"
                                             class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                             @csrf @method('DELETE')
-                                            <button type="submit" onclick="return confirm('Supprimer ?')"
+                                            <button type="submit"
+                                                @click.prevent="confirm('Supprimer ?') && $el.closest('form').submit()"
                                                 class="w-6 h-6 bg-rouge-alerte rounded-full flex items-center justify-center shadow-lg">
                                                 <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
@@ -1592,7 +1663,7 @@
                             class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                             @csrf
                             <input type="file" name="photos[]" multiple accept="image/jpeg,image/png,image/webp"
-                                onchange="previewFiles(this)"
+                                @change="previewFiles($el)"
                                 class="flex-1 text-sm text-ivoire-text file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-beige-peau/20 file:text-beige-peau file:font-semibold file:text-xs">
                             <button type="submit"
                                 class="px-4 py-2 bg-beige-peau text-noir-profond rounded-lg font-semibold text-xs hover:bg-beige-peau/90 transition-colors flex-shrink-0">Upload</button>
@@ -1627,34 +1698,34 @@
     </div>{{-- Fin x-data principal --}}
 
     {{-- LIGHTBOX --}}
-    <div id="lightbox" class="hidden fixed inset-0 bg-black/95 z-[60] flex items-center justify-center"
-        onclick="if(event.target===this)window.closeLightbox()">
-        <button onclick="window.closeLightbox()" class="absolute top-4 right-4 p-2 text-white/70 hover:text-white z-10">
+    <div id="lightbox" x-data class="hidden fixed inset-0 bg-black/95 z-[60] flex items-center justify-center"
+        @click="if($event.target===$el)window.closeLightbox()">
+        <button @click="window.closeLightbox()" class="absolute top-4 right-4 p-2 text-white/70 hover:text-white z-10">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
         </button>
-        <button onclick="window.lightboxNav(-1)"
+        <button @click="window.lightboxNav(-1)"
             class="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-3 text-white/70 hover:text-white z-10 bg-black/40 rounded-full">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
             </svg>
         </button>
-        <button onclick="window.lightboxNav(1)"
+        <button @click="window.lightboxNav(1)"
             class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-3 text-white/70 hover:text-white z-10 bg-black/40 rounded-full">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
         </button>
-        <img id="lightbox-img" src="" alt="" class="max-w-[90vw] max-h-[85vh] object-contain rounded-lg"
-            onclick="event.stopPropagation()">
+        <img id="lightbox-img" src="" alt=""
+            class="max-w-[90vw] max-h-[85vh] object-contain rounded-lg" @click.stop>
         <div id="lightbox-counter"
             class="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/60 text-sm bg-black/50 px-3 py-1 rounded-full">
         </div>
     </div>
 
     {{-- JAVASCRIPT --}}
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         // LIGHTBOX
         (function() {
             var images = [],
@@ -1714,99 +1785,92 @@
 
         // SIGNATURE PAD
         (function() {
-            var canvas, ctx, drawing = false,
-                hasSignature = false;
+            var canvas, ctx, hasDrawn = false;
 
-            function initPad() {
+            window.initSignaturePad = function() {
                 canvas = document.getElementById('consent-signature-pad');
-                if (!canvas || canvas.dataset.init) return;
-                canvas.dataset.init = '1';
-                ctx = canvas.getContext('2d');
-                var rect = canvas.getBoundingClientRect(),
-                    dpr = window.devicePixelRatio || 1;
+                if (!canvas) return;
+
+                var rect = canvas.getBoundingClientRect();
+                if (rect.width === 0) {
+                    requestAnimationFrame(window.initSignaturePad);
+                    return;
+                }
+
+                var dpr = window.devicePixelRatio || 1;
                 canvas.width = rect.width * dpr;
                 canvas.height = rect.height * dpr;
+                ctx = canvas.getContext('2d');
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
                 ctx.scale(dpr, dpr);
-                ctx.strokeStyle = '#1a1a1a';
+                ctx.strokeStyle = '#0a0a0a';
                 ctx.lineWidth = 2;
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
+                canvas.style.touchAction = 'none';
+                hasDrawn = false;
 
-                function pos(e) {
+                var drawing = false;
+                var pos = function(e) {
                     var r = canvas.getBoundingClientRect();
-                    return {
-                        x: e.clientX - r.left,
-                        y: e.clientY - r.top
-                    }
+                    return { x: e.clientX - r.left, y: e.clientY - r.top };
+                };
+
+                canvas.onpointerdown = function(e) {
+                    drawing = true; hasDrawn = true;
+                    var p = pos(e);
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y);
+                    ctx.lineTo(p.x + 0.1, p.y + 0.1);
+                    ctx.stroke();
+                    try { canvas.setPointerCapture(e.pointerId); } catch(_) {}
+                };
+                canvas.onpointermove = function(e) {
+                    if (!drawing) return;
+                    var p = pos(e);
+                    ctx.lineTo(p.x, p.y);
+                    ctx.stroke();
+                };
+                var stop = function(e) {
+                    if (!drawing) return;
+                    drawing = false;
+                    try { canvas.releasePointerCapture(e.pointerId); } catch(_) {}
+                };
+                canvas.onpointerup = stop;
+                canvas.onpointercancel = stop;
+                canvas.onpointerleave = stop;
+
+                // Bouton clear (CSP-safe, pas d'onclick inline)
+                var clearBtn = document.getElementById('clear-signature-btn');
+                if (clearBtn) {
+                    clearBtn.onclick = function(e) {
+                        e.preventDefault();
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        hasDrawn = false;
+                    };
                 }
-                canvas.addEventListener('mousedown', function(e) {
-                    drawing = true;
-                    hasSignature = true;
-                    var p = pos(e);
-                    ctx.beginPath();
-                    ctx.moveTo(p.x, p.y)
-                });
-                canvas.addEventListener('mousemove', function(e) {
-                    if (!drawing) return;
-                    var p = pos(e);
-                    ctx.lineTo(p.x, p.y);
-                    ctx.stroke()
-                });
-                canvas.addEventListener('mouseup', function() {
-                    drawing = false
-                });
-                canvas.addEventListener('mouseleave', function() {
-                    drawing = false
-                });
-                canvas.addEventListener('touchstart', function(e) {
-                    e.preventDefault();
-                    drawing = true;
-                    hasSignature = true;
-                    var p = pos(e.touches[0]);
-                    ctx.beginPath();
-                    ctx.moveTo(p.x, p.y)
-                }, {
-                    passive: false
-                });
-                canvas.addEventListener('touchmove', function(e) {
-                    e.preventDefault();
-                    if (!drawing) return;
-                    var p = pos(e.touches[0]);
-                    ctx.lineTo(p.x, p.y);
-                    ctx.stroke()
-                }, {
-                    passive: false
-                });
-                canvas.addEventListener('touchend', function() {
-                    drawing = false
-                })
-            }
+
+                // Submit du form — guard contre les listeners multiples
+                var form = canvas.closest('form');
+                var input = document.getElementById('consent-signature-data');
+                if (form && input && !form.dataset.signatureBound) {
+                    form.dataset.signatureBound = '1';
+                    form.addEventListener('submit', function(e) {
+                        if (!hasDrawn) {
+                            e.preventDefault();
+                            alert('Veuillez signer le consentement.');
+                            return false;
+                        }
+                        input.value = canvas.toDataURL('image/png');
+                    });
+                }
+            };
+
             window.clearSignaturePad = function() {
                 if (!canvas || !ctx) return;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                hasSignature = false
+                hasDrawn = false;
             };
-            window.submitConsentForm = function() {
-                if (!hasSignature) {
-                    alert('Veuillez signer le consentement.');
-                    return false
-                }
-                document.getElementById('consent-signature-data').value = canvas.toDataURL('image/png');
-                return true
-            };
-            // Re-init quand Alpine montre le canvas
-            var obs = new MutationObserver(function() {
-                var el = document.getElementById('consent-signature-pad');
-                if (el && !el.dataset.init) setTimeout(initPad, 150)
-            });
-            document.addEventListener('DOMContentLoaded', function() {
-                obs.observe(document.body, {
-                    childList: true,
-                    subtree: true,
-                    attributes: true
-                });
-                initPad()
-            })
         })();
 
         // TAB HASH

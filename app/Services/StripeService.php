@@ -37,7 +37,7 @@ class StripeService
             }
 
             return $this->stripe->accounts->create([
-                'type' => 'express',
+                'type' => 'standard',
                 'country' => 'FR',
                 'email' => $user->email,
                 'capabilities' => [

@@ -202,6 +202,8 @@ class StripeWebhookController extends Controller
      */
     private function handleDepositPayment($session, BookingRequest $bookingRequest)
     {
+        Log::info('Webhook: handleDepositPayment START', ['booking_request_id' => $bookingRequest->id]);
+
         // Vérifier si le paiement est déjà traité (idempotence)
         if ($bookingRequest->deposit_paid_at) {
             Log::info('Webhook: Paiement déjà traité (idempotent)', ['booking_request_id' => $bookingRequest->id]);
@@ -241,6 +243,33 @@ class StripeWebhookController extends Controller
             'transaction_id' => $transaction->id,
             'amount' => $transaction->amount,
         ]);
+    }
+
+    /**
+     * Mettre à jour la conversation après paiement d'acompte
+     */
+    private function updateConversationAfterPayment(BookingRequest $bookingRequest): void
+    {
+        Log::info('Webhook: updateConversationAfterPayment START', ['booking_request_id' => $bookingRequest->id]);
+
+        $conversation = $bookingRequest->conversation;
+        if (!$conversation) {
+            Log::warning('Webhook: No conversation found for booking request', ['booking_request_id' => $bookingRequest->id]);
+            return;
+        }
+
+        $amount = number_format($bookingRequest->deposit_amount, 2, ',', ' ');
+
+        Log::info('Webhook: Creating consent message', ['booking_request_id' => $bookingRequest->id, 'amount' => $amount]);
+
+        $conversation->messages()->create([
+            'sender_id' => null,
+            'sender_type' => 'system',
+            'booking_request_id' => $bookingRequest->id,
+            'content' => "Acompte de {$amount} reçu. Merci de signer votre fiche de consentement avant le rendez-vous. [CONSENT_FORM:{$bookingRequest->id}]",
+        ]);
+
+        Log::info('Webhook: updateConversationAfterPayment DONE', ['booking_request_id' => $bookingRequest->id]);
     }
 
     /**
@@ -543,43 +572,6 @@ class StripeWebhookController extends Controller
             'artist_type' => get_class($artist),
             'old_status'  => $oldStatus,
             'new_status'  => $newStatus,
-        ]);
-    }
-
-    // ═══ GESTION DES ABONNEMENTS ═══
-
-    /**
-     */
-    private function handleSubscriptionDeleted($subscription): void
-    {
-        Log::info('Webhook: Abonnement supprimé', [
-            'subscription_id' => $subscription->id,
-            'customer_id'     => $subscription->customer,
-        ]);
-
-        $stripeCustomerId = $subscription->customer ?? $subscription['customer'] ?? null;
-        if (!$stripeCustomerId) return;
-
-        $user = User::where('stripe_id', $stripeCustomerId)->first();
-        if (!$user) {
-            Log::warning('Webhook: user non trouvé pour suppression abonnement', [
-                'customer_id' => $stripeCustomerId,
-            ]);
-            return;
-        }
-
-        if ($user->tattooer) {
-            $user->tattooer->update(['is_subscribed' => false]);
-        }
-        if ($user->piercer) {
-            $user->piercer->update(['is_subscribed' => false]);
-        }
-        if ($user->studio) {
-            $user->studio->update(['is_subscribed' => false]);
-        }
-
-        Log::info('Webhook: Abonnement supprimé — modèles métier mis à jour', [
-            'user_id' => $user->id,
         ]);
     }
 

@@ -201,7 +201,7 @@
     </div>
 
     @script
-        <script>
+        <script nonce="{{ csp_nonce() }}">
             document.addEventListener('livewire:init', () => {
                 Livewire.on('profile-updated', (message) => {
                     // Afficher une notification de succès
@@ -288,7 +288,7 @@
         </script>
     @endscript
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         function previewAvatar(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();

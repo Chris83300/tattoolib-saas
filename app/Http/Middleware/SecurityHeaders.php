@@ -86,18 +86,19 @@ class SecurityHeaders
         // ENVIRONNEMENT PRODUCTION : CSP strict avec nonce — sans unsafe-inline/eval sur script-src
         return implode('; ', [
             "default-src 'self'",
-            "script-src 'self' 'nonce-{$nonce}' 'unsafe-eval' https://js.stripe.com https://www.googletagmanager.com https://cdn.jsdelivr.net",
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.bunny.net https://cdn.jsdelivr.net",
+            "script-src 'self' 'nonce-{$nonce}' 'unsafe-eval' 'unsafe-hashes' 'sha256-Jgu5TBP9xCYKFK2zND6yNif+XgKHP/iZ2xKyeBbN6sY=' https://js.stripe.com https://www.googletagmanager.com https://cdn.jsdelivr.net https://translate.googleapis.com https://www.gstatic.com",
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.bunny.net https://cdn.jsdelivr.net https://www.gstatic.com",
             "img-src 'self' data: https:",
             "font-src 'self' data: https://fonts.gstatic.com https://fonts.bunny.net",
-            "connect-src 'self' https://api.stripe.com https://www.google-analytics.com wss://" . $request->getHost(),
+            "connect-src 'self' https://api.stripe.com https://www.google-analytics.com https://fonts.googleapis.com https://fonts.gstatic.com https://translate.googleapis.com wss://" . $request->getHost(),
             "frame-src 'self' https://js.stripe.com https://hooks.stripe.com",
             "media-src 'self'",
             "object-src 'none'",
             "base-uri 'self'",
-            "form-action 'self' https://checkout.stripe.com https://billing.stripe.com",
+            "form-action 'self' https://checkout.stripe.com https://billing.stripe.com https://connect.stripe.com https://dashboard.stripe.com",
             "frame-ancestors 'none'",
             "manifest-src 'self'",
+            "worker-src 'self'",
         ]);
     }
 }

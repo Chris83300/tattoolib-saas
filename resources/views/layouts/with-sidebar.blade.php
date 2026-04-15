@@ -204,7 +204,7 @@
     </main>
 
     <!-- JavaScript -->
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         document.addEventListener('DOMContentLoaded', function() {
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const closeSidebar = document.getElementById('close-sidebar');

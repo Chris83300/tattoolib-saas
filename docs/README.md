@@ -43,7 +43,7 @@ Marketplace professionnelle connectant clients et artistes (tatoueurs, perceurs,
 - **Laravel 12** (PHP 8.3+)
 - **MySQL/PostgreSQL** (production) / SQLite (dev)
 - **Redis** (cache & queues)
-- **Stripe Connect Express** (paiements)
+- **Stripe Connect Standard** (paiements)
 - **Spatie Media Library** (gestion fichiers)
 
 ### Frontend

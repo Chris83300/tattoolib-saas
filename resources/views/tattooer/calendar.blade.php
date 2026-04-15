@@ -10,11 +10,11 @@
 
         .fc .fc-toolbar-title,
         .fc .fc-button,
-        .fc .fc-col-header-cell-cushion,
+        .fc .fc-col-header-cell-cushion,    
         .fc .fc-timegrid-axis-cushion,
         .fc .fc-timegrid-slot-label-cushion,
         .fc .fc-daygrid-day-number {
-            color: rgb(255 251 245) !important;
+            color: rgb(255 255 255) !important;
         }
 
         .fc .fc-button {
@@ -177,7 +177,7 @@
                     </div>
                 </form>
             </div>
-            
+
         </div>
 
         {{-- Quick Booking Modal (Livewire) --}}
@@ -370,8 +370,8 @@
     {{-- FullCalendar JS (version unique, cohérente avec la CSS) --}}
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'
             integrity='sha384-5JIwZN3kuxX2zKsavvNmbZ3zhZZMUtu/eQiK3BbXukpSXp0Cd2ZP4OAYKx7mrPgI' crossorigin='anonymous'></script>
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/locales/fr.global.min.js'
-            integrity='sha384-yrN8rr2D1/eY289q5bhpr0Tt/0LF3b0WawEFrar17IV9Nde42g7Gk5IZM0TGRmvJ' crossorigin='anonymous'></script>
+    <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.11/locales-all.global.min.js'
+            integrity='sha384-U+2r7WQ8VGpkF1MxtmPBsTuSpuzfg7LfDgkU1S7Vi/LKJP2eyJim4hUlXogUzHeV' crossorigin='anonymous'></script>
 
     {{-- Configuration passée depuis PHP vers le module JS --}}
     <script nonce="{{ csp_nonce() }}">

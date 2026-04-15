@@ -281,7 +281,7 @@
 </div>
 
 @push('scripts')
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         // Auto-rafraîchissement toutes les 30 secondes pour les nouveaux messages
         setInterval(() => {
             // Optionnel : recharger la page pour voir les nouveaux messages
@@ -289,7 +289,7 @@
         }, 30000);
     </script>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         function openReviewModal(bookingRequestId) {
             // Créer la modal
             const modal = document.createElement('div');

@@ -847,7 +847,7 @@
             </div>
         </div>
 
-        <script>
+        <script nonce="{{ csp_nonce() }}">
             function openLightbox(imageUrl) {
                 document.getElementById('lightbox-image').src = imageUrl;
                 document.getElementById('lightbox').classList.remove('hidden');

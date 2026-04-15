@@ -414,7 +414,7 @@
     </div>
 
     <!-- Script pour la suppression -->
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         function confirmDelete(bookingRequestId) {
             if (confirm(
                     'Êtes-vous sûr de vouloir supprimer définitivement cette demande ?\n\nCette action est irréversible.'

@@ -95,7 +95,7 @@ class TattooerClientController extends ArtisanBaseController
 
         // Vérifier si le client a été créé manuellement par ce tattooer
         // (vérifier si le client->tattooer_id correspond au tattooer actuel)
-        $isManuallyCreated = $client->tattooer_id === $tattooer->id;
+        $isManuallyCreated = (int) $client->tattooer_id === (int) $tattooer->id;
 
         if (!$hasBookingRelation && !$isManuallyCreated) {
             Log::info('Client access denied', [
@@ -131,6 +131,12 @@ class TattooerClientController extends ArtisanBaseController
             ->orderBy('created_at', 'desc')
             ->get()
             ->keyBy('booking_request_id');
+
+        // Consentements numériques standalone (créés manuellement, sans booking_request_id)
+        $standaloneConsents = ClientConsentForm::where('client_id', $client->id)
+            ->whereNull('booking_request_id')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         // Appointments liés aux demandes de ce tattooer
         $appointments = collect();
@@ -190,7 +196,7 @@ class TattooerClientController extends ArtisanBaseController
 
         return view('tattooer.client-show', compact(
             'client', 'tattooer', 'bookingRequests', 'history',
-            'appointments', 'consents', 'traceabilities', 'stats', 'chatMedia',
+            'appointments', 'consents', 'standaloneConsents', 'traceabilities', 'stats', 'chatMedia',
             'consentDocuments', 'standaloneTraces', 'clientPhotos'
         ));
     }
@@ -209,7 +215,7 @@ class TattooerClientController extends ArtisanBaseController
             ->whereNotNull('deposit_paid_at')
             ->exists();
 
-        $isManuallyCreated = $client->tattooer_id === $tattooer->id;
+        $isManuallyCreated = (int) $client->tattooer_id === (int) $tattooer->id;
 
         if (!$hasBookingRelation && !$isManuallyCreated) {
             abort(403, 'Ce client ne fait pas partie de votre clientèle.');
@@ -255,7 +261,8 @@ class TattooerClientController extends ArtisanBaseController
      */
     public function createClient()
     {
-        return view('tattooer.clients-create');
+        $tattooer = $this->artisan();
+        return view('tattooer.clients-create', compact('tattooer'));
     }
 
     /**
@@ -272,42 +279,47 @@ class TattooerClientController extends ArtisanBaseController
 
             $validated = $request->validate([
                 'first_name' => 'nullable|string|max:255',
-                'last_name' => 'nullable|string|max:255',
-                'pseudo' => 'nullable|string|max:255',
-                'email' => 'required|email|unique:users,email',
-                'phone' => 'nullable|string|max:20',
+                'last_name'  => 'nullable|string|max:255',
+                'pseudo'     => 'nullable|string|max:255',
+                'email'      => 'nullable|email|max:255',
+                'phone'      => 'nullable|string|max:30',
                 'birth_date' => 'nullable|date',
-                'address' => 'nullable|string|max:500',
-                'notes' => 'nullable|string|max:2000',
+                'address'    => 'nullable|string|max:500',
+                'notes'      => 'nullable|string|max:2000',
             ]);
 
             Log::info('Validation passed', ['validated' => $validated]);
 
-            // Créer l'utilisateur client
-            $user = User::create([
-                'first_name' => $validated['first_name'],
-                'last_name' => $validated['last_name'],
-                'pseudo' => $validated['pseudo'],
-                'email' => $validated['email'],
-                'phone' => $validated['phone'],
-                'role' => 'client',
-                'password' => bcrypt(str()->random(32)), // Mot de passe aléatoire
-            ]);
+            // Créer ou récupérer un User uniquement si un email est fourni
+            $userId = null;
+            if (!empty($validated['email'])) {
+                $user = User::firstOrCreate(
+                    ['email' => $validated['email']],
+                    [
+                        'first_name' => $validated['first_name'] ?? null,
+                        'last_name'  => $validated['last_name'] ?? null,
+                        'pseudo'     => $validated['pseudo'] ?? null,
+                        'phone'      => $validated['phone'] ?? null,
+                        'role'       => 'client',
+                        'password'   => bcrypt(str()->random(32)),
+                    ]
+                );
+                $userId = $user->id;
+                Log::info('User firstOrCreate', ['user_id' => $userId, 'created' => $user->wasRecentlyCreated]);
+            }
 
-            Log::info('User created', ['user_id' => $user->id]);
-
-            // Créer le client
+            // Créer la fiche client (user_id peut être null pour une fiche sans email)
             $client = \App\Models\Client::create([
-                'user_id' => $user->id,
-                'first_name' => $validated['first_name'],
-                'last_name' => $validated['last_name'],
-                'pseudo' => $validated['pseudo'],
-                'email' => $validated['email'],
-                'phone' => $validated['phone'],
-                'birth_date' => $validated['birth_date'],
-                'address' => $validated['address'],
-                'notes' => $validated['notes'],
-                'tattooer_id' => $this->artisan()?->id, // Associer au tattooer actuel
+                'user_id'     => $userId,
+                'first_name'  => $validated['first_name'] ?? null,
+                'last_name'   => $validated['last_name'] ?? null,
+                'pseudo'      => $validated['pseudo'] ?? null,
+                'email'       => $validated['email'] ?? null,
+                'phone'       => $validated['phone'] ?? null,
+                'birth_date'  => $validated['birth_date'] ?? null,
+                'address'     => $validated['address'] ?? null,
+                'notes'       => $validated['notes'] ?? null,
+                'tattooer_id' => $this->artisan()?->id,
             ]);
 
             Log::info('Client created', ['client_id' => $client->id]);

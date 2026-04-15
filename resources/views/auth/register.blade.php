@@ -20,8 +20,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
 
                 <!-- CLIENT -->
-                <button onclick="window.location.href='{{ route('register.client') }}'"
-                    class="bg-gris-fonde hover:bg-beige-peau/10 hover:border-beige-peau hover:shadow-lg hover:shadow-beige-peau/20 border-2 border-titane/20 shadow-md shadow-titane/10 rounded-xl p-6 text-center transition-all group">
+                <button data-url="{{ route('register.client') }}" class="role-btn bg-gris-fonde hover:bg-beige-peau/10 hover:border-beige-peau hover:shadow-lg hover:shadow-beige-peau/20 border-2 border-titane/20 shadow-md shadow-titane/10 rounded-xl p-6 text-center transition-all group">
                     <div class="w-16 h-16 mx-auto mb-4 bg-beige-peau/10 rounded-full flex items-center justify-center">
                         <svg class="w-8 h-8 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -38,8 +37,7 @@
                 </button>
 
                 <!-- TATTOOER -->
-                <button onclick="window.location.href='{{ route('register.plan', ['type' => 'tattooer']) }}'"
-                    class="bg-gris-fonde hover:bg-beige-peau/10 hover:border-beige-peau hover:shadow-lg hover:shadow-beige-peau/20 border-2 border-titane/20 shadow-md shadow-titane/10 rounded-xl p-6 text-center transition-all group">
+                <button data-url="{{ route('register.plan', ['type' => 'tattooer']) }}" class="role-btn bg-gris-fonde hover:bg-beige-peau/10 hover:border-beige-peau hover:shadow-lg hover:shadow-beige-peau/20 border-2 border-titane/20 shadow-md shadow-titane/10 rounded-xl p-6 text-center transition-all group">
                     <div class="w-16 h-16 mx-auto mb-4 bg-beige-peau/10 rounded-full flex items-center justify-center">
                         <svg class="w-8 h-8 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -57,8 +55,8 @@
                 </button>
 
                 <!-- Piercer -->
-                <button onclick="window.location.href='{{ route('register.plan', ['type' => 'piercer']) }}'"
-                    class="bg-gris-fonde hover:bg-beige-peau/10 hover:border-beige-peau hover:shadow-lg hover:shadow-beige-peau/20 border-2 border-titane/20 shadow-md shadow-titane/10 rounded-xl p-6 text-center transition-all group">
+                <button data-url="{{ route('register.plan', ['type' => 'piercer']) }}" class="role-btn
+                    bg-gris-fonde hover:bg-beige-peau/10 hover:border-beige-peau hover:shadow-lg hover:shadow-beige-peau/20 border-2 border-titane/20 shadow-md shadow-titane/10 rounded-xl p-6 text-center transition-all group">
                     <div class="w-16 h-16 mx-auto mb-4 bg-beige-peau/10 rounded-full flex items-center justify-center">
                         <svg class="w-8 h-8 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -76,8 +74,7 @@
                 </button>
 
                 <!-- STUDIO -->
-                <button onclick="window.location.href='{{ route('register.studio') }}'"
-                    class="bg-gris-fonde hover:bg-beige-peau/10 hover:border-beige-peau hover:shadow-lg hover:shadow-beige-peau/20 border-2 border-titane/20 shadow-md shadow-titane/10 rounded-xl p-6 text-center transition-all group">
+                <button data-url="{{ route('register.plan', ['type' => 'studio']) }}" class="role-btn bg-gris-fonde hover:bg-beige-peau/10 hover:border-beige-peau hover:shadow-lg hover:shadow-beige-peau/20 border-2 border-titane/20 shadow-md shadow-titane/10 rounded-xl p-6 text-center transition-all group">
                     <div class="w-16 h-16 mx-auto mb-4 bg-beige-peau/10 rounded-full flex items-center justify-center">
                         <svg class="w-8 h-8 text-beige-peau" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -107,4 +104,11 @@
             </div>
         </div>
     </div>
+    <script nonce="{{ csp_nonce() }}">
+        document.querySelectorAll('.role-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                window.location.href = btn.dataset.url;
+            });
+        });
+    </script>
 @endsection

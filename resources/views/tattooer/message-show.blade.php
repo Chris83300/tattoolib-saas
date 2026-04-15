@@ -716,7 +716,7 @@
                                 @endif
                             </form>
 
-                            <script>
+                            <script nonce="{{ csp_nonce() }}">
                                 function messageForm() {
                                     return {
                                         files: [],
@@ -1039,7 +1039,7 @@
     </div>
 
     <!-- Scroll automatique vers dernier message -->
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         // Scroll automatique vers dernier message au chargement
         document.addEventListener('DOMContentLoaded', function() {
             const messagesContainer = document.getElementById('messages-container');

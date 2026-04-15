@@ -322,7 +322,7 @@
     @livewireScripts
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         function openStudioMoreMenu() {
             const el = document.getElementById('studio-more-menu');
             if (el) el.classList.remove('hidden');

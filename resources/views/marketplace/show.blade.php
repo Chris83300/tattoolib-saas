@@ -687,7 +687,7 @@ $displayStyles = array_filter(
     </div>
 
     @push('scripts')
-        <script>
+        <script nonce="{{ csp_nonce() }}">
             document.addEventListener('DOMContentLoaded', function() {
                 const lightbox = document.getElementById('lightbox');
                 const lightboxImage = document.getElementById('lightbox-image');

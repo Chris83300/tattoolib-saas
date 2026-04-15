@@ -160,7 +160,7 @@
     
 
     @push('scripts')
-        <script>
+        <script nonce="{{ csp_nonce() }}">
             // Auto-rafraîchissement toutes les 30 secondes pour les nouveaux messages
             setInterval(() => {
                 // Optionnel : recharger la page pour voir les nouveaux messages

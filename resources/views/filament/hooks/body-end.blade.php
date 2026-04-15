@@ -3,7 +3,7 @@
     Position : Avant </body>
     Utilisation : Scripts JS custom, tracking, widgets tiers...
 --}}
-<script>
+<script nonce="{{ csp_nonce() }}">
     /*
      * JS custom pour le panel Admin Ink&Pik
      * ----------------------------------------

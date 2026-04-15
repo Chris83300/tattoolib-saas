@@ -180,7 +180,7 @@ if ($client->user && $client->user->getFirstMediaUrl('avatar')) {
     </div>
 
     @push('scripts')
-        <script>
+        <script nonce="{{ csp_nonce() }}">
             // Gestion de la recherche en temps réel (optionnel)
             let searchTimeout;
             const searchInput = document.querySelector('input[name="search"]');

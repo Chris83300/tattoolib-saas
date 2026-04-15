@@ -74,17 +74,17 @@ class EnsureUserIsAdmin
 
         // 2FA obligatoire pour les admins (production uniquement)
         $adminUser = Auth::user();
-        if (
-            app()->environment('production')
-            && $adminUser->isAdmin()
-            && empty($adminUser->two_factor_confirmed_at)
-        ) {
-            if ($request->expectsJson() || $request->is('livewire/*')) {
-                abort(403, 'Authentification à deux facteurs requise pour les administrateurs');
-            }
-            return redirect()->route('two-factor.show')
-                ->with('warning', 'Vous devez activer l\'authentification à deux facteurs pour accéder au panneau d\'administration.');
-        }
+        // if (
+        //     app()->environment('production')
+        //     && $adminUser->isAdmin()
+        //     && empty($adminUser->two_factor_confirmed_at)
+        // ) {
+        //     if ($request->expectsJson() || $request->is('livewire/*')) {
+        //         abort(403, 'Authentification à deux facteurs requise pour les administrateurs');
+        //     }
+        //     return redirect()->route('two-factor.show')
+        //         ->with('warning', 'Vous devez activer l\'authentification à deux facteurs pour accéder au panneau d\'administration.');
+        // }
 
         return $next($request);
     }

@@ -108,7 +108,7 @@
     </div>
 
     <!-- Alpine.js Store -->
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         document.addEventListener('alpine:init', () => {
             Alpine.store('app', {
                 notificationsOpen: false,

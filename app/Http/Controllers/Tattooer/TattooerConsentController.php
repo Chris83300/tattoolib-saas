@@ -6,6 +6,8 @@ use App\Models\BookingRequest;
 use App\Models\Client;
 use App\Models\ClientConsentForm;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class TattooerConsentController extends ArtisanBaseController
 {
@@ -75,7 +77,7 @@ class TattooerConsentController extends ArtisanBaseController
             ->whereNotNull('deposit_paid_at')
             ->exists();
 
-        $isManuallyCreated = $client->tattooer_id === $tattooer->id;
+        $isManuallyCreated = (int) $client->tattooer_id === (int) $tattooer->id;
 
         if (!$hasBookingRelation && !$isManuallyCreated) {
             abort(403, 'Ce client ne fait pas partie de votre clientèle.');
@@ -93,9 +95,9 @@ class TattooerConsentController extends ArtisanBaseController
 
             // Mineur
             'is_minor' => 'nullable|boolean',
-            'parent_name' => 'required_if:is_minor,1|string|max:255',
-            'parent_relation' => 'required_if:is_minor,1|string|in:pere,mere,tuteur',
-            'parent_id_number' => 'required_if:is_minor,1|string|max:50',
+            'parent_name' => 'nullable|required_if:is_minor,1|string|max:255',
+            'parent_relation' => 'nullable|required_if:is_minor,1|string|in:pere,mere,tuteur',
+            'parent_id_number' => 'nullable|required_if:is_minor,1|string|max:50',
 
             // Médical
             'medical_allergies' => 'nullable|boolean',
@@ -133,52 +135,79 @@ class TattooerConsentController extends ArtisanBaseController
             'signature_data' => 'required|string',
         ]);
 
+        // Décoder et stocker la signature en fichier (évite la limite TEXT en DB)
+        $signatureData = $validated['signature_data'];
+        $signaturePath = null;
+        try {
+            $b64 = preg_replace('#^data:image/\w+;base64,#', '', $signatureData);
+            $binary = base64_decode($b64, true);
+            if ($binary !== false && strlen($binary) > 0) {
+                $signaturePath = 'consents/signatures/' . $client->id . '_' . now()->timestamp . '.png';
+                Storage::disk('local')->put($signaturePath, $binary);
+            }
+        } catch (\Throwable $e) {
+            Log::error('Consent: signature file storage failed', ['error' => $e->getMessage()]);
+        }
+
         // Créer le consentement numérique
-        $artisanForConsent = $this->artisan();
-        $consent = \App\Models\ClientConsentForm::create([
-            'client_id' => $client->id,
-            'booking_request_id' => null, // Consentement manuel
-            'studio_id' => $artisanForConsent?->studio_id,
-            'client_full_name' => $validated['client_full_name'],
-            'client_birth_date' => $validated['client_birth_date'],
-            'client_phone' => $validated['client_phone'],
-            'client_email' => $validated['client_email'],
-            'client_address' => $validated['client_address'],
-            'client_id_type' => $validated['client_id_type'],
-            'client_id_number' => $validated['client_id_number'],
-            'is_minor' => $validated['is_minor'] ?? false,
-            'parent_name' => $validated['parent_name'] ?? null,
-            'parent_relation' => $validated['parent_relation'] ?? null,
-            'parent_id_number' => $validated['parent_id_number'] ?? null,
-            'medical_allergies' => $validated['medical_allergies'] ?? false,
-            'medical_allergies_detail' => $validated['medical_allergies_detail'] ?? null,
-            'medical_anticoagulant' => $validated['medical_anticoagulant'] ?? false,
-            'medical_diabetes' => $validated['medical_diabetes'] ?? false,
-            'medical_cicatrisation' => $validated['medical_cicatrisation'] ?? false,
-            'medical_skin_disease' => $validated['medical_skin_disease'] ?? false,
-            'medical_skin_disease_detail' => $validated['medical_skin_disease_detail'] ?? null,
-            'medical_vih_hepatite' => $validated['medical_vih_hepatite'] ?? false,
-            'medical_pregnant' => $validated['medical_pregnant'] ?? false,
-            'medical_roaccutane' => $validated['medical_roaccutane'] ?? false,
-            'medical_cheloide' => $validated['medical_cheloide'] ?? false,
-            'medical_other' => $validated['medical_other'] ?? null,
-            'total_price' => $validated['total_price'] ?? null,
-            'deposit_amount' => $validated['deposit_amount'] ?? null,
-            'retouche_included' => $validated['retouche_included'] ?? false,
-            'image_authorization' => $validated['image_authorization'] ?? null,
-            'confirm_medical_sincere' => $validated['confirm_medical_sincere'],
-            'confirm_risks_informed' => $validated['confirm_risks_informed'],
-            'confirm_info_sheet_read' => $validated['confirm_info_sheet_read'],
-            'confirm_aftercare_received' => $validated['confirm_aftercare_received'],
-            'confirm_not_intoxicated' => $validated['confirm_not_intoxicated'],
-            'confirm_over_18_or_authorized' => $validated['confirm_over_18_or_authorized'],
-            'confirm_rgpd' => $validated['confirm_rgpd'],
-            'handwritten_mention' => $validated['handwritten_mention'],
-            'signature_data' => $validated['signature_data'],
-            'signed_at' => now(),
-            'signed_ip' => $request->ip(),
-            'is_valid' => true, // Consentement numérique considéré comme valide
-        ]);
+        try {
+            $artisanForConsent = $this->artisan();
+            $consent = \App\Models\ClientConsentForm::create([
+                'client_id'                    => $client->id,
+                'booking_request_id'           => null,
+                'tattooer_id'                  => $artisanForConsent?->id,
+                'studio_id'                    => $artisanForConsent?->studio_id,
+                'client_full_name'             => $validated['client_full_name'],
+                'client_birth_date'            => $validated['client_birth_date'],
+                'client_phone'                 => $validated['client_phone'] ?? null,
+                'client_email'                 => $validated['client_email'] ?? null,
+                'client_address'               => $validated['client_address'] ?? null,
+                'client_id_type'               => $validated['client_id_type'] ?? null,
+                'client_id_number'             => $validated['client_id_number'] ?? null,
+                'is_minor'                     => $validated['is_minor'] ?? false,
+                'parent_name'                  => $validated['parent_name'] ?? null,
+                'parent_relation'              => $validated['parent_relation'] ?? null,
+                'parent_id_number'             => $validated['parent_id_number'] ?? null,
+                'medical_allergies'            => $validated['medical_allergies'] ?? false,
+                'medical_allergies_detail'     => $validated['medical_allergies_detail'] ?? null,
+                'medical_anticoagulant'        => $validated['medical_anticoagulant'] ?? false,
+                'medical_diabetes'             => $validated['medical_diabetes'] ?? false,
+                'medical_cicatrisation'        => $validated['medical_cicatrisation'] ?? false,
+                'medical_skin_disease'         => $validated['medical_skin_disease'] ?? false,
+                'medical_skin_disease_detail'  => $validated['medical_skin_disease_detail'] ?? null,
+                'medical_vih_hepatite'         => $validated['medical_vih_hepatite'] ?? false,
+                'medical_pregnant'             => $validated['medical_pregnant'] ?? false,
+                'medical_roaccutane'           => $validated['medical_roaccutane'] ?? false,
+                'medical_cheloide'             => $validated['medical_cheloide'] ?? false,
+                'medical_other'                => $validated['medical_other'] ?? null,
+                'total_price'                  => $validated['total_price'] ?? null,
+                'deposit_amount'               => $validated['deposit_amount'] ?? null,
+                'retouche_included'            => $validated['retouche_included'] ?? false,
+                'image_authorization'          => $validated['image_authorization'] ?? null,
+                'confirm_medical_sincere'      => $validated['confirm_medical_sincere'],
+                'confirm_risks_informed'       => $validated['confirm_risks_informed'],
+                'confirm_info_sheet_read'      => $validated['confirm_info_sheet_read'],
+                'confirm_aftercare_received'   => $validated['confirm_aftercare_received'],
+                'confirm_not_intoxicated'      => $validated['confirm_not_intoxicated'],
+                'confirm_over_18_or_authorized' => $validated['confirm_over_18_or_authorized'],
+                'confirm_rgpd'                 => $validated['confirm_rgpd'],
+                'handwritten_mention'          => $validated['handwritten_mention'],
+                'signature_data'               => $signaturePath ?? $signatureData,
+                'signed_at'                    => now(),
+                'signed_ip'                    => $request->ip(),
+                'is_valid'                     => true,
+            ]);
+
+            Log::info('Consent digital saved', ['consent_id' => $consent->id, 'client_id' => $client->id]);
+        } catch (\Throwable $e) {
+            Log::error('Consent digital create failed', [
+                'error'     => $e->getMessage(),
+                'client_id' => $client->id,
+            ]);
+            return redirect()->back()
+                ->with('error', 'Erreur lors de l\'enregistrement du consentement. Veuillez réessayer.')
+                ->withInput();
+        }
 
         return redirect()->back()->with('success', '✅ Consentement numérique enregistré avec succès !');
     }
@@ -197,7 +226,7 @@ class TattooerConsentController extends ArtisanBaseController
             ->whereNotNull('deposit_paid_at')
             ->exists();
 
-        $isManuallyCreated = $client->tattooer_id === $tattooer->id;
+        $isManuallyCreated = (int) $client->tattooer_id === (int) $tattooer->id;
 
         if (!$hasBookingRelation && !$isManuallyCreated) {
             abort(403, 'Ce client ne fait pas partie de votre clientèle.');
@@ -237,7 +266,7 @@ class TattooerConsentController extends ArtisanBaseController
             ->whereNotNull('deposit_paid_at')
             ->exists();
 
-        $isManuallyCreated = $client->tattooer_id === $tattooer->id;
+        $isManuallyCreated = (int) $client->tattooer_id === (int) $tattooer->id;
 
         if (!$hasBookingRelation && !$isManuallyCreated) {
             abort(403, 'Ce client ne fait pas partie de votre clientèle.');

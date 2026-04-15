@@ -1390,7 +1390,7 @@ $paymentText = $isTotalPayment
     {{-- ═══════════════════════════════════════════════════════════════
          JAVASCRIPT (UN SEUL BLOC)
          ═══════════════════════════════════════════════════════════════ --}}
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         // ═══ SCROLL AUTO ═══
         document.addEventListener('DOMContentLoaded', function() {
             var container = document.getElementById('messages-container');

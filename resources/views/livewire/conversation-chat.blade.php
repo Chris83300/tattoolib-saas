@@ -214,7 +214,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ csp_nonce() }}">
     // Auto-scroll en bas quand de nouveaux messages arrivent
     document.addEventListener('livewire:init', () => {
         Livewire.on('scrollToBottom', () => {

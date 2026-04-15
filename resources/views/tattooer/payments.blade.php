@@ -342,7 +342,7 @@
     </div>
 
     @push('scripts')
-        <script>
+        <script nonce="{{ csp_nonce() }}">
             // Gestion du bouton "Gérer le compte" (placeholder)
             document.querySelectorAll('button').forEach(button => {
                 if (button.textContent.includes('Gérer')) {

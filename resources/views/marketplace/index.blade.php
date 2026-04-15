@@ -1,6 +1,15 @@
 @extends('layouts.app')
 
 @section('title', 'Marketplace - Trouver un artiste')
+@section('description', 'Ink&Pik Marketplace - Trouvez des tatoueurs, pierceurs et studios vérifiés près de chez vous.
+    Artistes conformes ARS, avec avis clients et prix transparents.')
+@section('keywords', 'marketplace, tatoueur, pierceur, studio, trouver artiste, tatouage, piercing, ville, avis, prix,
+    professionnel')
+@section('og:title', 'Marketplace Ink&Pik - Trouvez votre artiste')
+@section('og:description', 'La marketplace N°1 pour les arts corporels. Des artistes vérifiés, conformes réglementaires,
+    avec avis clients et prix transparents.')
+@section('og:url', config('app.url') . '/marketplace')
+@section('canonical', config('app.url') . '/marketplace')
 
 @section('content')
     <!-- Hero Section Marketplace -->
@@ -51,15 +60,15 @@
 
 @push('scripts')
     <script nonce="{{ csp_nonce() }}">
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             // Charger les stats du hero
             fetch('/api/marketplace/stats')
                 .then(r => r.json())
                 .then(stats => {
-                    document.getElementById('total-artists').textContent     = stats.total_artists     || '-';
-                    document.getElementById('total-users').textContent       = stats.total_users       || '-';
-                    document.getElementById('total-studios').textContent     = stats.total_studios     || '-';
-                    document.getElementById('total-appointments').textContent= stats.total_appointments|| '-';
+                    document.getElementById('total-artists').textContent = stats.total_artists || '-';
+                    document.getElementById('total-users').textContent = stats.total_users || '-';
+                    document.getElementById('total-studios').textContent = stats.total_studios || '-';
+                    document.getElementById('total-appointments').textContent = stats.total_appointments || '-';
                 })
                 .catch(() => {});
         });

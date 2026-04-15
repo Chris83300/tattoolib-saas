@@ -29,7 +29,7 @@ class MarketplaceSearch extends Component
     public bool   $certifiedOnly = false;
 
     // Tri
-    public string $sortBy    = 'pro_first'; // pro_first | price_asc | newest
+    public string $sortBy    = 'avis_first'; // avis_first | price_asc | newest
 
     // Pagination
     public int $perPage = 12;
@@ -55,7 +55,7 @@ class MarketplaceSearch extends Component
         $this->maxPrice      = '';
         $this->proOnly       = false;
         $this->certifiedOnly = false;
-        $this->sortBy        = 'pro_first';
+        $this->sortBy        = 'avis_first';
         $this->type          = 'all';
         $this->resetPage();
     }
@@ -208,6 +208,17 @@ class MarketplaceSearch extends Component
 
         // ─── TRI ───────────────────────────────────────────────────
         $results = match ($this->sortBy) {
+            'avis_first' => $results->sortByDesc(function ($a) {
+                // Récupérer la note moyenne pour chaque type d'artiste
+                if ($a->_type === 'studio') {
+                    return $a->avg_rating ?? 0;
+                } elseif ($a->_type === 'tattooer') {
+                    return $a->rating ?? 0;
+                } elseif ($a->_type === 'piercer') {
+                    return $a->rating ?? 0;
+                }
+                return 0;
+            }),
             'price_asc' => $results->sortBy(fn ($a) => $a->minimum_price ?? 9999),
             'newest'    => $results->sortByDesc('created_at'),
             default     => $results->sortByDesc(function ($a) {

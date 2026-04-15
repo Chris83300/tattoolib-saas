@@ -106,7 +106,12 @@
       "Bash(vendor/bin/pest tests/Browser/ScreenshotAllViewsTest.php --group=pierceur --configuration phpunit.browser.xml 2>&1)",
       "Bash(vendor/bin/pest tests/Browser/ScreenshotAllViewsTest.php --group=admin --configuration phpunit.browser.xml 2>&1)",
       "Bash(vendor/bin/pest tests/Browser/ScreenshotAllViewsTest.php --group=darkmode --configuration phpunit.browser.xml 2>&1)",
-      "Bash(php artisan tinker --execute=\":*)"
+      "Bash(php artisan tinker --execute=\":*)",
+      "Bash(curl -s -o /tmp/fc-locales-all.js https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/locales-all.global.min.js)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/locales-all.global.min.js\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.11/locales-all.global.min.js\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js\")",
+      "Bash(curl -s -o /tmp/fc-core-locales.js \"https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.11/locales-all.global.min.js\")"
     ]
   }
 }

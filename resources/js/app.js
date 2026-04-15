@@ -1,4 +1,6 @@
 import './bootstrap';
+import collapse from '@alpinejs/collapse';
+
 import './unread-messages';
 import { registerSW } from 'virtual:pwa-register';
 
@@ -77,6 +79,11 @@ document.addEventListener('alpine:init', () => {
 // Clé VAPID publique — lue depuis la meta tag injectée par le layout (config/env)
 const VAPID_KEY = document.querySelector('meta[name="vapid-public-key"]')?.content || '';
 
+// Enregistrer le plugin collapse sur l'instance Alpine fournie par Livewire
+document.addEventListener('alpine:init', () => {
+    window.Alpine.plugin(collapse);
+});
+
 // ⚠️ Enregistrement SW géré par vite-plugin-pwa (registerSW ci-dessus)
 
 // Demande de permission pour les notifications
@@ -115,6 +122,51 @@ async function getFCMToken() {
         body: JSON.stringify({ token })
     });
 }
+// PWA Install Prompt
+document.addEventListener('alpine:init', () => {
+    Alpine.data('pwaInstall', () => ({
+        showPrompt: false,
+        deferredPrompt: null,
+
+        init() {
+            // Ne jamais afficher sur les pages auth
+            const authPages = ['/login', '/register', '/forgot-password', '/reset-password'];
+            const currentPath = window.location.pathname;
+            if (authPages.some(page => currentPath.startsWith(page))) return;
+
+            // Ne plus afficher si déjà installé
+            if (localStorage.getItem('pwa-installed')) return;
+            if (sessionStorage.getItem('pwa-dismissed-session')) return;
+
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                this.deferredPrompt = e;
+                this.showPrompt = true;
+            });
+
+            window.addEventListener('appinstalled', () => {
+                localStorage.setItem('pwa-installed', 'true');
+                this.showPrompt = false;
+            });
+        },
+
+        async install() {
+            if (!this.deferredPrompt) return;
+            this.deferredPrompt.prompt();
+            const { outcome } = await this.deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                localStorage.setItem('pwa-installed', 'true');
+            }
+            this.deferredPrompt = null;
+            this.showPrompt = false;
+        },
+
+        dismiss() {
+            sessionStorage.setItem('pwa-dismissed-session', 'true');
+            this.showPrompt = false;
+        }
+    }));
+});
 
 // Appeler cette fonction après la connexion de l'utilisateur
 // requestNotificationPermission();

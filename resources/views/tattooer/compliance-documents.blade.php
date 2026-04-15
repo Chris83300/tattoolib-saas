@@ -354,7 +354,7 @@
         </div>
     </div>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         document.addEventListener('DOMContentLoaded', function() {
             const checkboxes = document.querySelectorAll('input[name="certification_types[]"]');
             const arsFields = document.getElementById('ars_fields');

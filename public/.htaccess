@@ -1,4 +1,11 @@
 <IfModule mod_rewrite.c>
+    <IfModule mod_headers.c>
+        <FilesMatch "\.(png|jpg|jpeg|svg|ico|webp|webmanifest)$">
+            Header always set Access-Control-Allow-Origin "*"
+            Header always set Access-Control-Allow-Methods "GET"
+        </FilesMatch>
+    </IfModule>
+
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes
     </IfModule>

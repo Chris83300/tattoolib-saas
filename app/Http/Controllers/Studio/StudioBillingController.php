@@ -24,7 +24,7 @@ class StudioBillingController extends Controller
 
     /**
      * Initier le Stripe Connect du studio (mode studio_managed).
-     * Crée ou reprend l'onboarding Express et redirige vers Stripe.
+     * Crée ou reprend l'onboarding Standard et redirige vers Stripe.
      */
     public function connectStripe(Request $request)
     {
@@ -42,7 +42,7 @@ class StudioBillingController extends Controller
             // Créer le compte Connect s'il n'existe pas encore
             if (!$studio->stripe_account_id) {
                 $account = $stripe->accounts->create([
-                    'type'          => 'express',
+                    'type'          => 'standard',
                     'country'       => 'FR',
                     'email'         => $studio->stripeEmail(),
                     'capabilities'  => [

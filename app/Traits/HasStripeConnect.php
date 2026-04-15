@@ -123,7 +123,7 @@ trait HasStripeConnect
     }
 
     /**
-     * Générer lien Stripe Connect Express
+     * Générer lien Stripe Connect Standard
      */
     public function generateStripeConnectLink(): string
     {
@@ -132,7 +132,7 @@ trait HasStripeConnect
         // Créer compte Connect si n'existe pas
         if (!$this->stripe_connect_account_id) {
             $account = $stripe->accounts->create([
-                'type' => 'express',
+                'type' => 'standard',
                 'country' => 'FR',
                 'email' => $this->user->email,
                 'capabilities' => [

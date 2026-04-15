@@ -689,7 +689,7 @@
     </div>
 
     <!-- Lightbox -->
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         function openLightbox(imageUrl) {
             const lightbox = document.createElement('div');
             lightbox.className = 'fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4';

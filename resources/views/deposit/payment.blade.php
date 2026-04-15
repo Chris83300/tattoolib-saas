@@ -173,7 +173,7 @@
 
     <!-- Script Stripe -->
     <script src="https://js.stripe.com/v3/"></script>
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         const stripe = Stripe('{{ config('services.stripe.publishable_key') }}');
         const checkoutButton = document.getElementById('checkout-button');
         const buttonText = document.getElementById('button-text');

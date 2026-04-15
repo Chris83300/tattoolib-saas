@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @include('partials.pwa-meta')
     <title>@yield('title', 'Dashboard') - Ink&Pik</title>
     @livewireStyles
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -13,6 +14,7 @@
 
     <!-- Alpine.js -->
     {{-- <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script> --}}
+
 
     <!-- CSRF Token for AJAX -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -377,11 +379,21 @@
             const el = document.getElementById('mobile-more-menu');
             if (el) el.classList.add('hidden');
         }
+
+        // Branchement des data-action sur le menu mobile Plus
+        document.addEventListener('DOMContentLoaded', function () {
+            document.addEventListener('click', function (e) {
+                const action = e.target.closest('[data-action]')?.dataset?.action;
+                if (action === 'open-mobile-menu')  openMobileMoreMenu();
+                if (action === 'close-mobile-menu') closeMobileMoreMenu();
+            });
+        });
     </script>
 
     @stack('scripts')
     @livewireScripts
     @livewire('admin-chat')
+    @include('partials.pwa-install-prompt')
 
 </body>
 

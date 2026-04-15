@@ -2,6 +2,14 @@
 @source "../../resources/views";
 @source "../../app/Livewire";
 
+@font-face {
+    font-family: "Satoshi";
+    src: url("/fonts/Satoshi-Bold.woff2") format("woff2");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
 @theme {
     /* ============================================
      PALETTE INK&PIK - FINALE VALIDÉE
@@ -275,4 +283,46 @@ select:focus[data-flux-control] {
         font-size: 4rem;
         margin-bottom: 3rem;
     }
+}
+
+/* FullCalendar — thème sombre Ink&Pik */
+.fc {
+    color: rgb(255, 251, 245) !important;
+}
+
+.fc .fc-toolbar-title,
+.fc .fc-button,
+.fc .fc-col-header-cell-cushion,
+.fc .fc-timegrid-axis-cushion,
+.fc .fc-timegrid-slot-label-cushion,
+.fc .fc-daygrid-day-number,
+.fc .fc-col-header-cell a,
+.fc-direction-ltr .fc-timegrid-slot-label-frame {
+    color: rgb(255, 255, 255) !important;
+}
+
+.fc .fc-button {
+    background: rgba(46, 52, 64, 0.35) !important;
+    border: 1px solid rgba(46, 52, 64, 0.8) !important;
+}
+
+.fc .fc-button:hover {
+    background: rgba(46, 52, 64, 0.55) !important;
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+    background: rgba(212, 181, 158, 0.25) !important;
+    border-color: rgba(212, 181, 158, 0.6) !important;
+}
+
+.fc-theme-standard td,
+.fc-theme-standard th,
+.fc-theme-standard .fc-scrollgrid {
+    border-color: rgba(46, 52, 64, 0.5) !important;
+}
+
+.fc .fc-event-title,
+.fc .fc-event-time {
+    color: rgb(255, 251, 245) !important;
 }

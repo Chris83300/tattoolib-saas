@@ -344,7 +344,7 @@
                         <div>
                             <p class="font-semibold text-ivoire-text text-sm">Aucun compte Stripe configuré</p>
                             <p class="text-xs text-titane mt-0.5">
-                                Connectez un compte Stripe Express pour encaisser les paiements clients
+                                Connectez un compte Stripe Standard pour encaisser les paiements clients
                                 directement sur le compte du studio.
                             </p>
                         </div>

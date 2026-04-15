@@ -4,19 +4,56 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="description"
-        content="Ink&Pik - Marketplace professionnelle pour tatoueurs, pierceurs et studios. Artistes vérifiés, conformité ARS, paiements sécurisés.">
+
+    <!-- Meta de base -->
+    <title>@yield('title', config('app.name', 'Ink&Pik') . ' - Marketplace professionnelle pour artistes du corps')</title>
+    <meta name="description" content="@yield('description', 'Ink&Pik - La marketplace professionnelle qui connecte clients et artistes des arts corporels. Tatoueurs, pierceurs et studios vérifiés, conformité ARS, paiements sécurisés.')">
+    <meta name="keywords" content="@yield('keywords', 'tatouage, piercing, marketplace, artiste, studio, tattoo, piercer, professionnel, vérifié, ARS, SIRET')">
+    <meta name="author" content="Ink&Pik">
     <meta name="theme-color" content="#D4B59E">
+
+    <!-- Open Graph (Facebook, LinkedIn) -->
+    <meta property="og:title" content="@yield('og:title', 'Ink&Pik - Marketplace professionnelle pour artistes du corps')">
+    <meta property="og:description" content="@yield('og:description', 'La plateforme professionnelle qui connecte clients et artistes des arts corporels. Artistes vérifiés, conformité réglementaire, paiements sécurisés.')">
+    <meta property="og:type" content="@yield('og:type', 'website')">
+    <meta property="og:url" content="@yield('og:url', config('app.url'))">
+    <meta property="og:image" content="@yield('og:image', asset('images/og-image.jpg'))">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:site_name" content="Ink&Pik">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="@yield('twitter:card', 'summary_large_image')">
+    <meta name="twitter:title" content="@yield('twitter:title', 'Ink&Pik - Marketplace professionnelle pour artistes du corps')">
+    <meta name="twitter:description" content="@yield('twitter:description', 'La plateforme professionnelle qui connecte clients et artistes des arts corporels. Artistes vérifiés, conformité réglementaire.')">
+    <meta name="twitter:image" content="@yield('twitter:image', asset('images/og-image.jpg'))">
+    <meta name="twitter:site" content="@inkandpik">
+
+    <!-- Favicon et icons -->
     <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
+    <link rel="apple-touch-icon" href="{{ asset('images/icon-192x192.png') }}">
 
     <!-- PWA Meta -->
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Ink&Pik">
+    <meta name="application-name" content="Ink&Pik">
+    <meta name="msapplication-TileColor" content="#D4B59E">
 
-    <!-- Fonts -->
+    <!-- Robots et indexation -->
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="googlebot" content="index, follow">
+    <meta name="bingbot" content="index, follow">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="@yield('canonical', request()->fullUrl())">
+
+    <!-- Préchargement critique -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" href="{{ asset('images/logo.png') }}" as="image">
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap"
         rel="stylesheet">
@@ -33,8 +70,7 @@
     </style>
 
     <!-- PWA Manifest -->
-    <link rel="manifest" href="/build/manifest.webmanifest" crossorigin="use-credentials">
-    <link rel="apple-touch-icon" href="{{ asset('images/icon-192x192.png') }}">
+    <link rel="manifest" href="/build/manifest.webmanifest">
 
     @stack('styles')
 
@@ -77,7 +113,8 @@
                 @auth
                     <!-- Navigation selon rôle -->
                     @if (auth()->user()->role === 'client')
-                        <a href="{{ route('client.bookings') }}" class="hover:text-beige-peau transition-colors">Mes RDV</a>
+                        <a href="{{ route('client.bookings') }}" class="hover:text-beige-peau transition-colors">Mes
+                            RDV</a>
                         <a href="{{ route('client.messages') }}" class="hover:text-beige-peau transition-colors relative">
                             Messages
                             @if (auth()->user()->unread_messages_count > 0)

@@ -1,10 +1,27 @@
 @extends('layouts.app')
 
+@section('title', 'Ink&Pik - Marketplace professionnelle pour tatoueurs et pierceurs')
+@section('description',
+    'Ink&Pik - La marketplace N°1 pour les arts corporels. Trouvez des tatoueurs et pierceurs
+    vérifiés, conformes ARS, avec paiements sécurisés. Notre art, votre peau.')
+@section('keywords',
+    'tatouage, piercing, marketplace, artiste, studio, tattoo, piercer, professionnel, vérifié, ARS,
+    SIRET, ink, pik')
+@section('og:title', 'Ink&Pik - Marketplace professionnelle pour tatoueurs et pierceurs')
+@section('og:description',
+    'La marketplace N°1 qui connecte clients et artistes des arts corporels. Artistes vérifiés,
+    conformité réglementaire, paiements sécurisés.')
+@section('twitter:title', 'Ink&Pik - Marketplace professionnelle pour tatoueurs et pierceurs')
+@section('twitter:description',
+    'Trouvez des tatoueurs et pierceurs vérifiés. Artistes conformes ARS, paiements
+    sécurisés. Notre art, votre peau.')
+
 @section('content')
     <!-- Hero Section -->
     <section class="min-h-screen bg-noir-profond flex items-center justify-center px-4">
         <div class="text-center max-w-2xl">
-            <img src="{{ asset('images/logo.png') }}" alt="Ink&Pik" class="flex justify-center items-center" />
+            <img src="{{ asset('images/logo.png') }}" alt="Ink&Pik" class="mx-auto block"
+                style="width: 300px !important; height: auto !important; max-width: none !important;" />
             <h1 class="text-titre md:text-10xl font-Satoshi font-bold text-titane mb-10">
                 Ink <span class="text-beige-peau">& Pik</span>
             </h1>
@@ -207,10 +224,13 @@
                         const stats = await response.json();
 
                         const el = (id) => document.getElementById(id);
-                        if (el('total-artists')) el('total-artists').textContent = stats.total_artists || '-';
-                        if (el('verified-artists')) el('verified-artists').textContent = stats.verified_artists || '-';
+                        if (el('total-artists')) el('total-artists').textContent = stats.total_artists ||
+                            '-';
+                        if (el('verified-artists')) el('verified-artists').textContent = stats
+                            .verified_artists || '-';
                         if (el('pro-artists')) el('pro-artists').textContent = stats.pro_artists || '-';
-                        if (el('total-appointments')) el('total-appointments').textContent = stats.total_appointments || '-';
+                        if (el('total-appointments')) el('total-appointments').textContent = stats
+                            .total_appointments || '-';
                     } catch (error) {
                         console.error('Erreur chargement stats:', error);
                     }
@@ -350,15 +370,17 @@
                     const badgesContainer = card.querySelector('.absolute.top-2.left-2');
                     const badgeClassMap = {
                         'compliance': 'bg-vert-succes/20 text-vert-succes',
-                        'verified':   'bg-beige-peau/20 text-beige-peau',
-                        'top_rated':  'bg-beige-peau/20 text-beige-peau',
-                        'pro':        'bg-beige-peau text-noir-profond',
-                        'studio':     'bg-beige-peau/70 text-noir-profond',
+                        'verified': 'bg-beige-peau/20 text-beige-peau',
+                        'top_rated': 'bg-beige-peau/20 text-beige-peau',
+                        'pro': 'bg-beige-peau text-noir-profond',
+                        'studio': 'bg-beige-peau/70 text-noir-profond',
                     };
                     artist.badges.forEach(badge => {
                         const badgeElement = document.createElement('div');
-                        const colorClass = badgeClassMap[badge.type] || 'bg-titane/20 text-ivoire-text/80';
-                        badgeElement.className = `${colorClass} px-2 py-1 rounded text-xs font-semibold`;
+                        const colorClass = badgeClassMap[badge.type] ||
+                            'bg-titane/20 text-ivoire-text/80';
+                        badgeElement.className =
+                            `${colorClass} px-2 py-1 rounded text-xs font-semibold`;
                         badgeElement.textContent = badge.label;
                         badgesContainer.appendChild(badgeElement);
                     });
