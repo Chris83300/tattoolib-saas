@@ -154,9 +154,8 @@
                         d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <div class="text-sm text-ivoire-text/80">
-                    <p class="font-semibold text-beige-peau mb-1">Fonctionnalité PRO</p>
-                    <p>La création manuelle de fiches clients vous permet d'ajouter des clients sans qu'ils aient à passer
-                        par une demande de réservation.</p>
+                    <p class="font-semibold text-beige-peau mb-1">Fiches clients manuelles</p>
+                    <p>Ajoutez vos clients sans qu'ils aient à passer par une demande de réservation. Plan Starter : 10 fiches max — Plan PRO : illimité.</p>
                 </div>
             </div>
         </div>

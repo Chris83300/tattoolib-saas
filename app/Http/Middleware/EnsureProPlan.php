@@ -14,16 +14,17 @@ class EnsureProPlan
         $artisanType = auth()->user()?->artisanType() ?? 'tattooer';
         $routePrefix = $artisanType === 'piercer' ? 'pierceur' : 'tattooer';
 
-        if (!$artisan || $artisan->isFree()) {
+        // Starter ET PRO ont accès — seuls les comptes sans abonnement actif sont bloqués
+        if (!$artisan || !$artisan->canAccessStarterFeature()) {
             if ($request->expectsJson()) {
                 return response()->json([
-                    'error' => 'Fonctionnalité réservée au plan PRO.',
+                    'error' => 'Fonctionnalité réservée au plan Starter ou PRO.',
                     'upgrade_url' => route($routePrefix . '.subscription.plans'),
                 ], 403);
             }
 
             return redirect()->route($routePrefix . '.subscription.plans')
-                ->with('info', '🔒 Cette fonctionnalité est réservée au plan PRO.');
+                ->with('info', '🔒 Cette fonctionnalité est réservée au plan Starter ou PRO.');
         }
 
         return $next($request);

@@ -86,7 +86,7 @@ class SecurityHeaders
         // ENVIRONNEMENT PRODUCTION : CSP strict avec nonce — sans unsafe-inline/eval sur script-src
         return implode('; ', [
             "default-src 'self'",
-            "script-src 'self' 'nonce-{$nonce}' 'unsafe-eval' 'unsafe-hashes' 'sha256-Jgu5TBP9xCYKFK2zND6yNif+XgKHP/iZ2xKyeBbN6sY=' https://js.stripe.com https://www.googletagmanager.com https://cdn.jsdelivr.net https://translate.googleapis.com https://www.gstatic.com",
+            "script-src 'self' 'nonce-{$nonce}' 'unsafe-eval' 'unsafe-hashes' 'sha256-Jgu5TBP9xCYKFK2zND6yNif+XgKHP/iZ2xKyeBbN6sY=' 'sha256-8hH2zQQIc01O7X+6ZakZuRieaoTmIX9YyUq3NnIAO+k=' 'sha256-7hF8BnlU6AJSjZiBULCneial/dK+DeAtn4kEPkNSySU=' 'sha256-mje9p+TdgmVB9Ub9A+C08U/PhhPB5WkCY6sEYywrd+4=' https://js.stripe.com https://www.googletagmanager.com https://cdn.jsdelivr.net https://translate.googleapis.com https://www.gstatic.com",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.bunny.net https://cdn.jsdelivr.net https://www.gstatic.com",
             "img-src 'self' data: https:",
             "font-src 'self' data: https://fonts.gstatic.com https://fonts.bunny.net",

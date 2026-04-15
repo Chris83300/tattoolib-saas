@@ -130,7 +130,7 @@
                     @endif
                 </a>
 
-                @if ($artisan && $artisan->isPro())
+                @if ($artisan && $artisan->canAccessStarterFeature())
                     <a href="{{ route($routePrefix . '.clients') }}"
                         class="flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs($routePrefix . '.clients*') ? 'bg-beige-peau text-noir-profond' : 'text-ivoire-text hover:bg-noir-profond' }} transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -341,7 +341,7 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
-                    @if ($artisan && $artisan->isPro())
+                    @if ($artisan && $artisan->canAccessStarterFeature())
                         <a href="{{ route($routePrefix . '.clients') }}"
                             class="p-4 rounded-xl bg-noir-profond text-ivoire-text border border-titane/20">
                             <div class="font-semibold">Clients</div>
@@ -391,7 +391,7 @@
     </script>
 
     @stack('scripts')
-    @livewireScripts
+    @livewireScripts(['nonce' => csp_nonce()])
     @livewire('admin-chat')
     @include('partials.pwa-install-prompt')
 

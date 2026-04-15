@@ -15,22 +15,24 @@ class TraceabilityRecord extends Model implements HasMedia
     protected $fillable = [
         'user_id',
         'tattooer_id',
-        'client_id', // Ajouté pour les clients manuels
+        'client_id',
         'appointment_id',
         'client_consent_form_id',
+        'studio_id',
+
+        // Session standalone
+        'session_date',
+        'tattoo_description',
+        'body_zone',
 
         // Informations de procédure
         'procedure_date',
         'procedure_start_time',
         'procedure_end_time',
 
-        // Aiguilles utilisées
+        // Matériaux (colonnes dédiées + JSON)
         'needles_used',
-
-        // Encres utilisées
         'inks_used',
-
-        // Équipement stérile
         'sterile_equipment',
 
         // Produits de soin
@@ -55,13 +57,13 @@ class TraceabilityRecord extends Model implements HasMedia
         'tattooer_verified_traceability',
         'verified_at',
         'verification_notes',
-        'studio_id',
     ];
 
     protected $casts = [
         'procedure_date' => 'date',
-        'procedure_start_time' => 'datetime:H:i',
-        'procedure_end_time' => 'datetime:H:i',
+        'session_date' => 'date',
+        'procedure_start_time' => 'string',
+        'procedure_end_time' => 'string',
         'autoclave_test_date' => 'date',
         'needles_used' => 'array',
         'inks_used' => 'array',

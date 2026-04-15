@@ -33,16 +33,29 @@
                     </button>
                 </form>
 
-                <!-- Bouton création client -->
-                @if (auth()->user()->isTattooer() ? auth()->user()->tattooer?->isPro() : auth()->user()->piercer?->isPro())
+                <!-- Bouton création client : PRO illimité, Starter max 10, sans plan → upgrade -->
+                @if ($tattooer->isPro())
                     <a href="{{ route($tattooer->routePrefix() . '.clients.create') }}"
                         class="px-4 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold text-sm hover:bg-beige-peau/90 transition-colors">
                         ➕ Créer une fiche client
                     </a>
+                @elseif ($tattooer->isStarter())
+                    @if ($manualClientCount < 10)
+                        <a href="{{ route($tattooer->routePrefix() . '.clients.create') }}"
+                            class="px-4 py-3 bg-beige-peau text-noir-profond rounded-lg font-semibold text-sm hover:bg-beige-peau/90 transition-colors"
+                            title="{{ $manualClientCount }}/10 fiches utilisées">
+                            ➕ Créer une fiche client ({{ $manualClientCount }}/10)
+                        </a>
+                    @else
+                        <span class="px-4 py-3 bg-titane/20 text-ivoire-text/50 rounded-lg font-semibold text-sm cursor-not-allowed"
+                              title="Limite de 10 fiches atteinte — passez au plan PRO">
+                            🔒 Limite atteinte (10/10)
+                        </span>
+                    @endif
                 @else
                     <a href="{{ route($tattooer->routePrefix() . '.subscription.plans') }}"
                         class="px-4 py-3 bg-beige-peau/30 text-beige-peau rounded-lg font-semibold text-sm hover:bg-beige-peau/40 transition-colors">
-                        🔒 Créer une fiche client (PRO)
+                        🔒 Créer une fiche client (Starter/PRO)
                     </a>
                 @endif
             </div>

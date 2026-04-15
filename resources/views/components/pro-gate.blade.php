@@ -2,6 +2,7 @@
     'feature' => 'cette fonctionnalité',
     'blur' => true,
     'compact' => false,
+    'proOnly' => false,  // true = réservé PRO uniquement (pas Starter)
 ])
 
 @php
@@ -20,12 +21,16 @@
     }
     // Tattooer indépendant
     elseif ($user && $user->tattooer) {
-        $isAllowed = $user->tattooer->isPro();
+        $isAllowed = $proOnly
+            ? $user->tattooer->isPro()
+            : $user->tattooer->canAccessStarterFeature();
         $subscribeRoute = 'tattooer.subscription.plans';
     }
     // Pierceur indépendant
     elseif ($user && $user->piercer) {
-        $isAllowed = $user->piercer->isPro();
+        $isAllowed = $proOnly
+            ? $user->piercer->isPro()
+            : $user->piercer->canAccessStarterFeature();
         $subscribeRoute = 'tattooer.subscription.plans';
     }
 @endphp
@@ -57,19 +62,17 @@
                 @if ($compact)
                     {{-- Version compacte (pour petits espaces) --}}
                     <p class="text-sm text-ivoire-text/80 mb-3">
-                        <strong class="text-beige-peau">PRO</strong> requis pour {{ $feature }}
+                        Abonnement requis pour {{ $feature }}
                     </p>
                     <a href="{{ route($subscribeRoute) }}"
                         class="inline-flex items-center gap-1.5 px-4 py-2 bg-beige-peau text-noir-profond rounded-lg text-sm font-bold hover:bg-beige-peau/90 transition-colors">
-                        🚀 Passer PRO
+                        🚀 S'abonner
                     </a>
                 @else
                     {{-- Version complète --}}
-                    <h4 class="text-lg font-bold text-ivoire-text mb-1">Fonctionnalité PRO</h4>
+                    <h4 class="text-lg font-bold text-ivoire-text mb-1">Abonnement requis</h4>
                     <p class="text-sm text-ivoire-text/70 mb-4">
-                        Passez au plan PRO pour accéder à {{ $feature }}.
-                        <br>
-                        <span class="text-beige-peau font-semibold">Commission 0%</span> + outils professionnels.
+                        Abonnez-vous au plan Starter ou PRO pour accéder à {{ $feature }}.
                     </p>
                     <a href="{{ route($subscribeRoute) }}"
                         class="inline-flex items-center gap-2 px-5 py-2.5 bg-beige-peau text-noir-profond rounded-xl text-sm font-bold hover:bg-beige-peau/90 transition-colors active:scale-95">
@@ -77,12 +80,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
-                        Passer PRO —
-                        @if ($user && $user->isStudioOwner())
-                            59.99€/mois
-                        @else
-                            29.99€/mois
-                        @endif
+                        Voir les plans — dès 9.99€/mois
                     </a>
                     <p class="text-xs text-titane mt-2">Annulable à tout moment</p>
                 @endif

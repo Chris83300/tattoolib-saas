@@ -75,7 +75,11 @@ class TattooerClientController extends ArtisanBaseController
             return $client;
         });
 
-        return view('tattooer.clients', compact('tattooer', 'clients', 'pendingCount', 'unreadCount'));
+        // Compteur et limite de fiches manuelles pour le plan Starter
+        $manualClientCount = \App\Models\Client::where('tattooer_id', $tattooer->id)->count();
+        $clientFileLimit = $tattooer->isPro() ? null : 10;
+
+        return view('tattooer.clients', compact('tattooer', 'clients', 'pendingCount', 'unreadCount', 'manualClientCount', 'clientFileLimit'));
     }
 
     /**
@@ -258,23 +262,56 @@ class TattooerClientController extends ArtisanBaseController
 
     /**
      * Afficher le formulaire de création de client manuel
+     * Starter : max 10 fiches manuelles — PRO : illimité
      */
     public function createClient()
     {
         $tattooer = $this->artisan();
+
+        if (!$tattooer->canAccessStarterFeature()) {
+            return redirect()->route($this->routePrefix() . '.subscription.plans')
+                ->with('error', '🔒 La gestion des fiches clients requiert au minimum le plan Starter.');
+        }
+
+        // Starter : max 10 fiches manuelles (isStarter() est la vérif exacte, indépendante du trial)
+        if ($tattooer->isStarter()) {
+            $manualCount = \App\Models\Client::where('tattooer_id', $tattooer->id)->count();
+            if ($manualCount >= 10) {
+                return redirect()->route($this->routePrefix() . '.clients')
+                    ->with('error', '🔒 Limite de 10 fiches clients atteinte sur le plan Starter. Passez au plan PRO pour créer des fiches illimitées.');
+            }
+        }
+
         return view('tattooer.clients-create', compact('tattooer'));
     }
 
     /**
      * Stocker un nouveau client manuel
+     * Starter : max 10 fiches manuelles — PRO : illimité
      */
     public function storeClient(Request $request)
     {
         try {
+            $tattooerForCheck = $this->artisan();
+
+            if (!$tattooerForCheck->canAccessStarterFeature()) {
+                return redirect()->route($this->routePrefix() . '.subscription.plans')
+                    ->with('error', '🔒 La gestion des fiches clients requiert au minimum le plan Starter.');
+            }
+
+            // Starter : max 10 fiches manuelles (isStarter() est la vérif exacte)
+            if ($tattooerForCheck->isStarter()) {
+                $manualCount = \App\Models\Client::where('tattooer_id', $tattooerForCheck->id)->count();
+                if ($manualCount >= 10) {
+                    return redirect()->route($this->routePrefix() . '.clients')
+                        ->with('error', '🔒 Limite de 10 fiches clients atteinte sur le plan Starter. Passez au plan PRO pour créer des fiches illimitées.');
+                }
+            }
+
             Log::info('storeClient called', [
                 'fields' => array_keys($request->except(['password', 'password_confirmation', '_token', '_method'])),
-                'tattooer_id' => $this->artisan()?->id,
-                'is_pro' => $this->artisan()?->isPro()
+                'tattooer_id' => $tattooerForCheck->id,
+                'is_pro' => $tattooerForCheck->isPro()
             ]);
 
             $validated = $request->validate([
@@ -341,6 +378,30 @@ class TattooerClientController extends ArtisanBaseController
                 ->with('error', 'Une erreur est survenue lors de la création du client. Veuillez réessayer.')
                 ->withInput();
         }
+    }
+
+    /**
+     * Supprimer une fiche client (soft delete)
+     * Seules les fiches créées manuellement par ce tattooer peuvent être supprimées.
+     */
+    public function destroyClient(Client $client)
+    {
+        $tattooer = $this->artisan();
+
+        // Seul le créateur manuel peut supprimer (pas les clients issus de bookings)
+        if ((int) $client->tattooer_id !== (int) $tattooer->id) {
+            abort(403, 'Vous ne pouvez supprimer que les fiches que vous avez créées manuellement.');
+        }
+
+        Log::info('[DestroyClient] Suppression fiche client', [
+            'client_id'  => $client->id,
+            'tattooer_id' => $tattooer->id,
+        ]);
+
+        $client->delete();
+
+        return redirect()->route($this->routePrefix() . '.clients')
+            ->with('success', '🗑️ Fiche client supprimée.');
     }
 
     /**

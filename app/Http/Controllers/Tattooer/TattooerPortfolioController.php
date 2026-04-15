@@ -120,14 +120,16 @@ class TattooerPortfolioController extends ArtisanBaseController
                 'description' => 'nullable|string|max:500'
             ]);
 
-            // Vérifier la limite d'images
-            $currentCount = $tattooer->getMedia('before_after')->count();
-            $maxImages = 20;
+            // Vérifier la limite d'images (TOTAL toutes collections — même logique que portfolioUpload)
+            $totalPortfolioCount = $tattooer->getMedia('portfolio')->count() +
+                                   $tattooer->getMedia('drawings')->count() +
+                                   $tattooer->getMedia('before_after')->count();
+            $maxImages = $tattooer->isPro() ? PHP_INT_MAX : 15;
 
-            if ($currentCount + 2 > $maxImages) {
+            if ($totalPortfolioCount + 2 > $maxImages) {
                 return response()->json([
                     'success' => false,
-                    'message' => "Limite d'images dépassée. Maximum {$maxImages} images autorisées."
+                    'message' => "Limite de {$maxImages} images atteinte. Passez au plan Pro pour un portfolio illimité."
                 ], 422);
             }
 

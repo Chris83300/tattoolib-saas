@@ -131,6 +131,7 @@ Route::middleware(['auth', 'artisan.can.operate'])->prefix('tattooer')->name('ta
     Route::get('/clients/create', [TattooerClientController::class, 'createClient'])->name('clients.create')->middleware('pro');
     Route::post('/clients', [TattooerClientController::class, 'storeClient'])->name('clients.store')->middleware('pro');
     Route::get('/clients/{client}', [TattooerClientController::class, 'clientShow'])->name('client.show');
+    Route::delete('/clients/{client}', [TattooerClientController::class, 'destroyClient'])->name('client.destroy');
     Route::put('/clients/{client}', [TattooerClientController::class, 'updateClient'])->name('clients.update')->middleware('pro');
     Route::post('/clients/{client}/consent/upload', [TattooerConsentController::class, 'uploadConsent'])->name('clients.consent.upload')->middleware('pro');
     Route::post('/clients/{client}/consent/store-digital', [TattooerConsentController::class, 'storeDigitalConsent'])->name('clients.consent.store-digital')->middleware('pro');
@@ -388,6 +389,7 @@ Route::middleware(['auth', 'role:pierceur,Piercer', 'artisan.can.operate'])->pre
     Route::get('/clients/create', [TattooerClientController::class, 'createClient'])->name('clients.create')->middleware('pro');
     Route::post('/clients', [TattooerClientController::class, 'storeClient'])->name('clients.store')->middleware('pro');
     Route::get('/clients/{client}', [TattooerClientController::class, 'clientShow'])->name('client.show');
+    Route::delete('/clients/{client}', [TattooerClientController::class, 'destroyClient'])->name('client.destroy');
     Route::put('/clients/{client}', [TattooerClientController::class, 'updateClient'])->name('clients.update')->middleware('pro');
     Route::post('/clients/{client}/consent/upload', [TattooerConsentController::class, 'uploadConsent'])->name('clients.consent.upload')->middleware('pro');
     Route::post('/clients/{client}/consent/store-digital', [TattooerConsentController::class, 'storeDigitalConsent'])->name('clients.consent.store-digital')->middleware('pro');

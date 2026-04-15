@@ -158,7 +158,8 @@ class SubscriptionController extends Controller
         }
 
         // Récupérer le plan depuis la query string (passé dans success_url)
-        $planKey = in_array($request->get('plan'), ['starter', 'pro']) ? $request->get('plan') : 'pro';
+        // Défaut 'starter' (plan le moins élevé) en cas de paramètre manquant
+        $planKey = in_array($request->get('plan'), ['starter', 'pro']) ? $request->get('plan') : 'starter';
 
         try {
             $stripe = new \Stripe\StripeClient(config('cashier.secret'));
@@ -247,7 +248,7 @@ class SubscriptionController extends Controller
         // Créer une session Stripe Checkout pour le plan PRO
         try {
             $checkoutSession = $user->checkout('pro', [
-                'success_url' => route($routePrefix . '.subscription.success'),
+                'success_url' => route($routePrefix . '.subscription.success') . '?session_id={CHECKOUT_SESSION_ID}&plan=pro',
                 'cancel_url' => route($routePrefix . '.subscription.plans'),
                 'metadata' => [
                     'user_id' => $user->id,

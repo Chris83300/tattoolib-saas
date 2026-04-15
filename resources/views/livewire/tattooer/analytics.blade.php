@@ -14,7 +14,7 @@
             </div>
 
             <!-- Statistiques -->
-            <x-pro-gate feature="les analytics et statistiques avancées">
+            <x-pro-gate feature="les analytics et statistiques avancées" :pro-only="true">
                 <div class="bg-gris-fonde rounded-xl p-6">
                     <div class="text-center py-12">
                         <svg class="w-16 h-16 mx-auto mb-4 text-beige-peau" fill="none" stroke="currentColor"

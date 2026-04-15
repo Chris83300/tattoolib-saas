@@ -162,8 +162,8 @@
                                         </span>
                                     @endif
 
-                                    @if ($bookingRequest->status === \App\Enums\BookingRequestStatus::ACCEPTED)
-                                        <a href="{{ route('client.chat', $bookingRequest) }}"
+                                    @if ($bookingRequest->status === \App\Enums\BookingRequestStatus::ACCEPTED && $bookingRequest->conversation)
+                                        <a href="{{ route('client.chat', $bookingRequest->conversation) }}"
                                             class="p-2 bg-beige-peau text-noir-profond rounded-lg hover:bg-beige-peau/90 transition-colors"
                                             title="Discuter">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor"

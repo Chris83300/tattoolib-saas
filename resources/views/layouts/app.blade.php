@@ -191,9 +191,11 @@
                             Studio</a>
                     @endif
 
-                    <!-- Lien profil direct + Déconnexion -->
-                    <a href="{{ auth()->user()->role === 'client' ? route('client.profile') : auth()->user()->getProfileRoute() }}"
-                        class="block py-2 text-ivoire-text hover:text-beige-peau transition-colors">Mon profil</a>
+                    <!-- Lien profil direct (uniquement pour les non-clients, les clients ont déjà le lien ci-dessus) -->
+                    @if (auth()->user()->role !== 'client')
+                        <a href="{{ auth()->user()->getProfileRoute() }}"
+                            class="block py-2 text-ivoire-text hover:text-beige-peau transition-colors">Mon profil</a>
+                    @endif
 
                     <form method="POST" action="{{ route('logout') }}" class="block">
                         @csrf

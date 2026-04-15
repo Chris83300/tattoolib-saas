@@ -134,8 +134,8 @@
                     <span>Réservations</span>
                 </a>
 
-                <!-- Clients (si PRO) -->
-                @if (auth()->user()->tattooer && auth()->user()->tattooer->isPro())
+                <!-- Clients (Starter + PRO) -->
+                @if (auth()->user()->tattooer && auth()->user()->tattooer->canAccessStarterFeature())
                     <a href="{{ route('tattooer.clients') }}"
                         class="flex items-center space-x-3 px-4 py-3 rounded-lg text-ivoire-text hover:bg-beige-peau/10 transition-colors {{ request()->routeIs('tattooer.clients') ? 'bg-beige-peau/20 text-beige-peau' : '' }}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
